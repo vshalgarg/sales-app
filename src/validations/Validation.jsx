@@ -1,0 +1,272 @@
+const validate = (field, value) => {
+  let error = "";
+
+  switch (field) {
+    case "username":
+      if (!value) return "Username is required";
+      break;
+    case "password":
+      if (!value) return "Password is required";
+      break;
+    case "state":
+      if (!value) return "State is required";
+      break;
+    case "city":
+      if (!value) return "City is required";
+      break;
+    case "fromDate":
+      if (!value.trim()) error = "From date is required";
+      break;
+    case "toDate":
+      if (!value.trim()) error = "To Date is required";
+      break;
+    case "supplier":
+      if (!value.trim()) error = "Supplier is required";
+      break;
+    case "customer":
+      if (!value.trim()) error = "Customer is required";
+      break;
+    case "supplierId":
+      if (!value || value === "None" || value === "")
+        error = "Supplier is required";
+      break;
+    case "customerId":
+      if (!value || value === "None" || value === "")
+        error = "Customer is required";
+      break;
+    case "supplierCurrentBalance":
+      if (!value.trim()) error = "Current Balance is required";
+      break;
+    case "customerCurrentBalance":
+      if (!value.trim()) error = "Current Balance is required";
+      break;
+    case "chequeNumber":
+      if (!value.trim()) error = "Cheque Number is required";
+      break;
+    case "chequeDate":
+      if (!value.trim()) error = "Current Date is required";
+      break;
+    case "receivedAmount":
+      if (!value.trim()) error = "Received Amount is required";
+      break;
+    case "slipNumber":
+      if (!value.trim()) error = "Slip Number is required";
+      break;
+    case "supplierName":
+      if (!value.trim()) error = "Supplier Name is required.";
+      break;
+    case "customerName":
+      if (!value.trim()) error = "Customer Name is required.";
+      break;
+    case "supplierGroup":
+      if (!value.trim()) error = "Group Name is required.";
+      break;
+    case "supplierMsme":
+      if (!value.trim()) error = "Msme is required.";
+      break;
+    case "customerGroup":
+      if (!value.trim()) error = "Group Name is required.";
+      break;
+    case "customerMsme":
+      if (!value.trim()) error = "Msme is required.";
+      break;
+    case "customerGstNo":
+      const gstRegx =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!value.trim()) {
+        error = "GSTIN is required.";
+      } else if (!gstRegx.test(value)) {
+        error = "Invalid GST Number format.";
+      }
+      if (!value.trim()) error = "GSTIN is required.";
+      break;
+    case "supplierGstNo":
+      const gstRegex =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!value.trim()) {
+        error = "GSTIN is required.";
+      } else if (!gstRegex.test(value)) {
+        error = "Invalid GST Number format.";
+      }
+      if (!value.trim()) error = "GSTIN is required.";
+      break;
+
+    case "commissionRate":
+      const rate = parseFloat(value);
+      if (!value) {
+        error = "Commission rate is required.";
+      } else if (isNaN(rate) || rate < 0 || rate > 100) {
+        error = "Commission rate must be between 0 and 100.";
+      }
+      break;
+
+    case "commissionScheme":
+      if (!value || value === "None" || value === "") {
+        error = "Please select correct scheme.";
+      }
+      break;
+
+    case "referencedBy":
+      if (!value.trim()) {
+        error = "Referenced by is required.";
+      }
+      break;
+
+    case "addressLine1":
+      if (!value.trim()) error = "AddressLine1 is required.";
+      break;
+
+    case "addressLine2":
+      if (!value.trim()) error = "AddressLine2 is required.";
+      break;
+
+    case "contactPerson":
+      if (!value.trim()) error = "Contact Person is required.";
+      break;
+
+    case "mobileNumber":
+      if (!value) return "Mobile number is required";
+      if (!/^\d+$/.test(value)) return "Only digits allowed";
+      if (value.length < 10) return "Must be at least 10 digits";
+      break;
+
+    case "phone":
+      if (!value) return "Phone number is required";
+      if (!/^\d+$/.test(value)) return "Only digits allowed";
+      if (value.length < 10) return "Must be at least 10 digits";
+      break;
+
+    case "preferredTransport":
+      if (!value || value.length === 0) {
+        error = "Select transport is required.";
+      }
+      break;
+
+    case "state":
+      if (!value || value.length === 0) {
+        error = "State is required";
+      }
+      break;
+
+    case "city":
+      if (!value || value.length === 0) {
+        error = "City is required";
+      }
+      break;
+
+    case "staffName":
+      if (!value || value.length === 0) {
+        error = "Staff Name is required";
+      }
+      break;
+
+    case "joiningDate":
+      if (!value || value.length === 0) {
+        error = "Joining Date is required";
+      }
+      break;
+
+    case "billNumber":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Bill Number is required";
+      }
+      break;
+    case "date":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Date is required";
+      }
+      break;
+    case "receivedDate":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Received Date is required";
+      }
+      break;
+    case "order":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Order is required";
+      }
+      break;
+
+    case "grossAmount":
+      if (!value || value.length === 0) {
+        error = "Gross Amoount is required";
+      }
+      break;
+    case "pieces":
+      if (!value || value.length === 0) {
+        error = "Pieces is required";
+      }
+      break;
+    case "discountPercent":
+      if (!value || value.length === 0) {
+        error = "Discount% is required";
+      }
+      break;
+    case "discountAmount":
+      if (!value || value.length === 0) {
+        error = "Discount Amount is required";
+      }
+      break;
+    case "addOnAmount":
+      if (!value || value.length === 0) {
+        error = "Add-On amount is required";
+      }
+      break;
+    case "ecrAmount":
+      if (!value || value.length === 0) {
+        error = "ECR Amount is required";
+      }
+      break;
+    case "gstPercent":
+      if (!value || value.length === 0) {
+        error = "GST% is required";
+      }
+      break;
+    case "gstAmount":
+      if (!value || value.length === 0) {
+        error = "GST Amount is required";
+      }
+      break;
+    case "taxableValue":
+      if (!value || value.length === 0) {
+        error = "Taxable value is required";
+      }
+      break;
+    case "billAmount":
+      if (!value || value.length === 0) {
+        error = "Bill Amount is required";
+      }
+      break;
+    case "lrNumber":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "LR Number is required";
+      }
+      break;
+    case "transport":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Transport is required";
+      }
+      break;
+    case "paymentType":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Payment Type is required";
+      }
+      break;
+    case "staff":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Staff is required";
+      }
+      break;
+    case "purchaseAmount":
+      if (!value.trim() || !value || value.length === 0) {
+        error = "Purchase Amount is required";
+      }
+      break;
+    default:
+      break;
+  }
+
+  return error;
+};
+
+export default validate;
