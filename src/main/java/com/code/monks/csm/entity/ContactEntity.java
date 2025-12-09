@@ -6,7 +6,15 @@ import lombok.ToString;
 
 @Data
 @Entity
-@Table(name = "contact")
+@Table(
+        name = "contact",
+        indexes = {
+                @Index(name = "idx_contact_mobile", columnList = "mobile_number"),
+                @Index(name = "idx_contact_phone", columnList = "phone"),
+                @Index(name = "idx_contact_supplier", columnList = "supplier_id"),
+                @Index(name = "idx_contact_customer", columnList = "customer_id")
+        }
+)
 public class ContactEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -10,7 +10,14 @@ import java.util.List;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "supplier")
+@Table(
+        name = "supplier",
+        indexes = {
+                @Index(name = "idx_supplier_name", columnList = "name"),
+                @Index(name = "idx_supplier_gst", columnList = "gstNo"),
+                @Index(name = "idx_supplier_code", columnList = "code") // optional
+        }
+)
 public class SupplierEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

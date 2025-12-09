@@ -8,9 +8,16 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Entity
-@Table(name = "customer")
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(
+        name = "customer",
+        indexes = {
+                @Index(name = "idx_customer_name", columnList = "name"),
+                @Index(name = "idx_customer_gst", columnList = "gstNo"),
+                @Index(name = "idx_customer_code", columnList = "code")
+        }
+)
 public class CustomerEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
