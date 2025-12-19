@@ -1,15 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { searchSuppliers } from "../service/SupplierService";
 import { searchCustomers } from "../service/CustomerService";
-import { addBill } from "../service/BillService";
 import validate from "../validations/Validation";
-import { useSnackbar } from "../context/SnackbarContext";
+import dayjs from "dayjs";
 
 export const useBillForm = () => {
   const searchSupplierRef = useRef(null);
   const searchCustomerRef = useRef(null);
-  const { showSnackbar } = useSnackbar();
-  const [submitted, setSubmitted] = useState(false);
 
   // 🔹 Refs
   const searchRef = useRef(null);
@@ -66,7 +63,7 @@ export const useBillForm = () => {
   const initialFormData = {
     customerId: "",
     supplierId: "",
-    date: "",
+    date: dayjs().format("YYYY-MM-DD"),
     receivedDate: "",
     order: "",
     supplierName: "",
@@ -193,43 +190,6 @@ export const useBillForm = () => {
     setCustSuggestions([]);
     // localStorage.removeItem("billFormData");
     // localStorage.removeItem("billFormErrors");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // 1️⃣ Validate all fields
-    const newErrors = {};
-    Object.keys(formData).forEach((field) => {
-      const error = validate(field, formData[field]);
-      if (error) newErrors[field] = error;
-    });
-
-    // 2️⃣ Update errors state
-    setErrors(newErrors);
-
-    // 3️⃣ Force UI to show errors before doing anything else
-    // ✅ By using a short setTimeout (0ms) after state update
-    setTimeout(async () => {
-      if (Object.keys(newErrors).length > 0) {
-        showSnackbar("Please fill required fields.", "error");
-        return;
-      }
-
-      // ✅ No errors → proceed
-      try {
-        const response = await addBill(formData);
-        if (response?.message) {
-          showSnackbar(response.message, "success");
-          handleReset();
-        } else {
-          showSnackbar("Unexpected response", "error");
-        }
-      } catch (err) {
-        console.error(err);
-        showSnackbar("Error while saving bill entry", "error");
-      }
-    }, 0);
   };
 
   // 🔹 Customer Input
@@ -415,8 +375,7 @@ export const useBillForm = () => {
     return [];
   };
 
-  // 🔹 Auto calculations
-  useEffect(() => {
+   useEffect(() => {
     const gross = parseFloat(formData.grossAmount) || 0;
     const discPercent = parseFloat(formData.discountPercent) || 0;
     const addOn = parseFloat(formData.addOnAmount) || 0;
@@ -425,16 +384,20 @@ export const useBillForm = () => {
 
     const discountAmount =
       gross && discPercent ? (gross * discPercent) / 100 : "";
-
-    const taxableValue =
+      
+      const taxableValue =
       gross || discPercent || addOn || ecr
         ? gross - (gross * discPercent) / 100 + addOn + ecr
         : "";
 
-    const gstAmount =
+      const gstAmount =
       taxableValue && gstPercent
         ? (parseFloat(taxableValue) * gstPercent) / 100
         : "";
+
+    
+
+    
 
     const billAmount =
       taxableValue || gstAmount
@@ -470,7 +433,6 @@ export const useBillForm = () => {
     setErrors,
     handleChange,
     handleReset,
-    handleSubmit,
     setSupplierTransports,
     supplierTransports,
     setCustomerTransports,

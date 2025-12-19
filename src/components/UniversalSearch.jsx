@@ -6,6 +6,7 @@ export default function UniversalSearch({
   setQuery,
   searchFn,
   onResult,
+  allData = [],
 }) {
   const [suggestions, setSuggestions] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -27,7 +28,7 @@ export default function UniversalSearch({
 
     if (!value.trim()) {
       setSuggestions([]);
-      onResult([], "");
+      onResult(allData, "");
       return;
     }
 
@@ -48,14 +49,18 @@ export default function UniversalSearch({
     }
   };
 
-  const handleKeyDown = async (e) => {
+const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (!query.trim()) return;
+      if (!query.trim()) {
+        onResult(allData, "");
+        setIsDropdownOpen(false);
+        return;
+      }
 
       try {
         const results = await searchFn(query.trim());
-        onResult(results, query.trim()); // <-- FIXED
+        onResult(results, query.trim());
         setIsDropdownOpen(false);
         setSuggestions([]);
       } catch (err) {
@@ -77,7 +82,7 @@ export default function UniversalSearch({
           item.customerName === name
       );
 
-      onResult(selected ? [selected] : [], name); // <-- FIXED
+      onResult(selected ? [selected] : [], name);
     } catch (err) {
       console.error(err);
     }

@@ -56,7 +56,7 @@ export default function SupplierDashboard() {
     city: "",
     pinCode: "",
     contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
-    preferredTransport: [],
+    preferredTransportIds: [],
     remark: "",
   });
 
@@ -78,6 +78,9 @@ export default function SupplierDashboard() {
     setLoading(true);
     try {
       const data = await getSuppliers(page, rowsPerPage);
+      console.log("API Response:", data);
+      console.log("Content array:", data.content);
+      console.log("Total Pages:", data.totalPages);
       setSuppliers(data.content || []);
       setTotalPages(data.totalPages || 1);
     } catch (error) {
@@ -135,7 +138,7 @@ export default function SupplierDashboard() {
         searchFn={searchSuppliers}
         onResult={(results) => {
           setSuppliers(results);
-          setIsSearchActive(true);
+          setIsSearchActive(results.length > 0 && query.trim() !== "");
         }}
       />
 
@@ -189,6 +192,7 @@ export default function SupplierDashboard() {
                       >
                         <button
                           onClick={() => {
+                            console.log("Selected Supplier:", s);
                             setSelectedSupplier(s);
                             setIsModalOpen(true);
                             setOpenMenuIndex(null);
@@ -229,11 +233,10 @@ export default function SupplierDashboard() {
             <button
               onClick={() => handleChangePage(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                currentPage === 1
+              className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === 1
                   ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                   : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-              }`}
+                }`}
             >
               <ArrowLeft size={18} />
             </button>
@@ -242,11 +245,10 @@ export default function SupplierDashboard() {
                 <button
                   key={i}
                   onClick={() => handleChangePage(i + 1)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                    currentPage === i + 1
+                  className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === i + 1
                       ? "bg-blue-600 text-white"
                       : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  }`}
+                    }`}
                 >
                   {i + 1}
                 </button>
@@ -255,11 +257,10 @@ export default function SupplierDashboard() {
             <button
               onClick={() => handleChangePage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                currentPage === totalPages
+              className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === totalPages
                   ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                   : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-              }`}
+                }`}
             >
               <ArrowRight size={18} />
             </button>

@@ -3,7 +3,7 @@ import { useBillForm } from "../customHooks/useBillForm";
 import CustomTextField from "./CustomTextField";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import dayjs from "dayjs";
 // Assume searchBillHistory is imported from the same service file as other bill services
 import { searchBillHistory } from "../service/BillService";
@@ -43,6 +43,16 @@ const Bills = () => {
     filterObject,
     setFilterObject,
   } = useBillForm();
+
+  useEffect(() => {
+    const today = dayjs().format("YYYY-MM-DD");
+    if (!filterObject.fromDate && !filterObject.toDate) {
+      setFilterObject(prev => ({
+        ...prev,
+        fromDate: today
+      }));
+    }
+  }, [])
 
   // Fetch a page of bill history from backend pageable response
   const handleBillDetailHistory = async (page = 1) => {
@@ -149,7 +159,7 @@ const Bills = () => {
     setFilterObject({
       supplierName: "",
       customerName: "",
-      fromDate: "",
+      fromDate: today,
       toDate: "",
     });
     setErrors([]);
@@ -416,6 +426,7 @@ const Bills = () => {
             initialBillHistory={billHistoryData}
             billFiltersApplied={billFiltersApplied}
             paginationMeta={{ currentPage, totalPages, rowsPerPage }}
+            onBillUpdated={() => handleBillDetailHistory(currentPage)}
           />
         )}
 

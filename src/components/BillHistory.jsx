@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import BillDetail from "../modals/BillDetail";
 import EditBillDetail from "../modals/EditBillDetail";
 
-const BillHistory = ({ initialBillHistory, billFiltersApplied }) => {
+const BillHistory = ({ initialBillHistory, billFiltersApplied,onBillUpdated}) => {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [billHistory, setBillHistory] = useState(initialBillHistory || []);
   const [isModalOpen, setIsModalOpen] = useState(
@@ -161,6 +161,7 @@ const BillHistory = ({ initialBillHistory, billFiltersApplied }) => {
           open={open}
           selectedBillDetail={selectedBillDetail}
           setOpen={setOpen}
+          onUpdateSuccess={onBillUpdated}
         />
       )}
     </>

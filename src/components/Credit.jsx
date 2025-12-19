@@ -5,7 +5,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
 import CreditHistory from "./CreditHistory";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { searchCreditHistory } from "../service/CreditService";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -56,11 +56,23 @@ const Credit = () => {
     setIsFilterObject(true);
   };
 
+  useEffect(() => {
+    const today = dayjs().format("YYYY-MM-DD");
+
+    if (!filterObject.fromDate) {
+      setFilterObject(prev => ({
+        ...prev,
+        fromDate: today
+      }));
+    }
+  }, []);
+
   const clearFiltersAndResults = () => {
+    const today = dayjs().format("YYYY-MM-DD");
     setFilterObject({
       supplierName: "",
       customerName: "",
-      fromDate: "",
+      fromDate: today,
       toDate: "",
     });
     setErrors([]);

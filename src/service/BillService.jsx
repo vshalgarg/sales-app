@@ -46,8 +46,27 @@ export const searchBillHistory = async (data, page, rowsPerPage) => {
         size,
       },
     });
+console.log("search data:", JSON.stringify(response.data));
+
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
+  }
+};
+
+export const searchTransports = async (query) => {
+  if (!query || query.trim().length < 1) {
+    return [];
+  }
+
+  try {
+    const response = await api.get("/transports/search", {
+      params: { query: query.trim() }
+    });
+    console.log("Transport search response:", response.data);
+    return response.data || [];
+  } catch (error) {
+    console.error("Transport search failed:", error);
+    return [];
   }
 };

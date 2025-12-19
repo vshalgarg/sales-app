@@ -38,7 +38,7 @@ export default function CreditEntryForm() {
   const [formData, setFormData] = useState({
     paymentType: "",
     billNumber: "",
-    date: "",
+    date: dayjs().format("YYYY-MM-DD"),
     chequeNumber: "",
     chequeDate: "",
     receivedAmount: "",
@@ -112,7 +112,7 @@ export default function CreditEntryForm() {
       paymentType: "",
       billNumber: "",
       chequeNumber: "",
-      date: "",
+      date: dayjs().format("YYYY-MM-DD"),
       chequeDate: "",
       receivedAmount: "",
       supplierId: "",
