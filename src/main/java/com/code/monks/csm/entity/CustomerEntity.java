@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -53,8 +55,13 @@ public class CustomerEntity extends BaseEntity{
     @Column(name = "msme")
     private String msme;
 
-    @Column(name = "preferred_transport")
-    private String[] preferredTransport;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "customer_preferred_transport",
+            joinColumns = @JoinColumn(name = "customer_id"),
+            inverseJoinColumns = @JoinColumn(name = "transport_id")
+    )
+    private Set<TransportEntity> preferredTransports = new HashSet<>();
 
     @Column(name = "remark")
     private String remark;

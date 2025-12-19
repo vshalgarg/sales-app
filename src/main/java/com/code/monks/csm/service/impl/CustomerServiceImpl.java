@@ -7,11 +7,14 @@ import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.DuplicateEntryException;
+import com.code.monks.csm.exception.SupplierException;
 import com.code.monks.csm.repository.ContactRepo;
 import com.code.monks.csm.repository.CustomerRepo;
+import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.CustomerService;
 import com.code.monks.csm.utils.ContactUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
@@ -24,8 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final ValidatorUtil validatorUtil;
 
     private final ContactRepo contactRepo;
+    private TransportRepository transportRepo;
 
     @Override
     public AddCustomerResponseDto addCustomer(AddCustomerRequestDto requestDto) {
@@ -121,6 +124,19 @@ public class CustomerServiceImpl implements CustomerService {
                 .toList();
 
         entity.setContactList(contactList);
+
+        if (requestDto.getPreferredTransportIds() != null && !requestDto.getPreferredTransportIds().isEmpty()) {
+            Set<TransportEntity> transports = new HashSet<>();
+
+            for (Integer id : requestDto.getPreferredTransportIds()) {
+                TransportEntity transport = transportRepo.getReferenceById(id);
+                transports.add(transport);
+            }
+            entity.setPreferredTransports(transports);
+        } else {
+            entity.setPreferredTransports(Collections.emptySet());
+        }
+
         return entity;
     }
 
@@ -163,28 +179,40 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private GetCustomersDto mapToDto(CustomerEntity record) {
-            log.debug("Mapping CustomerEntity with code={} to DTO", record.getCode());
+        log.debug("Mapping CustomerEntity with code={} to DTO", record.getCode());
 
-            List<ContactRequestDto> contacts = ContactUtil.mapContacts(record.getContactList(),
-                    ContactEntity::getContactPerson,
-                    ContactEntity::getMobileNumber,
-                    ContactEntity::getPhone);
+        List<ContactRequestDto> contacts = ContactUtil.mapContacts(
+                record.getContactList(),
+                ContactEntity::getContactPerson,
+                ContactEntity::getMobileNumber,
+                ContactEntity::getPhone
+        );
 
-            return GetCustomersDto.builder()
-                    .code(record.getCode())
-                    .customerName(record.getCustomerName())
-                    .customerGroup(record.getGroupName())
-                    .customerGstNo(record.getGstNo())
-                    .customerMsme(record.getMsme())
-                    .referencedBy(record.getReferencedBy())
-                    .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
-                    .city(record.getCity())
-                    .pinCode(record.getPinCode())
-                    .contacts(contacts)
-                    .preferredTransport(record.getPreferredTransport())
-                    .remark(record.getRemark())
-                    .build();
-        }
+        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(transport -> TransportDto.builder()
+                        .id(transport.getId())
+                        .name(transport.getName())
+                        .build())
+                .sorted(Comparator.comparing(TransportDto::getName)) // optional: alphabetical order
+                .toList();
+
+        return GetCustomersDto.builder()
+                .code(record.getCode())
+                .customerName(record.getCustomerName())
+                .customerGroup(record.getGroupName())
+                .customerGstNo(record.getGstNo())
+                .customerMsme(record.getMsme())
+                .referencedBy(record.getReferencedBy())
+                .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
+                .city(record.getCity())
+                .pinCode(record.getPinCode())
+                .contacts(contacts)
+                .preferredTransports(transportDtos)
+                .remark(record.getRemark())
+                .build();
+    }
 
     public DeleteCustomerResponseDto deleteCustomer(DeleteCustomerRequestDto requestDto) {
         String code = requestDto.getCustomerCode();
@@ -216,8 +244,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     public List<SearchCustomersResponseDto> searchCustomers(String keyword){
-        List<CustomerEntity> customers = customerRepo.findByCustomerNameContainingIgnoreCaseAndStatus(keyword, ACTIVE);
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
 
+        List<CustomerEntity> customers = customerRepo.searchByKeyword(keyword.trim());
         return customers.stream()
                 .map(s -> mapToDto(s, this::mapSupplierToSearchSuppliersDto))
                 .toList();
@@ -236,6 +267,17 @@ public class CustomerServiceImpl implements CustomerService {
                 ContactEntity::getPhone
         );
 
+        String preferredTransports = Optional.ofNullable(record.getPreferredTransports())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(TransportEntity::getName)
+                .filter(Objects::nonNull)
+                .sorted()  // optional: alphabetical order
+                .collect(Collectors.joining(", "));
+
+        if (preferredTransports.isEmpty()) {
+            preferredTransports = null;
+        }
         return SearchCustomersResponseDto.builder()
                 .id(record.getId())
                 .code(record.getCode())
@@ -248,7 +290,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .pinCode(record.getPinCode())
                 .customerMsme(record.getMsme())
                 .contacts(contacts)
-                .preferredTransport(record.getPreferredTransport())
+                .preferredTransports(preferredTransports)
                 .remark(record.getRemark())
                 .build();
     }

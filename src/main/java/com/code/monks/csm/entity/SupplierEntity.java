@@ -5,7 +5,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -56,8 +59,16 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "msme")
     private String msme;
 
-    @Column(name = "preferred_transport")
-    private String[] preferredTransport;
+//    @Column(name = "preferred_transport")
+//    private String[] preferredTransport;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "supplier_preferred_transport",
+            joinColumns = @JoinColumn(name = "supplier_id"),
+            inverseJoinColumns = @JoinColumn(name = "transport_id")
+    )
+    private Set<TransportEntity> preferredTransports = new LinkedHashSet<>();
 
     @Column(name = "remark")
     private String remark;
@@ -65,7 +76,7 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "status")
     private StatusEnum status;
 
-    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ContactEntity> contactList;
 
 }

@@ -1,10 +1,12 @@
 package com.code.monks.csm.dto.response;
 
+import com.code.monks.csm.entity.BillDetailEntity;
 import com.code.monks.csm.entity.BillEntryEntity;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -38,27 +40,41 @@ public class GetBillEntries {
     private String remarks;
 
     public static GetBillEntries convertToGetBillEntries(BillEntryEntity bill) {
+        List<BillDetailEntity> details = bill.getBillDetails();
+        boolean hasDetails = !details.isEmpty();
+
+        // Aggregate from details
+        int pieces = hasDetails ? details.stream().mapToInt(BillDetailEntity::getPieces).sum() : 0;
+        double grossAmount = hasDetails ? details.stream().mapToDouble(BillDetailEntity::getGrossAmount).sum() / 100.0 : 0.0;
+        double discountAmount = hasDetails ? details.stream().mapToDouble(BillDetailEntity::getDiscountAmount).sum() / 100.0 : 0.0;
+        double addOnAmount = hasDetails ? details.stream().mapToDouble(BillDetailEntity::getAddOnAmount).sum() / 100.0 : 0.0;
+        double ecrAmount = hasDetails ? details.stream().mapToDouble(BillDetailEntity::getEcrAmount).sum() : 0.0;  // No /100 in original for ecr
+        double gstAmount = hasDetails ? details.stream().mapToDouble(BillDetailEntity::getGstAmount).sum() / 100.0 : 0.0;
+
+        // Percentages: Take from first (assume uniform)
+        float discountPercent = hasDetails ? details.get(0).getDiscountPercent() / 100.0f : 0.0f;
+        float gstPercent = hasDetails ? details.get(0).getGstPercent() / 100.0f : 0.0f;
+
         return GetBillEntries.builder()
                 .billNumber(bill.getBillNumber())
                 .date(bill.getDate())
                 .receivedDate(bill.getReceivedDate())
                 .order(bill.getOrders())
-                .pieces(bill.getPieces())
-                .grossAmount(bill.getGrossAmount() / 100.0)
-                .discountPercent(bill.getDiscountPercent() / 100.0f)
-                .discountAmount(bill.getDiscountAmount() / 100.0)
-                .gstPercent(bill.getGstPercent() / 100.0f)
-                .gstAmount(bill.getGstAmount() / 100.0)
+                .pieces(pieces)
+                .grossAmount(grossAmount)
+                .discountPercent(discountPercent)
+                .discountAmount(discountAmount)
+                .gstPercent(gstPercent)
+                .gstAmount(gstAmount)
                 .billAmount(bill.getBillAmount() / 100.0)
-                .addOnAmount(bill.getAddOnAmount() / 100.0)
+                .addOnAmount(addOnAmount)
                 .taxableValue(bill.getTaxableValue() / 100.0)
                 .supplierId(bill.getSupplierId())
                 .customerId(bill.getCustomerId())
-                .ecrAmount(bill.getEcrAmount())
-                .transport(bill.getTransport())
+                .ecrAmount(ecrAmount)
+                .transport(bill.getTransportEntity().getName())
                 .lrNumber(bill.getLrNumber())
                 .remarks(bill.getRemarks())
                 .build();
     }
-
 }

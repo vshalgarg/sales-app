@@ -6,13 +6,14 @@ import com.code.monks.csm.dto.request.DeleteSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.SupplierEntity;
-import com.code.monks.csm.enums.ResponseErrorCode;
+import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.exception.SupplierException;
 import com.code.monks.csm.repository.ContactRepo;
 import com.code.monks.csm.repository.SupplierRepo;
+import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.SupplierService;
 import com.code.monks.csm.utils.ContactUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
@@ -25,14 +26,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.rmi.UnexpectedException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 import static com.code.monks.csm.enums.StatusEnum.ACTIVE;
@@ -48,6 +44,7 @@ public class SupplierServiceImpl implements SupplierService {
     private final ContactRepo contactRepo;
 
     private final ValidatorUtil validatorUtil;
+    private TransportRepository transportRepo;
 
     public AddSupplierResponseDto addSupplier(AddSupplierRequestDto requestDto) {
         log.info("addSupplier() called for supplier: {}", requestDto.getSupplierName());
@@ -55,18 +52,13 @@ public class SupplierServiceImpl implements SupplierService {
         try {
             String code = generateCode();
 
-            // Step 1: Validate all unique fields
             validateSupplierAndContacts(requestDto, code);
-
-            // Step 2: Map DTO to entity
             SupplierEntity entity = mapToSupplierEntity(requestDto, code);
 
-            // Step 3: Save supplier
             supplierRepo.save(entity);
             log.info("Supplier '{}' saved successfully with {} contacts",
                     entity.getSupplierName(),
                     entity.getContactList().size());
-
             return AddSupplierResponseDto.builder()
                     .message("Supplier added successfully")
                     .build();
@@ -125,10 +117,20 @@ public class SupplierServiceImpl implements SupplierService {
                 .toList();
 
         entity.setContactList(contactList);
+
+        if (requestDto.getPreferredTransportIds() != null && !requestDto.getPreferredTransportIds().isEmpty()) {
+            Set<TransportEntity> transports = new HashSet<>();
+
+            for (Integer id : requestDto.getPreferredTransportIds()) {
+                TransportEntity transport = transportRepo.getReferenceById(id);
+                transports.add(transport);
+            }
+            entity.setPreferredTransports(transports);
+        } else {
+            entity.setPreferredTransports(Collections.emptySet());
+        }
         return entity;
     }
-
-
 
     private String generateCode(){
         Integer maxId = supplierRepo.findMaxCodeSuffix();
@@ -139,13 +141,13 @@ public class SupplierServiceImpl implements SupplierService {
     public PagedResponseDto<GetSuppliersDto> getSuppliers(int page, int size) {
         log.info("Fetching active suppliers...");
 
-        Page<SupplierEntity> records;
+        Page<SupplierEntity> records = Page.empty();;
         try {
             // ✅ Add sorting by latest (descending order of ID)
             Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "id"));
 
             // ✅ Fetch only active suppliers with sorting
-            records = supplierRepo.findAllByStatus(pageable, ACTIVE);
+            records = supplierRepo.findAllByStatus(ACTIVE, pageable);
 
             log.debug("Fetched {} active supplier records (page {}/{})",
                     records.getNumberOfElements(), page, records.getTotalPages());
@@ -182,6 +184,16 @@ public class SupplierServiceImpl implements SupplierService {
                 ContactEntity::getPhone
         );
 
+        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(t -> TransportDto.builder()
+                        .id(t.getId())
+                        .name(t.getName())
+                        .build())
+                .sorted(Comparator.comparing(TransportDto::getName))
+                .toList();
+
         return GetSuppliersDto.builder()
                 .code(record.getCode())
                 .supplierName(record.getSupplierName())
@@ -194,7 +206,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .pinCode(record.getPinCode())
                 .contacts(contacts)
                 .supplierMsme(record.getMsme())
-                .preferredTransport(record.getPreferredTransport())
+                .preferredTransports(transportDtos)
+                //.preferredTransport(record.getPreferredTransport())
                 .remark(record.getRemark())
                 .build();
     }
@@ -238,9 +251,11 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     public List<SearchSuppliersResponseDto> searchSuppliers(String keyword) {
-        List<SupplierEntity> suppliers = supplierRepo.findBySupplierNameContainingIgnoreCaseAndStatus(keyword, ACTIVE);
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
 
-        System.out.println(suppliers.size());
+        List<SupplierEntity> suppliers = supplierRepo.searchByKeyword(keyword.trim());
 
         return suppliers.stream()
                 .map(s -> mapToDto(s, this::mapSupplierToSearchSuppliersDto))
@@ -268,7 +283,7 @@ public class SupplierServiceImpl implements SupplierService {
                 .pinCode(record.getPinCode())
                 .contacts(contacts)
                 .supplierMsme(record.getMsme())
-                .preferredTransport(record.getPreferredTransport())
+                //.preferredTransport(record.getPreferredTransport())
                 .remark(record.getRemark())
                 .build();
     }

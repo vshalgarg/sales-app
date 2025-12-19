@@ -1,13 +1,15 @@
 package com.code.monks.csm.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.aspectj.bridge.IMessage;
+import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-@Data
+@Getter@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name ="Bill")
@@ -19,52 +21,24 @@ public class BillEntryEntity extends BaseEntity{
     @Column(name = "bill_number")
     private String billNumber;
 
-    @Column(name = "date")
     private LocalDate date;
-
-    @Column(name = "received_date")
     private LocalDate receivedDate;
-
-    @Column(name = "orders")
     private String orders;
 
-    @Column(name = "pieces")
-    private int pieces;
-
-    @Column(name = "gross_amount")
-    private long grossAmount;
-
-    @Column(name = "discount")
-    private int discountPercent;
-
-    @Column(name = "discount_amount")
-    private long discountAmount;
-
-    @Column(name = "gst_percentage")
-    private int gstPercent;
-
-    @Column(name = "gst_amount")
-    private long gstAmount;
+    @Column(name = "taxable_value")
+    private double taxableValue;
 
     @Column(name = "bill_amount")
-    private long billAmount;
+    private double billAmount;
 
-    @Column(name = "add_on_amount")
-    private long addOnAmount;
+    @Column(name = "transport_id")
+    private Integer transportId;
 
-    @Column(name = "taxable_value")
-    private long taxableValue;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transport_id", insertable = false, updatable = false)
+    private TransportEntity transportEntity;
 
-    @Column(name = "transport")
-    private String transport;
-
-    @Column(name = "lr_number")
     private String lrNumber;
-
-    @Column(name = "ecr_amount")
-    private double ecrAmount;
-
-    @Column(name = "remarks")
     private String remarks;
 
     @Column(name = "supplier_id")
@@ -72,4 +46,8 @@ public class BillEntryEntity extends BaseEntity{
 
     @Column(name = "customer_id")
     private Integer customerId;
+
+    // One bill header has many items
+    @OneToMany(mappedBy = "billEntry", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BillDetailEntity> billDetails = new ArrayList<>();
 }

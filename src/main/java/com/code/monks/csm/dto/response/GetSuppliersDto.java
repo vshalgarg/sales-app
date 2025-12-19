@@ -20,6 +20,7 @@ public class GetSuppliersDto {
     private String city;
     private String pinCode;
     private List<ContactRequestDto> contacts;
-    private String[] preferredTransport;
+    private List<TransportDto> preferredTransports;
+    //private String[] preferredTransport;
     private String remark;
 }

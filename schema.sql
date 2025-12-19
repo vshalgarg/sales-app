@@ -16,16 +16,22 @@ CREATE TABLE customer (
     gst_no VARCHAR(15) NOT NULL UNIQUE,
     referenced_by VARCHAR(50) NOT NULL,
     address_line1 VARCHAR(120) NOT NULL,
-    address_line2 VARCHAR(120) NOT NULL,
-    state VARCHAR
+    address_line2 VARCHAR(120),
     city VARCHAR(50) NOT NULL,
     pin_code VARCHAR(8) NOT NULL,
     msme VARCHAR(8) NOT NULL,
-    preferred_transport VARCHAR(150) NOT NULL,
     remark VARCHAR(150),
     status TINYINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE customer_preferred_transport (
+    customer_id INT NOT NULL,
+    transport_id INT NOT NULL,
+    PRIMARY KEY (customer_id, transport_id),
+    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
 );
 
 CREATE TABLE supplier (
@@ -37,15 +43,22 @@ CREATE TABLE supplier (
     commission_scheme VARCHAR(20) NOT NULL,
     commission_rate DECIMAL(10,2) NOT NULL,
     address_line1 VARCHAR(120) NOT NULL,
-    address_line2 VARCHAR(120) NOT NULL,
+    address_line2 VARCHAR(120),
     city VARCHAR(25) NOT NULL,
     pin_code VARCHAR(8) NOT NULL,
     msme VARCHAR(8) NOT NULL,
-    preferred_transport VARCHAR(150) NOT NUll,
     remark VARCHAR(150),
     status TINYINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE supplier_preferred_transport (
+    supplier_id INT NOT NULL,
+    transport_id INT NOT NULL,
+    PRIMARY KEY (supplier_id, transport_id),
+    FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE CASCADE,
+    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
 );
 
 CREATE TABLE contact (
@@ -64,27 +77,49 @@ CREATE TABLE contact (
 CREATE TABLE bill (
     id INT PRIMARY KEY AUTO_INCREMENT,
     bill_number VARCHAR(50) NOT NULL UNIQUE,
+
     date DATE NOT NULL,
-    received_date DATE NOT NULL,
-    orders VARCHAR(100) NOT NULL,
-    pieces INT NOT NULL,
-    gross_amount BIGINT NOT NULL,
-    discount INT NOT NULL,
-    discount_amount BIGINT NOT NULL,
-    gst_percentage INT NOT NULL,
-    gst_amount BIGINT NOT NULL,
-    bill_amount BIGINT NOT NULL,
-    add_on_amount BIGINT NOT NULL,
+    received_date DATE,
+    orders VARCHAR(100),
+
     taxable_value BIGINT NOT NULL,
-    transport VARCHAR(50) NOT NULL,
+    bill_amount   BIGINT NOT NULL,
+
+    transport_id INT,
     lr_number VARCHAR(20) NOT NULL UNIQUE,
-    ecr_amount BIGINT NOT NULL,
     remarks VARCHAR(100),
+
     supplier_id INT,
     customer_id INT,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_bill_transport
+        FOREIGN KEY (transport_id) REFERENCES transports(id)
+        ON UPDATE CASCADE ON DELETE SET NULL
 );
+
+CREATE TABLE bill_detail (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+
+    pieces INT NOT NULL,
+    gross_amount   BIGINT NOT NULL,
+    discount_percent INT NOT NULL,
+    discount_amount BIGINT NOT NULL,
+    add_on_amount   BIGINT NOT NULL,
+    ecr_amount      BIGINT NOT NULL,
+    gst_percent     INT NOT NULL,
+    gst_amount      BIGINT NOT NULL,
+
+    bill_entry_id INT NOT NULL,
+
+    CONSTRAINT fk_bill_detail_bill
+        FOREIGN KEY (bill_entry_id) REFERENCES bill(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 
 CREATE TABLE credit (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -103,5 +138,13 @@ CREATE TABLE credit (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE transports (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT(1) DEFAULT 1
+);
+
 
 
