@@ -38,7 +38,7 @@ export default function SmartTable({
                   </td>
                 ))}
 
-                <td className="px-6 py-1 relative">
+                <td className="px-6 py-2 relative">
                   <button
                     onClick={() =>
                       setOpenMenuIndex(openMenuIndex === i ? null : i)

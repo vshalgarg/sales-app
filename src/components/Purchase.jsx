@@ -6,7 +6,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import PurchaseHistory from "./PurchaseHistory";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { searchPurchaseHistory } from "../service/purchaseService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
@@ -58,11 +58,23 @@ const Purchase = () => {
     setIsFilterObject(true);
   };
 
+  useEffect(() => {
+    const today = dayjs().format("YYYY-MM-DD");
+
+    if (!filterObject.fromDate) {
+      setFilterObject(prev => ({
+        ...prev,
+        fromDate: today
+      }));
+    }
+  }, []);
+
   const clearFiltersAndResults = () => {
+    const today = dayjs().format("YYYY-MM-DD");
     setFilterObject({
       supplierName: "",
       customerName: "",
-      fromDate: "",
+      fromDate: today,
       toDate: "",
     });
     setFiltersApplied(false);

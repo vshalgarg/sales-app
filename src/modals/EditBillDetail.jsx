@@ -1,33 +1,35 @@
 import CustomTextField from "../components/CustomTextField";
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBillForm } from "../customHooks/useBillForm";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import validate from "../validations/Validation";
-import { searchCustomers } from "../service/CustomerService";
-import { searchSuppliers } from "../service/SupplierService";
 import { useSnackbar } from "../context/SnackbarContext";
-import { updateBillApi } from "../service/BillService";
+import { updateBillApi, searchTransports } from "../service/BillService";
+import { Trash2 } from "lucide-react";
 
-const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
+const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
+  const { showSnackbar } = useSnackbar();
+  const [transportSuggestions, setTransportSuggestions] = useState([]);
+  const [isTransportDropdownOpen, setIsTransportDropdownOpen] = useState(false);
+  const [transportLoading, setTransportLoading] = useState(false);
+  const transportTimeout = useRef(null);
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  const [pendingTransportName, setPendingTransportName] = useState("");
+
   const {
     formData,
     setFormData,
     errors,
     setErrors,
-    getActiveTransports,
-    setCustomerTransports,
-    setSupplierTransports,
     suggestions,
     custSuggestions,
     isDropdownOpen,
     isCustDropdownOpen,
-    isTransportDropdownOpen,
     setIsDropdownOpen,
     setIsCustDropdownOpen,
-    setIsTransportDropdownOpen,
     handleSupplierInput,
     handleSupplierSuggestionClick,
     handleCustomerInput,
@@ -35,170 +37,164 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
     searchRef,
     custSearchRef,
     transportSearchRef,
+    getActiveTransports,
   } = useBillForm();
 
-  // In useBillForm.js (new state for changed fields)
-  const [changedFields, setChangedFields] = useState({});
-  const { showSnackbar } = useSnackbar();
+  // Items jo edit honge
+  const [items, setItems] = useState([]);
 
-  // Modified handleChange
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
-
-    // Track changed fields compared to selectedBillDetail
-    setChangedFields((prev) => {
-      // Agar selectedBillDetail me original value hai
-      const originalValue = selectedBillDetail?.[name] ?? "";
-
-      if (value !== originalValue) {
-        return { ...prev, [name]: value };
-      } else {
-        // User ne vaapas original value daal di → remove from changedFields
-        const updated = { ...prev };
-        delete updated[name];
-        return updated;
-      }
-    });
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
-    // 1️⃣ Validate all fields
-    const newErrors = {};
-    Object.keys(formData).forEach((field) => {
-      const error = validate(field, formData[field]);
-      if (error) newErrors[field] = error;
-    });
-
-    // 2️⃣ Update errors state
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      showSnackbar("Please fill required fields.", "error");
-      return;
-    }
-
-    try {
-      const response = await updateBillApi(formData.billNumber, changedFields);
-      if (
-        response &&
-        typeof response === "object" &&
-        "code" in response &&
-        "message" in response &&
-        "timestamp" in response
-      ) {
-        console.log(response.message);
-        showSnackbar(response.message, "error");
-        return;
-      }
-      setOpen(false);
-      showSnackbar(response.message, "success");
-    } catch (err) {
-      console.log(err);
-      showSnackbar("Error updating bill", "error");
-    }
-  };
-
+  // Load data when modal opens
   useEffect(() => {
     if (selectedBillDetail) {
-      console.log(selectedBillDetail);
       setFormData((prev) => ({
         ...prev,
         ...selectedBillDetail,
+        taxableValue: selectedBillDetail.taxableValue?.toFixed(2) || "0.00",
+        billAmount: selectedBillDetail.billAmount?.toFixed(2) || "0.00",
       }));
-      setErrors((prev) => ({ ...prev }));
+
+      if (selectedBillDetail.items && selectedBillDetail.items.length > 0) {
+        setItems(
+          selectedBillDetail.items.map(item => ({
+            pieces: item.pieces,
+            grossAmount: item.grossAmount.toFixed(2),
+            discountPercent: item.discountPercent,
+            discountAmount: item.discountAmount.toFixed(2),
+            addOnAmount: item.addOnAmount.toFixed(2),
+            ecrAmount: item.ecrAmount.toFixed(2),
+            gstPercent: item.gstPercent,
+            gstAmount: item.gstAmount.toFixed(2),
+          }))
+        );
+      } else {
+        setItems([]);
+      }
     }
   }, [selectedBillDetail, setFormData]);
 
+  // Recalculate totals live
   useEffect(() => {
-    if (selectedBillDetail) {
-      setFormData((prev) => {
-        const newData = { ...prev };
+    let totalTaxable = 0;
+    let totalBill = 0;
 
-        // Example: supplierGroup
-        if (!prev.supplierGroup) {
-          newData.supplierGroup = selectedBillDetail.supplierGroup || "";
-        }
+    items.forEach((item) => {
+      const gross = parseFloat(item.grossAmount) || 0;
+      const discAmt = parseFloat(item.discountAmount) || 0;
+      const addOn = parseFloat(item.addOnAmount) || 0;
+      const ecr = parseFloat(item.ecrAmount) || 0;
+      const gstPercent = parseFloat(item.gstPercent) || 0;
 
-        // Example: supplierMsme
-        if (!prev.supplierMsme) {
-          newData.supplierMsme = selectedBillDetail.supplierMsme || "";
-        }
+      const taxable = gross - discAmt + addOn + ecr;
+      const gst = taxable * gstPercent / 100;
 
-        // Example: supplierGstNo
-        if (!prev.supplierGstNo) {
-          newData.supplierGstNo = selectedBillDetail.supplierGstNo || "";
-        }
+      totalTaxable += taxable;
+      totalBill += taxable + gst;
+    });
 
-        return newData;
-      });
-    }
-  }, [selectedBillDetail]);
-
-  // const availableTransports =
-  //   customerTransports.length > 0 ? customerTransports : supplierTransports;
-
-  // 🔹 Load selectedBillDetail into formData on mount
-  useEffect(() => {
-    const fetchTransports = async () => {
-      if (formData.customerId) {
-        const customers = await searchCustomers(formData.customerName);
-        const customer = customers.find((c) => c.id === formData.customerId);
-        if (customer) {
-          const transports = (customer.preferredTransport || []).map((t) => ({
-            value: t,
-            label: t,
-          }));
-          setCustomerTransports(transports);
-
-          // Only set transport if it's empty AND no error exists
-          if (!formData.transport && !errors.transport) {
-            setFormData((prev) => ({
-              ...prev,
-              transport: transports[0]?.value || "",
-            }));
-          }
-        }
-      } else if (formData.supplierId) {
-        const suppliers = await searchSuppliers(formData.supplierName);
-        const supplier = suppliers.find((s) => s.id === formData.supplierId);
-        if (supplier) {
-          const transports = (supplier.preferredTransport || []).map((t) => ({
-            value: t,
-            label: t,
-          }));
-          setSupplierTransports(transports);
-
-          if (!formData.transport && !errors.transport) {
-            setFormData((prev) => ({
-              ...prev,
-              transport: transports[0]?.value || "",
-            }));
-          }
-        }
-      }
-    };
-
-    fetchTransports();
-  }, [formData.customerId, formData.supplierId]);
+    setFormData((prev) => ({
+      ...prev,
+      taxableValue: totalTaxable.toFixed(2),
+      billAmount: totalBill.toFixed(2),
+    }));
+  }, [items, setFormData]);
 
   const handleTransportInput = (e) => {
     const value = e.target.value;
-    setFormData((prev) => ({ ...prev, transport: value }));
-    setErrors((prev) => ({ ...prev, transport: validate("transport", value) }));
+    setFormData(prev => ({ ...prev, transport: value }));
 
-    const activeTransports = getActiveTransports();
-    if (value.length > 0) {
-      const filtered = activeTransports.filter((t) =>
-        t.label.toLowerCase().includes(value.toLowerCase())
-      );
-      setIsTransportDropdownOpen(filtered.length > 0);
-    } else {
-      setIsTransportDropdownOpen(activeTransports.length > 0);
+    if (transportTimeout.current) {
+      clearTimeout(transportTimeout.current);
+    }
+
+    transportTimeout.current = setTimeout(async () => {
+      if (!value || value.trim().length < 1) {
+        setTransportSuggestions([]);
+        setIsTransportDropdownOpen(false);
+        return;
+      }
+
+      setTransportLoading(true);
+      try {
+        const results = await searchTransports(value);
+        setTransportSuggestions(results);
+        setIsTransportDropdownOpen(results.length > 0);
+      } catch (err) {
+        console.error("Transport search failed", err);
+        setTransportSuggestions([]);
+      } finally {
+        setTransportLoading(false);
+      }
+    }, 300);
+  };
+
+  // Handle inline editing of any item field
+  const handleItemChange = (index, field, value) => {
+    const updated = [...items];
+    updated[index][field] = value;
+
+    const item = updated[index];
+    const gross = parseFloat(item.grossAmount) || 0;
+    const discPercent = parseFloat(item.discountPercent) || 0;
+
+    // Auto calculate discount amount
+    item.discountAmount = (gross * discPercent / 100).toFixed(2);
+
+    // Auto calculate GST amount
+    const taxable = gross - parseFloat(item.discountAmount) + (parseFloat(item.addOnAmount) || 0) + (parseFloat(item.ecrAmount) || 0);
+    const gstPercent = parseFloat(item.gstPercent) || 0;
+    item.gstAmount = (taxable * gstPercent / 100).toFixed(2);
+
+    setItems(updated);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdate = async () => {
+    if (items.length === 0) {
+      showSnackbar("At least one item is required", "error");
+      return;
+    }
+    await saveBill();
+
+  };
+
+  const saveBill = async () => {
+    const payload = {
+      date: formData.date || null,
+      receivedDate: formData.receivedDate || null,
+      order: formData.order || null,
+      supplierId: formData.supplierId ? parseInt(formData.supplierId) : null,
+      customerId: formData.customerId ? parseInt(formData.customerId) : null,
+      transport: formData.transport || null,
+      lrNumber: formData.lrNumber || null,
+      remarks: formData.remarks || null,
+      taxableValue: Math.round((parseFloat(formData.taxableValue) || 0)),
+      billAmount: Math.round((parseFloat(formData.billAmount) || 0)),
+      billItems: items.map(item => ({
+        pieces: parseInt(item.pieces) || 0,
+        grossAmount: Math.round(parseFloat(item.grossAmount || 0)),
+        discountPercent: parseFloat(item.discountPercent || 0),
+        discountAmount: Math.round(parseFloat(item.discountAmount || 0)),
+        addOnAmount: Math.round(parseFloat(item.addOnAmount || 0)),
+        ecrAmount: Math.round(parseFloat(item.ecrAmount || 0)),
+        gstPercent: parseFloat(item.gstPercent || 0),
+        gstAmount: Math.round(parseFloat(item.gstAmount || 0)),
+      }))
+    };
+
+    try {
+      const response = await updateBillApi(formData.billNumber, payload);
+      showSnackbar(response?.message || "Bill updated successfully!", "success");
+      setOpen(false);
+      if (onUpdateSuccess) {
+        onUpdateSuccess();
+      }
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to update bill", "error");
     }
   };
 
@@ -206,9 +202,9 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
+      <div className="bg-white w-full max-w-6xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
         <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">Edit Bill Details</h2>
+          <h2 className="text-2xl font-semibold">Edit Bill Details</h2>
         </div>
 
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
@@ -224,7 +220,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Date"
-                value={formData.date ? dayjs(formData.date) : null} // ✅ convert string → dayjs
+                value={formData.date ? dayjs(formData.date) : null}
                 onChange={(newValue) => {
                   const formatted = newValue
                     ? dayjs(newValue).format("YYYY-MM-DD")
@@ -250,7 +246,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
                 label="Received Date"
                 value={
                   formData.receivedDate ? dayjs(formData.receivedDate) : null
-                } // ✅ convert string → dayjs
+                }
                 onChange={(newValue) => {
                   const formatted = newValue
                     ? dayjs(newValue).format("YYYY-MM-DD")
@@ -262,7 +258,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
                   setErrors((prev) => ({
                     ...prev,
                     receivedDate: validate("receivedDate", formatted),
-                  })); // ✅ store as string
+                  }));
                 }}
                 slotProps={{
                   textField: {
@@ -291,27 +287,21 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
               <CustomTextField
                 name="supplierName"
                 value={formData.supplierName}
-                onChange={handleSupplierInput} // search API
+                onChange={handleSupplierInput}
                 onFocus={() => {
                   if (
                     formData.supplierName.length > 1 &&
                     suggestions.length > 0
                   ) {
-                    setIsDropdownOpen(true); // reopen dropdown on focus
+                    setIsDropdownOpen(true);
                   }
                 }}
                 label="Supplier"
-                // autoComplete="off"
                 error={!!errors.supplierName}
                 helperText={errors.supplierName || ""}
               />
-
-              {/* Suggestions dropdown */}
               {isDropdownOpen && suggestions.length > 0 && (
-                <ul
-                  className="absolute mt-1 bg-white border rounded shadow-lg z-50 
-                 max-h-60 overflow-y-auto text-sm w-full"
-                >
+                <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
                   {suggestions.map((s, idx) => (
                     <li
                       key={idx}
@@ -360,7 +350,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
               <CustomTextField
                 name="customerName"
                 value={formData.customerName}
-                onChange={handleCustomerInput} // search API
+                onChange={handleCustomerInput}
                 onFocus={() => {
                   if (
                     formData.customerName.length > 1 &&
@@ -374,13 +364,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
                 label="Customer"
                 autoComplete="off"
               />
-
-              {/* Suggestions dropdown */}
               {isCustDropdownOpen && custSuggestions.length > 0 && (
-                <ul
-                  className="absolute mt-1 bg-white border rounded shadow-lg z-50 
-                 max-h-60 overflow-y-auto text-sm w-full"
-                >
+                <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
                   {custSuggestions.map((c, idx) => (
                     <li
                       key={idx}
@@ -422,81 +407,159 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
             />
           </div>
 
-          {/* --- Section: Amounts --- */}
-          <h3 className="text-lg font-semibold mb-3">Amount Information</h3>
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <CustomTextField
-              name="pieces"
-              value={formData.pieces}
-              onChange={handleChange}
-              label="Pieces"
-              error={!!errors.pieces}
-              helperText={errors.pieces || ""}
-            />
-            <CustomTextField
-              name="grossAmount"
-              value={formData.grossAmount}
-              onChange={handleChange}
-              label="Gross Amount"
-              error={!!errors.grossAmount}
-              helperText={errors.grossAmount || ""}
-            />
-            <CustomTextField
-              name="discountPercent"
-              value={formData.discountPercent}
-              onChange={handleChange}
-              label="Discount %"
-              error={!!errors.discountPercent}
-              helperText={errors.discountPercent || ""}
-            />
-            <CustomTextField
-              name="discountAmount"
-              value={formData.discountAmount}
-              label="Discount Amount"
-              readOnly
-            />
-            <CustomTextField
-              name="addOnAmount"
-              value={formData.addOnAmount}
-              onChange={handleChange}
-              label="Add-On Amount"
-              error={!!errors.addOnAmount}
-              helperText={errors.addOnAmount || ""}
-            />
-            <CustomTextField
-              name="ecrAmount"
-              value={formData.ecrAmount}
-              onChange={handleChange}
-              label="ECR Amount"
-              error={!!errors.ecrAmount}
-              helperText={errors.ecrAmount || ""}
-            />
-            <CustomTextField
-              name="gstPercent"
-              value={formData.gstPercent}
-              onChange={handleChange}
-              label="GST %"
-              error={!!errors.gstPercent}
-              helperText={errors.gstPercent || ""}
-            />
-            <CustomTextField
-              name="gstAmount"
-              value={formData.gstAmount}
-              label="GST Amount"
-              readOnly
-            />
-            <CustomTextField
-              name="taxableValue"
-              value={formData.taxableValue}
-              label="Taxable Value"
-              readOnly
-            />
-            <CustomTextField
-              name="billAmount"
-              value={formData.billAmount}
-              label="Bill Amount"
-              readOnly
-            />
+          {/* EDITABLE ITEMS TABLE - NO ADD/DELETE */}
+          {/* DYNAMIC EDITABLE ITEMS TABLE WITH ADD/DELETE */}
+          <div className="border p-6 rounded-lg border-gray-300 bg-gray-50">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-blue-700">Bill Items</h3>
+              <button
+                onClick={() => {
+                  setItems([...items, {
+                    pieces: "",
+                    grossAmount: "",
+                    discountPercent: "",
+                    discountAmount: "0.00",
+                    addOnAmount: "",
+                    ecrAmount: "",
+                    gstPercent: "",
+                    gstAmount: "0.00",
+                  }]);
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Bill Item
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-300">
+                <thead className="bg-blue-100">
+                  <tr>
+                    <th className="px-4 py-2 text-left">Pieces</th>
+                    <th className="px-4 py-2 text-left">Gross</th>
+                    <th className="px-4 py-2 text-left">Disc %</th>
+                    <th className="px-4 py-2 text-left">Disc Amt</th>
+                    <th className="px-4 py-2 text-left">Add-On</th>
+                    <th className="px-4 py-2 text-left">ECR</th>
+                    <th className="px-4 py-2 text-left">GST %</th>
+                    <th className="px-4 py-2 text-left">GST Amt</th>
+                    <th className="px-4 py-2 text-left">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="text-center py-8 text-gray-500">
+                        No items added yet. Click "Add Row" to start.
+                      </td>
+                    </tr>
+                  ) : (
+                    items.map((item, index) => (
+                      <tr key={index} className="border-t hover:bg-gray-100">
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            value={item.pieces || ""}
+                            onChange={(e) => handleItemChange(index, "pieces", e.target.value)}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            value={item.grossAmount || ""}
+                            onChange={(e) => handleItemChange(index, "grossAmount", e.target.value)}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0.00"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            value={item.discountPercent || ""}
+                            onChange={(e) => handleItemChange(index, "discountPercent", e.target.value)}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="text"
+                            value={item.discountAmount || "0.00"}
+                            readOnly
+                            className="w-full px-3 py-2 bg-gray-200 border rounded"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            value={item.addOnAmount || ""}
+                            onChange={(e) => handleItemChange(index, "addOnAmount", e.target.value)}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0.00"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            value={item.ecrAmount || ""}
+                            onChange={(e) => handleItemChange(index, "ecrAmount", e.target.value)}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0.00"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            value={item.gstPercent || ""}
+                            onChange={(e) => handleItemChange(index, "gstPercent", e.target.value)}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="text"
+                            value={item.gstAmount || "0.00"}
+                            readOnly
+                            className="w-full px-3 py-2 bg-gray-200 border rounded"
+                          />
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <button
+                            onClick={() => {
+                              if (items.length > 1) {
+                                setItems(items.filter((_, i) => i !== index));
+                              } else {
+                                showSnackbar("At least one item is required", "warning");
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-800"
+                            title="Delete row"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Final Totals */}
+            <div className="mt-8 grid grid-cols-2 gap-8 text-lg font-bold">
+              <div className="text-right">
+                <span className="text-gray-600">Taxable Value:</span> ₹{formData.taxableValue || "0.00"}
+              </div>
+              <div className="text-right text-blue-700">
+                <span className="text-gray-600">Bill Amount:</span> ₹{formData.billAmount || "0.00"}
+              </div>
+            </div>
           </div>
 
           {/* --- Section: Transport --- */}
@@ -507,46 +570,40 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
             <div ref={transportSearchRef} className="relative w-full">
               <CustomTextField
                 name="transport"
-                value={formData.transport}
+                value={formData.transport || ""}
                 onChange={handleTransportInput}
                 onFocus={() => {
-                  const activeTransports = getActiveTransports();
-                  if (activeTransports.length > 0)
+                  if (transportSuggestions.length > 0) {
                     setIsTransportDropdownOpen(true);
+                  }
                 }}
                 label="Transport"
                 autoComplete="off"
                 error={!!errors.transport}
                 helperText={errors.transport || ""}
+                InputProps={{
+                  endAdornment: transportLoading ? (
+                    <span className="text-xs text-gray-500">Searching...</span>
+                  ) : null
+                }}
               />
 
-              {isTransportDropdownOpen && getActiveTransports().length > 0 && (
+              {/* Suggestions Dropdown */}
+              {isTransportDropdownOpen && transportSuggestions.length > 0 && (
                 <ul className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto text-sm">
-                  {getActiveTransports()
-                    .filter(
-                      (t) =>
-                        formData.transport
-                          ? t.label
-                              .toLowerCase()
-                              .includes(formData.transport.toLowerCase())
-                          : true // ✅ show all transports if field is empty
-                    )
-                    .map((t, idx) => (
-                      <li
-                        key={idx}
-                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            transport: t.value,
-                          }));
-                          setErrors((prev) => ({ ...prev, transport: "" }));
-                          setIsTransportDropdownOpen(false);
-                        }}
-                      >
-                        {t.label}
-                      </li>
-                    ))}
+                  {transportSuggestions.map((t, idx) => (
+                    <li
+                      key={t.id || idx}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, transport: t.name }));
+                        setIsTransportDropdownOpen(false);
+                        setErrors(prev => ({ ...prev, transport: "" }));
+                      }}
+                    >
+                      {t.name}
+                    </li>
+                  ))}
                 </ul>
               )}
             </div>
@@ -580,16 +637,48 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen }) => {
             Cancel
           </button>
           <button
-            onClick={(e) => {
-              handleUpdate(e);
-            }}
+            onClick={handleUpdate}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Save Changes
           </button>
         </div>
+
+        {/* Simple Custom Confirmation Popup */}
+        {showConfirmPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Add New Transport?
+              </h3>
+              <p className="text-gray-600 mb-6">
+                The transport "<span className="font-medium text-blue-600">{pendingTransportName}</span>" does not exist.
+                <br /><br />
+                Do you want to add it?
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowConfirmPopup(false)}
+                  className="px-5 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowConfirmPopup(false);
+                    saveBill();
+                  }}
+                  className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  Yes, Add & Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
+
   );
 };
 

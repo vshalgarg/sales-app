@@ -7,6 +7,7 @@ import CustomTextField from "../components/CustomTextField";
 import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { saveSupplier } from "../service/SupplierService";
+import TransportService from "../service/TransportService";
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
@@ -16,6 +17,59 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [cities, setCities] = useState([]);
   const [touched, setTouched] = useState({});
   const { showSnackbar } = useSnackbar();
+
+  const [selectedTransports, setSelectedTransports] = useState([]);
+  const [transportSearch, setTransportSearch] = useState("");
+  const [transportResults, setTransportResults] = useState([]);
+  const [isTransportInputFocused, setIsTransportInputFocused] = useState(false);
+
+
+  const handleTransportSearch = async (value) => {
+    setTransportSearch(value);
+
+    if (value.trim().length < 2) {
+      setTransportResults([]);
+      return;
+    }
+
+    try {
+      const results = await TransportService.searchTransports(value.trim());
+      // Remove already selected ones from results
+      const filtered = results.filter(
+        (t) => !selectedTransports.some((s) => s.id === t.id)
+      );
+      setTransportResults(filtered || []);
+    } catch (err) {
+      console.error("Transport search error:", err);
+      setTransportResults([]);
+    }
+  };
+
+  const addTransport = (transport) => {
+    if (selectedTransports.find((t) => t.id === transport.id)) return;
+
+    const newSelected = [...selectedTransports, transport];
+    setSelectedTransports(newSelected);
+
+    // Update form with IDs
+    setForm((prev) => ({
+      ...prev,
+      preferredTransportIds: newSelected.map((t) => t.id),
+    }));
+
+    // Clear input but keep dropdown open for next search
+    setTransportSearch("");
+    setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
+  };
+
+  const removeTransport = (idToRemove) => {
+    const newSelected = selectedTransports.filter((t) => t.id !== idToRemove);
+    setSelectedTransports(newSelected);
+    setForm((prev) => ({
+      ...prev,
+      preferredTransportIds: newSelected.map((t) => t.id),
+    }));
+  };
 
   // Add new empty contact
   const addContact = () => {
@@ -232,8 +286,12 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
         ])
       ),
       contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+      preferredTransportIds: [],
     });
     setErrors({ contacts: [{}] });
+    setSelectedTransports([]);
+    setTransportSearch("");
+  setTransportResults([]);
   };
 
   return (
@@ -463,39 +521,64 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                   Financial & Logistics
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <CustomTextField
-                    name="preferredTransport"
-                    value={form.preferredTransport.join(", ")}
-                    onChange={(e) => {
-                      const { name, value } = e.target;
-
-                      // 🧠 Update the form
-                      const newValue = value
-                        ? value.split(",").map((v) => v.trim())
-                        : [];
-
-                      setForm((prev) => ({
-                        ...prev,
-                        [name]: newValue,
-                      }));
-
-                      // ✅ Validate immediately
-                      const errMsg = validate(name, newValue);
-                      setErrors((prev) => ({
-                        ...prev,
-                        [name]: errMsg,
-                      }));
-
-                      // ✅ Mark field as touched (optional)
-                      setTouched((prev) => ({
-                        ...prev,
-                        [name]: true,
-                      }));
-                    }}
-                    label="Preferred Transport"
-                    error={!!errors.preferredTransport}
-                    helperText={errors.preferredTransport || ""}
-                  />
+                  <div className="relative">
+                  
+                    <div className="border rounded-md p-2 min-h-10 flex flex-wrap gap-2 items-center">
+                      {/* Selected badges */}
+                      {selectedTransports.map((transport) => (
+                        <span
+                          key={transport.id}
+                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
+                        >
+                          {transport.name}
+                          <button
+                            type="button"
+                            onClick={() => removeTransport(transport.id)}
+                            className="text-blue-600 hover:text-blue-900 font-bold"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {/* Search input */}
+                      <input
+                        type="text"
+                        value={transportSearch}
+                        onChange={(e) => handleTransportSearch(e.target.value)}
+                        onFocus={() => setIsTransportInputFocused(true)}
+                        onBlur={() => {
+                          setTimeout(() => setIsTransportInputFocused(false), 200);
+                        }}
+                        placeholder={
+                          selectedTransports.length === 0
+                            ? "Type to search transport..."
+                            : ""
+                        }
+                        className="flex-1 outline-none min-w-48"
+                      />
+                    </div>
+                    {/* Dropdown results */}
+                    {isTransportInputFocused && transportResults.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        {transportResults.map((transport) => (
+                          <div
+                            key={transport.id}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => addTransport(transport)}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          >
+                            {transport.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Error message */}
+                    {errors.preferredTransportIds && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.preferredTransportIds}
+                      </p>
+                    )}
+                  </div>        
 
                   <CustomTextField
                     name="remark"

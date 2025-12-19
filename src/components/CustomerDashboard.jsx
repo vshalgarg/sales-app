@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Ellipsis, Eye, Trash2, ArrowLeft, ArrowRight } from "lucide-react";
+import { Ellipsis, Eye, Trash2, ArrowLeft, ArrowRight, Rows } from "lucide-react";
 import { useSnackbar } from "../context/SnackbarContext";
 
 import {
@@ -46,7 +46,7 @@ export default function CustomerDashboard() {
     city: "",
     pinCode: "",
     contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
-    preferredTransport: [],
+    preferredTransportIds: [],
     remark: "",
   });
 
@@ -154,7 +154,7 @@ export default function CustomerDashboard() {
         onResult={(results) => {
           setSearchResults(results);
           setCustomers(results);
-          setIsSearchActive(true);
+          setIsSearchActive(results.length > 0 && query.trim() !== "");
           setCurrentPage(1);
           setTotalPages(1);
         }}
@@ -182,6 +182,7 @@ export default function CustomerDashboard() {
         openMenuIndex={openMenuIndex}
         setOpenMenuIndex={setOpenMenuIndex}
         onView={(row) => {
+          console.log("Selected customers:", row);
           setSelectedCustomer(row);
           setModalOpen(true);
         }}

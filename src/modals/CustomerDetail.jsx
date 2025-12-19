@@ -115,21 +115,33 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
               </div>
             ))}
 
-            {/* Section: Other Info */}
+            {/* Section: Other Information */}
             <h3 className="text-lg font-semibold mb-3">Other Information</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Preferred Transport
                 </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.preferredTransport?.join(", ")}
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
+                  {selectedCustomer.preferredTransports && selectedCustomer.preferredTransports.length > 0 ? (
+                    selectedCustomer.preferredTransports.map((transport, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+                      >
+                        {transport.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-500 text-sm">-</span>
+                  )}
                 </div>
               </div>
+
               <div>
                 <label className="block text-sm font-medium mb-1">Remark</label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.remark}
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
+                  {selectedCustomer.remark || "-"}
                 </div>
               </div>
             </div>

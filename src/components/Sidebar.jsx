@@ -8,6 +8,7 @@ const Sidebar = ({ activeSection }) => {
       { name: "Suppliers", path: "/suppliers" },
       { name: "Customers", path: "/customers" },
       { name: "Staff", path: "/staff" },
+      { name: "Transports", path: "/transports" },
       { name: "Users", path: "/users" },
     ];
   } else if (activeSection === "entries") {
