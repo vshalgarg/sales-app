@@ -1,6 +1,7 @@
 package com.code.monks.csm.entity;
 
 import com.code.monks.csm.enums.StatusEnum;
+import com.code.monks.csm.enums.converter.StatusEnumConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,5 +28,6 @@ public class StaffEntity extends BaseEntity{
     private LocalDate joiningDate;
 
     @Column(name = "status")
+    @Convert(converter = StatusEnumConverter.class)
     private StatusEnum status;
 }

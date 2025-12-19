@@ -37,7 +37,7 @@ public class AddCustomerRequestDto {
     private String pinCode;
 
     @NotNull(message = "Preferred transport is required")
-    private String[] preferredTransport;
+    private List<Integer> preferredTransportIds;
 
     private String remark;
 

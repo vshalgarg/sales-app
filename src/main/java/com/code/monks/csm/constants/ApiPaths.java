@@ -59,4 +59,11 @@ public class ApiPaths {
     public static final String ADD_PURCHASE_ENTRY = "/purchase/entry/add";
 
     public static final String SEARCH_PURCHASE_ENTRIES = "/purchase/entries/search";
+
+    public static final String TRANSPORT_SEARCH ="/transports/search";
+    public static final String GET_ALL = "/transports/getAll";
+    public static final String GET_ALL_TRANSPORT = "/transports/get/all";
+    public static final String ADD_TRANSPORT = "/transports/add";
+    public static final String UPDATE_TRANSPORT = "/transports/update";
+    public static final String DELETE_TRANSPORT = "/transports/delete/{id}";
 }

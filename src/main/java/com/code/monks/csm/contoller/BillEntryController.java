@@ -1,6 +1,7 @@
 package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.request.BillEntryRequestDto;
+import com.code.monks.csm.dto.request.BillUpdateRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.BillService;
 import jakarta.validation.Valid;
@@ -50,9 +51,9 @@ public class BillEntryController {
     @PatchMapping(UPDATE_BILL_ENTRY)
     public ResponseEntity<EditBillEntryResponse> updateBill(
             @PathVariable String billNumber,
-            @RequestBody Map<String, Object> updates) {
+            @RequestBody BillUpdateRequest request) {
 
-        EditBillEntryResponse response = billService.updateBill(billNumber, updates);
+        EditBillEntryResponse response = billService.updateBill(billNumber, request);
         return ResponseEntity.ok(response);
     }
 

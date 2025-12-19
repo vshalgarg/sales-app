@@ -14,7 +14,9 @@ public enum ResponseErrorCode {
     DATA_NOT_FOUND(1111,"Data not found. "),
     DUPLICATE_ENTRY(1005,""),
     UNEXPECTED_EXCEPTION(1006,"Unexpected error occur while "),
-    DATA_ACCESS_ERROR(1007, "Data access error occurred.");
+    DATA_ACCESS_ERROR(1007, "Data access error occurred."),
+    TRANSPORT_NOT_FOUND(1008,"Transport not found"),
+    PREFERRED_TRANSPORT_NOT_FOUND(1008,"One or more preferred transport IDs are invalid");
 
     private final int code;
     private final String message;

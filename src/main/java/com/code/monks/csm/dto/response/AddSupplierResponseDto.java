@@ -1,13 +1,10 @@
 package com.code.monks.csm.dto.response;
 
-import com.code.monks.csm.entity.ContactEntity;
-import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.dto.request.AddSupplierRequestDto;
 import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.enums.StatusEnum;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 @Builder
@@ -26,7 +23,7 @@ public class AddSupplierResponseDto {
         entity.setCity(requestDto.getCity());
         entity.setPinCode(requestDto.getPinCode());
         entity.setMsme(requestDto.getSupplierMsme());
-        entity.setPreferredTransport(requestDto.getPreferredTransport());
+       // entity.setPreferredTransport(requestDto.getPreferredTransport());
         entity.setRemark(requestDto.getRemark());
         entity.setStatus(StatusEnum.ACTIVE);
         return entity;

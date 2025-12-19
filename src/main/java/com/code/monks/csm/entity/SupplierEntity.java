@@ -5,12 +5,22 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "supplier")
+@Table(
+        name = "supplier",
+        indexes = {
+                @Index(name = "idx_supplier_name", columnList = "name"),
+                @Index(name = "idx_supplier_gst", columnList = "gstNo"),
+                @Index(name = "idx_supplier_code", columnList = "code") // optional
+        }
+)
 public class SupplierEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,8 +59,16 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "msme")
     private String msme;
 
-    @Column(name = "preferred_transport")
-    private String[] preferredTransport;
+//    @Column(name = "preferred_transport")
+//    private String[] preferredTransport;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "supplier_preferred_transport",
+            joinColumns = @JoinColumn(name = "supplier_id"),
+            inverseJoinColumns = @JoinColumn(name = "transport_id")
+    )
+    private Set<TransportEntity> preferredTransports = new LinkedHashSet<>();
 
     @Column(name = "remark")
     private String remark;
@@ -58,7 +76,7 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "status")
     private StatusEnum status;
 
-    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ContactEntity> contactList;
 
 }

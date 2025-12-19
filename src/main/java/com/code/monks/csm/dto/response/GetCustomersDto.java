@@ -19,6 +19,6 @@ public class GetCustomersDto {
     private String city;
     private String pinCode;
     private List<ContactRequestDto> contacts;
-    private String[] preferredTransport;
+    private List<TransportDto> preferredTransports;
     private String remark;
 }
