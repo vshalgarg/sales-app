@@ -124,16 +124,18 @@ const Users = () => {
     }
     try {
       const response = await createUser(form);
+      console.log("API Response:", response);
       if (response?.message) {
         showSnackbar(response.message, "success");
         setForm({ username: "", password: "", roles: roles });
-        setIsModalOpen(false);
         fetchUsers();
       }
     } catch (error) {
       console.error("Error creating user:", error);
       showSnackbar("Error creating user", "error");
-    }
+    }finally {
+    setIsModalOpen(false);
+  }
   };
 
   const handleFormChange = (e) => {
