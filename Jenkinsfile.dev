@@ -10,7 +10,7 @@ pipeline {
     }
 
     parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'dev', description: 'Branch to build')
+        string(name: 'BRANCH_NAME', defaultValue: 'backend_sales_dev', description: 'Branch to build')
     }
 
     stages {
