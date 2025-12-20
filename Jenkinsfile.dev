@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "vshalgargnpl/sales-app-api"
+        IMAGE_NAME = "vshalgargnpl/sales-api"
         TAG = "latest"
-        CONTAINER_NAME = "sales-app-api"
+        CONTAINER_NAME = "sales-api"
         PORT_MAPPING = "8086:8086"  // host:container
         REGISTRY = "index.docker.io/v1/"
     }
@@ -75,7 +75,7 @@ pipeline {
                           --add-host=host.docker.internal:host-gateway \
                           -e SPRING_PROFILES_ACTIVE=dev \
                           -e spring.datasource.password="$MYSQL_PASSWORD" \
-                          -v /var/log/sales-app-api:/logs \
+                          -v /var/log/sales-api:/logs \
                           "$IMAGE_NAME:$TAG"
                     '''
                 }
