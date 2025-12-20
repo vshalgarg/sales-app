@@ -39,15 +39,16 @@ pipeline {
          }
      }
 
-       stage('Push to Registry') {
-           steps {
-               echo 'Pushing Sales App backend image to Docker registry'
-               docker.withRegistry("https://${REGISTRY}", 'docker-credentials-id') {
-                   docker.image("${IMAGE_NAME}:${TAG}").push()
-               }
-           }
-       }
-
+     stage('Docker Push') {
+         steps {
+             script {
+                 docker.withRegistry("https://${REGISTRY}", 'docker-credentials-id') {
+                     def appImage = docker.build("${IMAGE_NAME}:${TAG}")
+                     appImage.push()
+                 }
+             }
+         }
+     }
 
         stage('Stop Existing Container') {
             steps {
