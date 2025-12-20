@@ -23,12 +23,16 @@ pipeline {
             }
         }
 
-        stage('Build JAR') {
-            steps {
-                echo 'Building using maven'
-                sh './mvnw clean package -DskipTests'
-            }
-        }
+      stage('Build JAR') {
+          steps {
+              echo 'Building using maven'
+              sh '''
+                  chmod +x mvnw
+                  ./mvnw clean package -DskipTests
+              '''
+          }
+      }
+
 
      stage('Build Docker Image') {
          steps {
