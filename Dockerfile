@@ -11,6 +11,6 @@ FROM node:22-alpine
 WORKDIR /app 
 RUN npm install -g serve
 COPY --from=build /app/dist .
-EXPOSE 5000
+EXPOSE 8087
 # Serve the dist folder
-CMD ["serve", "-s", ".", "-l", "5000"]
+CMD ["serve", "-s", ".", "-l", "8087"]
