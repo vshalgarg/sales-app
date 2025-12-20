@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = "vshalgargnpl/sales-app-api"
         TAG = "latest"
         CONTAINER_NAME = "sales-app-api"
-        PORT_MAPPING = "8083:8083"  // host:container
+        PORT_MAPPING = "8086:8086"  // host:container
         REGISTRY = "index.docker.io/v1/"
     }
 
