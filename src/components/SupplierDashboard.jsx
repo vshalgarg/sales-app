@@ -137,6 +137,7 @@ export default function SupplierDashboard() {
         setQuery={setQuery}
         searchFn={searchSuppliers}
         onResult={(results) => {
+          console.log("Res",results)
           setSuppliers(results);
           setIsSearchActive(results.length > 0 && query.trim() !== "");
         }}
@@ -144,17 +145,17 @@ export default function SupplierDashboard() {
 
       {/* Table */}
       <div className="relative mt-6 rounded-lg shadow bg-white dark:bg-gray-900">
-        <table className="min-w-full table-auto text-sm text-left">
+        <table className="min-w-full table-fixed text-sm text-left">
           <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs">
             <tr>
-              <th className="px-6 py-3">Code</th>
-              <th className="px-6 py-3">Name</th>
-              <th className="px-6 py-3">GST</th>
-              <th className="px-6 py-3">Address</th>
-              <th className="px-6 py-3">City</th>
-              <th className="px-6 py-3">Contact Person</th>
-              <th className="px-6 py-3">Mobile</th>
-              <th className="px-6 py-3">Actions</th>
+              <th className="px-6 py-3 w-[10%]">Code</th>
+              <th className="px-6 py-3 w-[15%]">Name</th>
+              <th className="px-6 py-3 w-[12%]">GST</th>
+              <th className="px-6 py-3 w-[20%]">Address</th>
+              <th className="px-6 py-3 w-[10%]">City</th>
+              <th className="px-6 py-3 w-[12%]">Contact Person</th>
+              <th className="px-6 py-3 w-[11%]">Mobile</th>
+              <th className="px-6 py-3 w-[10%]">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -234,8 +235,8 @@ export default function SupplierDashboard() {
               onClick={() => handleChangePage(currentPage - 1)}
               disabled={currentPage === 1}
               className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === 1
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                  : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
             >
               <ArrowLeft size={18} />
@@ -246,8 +247,8 @@ export default function SupplierDashboard() {
                   key={i}
                   onClick={() => handleChangePage(i + 1)}
                   className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                 >
                   {i + 1}
@@ -258,8 +259,8 @@ export default function SupplierDashboard() {
               onClick={() => handleChangePage(currentPage + 1)}
               disabled={currentPage === totalPages}
               className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === totalPages
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                  : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
             >
               <ArrowRight size={18} />
