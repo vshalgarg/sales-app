@@ -34,9 +34,11 @@ export const deleteSupplier = async (code) => {
 
 export const searchSuppliers = async (keyword) => {
   try {
+    console.log("serach api called")
     const response = await api.get(`/suppliers/search`, {
       params: { keyword },
     });
+    console.log("resp",response.data)
     return response.data; // Return response data
   } catch (error) {
     throw error.response?.data || error;

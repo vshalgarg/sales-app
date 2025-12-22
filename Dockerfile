@@ -8,9 +8,9 @@ RUN npm run build
 
 # ---------- Stage 2: Serve static files ----------
 FROM node:22-alpine
-WORKDIR /app 
+WORKDIR /app    
 RUN npm install -g serve
 COPY --from=build /app/dist .
 EXPOSE 8087
 # Serve the dist folder
-CMD ["serve", "-s", ".", "-l", "8087"]
+CMD ["serve", "-s", ".", "-l", "8088"]

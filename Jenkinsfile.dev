@@ -4,7 +4,7 @@ pipeline {
   environment {
     IMAGE_NAME = "sales-app-ui"
     CONTAINER_NAME = "sales-app-ui"
-    PORT = "8087"
+    PORT = "8088"
   }
 
   stages {

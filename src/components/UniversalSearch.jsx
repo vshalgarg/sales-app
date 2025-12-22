@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 export default function UniversalSearch({
   placeholder = "Search...",
   query,
-  setQuery,
+  setQuery, 
   searchFn,
   onResult,
   allData = [],
@@ -22,10 +22,12 @@ export default function UniversalSearch({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+
   const handleChange = async (e) => {
     const value = e.target.value;
     setQuery(value);
 
+    
     if (!value.trim()) {
       setSuggestions([]);
       onResult(allData, "");
