@@ -18,7 +18,7 @@ const Credit = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const rowsPerPage = 7;
+  const rowsPerPage = 10;
 
   const [creditHistoryData, setCreditHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);

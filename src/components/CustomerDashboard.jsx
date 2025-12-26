@@ -15,7 +15,7 @@ export default function CustomerDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const rowsPerPage = 7;
+  const rowsPerPage = 10;
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const [customers, setCustomers] = useState([]);

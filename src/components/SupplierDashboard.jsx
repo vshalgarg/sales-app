@@ -16,7 +16,7 @@ export default function SupplierDashboard() {
   const [suggestions, setSuggestions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const rowsPerPage = 8;
+  const rowsPerPage = 10;
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -16,7 +16,7 @@ export default function TransportDashboard() {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const rowsPerPage = 6;
+  const rowsPerPage = 10;
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const dropdownRef = useRef(null);

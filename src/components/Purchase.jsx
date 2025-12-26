@@ -20,7 +20,7 @@ const Purchase = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const rowsPerPage = 7;
+  const rowsPerPage = 10;
 
   const [purchaseHistoryData, setPurchaseHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);

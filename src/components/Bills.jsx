@@ -18,7 +18,7 @@ const Bills = () => {
   // Important: initialize safe defaults
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const rowsPerPage = 7;
+  const rowsPerPage = 10;
 
   const [billHistoryData, setBillHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
