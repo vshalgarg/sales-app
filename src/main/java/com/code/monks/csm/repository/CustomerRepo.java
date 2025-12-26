@@ -38,6 +38,6 @@ public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
             "LOWER(con.contactPerson) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(c.city) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
             ")")
-    List<CustomerEntity> searchByKeyword(@Param("keyword") String keyword);
+    Page<CustomerEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
 }

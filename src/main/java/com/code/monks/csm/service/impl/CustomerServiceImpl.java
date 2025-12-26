@@ -6,12 +6,10 @@ import com.code.monks.csm.dto.request.DeleteCustomerRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
-import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.DuplicateEntryException;
-import com.code.monks.csm.exception.SupplierException;
 import com.code.monks.csm.repository.ContactRepo;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.TransportRepository;
@@ -151,7 +149,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         Page<CustomerEntity> records;
         try {
-            Pageable pageable = PageRequest.of(page-1, size, Sort.by(Sort.Direction.DESC, "id"));
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
             records = customerRepo.findAllByStatus(pageable,ACTIVE);
             log.debug("Fetched {} active customer records (page {}/{})",
                     records.getNumberOfElements(), page, records.getTotalPages());
@@ -178,6 +176,29 @@ public class CustomerServiceImpl implements CustomerService {
                 .build();
     }
 
+    public List<GetCustomersDto> getAllCustomers() {
+        log.info("Fetching ALL customers (no filter, non-paged)...");
+
+        try {
+            List<CustomerEntity> allCustomers = customerRepo.findAll(
+                    Sort.by(Sort.Direction.DESC, "id")
+            );
+
+            log.info("Successfully fetched {} customers (including active and inactive)", allCustomers.size());
+
+            return allCustomers.stream()
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+
+        } catch (DataAccessException dae) {
+            log.error("Database error while fetching all customers", dae);
+            throw new CustomerException(DATA_ACCESS_ERROR, "Database error while retrieving customers");
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching all customers", e);
+            throw new CustomerException(UNEXPECTED_EXCEPTION, "Unexpected error in customer retrieval");
+        }
+    }
+
     private GetCustomersDto mapToDto(CustomerEntity record) {
         log.debug("Mapping CustomerEntity with code={} to DTO", record.getCode());
 
@@ -199,6 +220,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .toList();
 
         return GetCustomersDto.builder()
+                .id(record.getId())
                 .code(record.getCode())
                 .customerName(record.getCustomerName())
                 .customerGroup(record.getGroupName())
@@ -243,15 +265,43 @@ public class CustomerServiceImpl implements CustomerService {
         }
     }
 
-    public List<SearchCustomersResponseDto> searchCustomers(String keyword){
+    public PagedResponseDto<SearchCustomersResponseDto> searchCustomers(String keyword, Pageable pageable){
+        log.info("Searching customers with keyword: '{}' and pageable: {}", keyword, pageable);
         if (keyword == null || keyword.trim().isEmpty()) {
-            return List.of();
+            log.info("Keyword is empty or null - returning empty page");
+            return PagedResponseDto.<SearchCustomersResponseDto>builder()
+                    .content(List.of())
+                    .page(pageable.getPageNumber() + 1)
+                    .size(pageable.getPageSize())
+                    .totalElements(0L)
+                    .totalPages(0)
+                    .last(true)
+                    .build();
         }
 
-        List<CustomerEntity> customers = customerRepo.searchByKeyword(keyword.trim());
-        return customers.stream()
-                .map(s -> mapToDto(s, this::mapSupplierToSearchSuppliersDto))
-                .toList();
+        String trimmedKeyword = keyword.trim();
+        log.debug("Executing search with trimmed keyword: '{}'", trimmedKeyword);
+
+        try {
+            Page<CustomerEntity> customersPage = customerRepo.searchByKeyword(trimmedKeyword, pageable);
+
+            List<SearchCustomersResponseDto> dtoList = customersPage.getContent().stream()
+                    .map(customer -> mapToDto(customer, this::mapSupplierToSearchSuppliersDto))
+                    .toList();
+
+            return PagedResponseDto.<SearchCustomersResponseDto>builder()
+                    .content(dtoList)
+                    .page(customersPage.getNumber() + 1)     // 1-based page number for UI
+                    .size(customersPage.getSize())
+                    .totalElements(customersPage.getTotalElements())
+                    .totalPages(customersPage.getTotalPages())
+                    .last(customersPage.isLast())
+                    .build();
+        }
+        catch (Exception e) {
+                log.error("Unexpected error during customer search for keyword: '{}'", trimmedKeyword, e);
+                throw new CustomerException(UNEXPECTED_EXCEPTION, "Unexpected error in customer search");
+            }
     }
 
     private <R> R mapToDto(CustomerEntity record, Function<CustomerEntity, R> mapper) {

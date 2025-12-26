@@ -82,7 +82,7 @@ public class StaffServiceImpl implements StaffService {
         log.info("Fetching active staffs with pagination...");
 
         try {
-            Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "id"));
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
             Page<StaffEntity> records = staffRepo.findAllByStatus(pageable, ACTIVE);
 
             log.debug("Fetched {} active staff records (page {}/{})",

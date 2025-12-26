@@ -35,6 +35,25 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
 
     List<SupplierEntity> findBySupplierNameContainingIgnoreCaseAndStatus(String keyword,StatusEnum status);
 
+    @Query(value = "SELECT DISTINCT s FROM SupplierEntity s " +
+            "LEFT JOIN s.contactList c " +
+            "WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE AND (" +
+            "LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(s.gstNo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(c.contactPerson) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(s.city) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            ")",
+            countQuery = "SELECT COUNT(DISTINCT s.id) FROM SupplierEntity s " +
+                    "LEFT JOIN s.contactList c " +
+                    "WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE AND (" +
+                    "LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                    "LOWER(s.gstNo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                    "LOWER(c.contactPerson) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                    "LOWER(s.city) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+                    ")")
+    Page<SupplierEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+
     @Query("SELECT DISTINCT s FROM SupplierEntity s " +
             "LEFT JOIN s.contactList c " +
             "WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE AND (" +
@@ -44,5 +63,6 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
             "LOWER(s.city) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
             ")")
     List<SupplierEntity> searchByKeyword(@Param("keyword") String keyword);
+
 
 }

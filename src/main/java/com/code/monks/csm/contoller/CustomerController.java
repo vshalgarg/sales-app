@@ -7,6 +7,9 @@ import com.code.monks.csm.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,13 +38,24 @@ public class CustomerController {
 
     @GetMapping(GET_CUSTOMERS)
     public ResponseEntity<PagedResponseDto<GetCustomersDto>> getCustomers(
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size
     ) {
         log.info("GET customers API called to retrieve customers (page={}, size={})", page, size);
 
         PagedResponseDto<GetCustomersDto> response = customerService.getCustomers(page, size);
         log.info("Retrieved {} customers successfully", response.getContent().size());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(GET_CUSTOMERS_V2)
+    public ResponseEntity<List<GetCustomersDto>> getAllCustomers() {
+        log.info("GET {} called to retrieve all customers", GET_CUSTOMERS_V2);
+
+        List<GetCustomersDto> response = customerService.getAllCustomers();
+
+        log.info("Retrieved {} customers successfully..", response.size());
 
         return ResponseEntity.ok(response);
     }
@@ -58,8 +72,20 @@ public class CustomerController {
     }
 
     @GetMapping(SEARCH_CUSTOMERS)
-    public ResponseEntity<List<SearchCustomersResponseDto>> searchCustomers(@RequestParam String keyword){
-        List<SearchCustomersResponseDto> response = customerService.searchCustomers(keyword);
+    public ResponseEntity<PagedResponseDto<SearchCustomersResponseDto>> searchCustomers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        log.info("Search customers API called with keyword: '{}', page: {}, size: {}",
+                keyword, page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "customerName"));
+        PagedResponseDto<SearchCustomersResponseDto> response =
+                customerService.searchCustomers(keyword, pageable);
+
+        log.info("Search completed - returned {} customers (page {}/{})",
+                response.getContent().size(), response.getPage(), response.getTotalPages());
+
         return ResponseEntity.ok(response);
     }
 
