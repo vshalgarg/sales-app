@@ -1,40 +1,11 @@
-CREATE TABLE IF NOT EXISTS staff(
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    phone VARCHAR(15) NOT NULL UNIQUE,
-    joining_date DATE NOT NULL,
-    status TINYINT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-CREATE TABLE customer (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(5) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL,
-    group_name VARCHAR(50) NOT NULL,
-    gst_no VARCHAR(15) NOT NULL UNIQUE,
-    referenced_by VARCHAR(50) NOT NULL,
-    address_line1 VARCHAR(120) NOT NULL,
-    address_line2 VARCHAR(120),
-    city VARCHAR(50) NOT NULL,
-    pin_code VARCHAR(8) NOT NULL,
-    msme VARCHAR(8) NOT NULL,
-    remark VARCHAR(150),
-    status TINYINT NOT NULL,
+CREATE TABLE IF NOT EXISTS transports (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    is_active TINYINT(1) DEFAULT 1
 );
 
-CREATE TABLE customer_preferred_transport (
-    customer_id INT NOT NULL,
-    transport_id INT NOT NULL,
-    PRIMARY KEY (customer_id, transport_id),
-    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
-    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
-);
-
-CREATE TABLE supplier (
+CREATE TABLE IF NOT EXISTS supplier (
     id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(5) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
@@ -53,15 +24,36 @@ CREATE TABLE supplier (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE supplier_preferred_transport (
-    supplier_id INT NOT NULL,
-    transport_id INT NOT NULL,
-    PRIMARY KEY (supplier_id, transport_id),
-    FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE CASCADE,
-    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS customer (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(5) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    group_name VARCHAR(50) NOT NULL,
+    gst_no VARCHAR(15) NOT NULL UNIQUE,
+    referenced_by VARCHAR(50) NOT NULL,
+    address_line1 VARCHAR(120) NOT NULL,
+    address_line2 VARCHAR(120),
+    city VARCHAR(50) NOT NULL,
+    pin_code VARCHAR(8) NOT NULL,
+    msme VARCHAR(8) NOT NULL,
+    remark VARCHAR(150),
+    status TINYINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE contact (
+CREATE TABLE IF NOT EXISTS staff(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    phone VARCHAR(15) NOT NULL UNIQUE,
+    joining_date DATE NOT NULL,
+    status TINYINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE IF NOT EXISTS contact (
     id INT AUTO_INCREMENT PRIMARY KEY,
     person VARCHAR(255) NOT NULL UNIQUE,
     mobile_number VARCHAR(20) NOT NULL UNIQUE,
@@ -74,7 +66,25 @@ CREATE TABLE contact (
         REFERENCES Customer(id) ON DELETE CASCADE
 );
 
-CREATE TABLE bill (
+
+CREATE TABLE IF NOT EXISTS supplier_preferred_transport (
+    supplier_id INT NOT NULL,
+    transport_id INT NOT NULL,
+    PRIMARY KEY (supplier_id, transport_id),
+    FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE CASCADE,
+    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS customer_preferred_transport (
+    customer_id INT NOT NULL,
+    transport_id INT NOT NULL,
+    PRIMARY KEY (customer_id, transport_id),
+    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS bill (
     id INT PRIMARY KEY AUTO_INCREMENT,
     bill_number VARCHAR(50) NOT NULL UNIQUE,
 
@@ -101,7 +111,7 @@ CREATE TABLE bill (
         ON UPDATE CASCADE ON DELETE SET NULL
 );
 
-CREATE TABLE bill_detail (
+CREATE TABLE IF NOT EXISTS bill_detail (
     id INT PRIMARY KEY AUTO_INCREMENT,
 
     pieces INT NOT NULL,
@@ -120,8 +130,7 @@ CREATE TABLE bill_detail (
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-
-CREATE TABLE credit (
+CREATE TABLE IF NOT EXISTS credit (
     id INT PRIMARY KEY AUTO_INCREMENT,
     payment_type TINYINT NOT NULL,
     bill_number VARCHAR(50) NOT NULL UNIQUE,
@@ -136,15 +145,12 @@ CREATE TABLE credit (
     supplierId INT,
     customer_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_credit_supplier FOREIGN KEY (supplierId) REFERENCES supplier(id) ON DELETE SET NULL,
+    CONSTRAINT fk_credit_customer FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE SET NULL
 );
 
-CREATE TABLE transports (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active TINYINT(1) DEFAULT 1
-);
+
 
 
 
