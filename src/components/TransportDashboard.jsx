@@ -209,7 +209,7 @@ console.log("REQUEST on search", searchQuery,
         <table className="min-w-full table-fixed text-sm text-left">
           <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs">
             <tr>
-              <th className="px-6 py-3 w-24">ID</th>
+              <th className="px-6 py-3 w-24">S.No.</th>
               <th className="px-6 py-3 w-80">Name</th>
               <th className="px-6 py-3 w-32">Status</th>
               <th className="px-6 py-3 w-32">Actions</th>
@@ -230,7 +230,7 @@ console.log("REQUEST on search", searchQuery,
                   key={t.id || i}
                   className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  <td className="px-6 py-2">{t.id}</td>
+                  <td className="px-6 py-2">{i++}</td>
                   <td className="px-6 py-2 font">{t.name}</td>
                   <td className="px-6 py-2">
                     <span
