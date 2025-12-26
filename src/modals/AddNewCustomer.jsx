@@ -4,7 +4,7 @@ import BasicSelect from "../components/BasicSelect";
 import CustomTextField from "../components/CustomTextField";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { saveCustomer } from "../service/CustomerService";
+import CustomerService from "../service/CustomerService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import TransportService from "../service/TransportService";
@@ -255,7 +255,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
 
     // Save customer
     try {
-      const response = await saveCustomer(form);
+      const response = await CustomerService.saveCustomer(form);
       if (
         response &&
         typeof response === "object" &&

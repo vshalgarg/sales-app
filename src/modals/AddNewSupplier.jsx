@@ -6,7 +6,7 @@ import validate from "../validations/Validation";
 import CustomTextField from "../components/CustomTextField";
 import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
-import { saveSupplier } from "../service/SupplierService";
+import SupplierService from "../service/SupplierService";
 import TransportService from "../service/TransportService";
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
@@ -235,7 +235,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
 
     // Save supplier
     try {
-      const response = await saveSupplier(form);
+      const response = await SupplierService.saveSupplier(form);
       if (
         response &&
         typeof response === "object" &&

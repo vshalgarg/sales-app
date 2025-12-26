@@ -6,10 +6,14 @@ import dayjs from "dayjs";
 import validate from "../validations/Validation";
 import { useBillForm } from "../customHooks/useBillForm";
 import { useState, useEffect, useRef } from "react";
-import { addBill, searchTransports } from "../service/BillService";
+import { addBill } from "../service/BillService";
 import { useSnackbar } from "../context/SnackbarContext";
 import { Trash2, Pencil } from "lucide-react";
 import ConfirmationModal from "./ConfirmationModel";
+import SupplierService from "../service/SupplierService";
+import CustomerService from "../service/CustomerService";
+import Autocomplete from "@mui/material/Autocomplete";
+import TransportService from "../service/TransportService";
 
 const BillEntry = () => {
   const {
@@ -19,141 +23,56 @@ const BillEntry = () => {
     setErrors,
     handleChange,
     handleReset,
-    suggestions,
-    custSuggestions,
-    isDropdownOpen,
-    isCustDropdownOpen,
-    setIsDropdownOpen,
-    setIsCustDropdownOpen,
-    handleSupplierInput,
-    handleSupplierSuggestionClick,
-    handleCustomerInput,
-    handleCustomerSuggestionClick,
-    searchRef,
-    custSearchRef,
-    transportSearchRef,
   } = useBillForm();
 
   const { showSnackbar } = useSnackbar();
-  const [transportSuggestions, setTransportSuggestions] = useState([]);
-  const [isTransportDropdownOpen, setIsTransportDropdownOpen] = useState(false);
-  const [transportLoading, setTransportLoading] = useState(false);
-  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
-  const [pendingTransportName, setPendingTransportName] = useState("");
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [editForm, setEditForm] = useState({});
-
-  const transportTimeout = useRef(null);
+  const [allTransports, setAllTransports] = useState([]);
   const [taxableValue, setTaxableValue] = useState()
   const [billEntry, setBillEntry] = useState()
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [currentButton, seCurrentButton] = useState("")
+  const [currentButton, setCurrentButton] = useState("")
+  const [transportLoading, setTransportLoading] = useState(false);
+
+  const [allSuppliers, setAllSuppliers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [supplierLoading, setSupplierLoading] = useState(true)
+  const [customerLoading, setCustomerLoading] = useState(true);
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentEditIndex, setCurrentEditIndex] = useState(null);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
 
-
-  //🔹 Auto calculations
-  // useEffect(() => {
-  //   const gross = parseFloat(formData.grossAmount) || 0;
-  //   const discPercent = parseFloat(formData.discountPercent) || 0;
-  //   const addOn = parseFloat(formData.addOnAmount) || 0;
-  //   const ecr = parseFloat(formData.ecrAmount) || 0;
-  //   const gstPercent = parseFloat(formData.gstPercent) || 0;
-
-  //   const discountAmount =
-  //     gross && discPercent ? (gross * discPercent) / 100 : "";
-
-  //     const gstAmount =
-  //     taxableValue && gstPercent
-  //       ? (parseFloat(taxableValue) * gstPercent) / 100
-  //       : "";
-
-  //   const taxableValue =
-  //     gross || discPercent || addOn || ecr
-  //       ? gross - (gross * discPercent) / 100 + addOn + ecr
-  //       : "";
-
-
-
-  //   const billAmount =
-  //     taxableValue || gstAmount
-  //       ? (parseFloat(taxableValue) || 0) + (parseFloat(gstAmount) || 0)
-  //       : "";
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     discountAmount: discountAmount === "" ? "" : discountAmount.toFixed(2),
-  //     taxableValue:
-  //       taxableValue === "" ? "" : parseFloat(taxableValue).toFixed(2),
-  //     gstAmount: gstAmount === "" ? "" : gstAmount.toFixed(2),
-  //     billAmount: billAmount === "" ? "" : billAmount.toFixed(2),
-  //   }));
-  // }, [
-  //   formData.grossAmount,
-  //   formData.discountPercent,
-  //   formData.addOnAmount,
-  //   formData.ecrAmount,
-  //   formData.gstPercent,
-  // ]);
-
-  // Add this useEffect in your BillEntry component (after the other useEffects)
   useEffect(() => {
-    if (editingIndex === null) return; // only run when editing
+    const fetchData = async () => {
+      try {
+        setSupplierLoading(true);
+        const suppliers = await SupplierService.getAllSuppliers();
+        setAllSuppliers(suppliers || []);
+        setSupplierLoading(false);
 
-    const gross = parseFloat(editForm.grossAmount) || 0;
-    const discPercent = parseFloat(editForm.discountPercent) || 0;
-    const addOn = parseFloat(editForm.addOnAmount) || 0;
-    const ecr = parseFloat(editForm.ecrAmount) || 0;
-    const gstPercent = parseFloat(editForm.gstPercent) || 0;
+        setCustomerLoading(true);
+        const customers = await CustomerService.getAllCustomers();
+        setAllCustomers(customers || []);
+        setCustomerLoading(false);
 
-    // Discount Amount = (gross * discount%) / 100
-    const discountAmount = gross && discPercent ? (gross * discPercent) / 100 : 0;
+        setTransportLoading(true);
+        const transports = await TransportService.getAllTransports();
+        setAllTransports(transports || []);
+        setTransportLoading(false);
+      } catch (err) {
+        console.error(err);
+        showSnackbar("Error loading  data", "error");
+        setSupplierLoading(false);
+        setCustomerLoading(false);
+      }
+    };
 
-    // Taxable Value = gross - discount + addOn + ecr
-    const taxable = gross - discountAmount + addOn + ecr;
-
-    // GST Amount = (taxable * gst%) / 100
-    const gstAmount = taxable && gstPercent ? (taxable * gstPercent) / 100 : 0;
-
-    // Update editForm with calculated values
-    setEditForm(prev => ({
-      ...prev,
-      discountAmount: discountAmount.toFixed(2),
-      taxableValue: taxable.toFixed(2),
-      gstAmount: gstAmount.toFixed(2),
-      billAmount: (taxable + gstAmount).toFixed(2),
-    }));
-  }, [
-    editForm.grossAmount,
-    editForm.discountPercent,
-    editForm.addOnAmount,
-    editForm.ecrAmount,
-    editForm.gstPercent,
-    editingIndex //it resets when editing stops
-  ]);
-
-
-  const handleTransportInput = (e) => {
-    const value = e.target.value;
-    setFormData(prev => ({ ...prev, transport: value }));
-
-    if (transportTimeout.current) {
-      clearTimeout(transportTimeout.current);
-    }
-
-    transportTimeout.current = setTimeout(async () => {
-      setTransportLoading(true);
-      const results = await searchTransports(value);
-      console.log("Received transports:", results);
-      setTransportSuggestions(results);
-      setIsTransportDropdownOpen(results.length > 0);
-      setTransportLoading(false);
-    }, 300);
-  };
+    fetchData();
+  }, []);
 
   const [savedItems, setSavedItems] = useState([]);
-
-
   const handleResetBillDetail = () => {
     setFormData((prev) => ({
       ...prev,
@@ -206,19 +125,12 @@ const BillEntry = () => {
 
   }
 
-  const handleSaveItemWithConfirm = () => {
-    setIsSaving(true);
-    handleSaveItem();
-    setIsConfirmOpen(false);
-    setIsSaving(false);
-  };
-
   const handleSaveItem = () => {
     if (!formData.grossAmount) {
       showSnackbar("Please save at least one item", "error");
       return;
     }
-     if (formData.pieces <= 0) {
+    if (formData.pieces <= 0) {
       showSnackbar("Please add atleast 1 piece", "error");
       return;
     }
@@ -234,12 +146,22 @@ const BillEntry = () => {
       gstAmount: formData.gstAmount,
       taxableValue: formData.taxableValue,
       billAmount: formData.billAmount,
-
     };
 
-    setSavedItems([...savedItems, newItem]);
+    if (isEditing && currentEditIndex !== null) {
+      // Edit mode: update existing item
+      const updatedItems = [...savedItems];
+      updatedItems[currentEditIndex] = newItem;
+      setSavedItems(updatedItems);
+      setIsEditing(false);
+      setCurrentEditIndex(null);
+    } else {
+      // Add mode: add new item
+      setSavedItems([...savedItems, newItem]);
+    }
 
-    setFormData((prev) => ({
+    // Reset bill detail fields
+    setFormData(prev => ({
       ...prev,
       pieces: "",
       grossAmount: "",
@@ -249,36 +171,15 @@ const BillEntry = () => {
       ecrAmount: "",
       gstPercent: "",
       gstAmount: "",
-
+      taxableValue: "",
+      billAmount: "",
     }));
   };
 
-
-
-  const handleSubmitWithConfirm = () => {
-    setIsSaving(true);
-    handleSubmit();
-    setIsConfirmOpen(false);
-    setIsSaving(false);
-  };
   const handleSubmit = async () => {
-    
-
     if (savedItems.length === 0) {
       showSnackbar("Please save at least one item", "error");
       return;
-    }
-
-    const currentTransport = formData.transport?.trim();
-    const isNewTransport = currentTransport &&
-      !transportSuggestions.some(t =>
-        t.name.toLowerCase() === currentTransport.toLowerCase()
-      );
-
-    if (isNewTransport) {
-      setPendingTransportName(currentTransport);
-      setShowConfirmPopup(true);
-      return; // wait for user decision
     }
     await saveBillEntry();
   };
@@ -330,57 +231,124 @@ const BillEntry = () => {
     });
     setTaxableValue(totalTaxable.toFixed(2))
     setBillEntry(totalBill.toFixed(2))
-
-    // setFormData((prev) => ({
-    //   ...prev,
-    //   taxableValue: totalTaxable.toFixed(2),
-    //   billAmount: totalBill.toFixed(2),
-    // }));
   }, [savedItems]);
 
 
   const handleEditClick = (index) => {
-    setEditingIndex(index);
-    setEditForm({ ...savedItems[index] });
+
+    setCurrentEditIndex(index);
+    setIsEditing(true);
+
+    const itemToEdit = savedItems[index];
+    setFormData(prev => ({
+      ...prev,
+      pieces: itemToEdit.pieces || "",
+      grossAmount: itemToEdit.grossAmount || "",
+      discountPercent: itemToEdit.discountPercent || "",
+      discountAmount: itemToEdit.discountAmount || "",
+      addOnAmount: itemToEdit.addOnAmount || "",
+      ecrAmount: itemToEdit.ecrAmount || "",
+      gstPercent: itemToEdit.gstPercent || "",
+      gstAmount: itemToEdit.gstAmount || "",
+      taxableValue: itemToEdit.taxableValue || "",
+      billAmount: itemToEdit.billAmount || "",
+    }));
+
+    setIsAddItemModalOpen(true);
+  };
+
+  const handleAddItemModalClose = () => {
+    setIsAddItemModalOpen(false);
+    setIsEditing(false);
+    setCurrentEditIndex(null);
+    // Reset only bill detail fields
+    setFormData(prev => ({
+      ...prev,
+      pieces: "",
+      grossAmount: "",
+      discountPercent: "",
+      discountAmount: "",
+      addOnAmount: "",
+      ecrAmount: "",
+      gstPercent: "",
+      gstAmount: "",
+      taxableValue: "",
+      billAmount: "",
+    }));
   };
 
   const handleDeleteClick = (index) => {
     setSavedItems(savedItems.filter((_, i) => i !== index));
   };
 
-  const handleEditSave = () => {
-    if (editingIndex !== null) {
-      const updatedItems = [...savedItems];
-      updatedItems[editingIndex] = { ...editForm };
-      setSavedItems(updatedItems);
-      setEditingIndex(null);
-      setEditForm({});
+  const handleSupplierSelect = (event, value) => {
+    console.log("value", value)
+    if (value) {
+      setFormData(prev => ({
+        ...prev,
+        supplierId: value.id,
+        supplierName: value.supplierName,
+        supplierGroup: value.supplierGroup,
+        supplierMsme: value.supplierMsme,
+        supplierGstNo: value.supplierGstNo,
+      }));
+      setErrors(prev => ({ ...prev, supplierName: "" }));
+    } else {
+      // Clear if no selection
+      setFormData(prev => ({
+        ...prev,
+        supplierId: "",
+        supplierName: "",
+        supplierGroup: "",
+        supplierMsme: "",
+        supplierGstNo: "",
+      }));
     }
   };
 
-  const handleEditCancel = () => {
-    setEditingIndex(null);
-    setEditForm({});
+  const handleCustomerSelect = (event, newValue) => {
+    if (newValue) {
+      setFormData(prev => ({
+        ...prev,
+        customerId: newValue.id,
+        customerName: newValue.customerName,
+        customerGroup: newValue.customerGroup,
+        customerMsme: newValue.customerMsme,
+        customerGstNo: newValue.customerGstNo,
+      }));
+      setErrors(prev => ({ ...prev, customerName: "" }));
+    } else {
+      // Clear if no selection
+      setFormData(prev => ({
+        ...prev,
+        customerId: "",
+        customerName: "",
+        customerGroup: "",
+        customerMsme: "",
+        customerGstNo: "",
+      }));
+    }
   };
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
-      <div className="bg-white w-full h-[91vh] flex flex-col ">
+      <div className="bg-white w-full h-[91vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-300 shrink-0">
-          <h2 className="text-2xl font-semibold">Bill Entry</h2>
+        <div className="px-8 py-5 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
+          <h2 className="text-2xl font-bold text-gray-800">Bill Entry</h2>
+          <p className="text-sm text-gray-500 mt-1">Fill in all required fields to create a new bill</p>
         </div>
 
-        {/* Middle content (only this can scroll) */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          <div className="border p-4 rounded border-gray-300">
-            <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-              Order Information
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+          {/* Order Information Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-blue-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Order Information</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-5">
               {/* Bill Date */}
-              {/* Date Field */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Date"
@@ -412,7 +380,6 @@ const BillEntry = () => {
                   }}
                 />
               </LocalizationProvider>
-
 
               {/* Received Date Field */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -457,52 +424,46 @@ const BillEntry = () => {
                 value={formData.order}
                 onChange={handleChange}
                 label="Order"
-                className="border p-2 rounded"
+                className="w-full"
                 error={!!errors.order}
                 helperText={errors.order || ""}
               />
             </div>
           </div>
-          {/* Supplier Information */}
-          {/* Supplier Information */}
-          <div className="border p-4 rounded border-gray-300">
-            <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-              Supplier Information
-            </h3>
-            <div className="grid grid-cols-4 gap-4 relative">
-              {/* Supplier with Auto-suggestions */}
-              <div ref={searchRef} className="relative w-full">
-                <CustomTextField
-                  name="supplierName"
-                  value={formData.supplierName}
-                  onChange={handleSupplierInput} // search API
-                  onFocus={() => {
-                    if (
-                      formData.supplierName.length > 1 &&
-                      suggestions.length > 0
-                    ) {
-                      setIsDropdownOpen(true); // reopen dropdown on focus
-                    }
-                  }}
-                  label="Supplier"
-                  error={!!errors.supplierName}
-                  helperText={errors.supplierName || ""}
-                />
 
-                {/* Suggestions dropdown */}
-                {isDropdownOpen && suggestions.length > 0 && (
-                  <ul className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto text-sm">
-                    {suggestions.map((s, idx) => (
-                      <li
-                        key={idx}
-                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleSupplierSuggestionClick(s)}
-                      >
-                        {s.supplierName}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+          {/* Supplier Information Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Supplier Information</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-5 relative">
+              <div>
+                <Autocomplete
+                  options={allSuppliers}
+                  getOptionLabel={(option) => option.supplierName || ""}
+                  value={allSuppliers.find(s => s.supplierName === formData.supplierName) || null}
+                  onChange={handleSupplierSelect}
+                  loading={supplierLoading}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}
+                      label="Supplier"
+                      error={!!errors.supplierName}
+
+                      helperText={errors.supplierName || ""}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {supplierLoading ? <span className="text-xs text-gray-500">Loading...</span> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                />
               </div>
 
               <CustomTextField
@@ -528,45 +489,38 @@ const BillEntry = () => {
               />
             </div>
           </div>
-          <div className="border p-4 rounded border-gray-300">
-            <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-              Customer Information
-            </h3>
-            <div className="grid grid-cols-4 gap-4 relative">
-              {/* Customer with Auto-suggestions */}
-              <div ref={custSearchRef} className="relative w-full">
-                <CustomTextField
-                  name="customerName"
-                  value={formData.customerName}
-                  onChange={handleCustomerInput} // search API
-                  onFocus={() => {
-                    if (
-                      formData.customerName.length > 1 &&
-                      custSuggestions.length > 0
-                    ) {
-                      setIsCustDropdownOpen(true);
-                    }
-                  }}
-                  error={!!errors.customerName}
-                  helperText={errors.customerName || ""}
-                  label="Customer"
-                  autoComplete="off"
-                />
 
-                {/* Suggestions dropdown */}
-                {isCustDropdownOpen && custSuggestions.length > 0 && (
-                  <ul className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto text-sm">
-                    {custSuggestions.map((c, idx) => (
-                      <li
-                        key={idx}
-                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleCustomerSuggestionClick(c)}
-                      >
-                        {c.customerName}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+          {/* Customer Information Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Customer Information</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-5 relative">
+              <div>
+                <Autocomplete
+                  options={allCustomers}
+                  getOptionLabel={(option) => option.customerName || ""}
+                  onChange={handleCustomerSelect}
+                  loading={customerLoading}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}
+                      label="Customer"
+                      error={!!errors.customerName}
+                      helperText={errors.customerName || ""}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {customerLoading ? <span className="text-xs text-gray-500">Loading...</span> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                />
               </div>
 
               <CustomTextField
@@ -593,287 +547,82 @@ const BillEntry = () => {
             </div>
           </div>
 
-          <div className="border p-4 rounded border-gray-500">
-            <div className="grid grid-cols-2 gap-4 ">
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Bill Details
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <CustomTextField
-                    name="pieces"
-                    value={formData.pieces}
-                    onChange={handleChange}
-                    label="Pieces"
-                    className="border p-2 rounded"
-                    error={!!errors.pieces}
-                    helperText={errors.pieces}
-                  />
-                  <CustomTextField
-                    name="grossAmount"
-                    value={formData.grossAmount}
-                    onChange={handleChange}
-                    label="Gross Amount"
-                    className="border p-2 rounded"
-                    error={!!errors.grossAmount}
-                    helperText={errors.grossAmount || ""}
-                  />
-                </div>
-              </div>
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Add Discount
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <CustomTextField
-                    name="discountPercent"
-                    value={formData.discountPercent}
-                    onChange={handleChange}
-                    label="Discount%"
-                    className="border p-2 rounded"
-                    error={!!errors.discountPercent}
-                    helperText={errors.discountPercent || ""}
-                  />
-                  <CustomTextField
-                    name="discountAmount"
-                    value={formData.discountAmount}
-                    onChange={handleChange}
-                    label="Discount Amount"
-                    className="border p-2 rounded"
-                    InputProps={{ readOnly: true }}
-                  />
-                </div>
-              </div>
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Add On Charges
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <CustomTextField
-                    name="addOnAmount"
-                    value={formData.addOnAmount}
-                    onChange={handleChange}
-                    label="Add-On Amount"
-                    className="border p-2 rounded"
-                    error={!!errors.addOnAmount}
-                    helperText={errors.addOnAmount || ""}
-                  />
-                  <CustomTextField
-                    name="ecrAmount"
-                    value={formData.ecrAmount}
-                    onChange={handleChange}
-                    label="ECR Amount"
-                    className="border p-2 rounded"
-                    error={!!errors.ecrAmount}
-                    helperText={errors.ecrAmount || ""}
-                  />
-                </div>
-              </div>
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Add GST Details
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <CustomTextField
-                    name="gstPercent"
-                    value={formData.gstPercent}
-                    onChange={handleChange}
-                    label="GST%"
-                    className="border p-2 rounded"
-                    error={!!errors.gstPercent}
-                    helperText={errors.gstPercent || ""}
-                  />
-                  <CustomTextField
-                    name="gstAmount"
-                    value={formData.gstAmount}
-                    onChange={handleChange}
-                    label="GST Amount"
-                    className="border p-2 rounded"
-                    InputProps={{ readOnly: true }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end mt-4 gap-4">
-              <button
-                onClick={handleResetBillDetail}
-                type="button"
-                className="px-4 py-2 bg-gray-200 border-solid border-2 border-gray-400 rounded hover:bg-gray-400"
-              >
-                Reset
-              </button>
-              <button
-                onClick={() => { setIsConfirmOpen(true), seCurrentButton("SaveItem") }}
-                type="button"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-800"
-              >
-                Save Item
-              </button>
-
-            </div>
+          {/* Add Bill Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => setIsAddItemModalOpen(true)}
+              className="px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02] flex items-center gap-2"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Bill Item
+            </button>
           </div>
 
-          {/* total bills table */}
+          {/* Total Bills Table */}
           {savedItems.length > 0 && (
-            <div className="border p-4 rounded border-gray-300 mt-6">
-              <h3 className="text-lg font-semibold mb-4 border-b border-gray-300 pb-3">
-                Bill Details ({savedItems.length} {savedItems.length === 1 ? "Item" : "Items"})
-              </h3>
-              <div className="overflow-x-auto">
+            <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200 mt-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <div className="w-1 h-8 bg-orange-600 rounded-full mr-3"></div>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Bill Details ({savedItems.length} {savedItems.length === 1 ? "Item" : "Items"})
+                  </h3>
+                </div>
+                <div className="bg-blue-50 text-blue-600 text-sm font-medium px-3 py-1 rounded-full">
+                  Total: {billEntry}
+                </div>
+              </div>
+
+              <div className="overflow-x-auto rounded-lg border border-gray-100">
                 <table className="w-full table-auto border-collapse">
                   <thead>
-                    <tr className="bg-gray-100">
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Pieces</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Gross Amount</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Discount%</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Discount Amount</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Add-On Amount</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">ECR Amount</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">GST%</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">GST Amount</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Taxable Value</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Bill Amount</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700 uppercase">Actions</th>
+                    <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">Pieces</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">Gross Amount</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">Discount%</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">Discount Amount</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">Add-On Amount</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">ECR Amount</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">GST%</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">GST Amount</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">Taxable Value</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">Bill Amount</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {savedItems.map((item, idx) => (
-                      <tr key={idx} className="border-t">
-                        {editingIndex === idx ? (
-                          <>
-                            {/* Edit Mode - All inputs + readOnly fields */}
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.pieces || ""}
-                                onChange={(e) => setEditForm({ ...editForm, pieces: e.target.value })}
-                                className="w-full border rounded px-2 py-1 text-sm"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.grossAmount || ""}
-                                onChange={(e) => setEditForm({ ...editForm, grossAmount: e.target.value })}
-                                className="w-full border rounded px-2 py-1 text-sm"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.discountPercent || ""}
-                                onChange={(e) => setEditForm({ ...editForm, discountPercent: e.target.value })}
-                                className="w-full border rounded px-2 py-1 text-sm"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.discountAmount || ""}
-                                readOnly
-                                className="w-full border rounded px-2 py-1 text-sm bg-gray-100"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.addOnAmount || ""}
-                                onChange={(e) => setEditForm({ ...editForm, addOnAmount: e.target.value })}
-                                className="w-full border rounded px-2 py-1 text-sm"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.ecrAmount || ""}
-                                onChange={(e) => setEditForm({ ...editForm, ecrAmount: e.target.value })}
-                                className="w-full border rounded px-2 py-1 text-sm"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.gstPercent || ""}
-                                onChange={(e) => setEditForm({ ...editForm, gstPercent: e.target.value })}
-                                className="w-full border rounded px-2 py-1 text-sm"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="number"
-                                value={editForm.gstAmount || ""}
-                                readOnly
-                                className="w-full border rounded px-2 py-1 text-sm bg-gray-100"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="text"
-                                value={editForm.taxableValue || ""}
-                                readOnly
-                                className="w-full border rounded px-2 py-1 text-sm bg-gray-100"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <input
-                                type="text"
-                                value={editForm.billAmount || ""}
-                                readOnly
-                                className="w-full border rounded px-2 py-1 text-sm bg-gray-100 font-medium"
-                              />
-                            </td>
-                            <td className="px-2 py-1 text-center">
-                              <button
-                                onClick={handleEditSave}
-                                className="text-green-600 hover:text-green-800 mr-3 inline-flex items-center"
-                                title="Save"
-                              >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={handleEditCancel}
-                                className="text-red-600 hover:text-red-800 inline-flex items-center"
-                                title="Cancel"
-                              >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            {/* View Mode */}
-                            <td className="px-4 py-2 text-center">{item.pieces || "-"}</td>
-                            <td className="px-4 py-2 text-center">{item.grossAmount || "0.00"}</td>
-                            <td className="px-4 py-2 text-center">{item.discountPercent || "0"}</td>
-                            <td className="px-4 py-2 text-center">{item.discountAmount || "0.00"}</td>
-                            <td className="px-4 py-2 text-center">{item.addOnAmount || "0.00"}</td>
-                            <td className="px-4 py-2 text-center">{item.ecrAmount || "0.00"}</td>
-                            <td className="px-4 py-2 text-center">{item.gstPercent || "0"}</td>
-                            <td className="px-4 py-2 text-center">{item.gstAmount || "0.00"}</td>
-                            <td className="px-4 py-2 text-center">{item.taxableValue || "0.00"}</td>
-                            <td className="px-4 py-2 text-center font-medium">{item.billAmount || "0.00"}</td>
-                            <td className="px-4 text-center py-2 flex">
-                              <button
-                                onClick={() => handleEditClick(idx)}
-                                className="text-blue-600 hover:text-blue-800 mr-3"
-                                title="Edit"
-                              >
-                                <Pencil className="w-5 h-5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(idx)}
-                                className="text-red-600 hover:text-red-800"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </button>
-                            </td>
-                          </>
-                        )}
+                      <tr key={idx} className="border-t border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+                        <td className="px-4 py-3 text-center font-medium text-gray-700">{item.pieces || "-"}</td>
+                        <td className="px-4 py-3 text-center text-gray-600">{item.grossAmount || "0.00"}</td>
+                        <td className="px-4 py-3 text-center text-gray-600">{item.discountPercent || "0"}%</td>
+                        <td className="px-4 py-3 text-center text-red-500 font-medium">{item.discountAmount || "0.00"}</td>
+                        <td className="px-4 py-3 text-center text-green-500 font-medium">{item.addOnAmount || "0.00"}</td>
+                        <td className="px-4 py-3 text-center text-gray-600">{item.ecrAmount || "0.00"}</td>
+                        <td className="px-4 py-3 text-center text-gray-600">{item.gstPercent || "0"}%</td>
+                        <td className="px-4 py-3 text-center text-blue-500 font-medium">{item.gstAmount || "0.00"}</td>
+                        <td className="px-4 py-3 text-center font-medium text-gray-800">{item.taxableValue || "0.00"}</td>
+                        <td className="px-4 py-3 text-center font-bold text-gray-900">{item.billAmount || "0.00"}</td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex justify-center items-center space-x-3">
+                            <button
+                              onClick={() => handleEditClick(idx)}
+                              className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors duration-200"
+                              title="Edit"
+                            >
+                              <Pencil className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteIndex(idx)}
+                              className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors duration-200"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -882,104 +631,136 @@ const BillEntry = () => {
             </div>
           )}
 
-          <div className="border p-4 rounded border-gray-300">
-            <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-              Total Bill Amount
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <CustomTextField
-                name="taxableValue"
-                value={taxableValue}
-                // onChange={handleChange}
-                label="Taxable Value"
-                className="border p-2 rounded"
-                InputProps={{ readOnly: true }}
-              />
-              <CustomTextField
-                name="billAmount"
-                value={billEntry}
-                // onChange={handleChange}
-                label="Bill Amount"
-                className="border p-2 rounded"
-                InputProps={{ readOnly: true }}
-              />
+          {/* Total Bill Amount Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-indigo-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Total Bill Amount</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-600">Taxable Value</label>
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-xl font-bold text-gray-800">
+                  {taxableValue}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-600">Bill Amount</label>
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-2xl font-bold text-blue-700">
+                  {billEntry}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="border p-4 rounded border-gray-300">
-            <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-              Logistics & Notes
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div ref={transportSearchRef} className="relative w-full">
-                <CustomTextField
-                  name="transport"
-                  value={formData.transport || ""}
-                  onChange={handleTransportInput}
-                  onFocus={() => {
-                    if (transportSuggestions.length > 0) {
-                      setIsTransportDropdownOpen(true);
-                    }
-                  }}
-                  label="Transport"
-                  autoComplete="off"
-                  error={!!errors.transport}
-                  helperText={errors.transport || ""}
-                  disabled={!formData.supplierName && !formData.customerName}
-                  //loading indicator
-                  InputProps={{
-                    endAdornment: transportLoading ? (
-                      <span className="text-xs text-gray-500">Searching...</span>
-                    ) : null
-                  }}
-                />
 
-                {/* Suggestions Dropdown */}
-                {isTransportDropdownOpen && transportSuggestions.length > 0 && (
-                  <ul className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto text-sm">
-                    {transportSuggestions.map((t, idx) => (
-                      <li
-                        key={t.id || idx}
-                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, transport: t.name }));
-                          setIsTransportDropdownOpen(false);
-                          setErrors(prev => ({ ...prev, transport: "" }));
-                        }}
-                      >
-                        {t.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+          {/* Logistics & Notes */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">Logistics & Notes</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Transport */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Transport</label>
+                <div>
+                  <Autocomplete
+                    options={allTransports}
+                    getOptionLabel={(option) => option.name}
+                    value={
+                      allTransports.find(t => t.name === formData.transport) || null
+                    }
+                    onChange={(event, newValue) => {
+                      const name = newValue?.name || "";
+                      setFormData(prev => ({ ...prev, transport: name }));
+                    }}
+                    isOptionEqualToValue={(option, value) =>
+                      option.name === value?.name
+                    }
+                    renderInput={(params) => (
+                      <CustomTextField
+                        value={
+                          allTransports.find(t => t.name === formData.transport) || null
+                        }
+                        {...params}
+                        label="Select Transport"
+                      />
+                    )}
+                  />
+                </div>
               </div>
 
-              <CustomTextField
-                name="lrNumber"
-                value={formData.lrNumber}
-                onChange={handleChange}
-                label="LR Number"
-                className="border p-2 rounded"
-                error={!!errors.lrNumber}
-                helperText={errors.lrNumber || ""}
-              />
+              {/* LR Number */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">LR Number</label>
+                <div className="flex items-start">
+                  <CustomTextField
+                    name="lrNumber"
+                    value={formData.lrNumber}
+                    onChange={handleChange}
+                    error={!!errors.lrNumber}
+                    helperText={errors.lrNumber || ""}
+                    className="w-full"
+                  />
+                </div>
+              </div>
 
-              <CustomTextField
-                name="remarks"
-                value={formData.remarks}
-                onChange={handleChange}
-                label="Remarks"
-                className="border p-2 rounded"
-              />
+              {/* Remarks */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Remarks</label>
+                <div >
+                  <CustomTextField
+                    name="remarks"
+                    value={formData.remarks}
+                    onChange={handleChange}
+                    multiline
+                    error={!!errors.remarks}
+                    helperText={errors.remarks || ""}
+                    className="w-full h-full"
+                    InputProps={{
+                      style: { height: '100%', overflowY: 'auto' }
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Generic Confirmation Modal */}
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-4 shrink-0 bg-gray-50">
+          <button
+            onClick={handleResetForm}
+            type="button"
+            className="px-3 py-2 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm"
+          >
+            Reset Form
+          </button>
+          <button
+            onClick={() => {
+              setIsConfirmOpen(true);
+              setCurrentButton("SaveBillEntry");
+            }}
+            type="button"
+            className="px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+          // disabled={savedItems.length === 0 || isSaving}
+          >
+            {isSaving ? "Saving..." : "Save Bill Entry"}
+          </button>
+        </div>
+
+        {/* Generic Confirmation Modal*/}
         <ConfirmationModal
           isOpen={isConfirmOpen}
-          onClose={() => setIsConfirmOpen(false)}
-          onConfirm={currentButton === "SaveItem" ? handleSaveItemWithConfirm : handleSubmitWithConfirm}
+          onClose={() => {
+            setIsConfirmOpen(false);
+            if (currentButton === "SaveItem") {
+              setIsAddItemModalOpen(false);
+            }
+          }}
+          onConfirm={() => {
+            currentButton === "SaveItem" ? handleSaveItem() : handleSubmit();
+            setIsAddItemModalOpen(false);
+            setIsConfirmOpen(false);
+          }}
           title={currentButton === "SaveItem" ? "Save Item" : "Confirm Bill Submission"}
           message={currentButton === "SaveItem" ? "Are you sure you want to save this item with the current details?" : "Please review all entries carefully. Do you want to submit this bill now?"}
           confirmText={currentButton === "SaveItem" ? "Save" : "Submit"}
@@ -988,67 +769,207 @@ const BillEntry = () => {
           loading={isSaving}
         />
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-300 flex justify-end space-x-4 shrink-0">
-          <button
-            onClick={handleResetForm}
-            type="button"
-            className="px-4 py-2 bg-gray-200 rounded border-solid border-2 border-gray-400 hover:bg-gray-400"
-          >
-            Reset Form
-          </button>
-          <button
-            onClick={() => { setIsConfirmOpen(true), seCurrentButton("SaveBillEntry") }}
-            type="button"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-800"
-          >
-            Save Bill Entry
-          </button>
-        </div>
+        {/* Add Item Modal*/}
+        {isAddItemModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-4 p-6 relative overflow-y-auto" style={{ maxHeight: '80vh' }}>
+              <button
+                onClick={handleAddItemModalClose}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-semibold"
+              >
+                ×
+              </button>
 
-        {/* <ConfirmationModal
-          isOpen={isConfirmOpen}
-          onClose={() => setIsConfirmOpen(false)}
-          onConfirm={handleSubmit}
-          title="Confirm Bill Submission"
-          message="Please review all entries carefully. Do you want to submit this bill now?"
-          confirmText="Yes, Submit"
-          cancelText="Cancel"
-          confirmButtonColor="blue"
-          loading={isSaving}
-        /> */}
+              <h2 className="text-xl font-semibold text-gray-700 mb-5">
+                {isEditing ? "Edit Bill Item" : "Add Bill Item"}
+              </h2>
 
-        {showConfirmPopup && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Add New Transport?
-              </h3>
-              <p className="text-gray-600 mb-6">
-                The transport "<span className="font-medium text-blue-600">{pendingTransportName}</span>" does not exist.
-                <br /><br />
-                Do you want to add it?
+              {/* MODAL CONTENT*/}
+              <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
+                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
+                      Bill Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <CustomTextField
+                        name="pieces"
+                        value={formData.pieces}
+                        onChange={handleChange}
+                        label="Pieces"
+                        error={!!errors.pieces}
+                        helperText={errors.pieces}
+                      />
+                      <CustomTextField
+                        name="grossAmount"
+                        value={formData.grossAmount}
+                        onChange={handleChange}
+                        label="Gross Amount"
+                        error={!!errors.grossAmount}
+                        helperText={errors.grossAmount || ""}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
+                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
+                      Add Discount
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <CustomTextField
+                        name="discountPercent"
+                        value={formData.discountPercent}
+                        onChange={handleChange}
+                        label="Discount %"
+                        error={!!errors.discountPercent}
+                        helperText={errors.discountPercent || ""}
+                      />
+                      <CustomTextField
+                        name="discountAmount"
+                        value={formData.discountAmount}
+                        onChange={handleChange}
+                        label="Discount Amount"
+                        InputProps={{ readOnly: true }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
+                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
+                      Add On Charges
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <CustomTextField
+                        name="addOnAmount"
+                        value={formData.addOnAmount}
+                        onChange={handleChange}
+                        label="Add-On Amount"
+                        error={!!errors.addOnAmount}
+                        helperText={errors.addOnAmount || ""}
+                      />
+                      <CustomTextField
+                        name="ecrAmount"
+                        value={formData.ecrAmount}
+                        onChange={handleChange}
+                        label="ECR Amount"
+                        error={!!errors.ecrAmount}
+                        helperText={errors.ecrAmount || ""}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
+                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
+                      Add GST Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <CustomTextField
+                        name="gstPercent"
+                        value={formData.gstPercent}
+                        onChange={handleChange}
+                        label="GST %"
+                        error={!!errors.gstPercent}
+                        helperText={errors.gstPercent || ""}
+                      />
+                      <CustomTextField
+                        name="gstAmount"
+                        value={formData.gstAmount}
+                        onChange={handleChange}
+                        label="GST Amount"
+                        InputProps={{ readOnly: true }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 grid grid-cols-3 gap-4 p-4 bg-white rounded-lg border border-gray-200">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">Taxable Value</p>
+                    <p className="text-lg font-medium text-blue-600 mt-1">
+                      {formData.taxableValue || "0.00"}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">GST Amount</p>
+                    <p className="text-lg font-medium text-green-600 mt-1">
+                      {formData.gstAmount || "0.00"}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">Bill Amount</p>
+                    <p className="text-xl font-medium text-indigo-600 mt-1">
+                      {formData.billAmount || "0.00"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* BUTTON SECTION*/}
+                <div className="flex justify-end mt-5 gap-4">
+                 { !isEditing ?
+                  <button
+                    onClick={handleResetBillDetail}
+                    className="px-6 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 text-sm font-medium"
+                  >
+                    Reset
+                  </button>:null}
+                  <button
+                    onClick={() => {
+                      if (!formData.grossAmount || Number(formData.grossAmount) <= 0) {
+                        showSnackbar("Gross Amount is required and must be greater than 0", "error");
+                        return false;
+                      }
+                      if (!formData.pieces || Number(formData.pieces) <= 0) {
+                        showSnackbar("Pieces must be at least 1", "error");
+                        return false;
+                      }
+                      setIsConfirmOpen(true);
+                      setCurrentButton("SaveItem");
+                    }}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                  >
+                    {isEditing ? "Update Item" : "Save Item"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {deleteIndex !== null && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-80 animate-scale">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                  <Trash2 className="w-5 h-5 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">Delete Item?</h3>
+              </div>
+
+              <p className="text-gray-600 text-sm mb-6">
+                Are you sure you want to delete this bill item? This action cannot be undone.
               </p>
+
               <div className="flex justify-end space-x-3">
                 <button
-                  onClick={() => setShowConfirmPopup(false)}
-                  className="px-5 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                  onClick={() => setDeleteIndex(null)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => {
-                    setShowConfirmPopup(false);
-                    saveBillEntry();
+                    handleDeleteClick(deleteIndex);
+                    setDeleteIndex(null);
                   }}
-                  className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
-                  Yes, Add & Save
+                  Yes, Delete
                 </button>
               </div>
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
