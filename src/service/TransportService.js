@@ -1,6 +1,7 @@
 // service/TransportService.js
 
 import api from "../api/api";
+import CommonService from './CommonService';
 
 class TransportService {
   // Add new transport
@@ -21,6 +22,16 @@ class TransportService {
         params: { page, size },
       });
       console.log("Paginated response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching transports:", error);
+      throw error.response?.data || error;
+    }
+  }
+
+  static async getAllTransports(page, size) {
+    try {
+      const response = await api.get("/transports/getAll")
       return response.data;
     } catch (error) {
       console.error("Error fetching transports:", error);
@@ -62,22 +73,16 @@ static async createTransport(createRequest) {
   }
 
   // Search transports
-  static async searchTransports(query) {
-    if (!query || query.trim().length < 1) {
-      return [];
-    }
-
-    try {
-      const response = await api.get("/transports/search", {
-        params: { query: query.trim() },
-      });
-      console.log("Transport search response:", response.data);
-      return response.data || [];
-    } catch (error) {
-      console.error("Transport search failed:", error);
-      return [];
-    }
+  static async searchTransports(keyword, page = 0, size = 8) {
+    return CommonService.searchWithPagination(
+      '/transports/search',
+      keyword,
+      page,
+      size
+    );
   }
+
 }
+
 
 export default TransportService;

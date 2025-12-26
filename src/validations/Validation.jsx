@@ -197,36 +197,7 @@ const validate = (field, value) => {
         error = "Pieces is required";
       }
       break;
-    case "discountPercent":
-      if (!value || value.length === 0) {
-        error = "Discount% is required";
-      }
-      break;
-    case "discountAmount":
-      if (!value || value.length === 0) {
-        error = "Discount Amount is required";
-      }
-      break;
-    case "addOnAmount":
-      if (!value || value.length === 0) {
-        error = "Add-On amount is required";
-      }
-      break;
-    case "ecrAmount":
-      if (!value || value.length === 0) {
-        error = "ECR Amount is required";
-      }
-      break;
-    case "gstPercent":
-      if (!value || value.length === 0) {
-        error = "GST% is required";
-      }
-      break;
-    case "gstAmount":
-      if (!value || value.length === 0) {
-        error = "GST Amount is required";
-      }
-      break;
+  
     case "taxableValue":
       if (!value || value.length === 0) {
         error = "Taxable value is required";

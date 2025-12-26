@@ -4,40 +4,24 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { useSnackbar } from "../context/SnackbarContext";
-import { useBillForm } from "../customHooks/useBillForm";
-import { useEffect, useRef, useState } from "react";
-import validate from "../validations/Validation";
+import { useEffect, useState } from "react";
+import Autocomplete from "@mui/material/Autocomplete";
+import SupplierService from "../service/SupplierService";
+import CustomerService from "../service/CustomerService";
 import { searchStaffs } from "../service/StaffService";
 import { addPurchaseEntry } from "../service/purchaseService";
+import validate from "../validations/Validation";
 
 const PurchaseEntry = () => {
-  const searchStaffRef = useRef();
   const { showSnackbar } = useSnackbar();
-  const [staffSuggestion, setStaffSuggestion] = useState([]);
-  const [staffDropdown, setStaffDropdown] = useState(false);
-  const {
-    searchCustomerRef,
-    searchSupplierRef,
-    isFilterObject,
-    setIsFilterObject,
-    errors,
-    setErrors,
-    suggestions,
-    setSuggestions,
-    isDropdownOpen,
-    setIsDropdownOpen,
-    handleSupplierInput,
-    searchRef,
-    handleSupplierSuggestionClick,
-    custSearchRef,
-    custSuggestions,
-    isCustDropdownOpen,
-    setIsCustDropdownOpen,
-    handleCustomerSuggestionClick,
-    handleCustomerInput,
-    filterObject,
-    setFilterObject,
-  } = useBillForm();
+
+  const [allStaffs, setAllStaffs] = useState([]);
+  const [allSuppliers, setAllSuppliers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
+
+  const [staffLoading, setStaffLoading] = useState(true);
+  const [supplierLoading, setSupplierLoading] = useState(true);
+  const [customerLoading, setCustomerLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     date: "",
@@ -48,20 +32,138 @@ const PurchaseEntry = () => {
     purchaseAmount: "",
   });
 
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        searchStaffRef.current &&
-        !searchStaffRef.current.contains(e.target)
-      ) {
-        setStaffDropdown(false); // ✅ CORRECT
+    const fetchAllData = async () => {
+      try {
+        setStaffLoading(true);
+        const staffs = await searchStaffs("");
+        setAllStaffs(staffs || []);
+        setStaffLoading(false);
+
+        setSupplierLoading(true);
+        const suppliers = await SupplierService.getAllSuppliers();
+        setAllSuppliers(suppliers || []);
+        setSupplierLoading(false);
+
+        setCustomerLoading(true);
+        const customers = await CustomerService.getAllCustomers();
+        setAllCustomers(customers || []);
+        setCustomerLoading(false);
+      } catch (err) {
+        console.error("Error loading data:", err);
+        showSnackbar("Failed to load data", "error");
+      } finally {
+        setStaffLoading(false);
+        setSupplierLoading(false);
+        setCustomerLoading(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+
+    fetchAllData();
   }, []);
+
+  const handleStaffSelect = (event, value) => {
+    if (value) {
+      setFormData((prev) => ({
+        ...prev,
+        staffId: value.staffId,
+        staff: value.staffName || "",
+      }));
+      setErrors((prev) => ({ ...prev, staff: "" }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        staffId: "",
+        staff: "",
+      }));
+    }
+  };
+
+  const handleSupplierSelect = (event, value) => {
+    if (value) {
+      setFormData((prev) => ({
+        ...prev,
+        supplierId: value.id,
+      }));
+      setErrors((prev) => ({ ...prev, supplierName: "" }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        supplierId: "",
+      }));
+    }
+  };
+
+  const handleCustomerSelect = (event, value) => {
+    if (value) {
+      setFormData((prev) => ({
+        ...prev,
+        customerId: value.id,
+      }));
+      setErrors((prev) => ({ ...prev, customerName: "" }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        customerId: "",
+      }));
+    }
+  };
+
+  const handleDateChange = (name, newValue) => {
+    const formatted = newValue ? dayjs(newValue).format("YYYY-MM-DD") : "";
+    setFormData((prev) => ({ ...prev, [name]: formatted }));
+    setErrors((prev) => ({ ...prev, [name]: validate(name, formatted) || "" }));
+  };
+
+  const handleAmountChange = (e) => {
+    const { name, value } = e.target;
+    if (/^\d*\.?\d*$/.test(value)) {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
+    }
+  };
+
+  const handleAmountBlur = (name) => {
+    const val = formData[name];
+    const num = parseFloat(val);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: isNaN(num) || !val ? "" : num.toFixed(2),
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const newErrors = {};
+
+    Object.keys(formData).forEach((field) => {
+      const error = validate(field, formData[field]);
+      if (error) {
+        if (field === "supplierId") newErrors.supplierName = error;
+        else if (field === "customerId") newErrors.customerName = error;
+        else newErrors[field] = error;
+      }
+    });
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some((err) => err)) {
+      showSnackbar("Please fill required fields", "error");
+      return;
+    }
+
+    try {
+      const response = await addPurchaseEntry(formData);
+      showSnackbar(response.message || "Purchase entry saved", "success");
+      handleReset();
+    } catch (error) {
+      showSnackbar("Error saving purchase entry", "error");
+      console.error(error);
+    }
+  };
 
   const handleReset = () => {
     setFormData({
@@ -73,419 +175,206 @@ const PurchaseEntry = () => {
       purchaseAmount: "",
     });
     setErrors({});
-    setIsFilterObject(false);
-    setFilterObject({});
   };
 
-  const handleDateChange = (name, newValue) => {
-    const formatted = newValue ? dayjs(newValue).format("YYYY-MM-DD") : "";
+ return (
+  <div className="flex flex-col h-full overflow-y-auto">
+    {/* Card */}
+    <div className="bg-white w-full h-[91vh] flex flex-col">
+      {/* Header */}
+      <div className="px-8 py-5 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
+        <h2 className="text-2xl font-bold text-gray-800">Purchase Entry</h2>
+        <p className="text-sm text-gray-500 mt-1">Record purchase transactions and manage inventory</p>
+      </div>
 
-    setFormData((prev) => ({ ...prev, [name]: formatted })); // Add validation for date fields
-    setErrors((prev) => ({ ...prev, [name]: validate(name, formatted) || "" }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const newErrors = {};
-
-    // Step 1: Validate all fields
-    Object.keys(formData).forEach((field) => {
-      const error = validate(field, formData[field]);
-      if (error) {
-        if (field === "supplierId") {
-          newErrors.supplierName = error;
-        } else if (field === "customerId") {
-          newErrors.customerName = error;
-        } else {
-          newErrors[field] = error;
-        }
-      }
-    });
-
-    setErrors(newErrors);
-
-    // ✅ Step 2: Check if any errors exist after validation
-    const hasErrors = Object.values(newErrors).some((val) => val && val !== "");
-
-    if (hasErrors) {
-      showSnackbar("Please fill required fields in the form.", "error");
-      return;
-    }
-
-    // Proceed to submit
-    try {
-      const response = await addPurchaseEntry(formData);
-      if (
-        response &&
-        typeof response === "object" &&
-        "code" in response &&
-        "message" in response &&
-        "timestamp" in response
-      ) {
-        showSnackbar(response.message, "error");
-        return;
-      }
-      showSnackbar(response.message, "success");
-      handleReset();
-      setFilterObject({});
-    } catch (error) {
-      showSnackbar("Error while saving bill entry", "error");
-      console.error("Error while saving bill entry:", error);
-    }
-  };
-
-  const handleStaffChange = async (e) => {
-    const value = e.target.value;
-
-    setFormData((prev) => ({
-      ...prev,
-      staff: value,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      staff: validate("staff", value),
-    }));
-
-    if (value.length > 1) {
-      try {
-        const result = await searchStaffs(value);
-        setStaffSuggestion(result || []);
-        setStaffDropdown(result?.length > 0);
-      } catch {
-        setStaffSuggestion([]);
-        setStaffDropdown(false);
-      }
-    } else {
-      setStaffSuggestion([]);
-      setStaffDropdown(false);
-    }
-  };
-
-  const handleStaffSuggestionClick = (s) => {
-    setFormData((prev) => ({
-      ...prev,
-      staff: s.staffName || "",
-      staffId: s.staffId,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      staff: "",
-    }));
-
-    setStaffSuggestion([]);
-    setStaffDropdown(false);
-  };
-
-  const handleSupplierChange = (e) => {
-    handleSupplierInput(e);
-    setIsFilterObject(true);
-
-    // .trim() खाली स्पेस को भी हटाने के लिए ज़रूरी है
-    const inputValue = e.target.value.trim();
-
-    if (inputValue === "") {
-      // खाली होने पर ID भी साफ़ करें
-      setFormData((prev) => ({ ...prev, supplierId: "" }));
-      setErrors((prev) => ({
-        ...prev,
-        // ID के लिए validation चलाएँ, लेकिन error को 'supplierName' key पर रखें
-        supplierId: validate("supplierId", "") || "",
-      }));
-    } else {
-      // 🚀 FIX: टाइप करते समय (onChange) error को साफ़ रखें ताकि यूज़र को टाइप करने दिया जा सके
-      setErrors((prev) => ({
-        ...prev,
-        supplierId: "",
-      }));
-    }
-  };
-
-  const handleCustomerChange = (e) => {
-    handleCustomerInput(e);
-    setIsFilterObject(true);
-
-    const inputValue = e.target.value.trim();
-
-    if (inputValue === "") {
-      setFormData((prev) => ({ ...prev, customerId: "" }));
-      setErrors((prev) => ({
-        ...prev,
-        customerId: validate("customerId", "") || "",
-      }));
-    } else {
-      // 🚀 FIX: टाइप करते समय (onChange) error को साफ़ रखें
-      setErrors((prev) => ({
-        ...prev,
-        customerId: "",
-      }));
-    }
-  };
-
-  const handleAmountChange = (e) => {
-    const { name, value } = e.target; // Keep the logic for allowing only numbers and one dot
-    if (/^\d*\.?\d*$/.test(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      })); // Add validation for amount fields
-      setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
-    }
-  }; // Helper function for onBlur amount formatting
-
-  const handleAmountBlur = (name) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: formatAmount(prev[name]),
-    }));
-  };
-
-  const formatAmount = (val) => {
-    const num = parseFloat(val);
-    if (!val || isNaN(num)) return ""; // ← Empty string instead of "0.00"
-
-    return Number.isInteger(num) ? num.toFixed(2) : num.toFixed(2);
-  };
-
-  return (
-    <div className="flex flex-col h-full">
-      {/* Grid container: header (64px) - content (1fr) - footer (64px) */}
-      <div
-        className="bg-white w-full grid"
-        style={{ height: "91vh", gridTemplateRows: "64px 1fr 72.8px" }}
-        // If Tailwind arbitrary grid rows work in your setup, you can use:
-        // className="bg-white w-full grid grid-rows-[64px_1fr_64px]"
-      >
-        {/* Header */}
-        <header className="px-6 border-b border-gray-300 flex items-center h-16">
-          {/* remove default margins to avoid extra space */}
-          <h2 className="m-0 text-2xl font-semibold leading-none">
-            Purchase Entry
-          </h2>
-        </header>
-
-        {/* Body (scrollable) */}
-        <main className="px-6 py-4 overflow-y-auto">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Select Date
-                </h3>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="Date"
-                    value={formData.date ? dayjs(formData.date) : null}
-                    onChange={(newValue) => handleDateChange("date", newValue)}
-                    slotProps={{
-                      textField: {
-                        size: "small",
-                        fullWidth: true,
-                        error: !!errors.date,
-                        helperText: errors.date || "",
-                        onClick: (e) => {
-                          // 👇 Open the calendar when clicking anywhere on the input
-                          const iconButton =
-                            e.currentTarget.parentElement.querySelector(
-                              "button[aria-label]"
-                            );
-                          iconButton?.click();
-                        },
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-              </div>
-
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Select Staff
-                </h3>
-                <div ref={searchStaffRef} className="relative w-full">
-                  <CustomTextField
-                    name="staff"
-                    label="Staff Name"
-                    value={formData.staff}
-                    onChange={handleStaffChange}
-                    onFocus={() => {
-                      if (
-                        formData?.staff?.length > 1 &&
-                        staffSuggestion.length > 0
-                      ) {
-                        setStaffDropdown(true);
-                      }
-                    }}
-                    error={!!errors.staff}
-                    helperText={errors.Staff || ""}
-                  />
-                   {" "}
-                  {staffDropdown && staffSuggestion.length > 0 && (
-                    <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
-                                         {" "}
-                      {staffSuggestion.map((s, idx) => (
-                        <li
-                          key={idx}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            handleStaffSuggestionClick(s);
-                          }}
-                        >
-                                                  {s.staffName}                 
-                             {" "}
-                        </li>
-                      ))}
-                                       {" "}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Select Supplier
-                </h3>
-                <div ref={searchSupplierRef} className="relative w-full">
-                                 {" "}
-                  <CustomTextField
-                    name="supplierName"
-                    value={filterObject.supplierName ?? ""}
-                    onChange={handleSupplierChange}
-                    onFocus={() => {
-                      if (
-                        (filterObject?.supplierName?.length ?? 0) > 1 &&
-                        suggestions.length > 0
-                      ) {
-                        setIsDropdownOpen(true);
-                      }
-                    }}
-                    label="Supplier"
-                    error={!!errors.supplierName}
-                    helperText={errors.supplierName || ""}
-                  />
-                                 {" "}
-                  {isDropdownOpen && suggestions.length > 0 && (
-                    <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
-                                         {" "}
-                      {suggestions.map((s, idx) => (
-                        <li
-                          key={idx}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            handleSupplierSuggestionClick(s);
-                            setFormData((prev) => ({
-                              ...prev,
-                              supplierId: s.id,
-                            }));
-                          }}
-                        >
-                                                  {s.supplierName}             
-                                 {" "}
-                        </li>
-                      ))}
-                                       {" "}
-                    </ul>
-                  )}
-                               {" "}
-                </div>
-              </div>
-
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Select Customer
-                </h3>
-                <div ref={searchCustomerRef} className="relative w-full">
-                                 {" "}
-                  <CustomTextField
-                    name="customerName"
-                    value={filterObject.customerName ?? ""} // ✅ Updated onChange handler
-                    onChange={handleCustomerChange}
-                    onFocus={() => {
-                      if (
-                        (filterObject.customerName?.length ?? 0) > 1 &&
-                        custSuggestions.length > 0
-                      ) {
-                        setIsCustDropdownOpen(true);
-                      }
-                    }}
-                    label="Customer" // ✅ Checking for the error on the 'customerName' key
-                    error={!!errors.customerName}
-                    helperText={errors.customerName || ""}
-                  />
-                                 {" "}
-                  {isCustDropdownOpen && custSuggestions.length > 0 && (
-                    <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
-                                         {" "}
-                      {custSuggestions.map((c, idx) => (
-                        <li
-                          key={idx}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            handleCustomerSuggestionClick(c);
-                            setFormData((prev) => ({
-                              ...prev,
-                              customerId: c.id,
-                            }));
-                          }}
-                        >
-                                                  {c.customerName}             
-                                 {" "}
-                        </li>
-                      ))}
-                                       {" "}
-                    </ul>
-                  )}
-                               {" "}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border p-4 rounded border-gray-300">
-                <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-                  Amount of Purchase
-                </h3>
-                <div className="relative w-full">
-                  <CustomTextField
-                    name="purchaseAmount"
-                    label="Purchase Amount"
-                    value={formData.purchaseAmount}
-                    onChange={handleAmountChange}
-                    onBlur={() => handleAmountBlur("purchaseAmount")}
-                    error={!!errors.purchaseAmount}
-                    helperText={errors.purchaseAmount || ""}
-                  />
-                </div>
-              </div>
-              {/* empty block to balance the grid */}
-              <div></div>
-            </div>
+      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+        {/* Date & Staff Card */}
+        <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center mb-5">
+            <div className="w-1 h-8 bg-blue-600 rounded-full mr-3"></div>
+            <h3 className="text-lg font-semibold text-gray-800">Transaction Information</h3>
           </div>
-        </main>
+          <div className="grid grid-cols-2 gap-6">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Date"
+                value={formData.date ? dayjs(formData.date) : null}
+                onChange={(newValue) => handleDateChange("date", newValue)}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                    error: !!errors.date,
+                    helperText: errors.date || "",
+                    onClick: (e) => {
+                      const iconButton = e.currentTarget.parentElement.querySelector(
+                        "button[aria-label]"
+                      );
+                      iconButton?.click();
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider>
 
-        {/* Footer (same fixed height as header) */}
-        <footer className="px-6 border-t border-gray-300 flex justify-end gap-4 items-center h-16">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-400"
-          >
-            Reset Form
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-800"
-          >
-            Save Purchase Entry
-          </button>
-        </footer>
+            <Autocomplete
+              options={allStaffs}
+              getOptionLabel={(option) => option.staffName || ""}
+              getOptionKey={(option) => option.staffId}
+              value={allStaffs.find((s) => s.staffId === formData.staffId) || null}
+              onChange={handleStaffSelect}
+              loading={staffLoading}
+              isOptionEqualToValue={(option, value) => option.staffId === value?.staffId}
+              renderInput={(params) => (
+                <CustomTextField
+                  {...params}
+                  label="Staff Name"
+                  error={!!errors.staff}
+                  helperText={errors.staff || ""}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {staffLoading ? <span className="text-xs text-gray-500">Loading...</span> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Party Information Card */}
+        <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center mb-5">
+            <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
+            <h3 className="text-lg font-semibold text-gray-800">Party Information</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <Autocomplete
+              options={allSuppliers}
+              getOptionLabel={(option) => option.supplierName || ""}
+              getOptionKey={(option) => option.id}
+              value={allSuppliers.find((s) => s.id === formData.supplierId) || null}
+              onChange={handleSupplierSelect}
+              loading={supplierLoading}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+              renderInput={(params) => (
+                <CustomTextField
+                  {...params}
+                  label="Supplier"
+                  error={!!errors.supplierName}
+                  helperText={errors.supplierName || ""}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {supplierLoading ? <span className="text-xs text-gray-500">Loading...</span> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
+
+            <Autocomplete
+              options={allCustomers}
+              getOptionLabel={(option) => option.customerName || ""}
+              getOptionKey={(option) => option.id}
+              value={allCustomers.find((c) => c.id === formData.customerId) || null}
+              onChange={handleCustomerSelect}
+              loading={customerLoading}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+              renderInput={(params) => (
+                <CustomTextField
+                  {...params}
+                  label="Customer"
+                  error={!!errors.customerName}
+                  helperText={errors.customerName || ""}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {customerLoading ? <span className="text-xs text-gray-500">Loading...</span> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Purchase Amount Card */}
+        <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center mb-5">
+            <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
+            <h3 className="text-lg font-semibold text-gray-800">Purchase Details</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CustomTextField
+              name="purchaseAmount"
+              label="Purchase Amount"
+              value={formData.purchaseAmount}
+              onChange={handleAmountChange}
+              onBlur={() => handleAmountBlur("purchaseAmount")}
+              error={!!errors.purchaseAmount}
+              helperText={errors.purchaseAmount || ""}
+              className="w-full"
+            />
+            
+            {/* Optional: Add more fields here if needed in future */}
+            <div></div>
+          </div>
+        </div>
+
+        {/* Optional: Remarks or Additional Information Card */}
+        {formData.remarks && (
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-orange-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Additional Information</h3>
+            </div>
+            <CustomTextField
+              name="remarks"
+              label="Remarks"
+              value={formData.remarks}
+              onChange={handleChange}
+              multiline
+              rows={3}
+              className="w-full"
+              InputProps={{
+                style: { height: '100%', overflowY: 'auto' }
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-8 py-5 border-t border-gray-200 flex justify-end space-x-4 shrink-0 bg-gray-50">
+        <button
+          onClick={handleReset}
+          type="button"
+          className="px-6 py-3 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+        >
+          Reset Form
+        </button>
+        <button
+          onClick={handleSubmit}
+          type="button"
+          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+        >
+          Save Purchase Entry
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default PurchaseEntry;

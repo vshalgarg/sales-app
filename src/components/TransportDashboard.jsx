@@ -1,24 +1,24 @@
-"use client";
-import { useState, useRef, useEffect } from "react";
-import { Ellipsis, Pencil, Trash2, ArrowLeft, ArrowRight } from "lucide-react";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Ellipsis, Pencil, Trash2 } from "lucide-react";
 import TransportService from "../service/TransportService";
 import AddNewTransport from "./AddNewTransport";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
+import PaginationComponent from "./PaginationComponenet"
 
 export default function TransportDashboard() {
   const [loading, setLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-
   const [open, setOpen] = useState(false);
   const [editingTransport, setEditingTransport] = useState(null);
-
   const [transports, setTransports] = useState([]);
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const rowsPerPage = 6;
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
   const dropdownRef = useRef(null);
   const { showSnackbar } = useSnackbar();
 
@@ -35,25 +35,85 @@ export default function TransportDashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!isSearchActive) fetchTransports(currentPage);
-  }, [currentPage, isSearchActive]);
-
-  const fetchTransports = async (page = 1) => {
+  const fetchTransports = useCallback(async (uiPage = 1) => {
+    const backendPage = uiPage - 1;
     setLoading(true);
     try {
-      const data = await TransportService.getTransports(page, rowsPerPage);
+      const data = await TransportService.getTransports(backendPage, rowsPerPage);
       setTransports(data.content || []);
-      setTotalPages(data.totalPages || 1);
+      setTotalPages(data.totalPages || 0);
+      setTotalItems(data.totalElements || 0);
+      setCurrentPage(uiPage);
     } catch (error) {
       console.error("Error fetching transports:", error);
       setTransports([]);
-      setTotalPages(1);
+      setTotalPages(0);
+      setTotalItems(0);
       showSnackbar("Failed to load transports.", "error");
     } finally {
       setLoading(false);
     }
+  }, [rowsPerPage, showSnackbar]);
+
+  const handleSearchResult = (response, searchQuery) => {
+console.log("REQUEST on search", searchQuery, 
+          )
+     if (!searchQuery.trim()) {
+    setIsSearchActive(false);
+    fetchTransports(1);
+    return;
+  }
+    const results = response.content || [];
+    setTransports(results);
+    setTotalPages(response.totalPages || 0);
+    setTotalItems(response.totalElements || 0);
+    setIsSearchActive(searchQuery.trim() !== "");
+    setCurrentPage(1);
   };
+
+  const handleChangePage = async (newPage) => {
+    if (newPage < 1 || (totalPages > 0 && newPage > totalPages)) return;
+    
+    setCurrentPage(newPage);
+    
+    if (isSearchActive && query.trim()) {
+      try {
+        const backendPage = newPage - 1;
+        console.log("REQUEST", query, 
+          backendPage, 
+          rowsPerPage)
+        const response = await TransportService.searchTransports(
+          query, 
+          backendPage, 
+          rowsPerPage
+        );
+
+        handleSearchResult(response, query);
+      } catch (error) {
+        console.error("Error fetching search page:", error);
+        showSnackbar("Error loading search results", "error");
+      }
+    } else {
+      fetchTransports(newPage);
+    }
+  };
+
+  const handleClearSearch = useCallback(() => {
+    setQuery("");
+    setIsSearchActive(false);
+    fetchTransports(1);
+  }, [fetchTransports]);
+
+  useEffect(() => {
+    if (query.trim() === "" && isSearchActive) {
+      handleClearSearch();
+    }
+    console.log(query,"Query")
+  }, [query, isSearchActive, handleClearSearch]);
+
+  useEffect(() => {
+    fetchTransports(1);
+  }, [fetchTransports]);
 
   const confirmDelete = (transport) => {
     setTransportToDelete(transport);
@@ -66,7 +126,19 @@ export default function TransportDashboard() {
     try {
       const result = await TransportService.deleteTransport(transportToDelete.id);
       showSnackbar(result.message || "Transport deleted successfully", "success");
-      fetchTransports(currentPage);
+      
+      if (isSearchActive && query.trim()) {
+        const backendPage = currentPage - 1;
+        const response = await TransportService.searchTransports(
+          query, 
+          backendPage, 
+          rowsPerPage
+        );
+        
+        handleSearchResult(response, query);
+      } else {
+        fetchTransports(currentPage);
+      }
     } catch (error) {
       console.error("Error deleting transport:", error);
       showSnackbar("Failed to delete transport.", "error");
@@ -74,10 +146,6 @@ export default function TransportDashboard() {
       setDeleteModalOpen(false);
       setTransportToDelete(null);
     }
-  };
-
-  const searchFn = async (query) => {
-    return await TransportService.searchTransports(query);
   };
 
   const handleEdit = (transport) => {
@@ -89,10 +157,6 @@ export default function TransportDashboard() {
   const handleAddNew = () => {
     setEditingTransport(null);
     setOpen(true);
-  };
-
-  const handleChangePage = (page) => {
-    setCurrentPage(page);
   };
 
   const handleModalClose = () => {
@@ -118,16 +182,27 @@ export default function TransportDashboard() {
         </button>
       </div>
 
-      <UniversalSearch
-        placeholder="Search transports..."
-        query={query}
-        setQuery={setQuery}
-        searchFn={TransportService.searchTransports}
-        onResult={(results) => {
-          setTransports(results);
-          setIsSearchActive(results.length > 0 && query.trim() !== "");
-        }}
-      />
+      {/* Search */}
+      <div className="flex items-center gap-2 mb-6">
+        <UniversalSearch
+          placeholder="Search transports..."
+          query={query}
+          setQuery={setQuery}
+          searchFn={TransportService.searchTransports}
+          onResult={handleSearchResult}
+          onClear={handleClearSearch}
+          suggestionKey="name"
+          pageSize={rowsPerPage}
+        />
+        {isSearchActive && (
+          <button
+            onClick={handleClearSearch}
+            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       {/* Table */}
       <div className="relative mt-6 rounded-lg shadow bg-white dark:bg-gray-900">
@@ -141,7 +216,15 @@ export default function TransportDashboard() {
             </tr>
           </thead>
           <tbody>
-            {transports.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="text-center py-8">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                </td>
+              </tr>
+            ) : transports.length > 0 ? (
               transports.map((t, i) => (
                 <tr
                   key={t.id || i}
@@ -196,7 +279,7 @@ export default function TransportDashboard() {
             ) : (
               <tr>
                 <td colSpan="4" className="text-center text-gray-500 dark:text-gray-400 py-8">
-                  {loading ? "Loading..." : "No Transports Found"}
+                  No Transports Found
                 </td>
               </tr>
             )}
@@ -204,47 +287,16 @@ export default function TransportDashboard() {
         </table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && !isSearchActive && (
-        <div className="flex justify-center mt-6">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleChangePage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === 1
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                  : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-            >
-              <ArrowLeft size={18} />
-            </button>
-
-            <div className="flex space-x-1">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleChangePage(i + 1)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => handleChangePage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === totalPages
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                  : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-            >
-              <ArrowRight size={18} />
-            </button>
-          </div>
+      {/* Pagination*/}
+      {totalPages > 0 && (
+        <div className="mt-6">
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            onPageChange={handleChangePage}
+            showInfo={false}
+          />
         </div>
       )}
 

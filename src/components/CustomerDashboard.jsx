@@ -1,26 +1,20 @@
-import { useEffect, useState, useRef } from "react";
-import { Ellipsis, Eye, Trash2, ArrowLeft, ArrowRight, Rows } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Ellipsis, Eye, Trash2 } from "lucide-react";
 import { useSnackbar } from "../context/SnackbarContext";
-
-import {
-  getCustomers,
-  deleteCustomer,
-  searchCustomers,
-} from "../service/CustomerService";
+import CustomerService from "../service/CustomerService";
 import AddNewCustomer from "../modals/AddNewCustomer";
 import CustomerDetail from "../modals/CustomerDetail";
 import UniversalSearch from "../components/UniversalSearch";
-import SmartTable from "./SmartTable";
+import PaginationComponent from "./PaginationComponenet";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
-  const [searchResults, setSearchResults] = useState([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [open, setOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const rowsPerPage = 7;
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
@@ -29,10 +23,10 @@ export default function CustomerDashboard() {
   const [suggestions, setSuggestions] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef(null);
-  const [clickCount, setClickCount] = useState(0);
   const { showSnackbar } = useSnackbar();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
 
   const [form, setForm] = useState({
     customerName: "",
@@ -50,11 +44,75 @@ export default function CustomerDashboard() {
     remark: "",
   });
 
-  useEffect(() => {
-    if (!isSearchActive) {
-      fetchCustomers(currentPage);
+  const fetchCustomers = useCallback(async (uiPage = 1) => {
+    const backendPage = uiPage - 1;
+    setLoading(true);
+    try {
+      const data = await CustomerService.getCustomers(backendPage, rowsPerPage);
+      setCustomers(data.content || []);
+      setTotalPages(data.totalPages || 0);
+      setTotalItems(data.totalElements || 0);
+      setCurrentPage(uiPage);
+      setIsSearchActive(false);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      setCustomers([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      showSnackbar("Error loading customers", "error");
+    } finally {
+      setLoading(false);
     }
-  }, [currentPage, isSearchActive]);
+  }, [rowsPerPage, showSnackbar]);
+
+  const handleSearchResult = (response, searchQuery) => {
+    const results = response.content || [];
+    setCustomers(results);
+    setTotalPages(response.totalPages || 0);
+    setTotalItems(response.totalElements || 0);
+    setIsSearchActive(searchQuery.trim() !== "");
+    setCurrentPage(1);
+  };
+
+  const handleChangePage = async (newPage) => {
+    if (newPage < 1 || (totalPages > 0 && newPage > totalPages)) return;
+    
+    setCurrentPage(newPage);
+    
+    if (isSearchActive && query.trim()) {
+      try {
+        const backendPage = newPage - 1;
+        const response = await CustomerService.searchCustomers(
+          query, 
+          backendPage, 
+          rowsPerPage
+        );
+        handleSearchResult(response, query);
+      } catch (error) {
+        console.error("Error fetching search page:", error);
+        showSnackbar("Error loading search results", "error");
+      }
+    } else {
+      fetchCustomers(newPage);
+    }
+  };
+
+  const handleClearSearch = useCallback(() => {
+    setQuery("");
+    setSuggestions([]);
+    setIsSearchActive(false);
+    fetchCustomers(1);
+  }, [fetchCustomers]);
+
+  useEffect(() => {
+    if (!query.trim() && isSearchActive) {
+      handleClearSearch();
+    }
+  }, [query, isSearchActive, handleClearSearch]);
+
+  useEffect(() => {
+    fetchCustomers(1);
+  }, [fetchCustomers]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -63,9 +121,7 @@ export default function CustomerDashboard() {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -75,64 +131,28 @@ export default function CustomerDashboard() {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const fetchCustomers = async (page = 1) => {
-    setLoading(true);
-    try {
-      const data = await getCustomers(page, rowsPerPage);
-      setCustomers(data.content || []);
-      setTotalPages(data.totalPages || 1);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-      setCustomers([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (code) => {
-    try {
-      const response = await deleteCustomer(code);
-      showSnackbar(response.message, "success");
-      if (isSearchActive) {
-        const updated = searchResults.filter((c) => c.code !== code);
-        setSearchResults(updated);
-        setCustomers(
-          updated.slice(
-            (currentPage - 1) * rowsPerPage,
-            currentPage * rowsPerPage
-          )
-        );
-        setTotalPages(Math.ceil(updated.length / rowsPerPage));
-      } else {
-        fetchCustomers(currentPage);
-      }
-    } catch (error) {
-      console.error("Error deleting customer:", error);
-    }
-  };
-
-  const handleChangePage = (page) => {
-    setCurrentPage(page);
-
-    if (isSearchActive) {
-      const start = (page - 1) * rowsPerPage;
-      const end = start + rowsPerPage;
-      setCustomers(searchResults.slice(start, end));
-    } else {
-      fetchCustomers(page);
-    }
-  };
 
   const confirmDelete = (customer) => {
     setCustomerToDelete(customer);
     setDeleteModalOpen(true);
     setOpenMenuIndex(null);
+  };
+
+  const handleDelete = async () => {
+    if (!customerToDelete) return;
+    try {
+      const response = await CustomerService.deleteCustomer(customerToDelete.code);
+      showSnackbar(response.message, "success");
+      fetchCustomers(currentPage);
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      showSnackbar("Failed to delete customer.", "error");
+    } finally {
+      setDeleteModalOpen(false);
+      setCustomerToDelete(null);
+    }
   };
 
   return (
@@ -146,48 +166,131 @@ export default function CustomerDashboard() {
           Add New Customer
         </button>
       </div>
-      <UniversalSearch
-        placeholder="Search customers..."
-        query={query}
-        setQuery={setQuery}
-        searchFn={searchCustomers}
-        onResult={(results) => {
-          setSearchResults(results);
-          setCustomers(results);
-          setIsSearchActive(results.length > 0 && query.trim() !== "");
-          setCurrentPage(1);
-          setTotalPages(1);
-        }}
-      />
-      
-      <SmartTable
-        columns={[
-          { label: "Code", accessor: "code" },
-          { label: "Name", accessor: "customerName" },
-          { label: "GST", accessor: "customerGstNo" },
-          { label: "Address", accessor: "address" },
-          { label: "City", accessor: "city" },
-          {
-            label: "Contact Person",
-            accessor: (row) => row.contacts?.[0]?.contactPerson || "-",
-          },
-          {
-            label: "Mobile",
-            accessor: (row) => row.contacts?.[0]?.mobileNumber || "-",
-          },
-        ]}
-        data={customers}
-        loading={loading}
-        dropdownRef={dropdownRef}
-        openMenuIndex={openMenuIndex}
-        setOpenMenuIndex={setOpenMenuIndex}
-        onView={(row) => {
-          console.log("Selected customers:", row);
-          setSelectedCustomer(row);
-          setModalOpen(true);
-        }}
-        onDelete={(row) => confirmDelete(row)}
-      />
+
+      <div className="flex items-center gap-2 mb-6">
+        <UniversalSearch
+          placeholder="Search customers..."
+          query={query}
+          setQuery={setQuery}
+          searchFn={CustomerService.searchCustomers}
+          onResult={handleSearchResult}
+          onClear={handleClearSearch}
+          suggestionKey="customerName"
+          pageSize={rowsPerPage}
+        />
+        {isSearchActive && (
+          <button
+            onClick={handleClearSearch}
+            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* Table Section - Original Design */}
+      <div className="relative mt-6 rounded-lg shadow bg-white dark:bg-gray-900">
+        <table className="min-w-full table-fixed text-sm text-left">
+          <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs">
+            <tr>
+              <th className="px-6 py-3 w-[10%]">Code</th>
+              <th className="px-6 py-3 w-[15%]">Name</th>
+              <th className="px-6 py-3 w-[12%]">GST</th>
+              <th className="px-6 py-3 w-[20%]">Address</th>
+              <th className="px-6 py-3 w-[10%]">City</th>
+              <th className="px-6 py-3 w-[12%]">Contact Person</th>
+              <th className="px-6 py-3 w-[11%]">Mobile</th>
+              <th className="px-6 py-3 w-[10%]">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan="8" className="text-center py-8">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                </td>
+              </tr>
+            ) : customers.length > 0 ? (
+              customers.map((c, i) => (
+                <tr
+                  key={i}
+                  className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <td className="px-6 py-2">{c.code || `C00${i + 1}`}</td>
+                  <td className="px-6 py-2">{c.customerName}</td>
+                  <td className="px-6 py-2">{c.customerGstNo}</td>
+                  <td className="px-6 py-2">{c.address}</td>
+                  <td className="px-6 py-2">{c.city}</td>
+                  <td className="px-6 py-2">
+                    {c.contacts?.[0]?.contactPerson || "-"}
+                  </td>
+                  <td className="px-6 py-2">
+                    {c.contacts?.[0]?.mobileNumber || "-"}
+                  </td>
+                  <td className="px-6 py-2 relative">
+                    <button
+                      onClick={() =>
+                        setOpenMenuIndex(openMenuIndex === i ? null : i)
+                      }
+                      className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                    >
+                      <Ellipsis />
+                    </button>
+
+                    {openMenuIndex === i && (
+                      <div
+                        ref={dropdownRef}
+                        className="absolute bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow-md mt-1 z-10 w-22"
+                      >
+                        <button
+                          onClick={() => {
+                            setSelectedCustomer(c);
+                            setModalOpen(true);
+                            setOpenMenuIndex(null);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <Eye className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        </button>
+                        <button
+                          onClick={() => confirmDelete(c)}
+                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <Trash2 className="w-5 h-5 text-red-600" />
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="8"
+                  className="text-center text-gray-500 dark:text-gray-400 py-4"
+                >
+                  No Customers Found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination - Using PaginationComponent */}
+      {totalPages > 0 && (
+        <div className="mt-6">
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            onPageChange={handleChangePage}
+            showInfo={false}
+          />
+        </div>
+      )}
 
       {/* Customer Detail Modal */}
       {modalOpen && selectedCustomer && (
@@ -195,110 +298,6 @@ export default function CustomerDashboard() {
           selectedCustomer={selectedCustomer}
           setModalOpen={setModalOpen}
         />
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="absolute bottom-0 left-0 right-0 text-center p-3">
-          <div className="max-w-sm mx-auto flex justify-between items-center space-x-2">
-            {/* Always Render Prev */}
-            <div>
-              <button
-                onClick={() => handleChangePage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                  currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white hover:bg-gray-200"
-                }`}
-              >
-                <ArrowLeft size={18} />
-              </button>
-            </div>
-            {/* Pagination Numbers */}
-            <div className=" flex ">
-              {" "}
-              {totalPages <= 2 ? (
-                [...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleChangePage(i + 1)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-white hover:bg-gray-200"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))
-              ) : (
-                <>
-                  <button
-                    onClick={() => handleChangePage(1)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                      currentPage === 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-white hover:bg-gray-200"
-                    }`}
-                  >
-                    1
-                  </button>
-
-                  {currentPage > 3 && (
-                    <span className="px-2 text-gray-500">...</span>
-                  )}
-
-                  {[currentPage - 1, currentPage, currentPage + 1]
-                    .filter((page) => page > 1 && page < totalPages)
-                    .map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => handleChangePage(page)}
-                        className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                          currentPage === page
-                            ? "bg-blue-600 text-white"
-                            : "bg-white hover:bg-gray-200"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-
-                  {currentPage < totalPages - 2 && (
-                    <span className="px-2 text-gray-500">...</span>
-                  )}
-
-                  <button
-                    onClick={() => handleChangePage(totalPages)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                      currentPage === totalPages
-                        ? "bg-blue-600 text-white"
-                        : "bg-white hover:bg-gray-200"
-                    }`}
-                  >
-                    {totalPages}
-                  </button>
-                </>
-              )}
-            </div>
-            <div>
-              {" "}
-              {/* Always Render Next */}
-              <button
-                onClick={() => handleChangePage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                  currentPage === totalPages
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white hover:bg-gray-200"
-                }`}
-              >
-                <ArrowRight size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {open && (
@@ -311,23 +310,20 @@ export default function CustomerDashboard() {
         />
       )}
 
-      {/* 🔹 Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       {deleteModalOpen && customerToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[380px] p-6 transform transition-all scale-100 animate-fadeIn">
-            {/* Header with warning icon */}
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[380px] p-6">
             <div className="flex items-center justify-center mb-4">
               <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full p-3">
                 <Trash2 size={26} />
               </div>
             </div>
 
-            {/* Title */}
             <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-2">
               Delete Customer
             </h3>
 
-            {/* Message */}
             <p className="text-center text-gray-600 dark:text-gray-400 text-sm mb-6">
               Are you sure you want to permanently delete{" "}
               <span className="font-medium text-blue-600 dark:text-blue-400">
@@ -336,24 +332,19 @@ export default function CustomerDashboard() {
               ? This action cannot be undone.
             </p>
 
-            {/* Buttons */}
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => setDeleteModalOpen(false)}
                 className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 
                      text-gray-700 dark:text-gray-200 hover:bg-gray-100 
-                     dark:hover:bg-zinc-800 transition-all duration-150"
+                     dark:hover:bg-zinc-800"
               >
                 Cancel
               </button>
 
               <button
-                onClick={async () => {
-                  await handleDelete(customerToDelete.code);
-                  setDeleteModalOpen(false);
-                }}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 
-                     shadow-sm transition-all duration-150"
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
               >
                 Delete
               </button>

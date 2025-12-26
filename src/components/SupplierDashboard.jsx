@@ -1,15 +1,11 @@
-"use client";
-import { useState, useRef, useEffect } from "react";
-import { Ellipsis, Eye, Trash2, ArrowLeft, ArrowRight } from "lucide-react";
-import {
-  getSuppliers,
-  deleteSupplier,
-  searchSuppliers,
-} from "../service/SupplierService";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Ellipsis, Eye, Trash2 } from "lucide-react";
+import SupplierService from "../service/SupplierService";
 import AddNewSupplier from "../modals/AddNewSupplier";
 import SupplierDetail from "../modals/SupplierDetail";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
+import PaginationComponent from "./PaginationComponenet";
 
 export default function SupplierDashboard() {
   const [loading, setLoading] = useState(false);
@@ -19,8 +15,8 @@ export default function SupplierDashboard() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const rowsPerPage = 5;
+  const [totalPages, setTotalPages] = useState(0);
+  const rowsPerPage = 8;
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,9 +25,9 @@ export default function SupplierDashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
 
-  // 🔹 NEW STATES FOR DELETE CONFIRMATION
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -60,9 +56,71 @@ export default function SupplierDashboard() {
     remark: "",
   });
 
+  const fetchSuppliers = useCallback(async (uiPage = 1) => {
+    const backendPage = uiPage - 1;
+    setLoading(true);
+    try {
+      const data = await SupplierService.getSuppliers(backendPage, rowsPerPage);
+      setSuppliers(data.content || []);
+      setTotalPages(data.totalPages || 0);
+      setTotalItems(data.totalElements || 0);
+      setCurrentPage(uiPage);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      setSuppliers([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      showSnackbar("Error loading suppliers", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [rowsPerPage, showSnackbar]);
+
+  const handleSearchResult = (response, searchQuery) => {
+    const results = response.content || [];
+    setSuppliers(results);
+    setTotalPages(response.totalPages || 0);
+    setTotalItems(response.totalElements || 0);
+    setIsSearchActive(searchQuery.trim() !== "");
+    setCurrentPage(1);
+  };
+
+  const handleChangePage = async (newPage) => {
+    if (newPage < 1 || (totalPages > 0 && newPage > totalPages)) return;
+    
+    setCurrentPage(newPage);
+    
+    if (isSearchActive && query.trim()) {
+      try {
+        const backendPage = newPage - 1;
+        const response = await SupplierService.searchSuppliers(
+          query, 
+          backendPage, 
+          rowsPerPage
+        );
+        handleSearchResult(response, query);
+      } catch (error) {
+        console.error("Error fetching search page:", error);
+        showSnackbar("Error loading search results", "error");
+      }
+    } else {
+      fetchSuppliers(newPage);
+    }
+  };
+
+  const handleClearSearch = useCallback(() => {
+    setQuery("");
+    setSuggestions([]);
+    setIsSearchActive(false);
+    fetchSuppliers(1);
+  }, [fetchSuppliers]);
+
   useEffect(() => {
-    if (!isSearchActive) fetchSuppliers(currentPage);
-  }, [currentPage, isSearchActive]);
+    if (query.trim() === "" && isSearchActive) {
+      setIsSearchActive(false);
+      fetchSuppliers(1);
+    }
+  }, [query, isSearchActive, fetchSuppliers]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,24 +132,6 @@ export default function SupplierDashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchSuppliers = async (page = 1) => {
-    setLoading(true);
-    try {
-      const data = await getSuppliers(page, rowsPerPage);
-      console.log("API Response:", data);
-      console.log("Content array:", data.content);
-      console.log("Total Pages:", data.totalPages);
-      setSuppliers(data.content || []);
-      setTotalPages(data.totalPages || 1);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-      setSuppliers([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const confirmDelete = (supplier) => {
     setSupplierToDelete(supplier);
     setDeleteModalOpen(true);
@@ -101,7 +141,7 @@ export default function SupplierDashboard() {
   const handleDelete = async () => {
     if (!supplierToDelete) return;
     try {
-      const response = await deleteSupplier(supplierToDelete.code);
+      const response = await SupplierService.deleteSupplier(supplierToDelete.code);
       showSnackbar(response.message, "success");
       fetchSuppliers(currentPage);
     } catch (error) {
@@ -113,14 +153,13 @@ export default function SupplierDashboard() {
     }
   };
 
-  const handleChangePage = (page) => {
-    setCurrentPage(page);
-    if (!isSearchActive) fetchSuppliers(page);
-  };
+  useEffect(() => {
+    fetchSuppliers(1);
+  }, [fetchSuppliers]);
 
   return (
     <div className="text-gray-900 dark:text-gray-100">
-      {/* Header */}
+      {/* Header*/}
       <div className="flex justify-between items-center mb-6 h-[8vh]">
         <h2 className="text-2xl font-bold">Supplier Overview</h2>
         <button
@@ -131,19 +170,29 @@ export default function SupplierDashboard() {
         </button>
       </div>
 
-      <UniversalSearch
-        placeholder="Search suppliers..."
-        query={query}
-        setQuery={setQuery}
-        searchFn={searchSuppliers}
-        onResult={(results) => {
-          console.log("Res",results)
-          setSuppliers(results);
-          setIsSearchActive(results.length > 0 && query.trim() !== "");
-        }}
-      />
+      {/* Search*/}
+      <div className="flex items-center gap-2 mb-6">
+        <UniversalSearch
+          placeholder="Search suppliers by name..."
+          query={query}
+          setQuery={setQuery}
+          searchFn={SupplierService.searchSuppliers}
+          onResult={handleSearchResult}
+          onClear={handleClearSearch}
+          suggestionKey="supplierName"
+          pageSize={rowsPerPage}
+        />
+        {isSearchActive && (
+          <button
+            onClick={handleClearSearch}
+            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
-      {/* Table */}
+      {/* Table*/}
       <div className="relative mt-6 rounded-lg shadow bg-white dark:bg-gray-900">
         <table className="min-w-full table-fixed text-sm text-left">
           <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs">
@@ -159,7 +208,15 @@ export default function SupplierDashboard() {
             </tr>
           </thead>
           <tbody>
-            {suppliers.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="8" className="text-center py-8">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                </td>
+              </tr>
+            ) : suppliers.length > 0 ? (
               suppliers.map((s, i) => (
                 <tr
                   key={i}
@@ -193,7 +250,6 @@ export default function SupplierDashboard() {
                       >
                         <button
                           onClick={() => {
-                            console.log("Selected Supplier:", s);
                             setSelectedSupplier(s);
                             setIsModalOpen(true);
                             setOpenMenuIndex(null);
@@ -227,49 +283,20 @@ export default function SupplierDashboard() {
         </table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="absolute bottom-0 left-0 right-0 text-center p-3">
-          <div className="max-w-sm mx-auto flex justify-between items-center space-x-2">
-            <button
-              onClick={() => handleChangePage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === 1
-                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div className="flex">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleChangePage(i + 1)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === i + 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => handleChangePage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === totalPages
-                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                : "bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-            >
-              <ArrowRight size={18} />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Pagination*/}
+       <div className="mt-6">
+        {totalPages > 0 && (
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            onPageChange={handleChangePage}
+            showInfo={false}
+          />
+        )}
+      </div>
 
-      {/* Supplier Detail Modal */}
+      {/* Modals */}
       {isModalOpen && selectedSupplier && (
         <SupplierDetail
           selectedSupplier={selectedSupplier}
@@ -277,7 +304,6 @@ export default function SupplierDashboard() {
         />
       )}
 
-      {/* Add Supplier Modal */}
       {open && (
         <AddNewSupplier
           open={open}
@@ -288,11 +314,10 @@ export default function SupplierDashboard() {
         />
       )}
 
-      {/* 🔹 Supplier Delete Confirmation Modal */}
+      {/* Delete Modal */}
       {deleteModalOpen && supplierToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[380px] p-6 transform transition-all animate-fadeIn">
-            {/* Icon Section */}
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[380px] p-6">
             <div className="flex items-center justify-center mb-4">
               <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full p-3">
                 <svg
@@ -312,12 +337,10 @@ export default function SupplierDashboard() {
               </div>
             </div>
 
-            {/* Title */}
             <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-2">
               Delete Supplier
             </h3>
 
-            {/* Message */}
             <p className="text-center text-gray-600 dark:text-gray-400 text-sm mb-6">
               Are you sure you want to permanently delete{" "}
               <span className="font-medium text-blue-600 dark:text-blue-400">
@@ -326,13 +349,12 @@ export default function SupplierDashboard() {
               ? This action cannot be undone.
             </p>
 
-            {/* Buttons */}
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => setDeleteModalOpen(false)}
                 className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 
                      text-gray-700 dark:text-gray-200 hover:bg-gray-100 
-                     dark:hover:bg-zinc-800 transition-all duration-150"
+                     dark:hover:bg-zinc-800"
               >
                 Cancel
               </button>
@@ -342,8 +364,7 @@ export default function SupplierDashboard() {
                   handleDelete(supplierToDelete.supplierId);
                   setDeleteModalOpen(false);
                 }}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 
-                     shadow-sm transition-all duration-150"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
               >
                 Delete
               </button>

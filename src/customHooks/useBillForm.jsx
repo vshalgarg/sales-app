@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { searchSuppliers } from "../service/SupplierService";
-import { searchCustomers } from "../service/CustomerService";
+import SupplierService from "../service/SupplierService";
+import CustomerService from "../service/CustomerService";
 import validate from "../validations/Validation";
 import dayjs from "dayjs";
 
@@ -247,7 +247,7 @@ export const useBillForm = () => {
     // 🔹 Normal customer search logic continues
     if (value.length > 1) {
       try {
-        const result = await searchCustomers(value);
+        const result = await CustomerService.searchCustomers(value);
         setCustSuggestions(result || []);
         setIsCustDropdownOpen(result?.length > 0);
       } catch {
@@ -323,7 +323,7 @@ export const useBillForm = () => {
 
     if (value.length > 1) {
       try {
-        const result = await searchSuppliers(value);
+        const result = await SupplierService.searchSuppliers(value);
         setSuggestions(result || []);
         setIsDropdownOpen(result?.length > 0);
       } catch {
@@ -394,10 +394,6 @@ export const useBillForm = () => {
       taxableValue && gstPercent
         ? (parseFloat(taxableValue) * gstPercent) / 100
         : "";
-
-    
-
-    
 
     const billAmount =
       taxableValue || gstAmount

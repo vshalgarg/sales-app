@@ -54,9 +54,6 @@ const CustomTextField = forwardRef(
         autoFocus={autoFocus}
         fullWidth
         inputRef={ref}
-        InputLabelProps={{
-          shrink: value !== "" && value !== null && value !== undefined,
-        }}
       />
     );
   }
