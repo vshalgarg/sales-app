@@ -61,9 +61,9 @@ CREATE TABLE IF NOT EXISTS contact (
     supplier_id INT,
     customer_id INT,
     CONSTRAINT fk_contact_supplier FOREIGN KEY (supplier_id)
-        REFERENCES Supplier(id) ON DELETE CASCADE,
+        REFERENCES supplier(id) ON DELETE CASCADE,
     CONSTRAINT fk_contact_customer FOREIGN KEY (customer_id)
-        REFERENCES Customer(id) ON DELETE CASCADE
+        REFERENCES customer(id) ON DELETE CASCADE
 );
 
 
