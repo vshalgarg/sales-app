@@ -230,7 +230,7 @@ console.log("REQUEST on search", searchQuery,
                   key={t.id || i}
                   className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  <td className="px-6 py-2">{i++}</td>
+                  <td className="px-6 py-2">{++i}</td>
                   <td className="px-6 py-2 font">{t.name}</td>
                   <td className="px-6 py-2">
                     <span
