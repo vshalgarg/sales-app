@@ -1,7 +1,7 @@
 import {logicalError} from "../utils/errorHandler"
 export const loginUser = async (username, password) => {
   try {
-    const response = await fetch("http://localhost:8081/csm/api/v1/login", {
+    const response = await fetch("http://192.168.1.100:8087/csm/api/v1/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
