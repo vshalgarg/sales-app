@@ -59,9 +59,6 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "msme")
     private String msme;
 
-//    @Column(name = "preferred_transport")
-//    private String[] preferredTransport;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "supplier_preferred_transport",
