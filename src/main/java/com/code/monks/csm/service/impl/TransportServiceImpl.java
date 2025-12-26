@@ -3,13 +3,17 @@ package com.code.monks.csm.service.impl;
 import com.code.monks.csm.dto.request.CreateTransportRequest;
 import com.code.monks.csm.dto.request.UpdateTransportRequest;
 import com.code.monks.csm.dto.response.CreateTransportResponseDto;
+import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.TransportDto;
 import com.code.monks.csm.dto.response.UpdateTransportResponseDto;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.TransportService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,26 +28,53 @@ import java.util.stream.Collectors;
 import static com.code.monks.csm.enums.ResponseErrorCode.TRANSPORT_NOT_FOUND;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class TransportServiceImpl implements TransportService {
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
     @Override
-    public List<TransportDto> searchTransports(String query) {
-        List<TransportEntity> entities;
-        if (query == null || query.trim().length() < 1) {
-            entities = transportRepository.findAllByIsActiveTrueOrderByNameAsc();
+    public PagedResponseDto<TransportDto> searchTransports(String query, Pageable pageable) {
+        log.info("Search transports called - query: '{}', pageable: {}", query, pageable);
+
+        Page<TransportEntity> transportPage;
+
+        if (query == null || query.trim().isEmpty()) {
+            //EMPTY RESULTS
+            log.info("Empty query provided - returning empty results");
+            transportPage = Page.empty(pageable);
         } else {
-            entities = transportRepository.searchByName(query.trim());
+            String trimmedQuery = query.trim();
+            log.info("Searching with trimmed query: '{}'", trimmedQuery);
+            transportPage = transportRepository.searchByName(trimmedQuery, pageable);
         }
-        return entities.stream()
-                .map(entity -> TransportDto.builder()
-                        .id(entity.getId())
-                        .name(entity.getName())
-                        .isActive(entity.getIsActive())
-                        .build())
-                .toList();
+
+            log.info("Search completed - found {} transports (page {}/{})",
+                    transportPage.getNumberOfElements(),
+                    transportPage.getNumber() + 1,
+                    transportPage.getTotalPages());
+
+            // Map to DTOs
+            List<TransportDto> dtoList = transportPage.getContent().stream()
+                    .map(entity -> {
+                        log.debug("Mapping TransportEntity id:{} name:'{}' to DTO", entity.getId(), entity.getName());
+                        return TransportDto.builder()
+                                .id(entity.getId())
+                                .name(entity.getName())
+                                .isActive(entity.getIsActive())
+                                .build();
+                    })
+                    .toList();
+
+            return PagedResponseDto.<TransportDto>builder()
+                    .content(dtoList)
+                    .page(transportPage.getNumber() + 1) // 1-based for UI
+                    .size(transportPage.getSize())
+                    .totalElements(transportPage.getTotalElements())
+                    .totalPages(transportPage.getTotalPages())
+                    .last(transportPage.isLast())
+                    .build();
     }
 
     @Override
@@ -66,22 +97,29 @@ public class TransportServiceImpl implements TransportService {
 
     @Override
     public List<TransportDto> getAll() {
+        log.info("Fetching all transport records...");
+            List<TransportEntity> transportList = transportRepository.findAll(
+                    Sort.by(Sort.Direction.DESC, "id")
+            );
+            log.info("Successfully fetched {} transport records", transportList.size());
+            List<TransportDto> res = transportList.stream()
+                    .map(t -> {
+                        log.debug("Mapping TransportEntity with id:{} and name:'{}' to DTO",
+                                t.getId(), t.getName());
+                        TransportDto dto = new TransportDto();
+                        dto.setId(t.getId());
+                        dto.setName(t.getName());
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
 
-       List<TransportEntity> transportList = transportRepository.findAll();
-        List<TransportDto> res = transportList.stream()
-               .map(t-> {
-                   TransportDto dto = new TransportDto();
-                   dto.setId(t.getId());
-                   dto.setName(t.getName());
-                   return dto;
-               })
-               .collect(Collectors.toList());
-        return res;
+            log.info("Successfully mapped and returning {} TransportDto objects", res.size());
+            return res;
     }
-
     public Page<TransportDto> getAllTransports(int page, int size) {
+        log.info("Fetching all transport records... with pagination");
         Pageable pageable = PageRequest.of(
-                page - 1,
+                page,
                 size,
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );

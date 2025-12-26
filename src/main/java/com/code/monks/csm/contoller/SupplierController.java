@@ -7,7 +7,10 @@ import com.code.monks.csm.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +39,7 @@ public class SupplierController {
 
   @GetMapping(GET_SUPPLIERS)
   public ResponseEntity<PagedResponseDto<GetSuppliersDto>> getSuppliers(
-          @RequestParam(defaultValue = "1") int page,
+          @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "8") int size
   ) {
     log.info("GET {} called to retrieve suppliers", GET_SUPPLIERS);
@@ -46,6 +49,17 @@ public class SupplierController {
     log.info("Retrieved {} suppliers successfully", response.getContent().size());
     return ResponseEntity.ok(response);
   }
+
+    @GetMapping(GET_SUPPLIERS_V2)
+    public ResponseEntity<List<GetSuppliersDto>> getAllSuppliers(
+    ) {
+        log.info("GET {} called to retrieve suppliers.", GET_SUPPLIERS);
+
+        List<GetSuppliersDto> response = supplierService.getAllSuppliers();
+
+        log.info("Retrieved {} suppliers successfully.", response.size());
+        return ResponseEntity.ok(response);
+    }
 
   @PutMapping(DELETE_SUPPLIER)
   public ResponseEntity<DeleteSupplierResponseDto> deleteSupplier(
@@ -58,10 +72,25 @@ public class SupplierController {
     return ResponseEntity.ok(response);
   }
 
-      @GetMapping(SEARCH_SUPPLIERS)
-      public ResponseEntity<List<SearchSuppliersResponseDto>> searchSuppliers(@RequestParam String keyword){
-          List<SearchSuppliersResponseDto> response = supplierService.searchSuppliers(keyword);
+      @GetMapping(SEARCH_SUPPLIERS_V2)
+      public ResponseEntity<Page<SearchSuppliersResponseDto>> searchSuppliers(
+              @RequestParam(required = false) String keyword,
+              @RequestParam(defaultValue = "0") int page,
+              @RequestParam(defaultValue = "10") int size,
+              @RequestParam(defaultValue = "supplierName") String sortBy,
+              @RequestParam(defaultValue = "asc") String sortDir
+
+      ){
+          Pageable pageable = PageRequest.of(page, size,
+                  Sort.Direction.fromString(sortDir), sortBy);
+          Page<SearchSuppliersResponseDto> response = supplierService.searchSuppliers(keyword, pageable);
           return ResponseEntity.ok(response);
       }
+
+    @GetMapping(SEARCH_SUPPLIERS)
+    public ResponseEntity<List<SearchSuppliersResponseDto>> searchSuppliers(@RequestParam String keyword){
+        List<SearchSuppliersResponseDto> response = supplierService.searchSuppliers(keyword);
+        return ResponseEntity.ok(response);
+    }
 
 }

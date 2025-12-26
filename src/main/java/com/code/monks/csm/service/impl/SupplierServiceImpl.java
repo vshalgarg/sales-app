@@ -144,7 +144,7 @@ public class SupplierServiceImpl implements SupplierService {
         Page<SupplierEntity> records = Page.empty();;
         try {
             // ✅ Add sorting by latest (descending order of ID)
-            Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "id"));
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
 
             // ✅ Fetch only active suppliers with sorting
             records = supplierRepo.findAllByStatus(ACTIVE, pageable);
@@ -195,6 +195,7 @@ public class SupplierServiceImpl implements SupplierService {
                 .toList();
 
         return GetSuppliersDto.builder()
+                .id(record.getId())
                 .code(record.getCode())
                 .supplierName(record.getSupplierName())
                 .supplierGroup(record.getGroupName())
@@ -250,12 +251,65 @@ public class SupplierServiceImpl implements SupplierService {
         }
     }
 
+    public Page<SearchSuppliersResponseDto> searchSuppliers(String keyword, Pageable pageable) {
+
+        log.info("Search suppliers called with keyword: '{}' and pageable: {}",
+                keyword, pageable);
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            log.info("Search keyword is null or empty - returning empty page");
+            return Page.empty(pageable);
+        }
+
+        String trimmedKeyword = keyword.trim();
+        log.debug("Searching suppliers with trimmed keyword: '{}'", trimmedKeyword);
+
+        try {
+            Page<SupplierEntity> suppliersPage = supplierRepo.searchByKeyword(trimmedKeyword, pageable);
+            log.info("Search completed successfully - found {} suppliers (page {}/{}, total elements: {})",
+                    suppliersPage.getNumberOfElements(),
+                    suppliersPage.getNumber() + 1,
+                    suppliersPage.getTotalPages(),
+                    suppliersPage.getTotalElements());
+
+            return suppliersPage.map(s -> mapToDto(s, this::mapSupplierToSearchSuppliersDto));
+        }
+        catch (Exception e) {
+                log.error("Unexpected error while searching suppliers with keyword: '{}'", trimmedKeyword, e);
+                throw new SupplierException(UNEXPECTED_EXCEPTION, "Unexpected error during supplier search");
+            }
+    }
+
+    @Override
+    public List<GetSuppliersDto> getAllSuppliers() {
+
+        log.info("Fetching all active suppliers (non-paged)...");
+        try {
+       List<SupplierEntity> supplierEntityList =  supplierRepo.findAll();
+        return supplierEntityList.stream()
+                .map(this::mapSupplierToGetSuppliersDto)
+                .collect(Collectors.toList());
+
+        } catch (DataAccessException dae) {
+            log.error("Database error while fetching all suppliers", dae);
+            throw new SupplierException(DATA_ACCESS_ERROR, dae.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching all suppliers", e);
+            throw new SupplierException(UNEXPECTED_EXCEPTION, e.getMessage());
+        }
+    }
+
     public List<SearchSuppliersResponseDto> searchSuppliers(String keyword) {
+
+        log.info("Search suppliers called with keyword: '{}' ",
+                keyword);
+
         if (keyword == null || keyword.trim().isEmpty()) {
             return List.of();
         }
 
         List<SupplierEntity> suppliers = supplierRepo.searchByKeyword(keyword.trim());
+        log.info("Search completed successfully");
 
         return suppliers.stream()
                 .map(s -> mapToDto(s, this::mapSupplierToSearchSuppliersDto))
@@ -287,8 +341,4 @@ public class SupplierServiceImpl implements SupplierService {
                 .remark(record.getRemark())
                 .build();
     }
-
-
-
-
 }

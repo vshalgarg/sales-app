@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 @Builder
 public class GetCustomersDto {
+    private int id;
     private String code;
     private String customerName;
     private String customerGroup;

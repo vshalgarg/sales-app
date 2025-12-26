@@ -27,14 +27,13 @@ public class ApiPaths {
     public static final String ADD_CUSTOMER = "/customer/add";
 
     public static final String GET_CUSTOMERS = "/customers/get";
+    public static final String GET_CUSTOMERS_V2 = "/customers/get/all";
 
     public static final String DELETE_CUSTOMER = "/customer/delete";
 
     public static final String SEARCH_CUSTOMERS = "/customers/search";
 
     public static final String ADD_SUPPLIER = "/supplier/add";
-
-    public static final String GET_SUPPLIERS = "/suppliers/get";
 
     public static final String DELETE_SUPPLIER = "/supplier/delete";
 
@@ -54,7 +53,10 @@ public class ApiPaths {
 
     public static final String SEARCH_USER = "/users/search";
 
+    public static final String GET_SUPPLIERS = "/suppliers/get";
+    public static final String GET_SUPPLIERS_V2 = "/suppliers/get/all";
     public static final String SEARCH_SUPPLIERS = "/suppliers/search";
+    public static final String SEARCH_SUPPLIERS_V2 = "/suppliers/search/v2";
 
     public static final String ADD_PURCHASE_ENTRY = "/purchase/entry/add";
 
