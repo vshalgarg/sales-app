@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
-    @Query(value = "SELECT MAX(CAST(SUBSTRING(code, 2, 3) AS UNSIGNED)) FROM Supplier", nativeQuery = true)
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(code, 2, 3) AS UNSIGNED)) FROM supplier", nativeQuery = true)
     Integer findMaxCodeSuffix();
 
     SupplierEntity findBySupplierName(String SupplierName);
