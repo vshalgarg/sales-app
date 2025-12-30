@@ -16,6 +16,7 @@ import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.CustomerService;
 import com.code.monks.csm.utils.ContactUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
+import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -81,9 +82,11 @@ public class CustomerServiceImpl implements CustomerService {
         List<ValidatorUtil.DuplicateCheck> duplicateChecks = new ArrayList<>();
 
         // Customer-level checks
-        duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                "GST number", () -> customerRepo.existsByGstNo(requestDto.getCustomerGstNo())
-        ));
+        if(StringUtils.isNotBlank(requestDto.getCustomerGstNo())) {
+            duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+                    "GST number", () -> customerRepo.existsByGstNo(requestDto.getCustomerGstNo())
+            ));
+        }
         duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
                 "code", () -> customerRepo.existsByCode(code)
         ));
@@ -91,17 +94,25 @@ public class CustomerServiceImpl implements CustomerService {
         // Contact-level checks
         if (requestDto.getContacts() != null) {
             for (ContactRequestDto contact : requestDto.getContacts()) {
-                duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                        "mobile number (" + contact.getMobileNumber() + ")",
-                        () -> contactRepo.existsByMobileNumber(contact.getMobileNumber())
-                ));
-                duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                        "phone (" + contact.getPhone() + ")",
-                        () -> contactRepo.existsByPhone(contact.getPhone())
-                ));
+                // Mobile number
+                String mobile = contact.getMobileNumber();
+                if (StringUtils.isNotBlank(mobile)) {
+                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+                            "mobile number (" + mobile + ")",
+                            () -> contactRepo.existsByMobileNumber(mobile)
+                    ));
+                }
+
+                // Phone
+                String phone = contact.getPhone();
+                if (StringUtils.isNotBlank(phone)) {
+                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+                            "phone (" + phone + ")",
+                            () -> contactRepo.existsByPhone(phone)
+                    ));
+                }
             }
         }
-
         validatorUtil.validateUniqueFields(duplicateChecks);
     }
 

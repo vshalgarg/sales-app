@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS supplier (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+
 CREATE TABLE IF NOT EXISTS customer (
     id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(5) NOT NULL UNIQUE,
@@ -148,7 +149,7 @@ CREATE TABLE IF NOT EXISTS credit (
     bill_number VARCHAR(50),
     date DATE,
 
-    cheque_number VARCHAR(20),
+    cheque_number VARCHAR(50),
     cheque_date DATE,
 
     received_amount BIGINT,

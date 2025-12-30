@@ -13,6 +13,5 @@ public class ContactRequestDto {
     @NotBlank(message = "Mobile number is required")
     private String mobileNumber;
 
-    @NotBlank(message = "Phone is required")
     private String phone;
 }

@@ -7,6 +7,7 @@ import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.StaffEntity;
+import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.exception.StaffException;
 import com.code.monks.csm.repository.StaffRepo;
@@ -160,15 +161,61 @@ public class StaffServiceImpl implements StaffService {
         }
     }
 
-    public List<SearchStaffsResponseDto> searchStaffs(String keyword){
-        List<StaffEntity> records = staffRepo.findByStaffNameContainingIgnoreCaseAndStatus(keyword, ACTIVE);
-        return records.stream().map((s) -> {
-            return SearchStaffsResponseDto.builder()
-                    .staffId(s.getId())
-                    .staffName(s.getStaffName())
-                    .phone(s.getPhone())
-                    .joiningDate(s.getJoiningDate()).build();
-        }).toList();
+    public PagedResponseDto<SearchStaffsResponseDto> searchStaffs(String keyword, Pageable pageable) {
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            log.info("Keyword is empty or null - returning empty page");
+            return PagedResponseDto.<SearchStaffsResponseDto>builder()
+                    .content(List.of())
+                    .page(pageable.getPageNumber() + 1)
+                    .size(pageable.getPageSize())
+                    .totalElements(0L)
+                    .totalPages(0)
+                    .last(true)
+                    .build();
+        }
+
+        String trimmedKeyword = keyword.trim();
+        log.debug("Searching staffs with keyword: '{}'", trimmedKeyword);
+
+        try {
+            Page<StaffEntity> staffPage = staffRepo.findByStaffNameContainingIgnoreCaseAndStatus(
+                    trimmedKeyword,
+                    StatusEnum.ACTIVE,
+                    pageable
+            );
+
+            log.info("Search completed - found {} staffs (page {}/{}, total: {})",
+                    staffPage.getNumberOfElements(),
+                    staffPage.getNumber() + 1,
+                    staffPage.getTotalPages(),
+                    staffPage.getTotalElements());
+
+            List<SearchStaffsResponseDto> dtoList = staffPage.getContent()
+                    .stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+            return PagedResponseDto.<SearchStaffsResponseDto>builder()
+                    .content(dtoList)
+                    .page(staffPage.getNumber() + 1)
+                    .size(staffPage.getSize())
+                    .totalElements(staffPage.getTotalElements())
+                    .totalPages(staffPage.getTotalPages())
+                    .last(staffPage.isLast())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error while searching staffs with keyword: '{}'", trimmedKeyword, e);
+            throw new StaffException(UNEXPECTED_EXCEPTION);
+        }
     }
 
+    private SearchStaffsResponseDto convertToDto(StaffEntity staffEntity){
+     return SearchStaffsResponseDto.builder()
+                .staffName(staffEntity.getStaffName())
+                .staffId(staffEntity.getId())
+                .phone(staffEntity.getPhone())
+                .joiningDate(staffEntity.getJoiningDate())
+                .build();
+    }
 }

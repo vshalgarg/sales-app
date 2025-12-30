@@ -15,13 +15,11 @@ public class AddCustomerRequestDto {
     @NotBlank(message = "Group name is required")
     private String customerGroup;
 
-    @NotBlank(message = "GST number is required")
     private String customerGstNo;
 
     @NotBlank(message = "Customer msme is required")
     private String customerMsme;
 
-    @NotBlank(message = "Referenced by is required")
     private String referencedBy;
 
     @NotBlank(message = "Address line 1 is required")
@@ -36,7 +34,6 @@ public class AddCustomerRequestDto {
     @NotBlank(message = "PIN code is required")
     private String pinCode;
 
-    @NotNull(message = "Preferred transport is required")
     private List<Integer> preferredTransportIds;
 
     private String remark;

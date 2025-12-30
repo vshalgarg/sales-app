@@ -13,5 +13,7 @@ import java.util.List;
 public interface StaffRepo extends JpaRepository<StaffEntity,Integer> {
     Page<StaffEntity> findAllByStatus(Pageable pageable, StatusEnum status);
     boolean existsByPhone(String phone);
-    List<StaffEntity> findByStaffNameContainingIgnoreCaseAndStatus(String keyword, StatusEnum statusEnum);
+    Page<StaffEntity> findByStaffNameContainingIgnoreCaseAndStatus(String keyword, StatusEnum statusEnum, Pageable pageable);
+
+    Page<StaffEntity> findByStaffNameContainingIgnoreCase(String trimmedKeyword, Pageable pageable);
 }

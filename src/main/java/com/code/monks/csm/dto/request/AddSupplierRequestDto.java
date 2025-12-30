@@ -14,7 +14,6 @@ public class AddSupplierRequestDto {
     @NotBlank(message = "Group name is required")
     private String supplierGroup;
 
-    @NotBlank(message = "GST number is required")
     private String supplierGstNo;
 
     @NotBlank(message = "Msme is required")

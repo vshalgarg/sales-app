@@ -13,6 +13,7 @@ import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.BillService;
 import com.code.monks.csm.service.TransportService;
 import com.code.monks.csm.utils.ValidatorUtil;
+import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -110,7 +111,7 @@ public class BillServiceImpl implements BillService {
     }
 
     private void checkLrNumberDuplicate(String lrNumber) {
-        if (lrNumber != null && billRepo.existsByLrNumber(lrNumber)) {
+        if (StringUtils.isNotBlank(lrNumber) && billRepo.existsByLrNumber(lrNumber)) {
             log.warn("LR number already exists: {}", lrNumber);
             throw new BillException(DUPLICATE_ENTRY, "LR number already exists: " + lrNumber);
         }
