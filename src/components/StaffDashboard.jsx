@@ -75,7 +75,7 @@ export default function StaffDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [rowsPerPage, showSnackbar]);
+  }, [rowsPerPage]);
 
   useEffect(() => {
     fetchStaffs(1);

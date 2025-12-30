@@ -76,7 +76,7 @@ export default function TransportDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [rowsPerPage, showSnackbar]);
+  }, [rowsPerPage]);
 
   const handleSearchResult = (response, searchQuery) => {
     if (!searchQuery.trim()) {
