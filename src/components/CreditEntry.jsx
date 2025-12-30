@@ -225,291 +225,292 @@ export default function CreditEntryForm() {
     }));
   };
 
-return (
-  <div className="flex flex-col h-full overflow-y-auto">
-    {/* Card */}
-    <div className="bg-white w-full h-[91vh] flex flex-col">
-      {/* Header */}
-      <div className="px-8 py-5 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
-        <h2 className="text-2xl font-bold text-gray-800">Credit Entry</h2>
-        <p className="text-sm text-gray-500 mt-1">Record all credit transactions and payments</p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-        {/* Transaction Details Card */}
-        <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center mb-5">
-            <div className="w-1 h-8 bg-blue-600 rounded-full mr-3"></div>
-            <h3 className="text-lg font-semibold text-gray-800">Transaction Details</h3>
-          </div>
-          <div className="grid grid-cols-3 gap-5">
-            <BasicSelect
-              name="paymentType"
-              value={formData.paymentType}
-              onChange={handleChange}
-              label="Select Payment Type"
-              options={[
-                { value: "CASH", label: "CASH" },
-                { value: "CHEQUE", label: "CHEQUE" },
-                { value: "UPI", label: "UPI" },
-              ]}
-              error={!!errors.paymentType}
-              helperText={errors.paymentType || ""}
-              className="w-full"
-            />
-
-            <CustomTextField
-              name="billNumber"
-              value={formData.billNumber}
-              onChange={handleChange}
-              label="Bill Number"
-              className="w-full"
-              error={!!errors.billNumber}
-              helperText={errors.billNumber || ""}
-            />
-
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Date"
-                value={formData.date ? dayjs(formData.date) : null}
-                onChange={(newValue) => handleDateChange("date", newValue)}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    size: "small",
-                    error: !!errors.date,
-                    helperText: errors.date || "",
-                    onClick: (e) => {
-                      const iconButton =
-                        e.currentTarget.parentElement.querySelector(
-                          "button[aria-label]"
-                        );
-                      iconButton?.click();
-                    },
-                  },
-                }}
-              />
-            </LocalizationProvider>
-          </div>
+  return (
+    <div className="flex flex-col h-full overflow-y-auto">
+      {/* Card */}
+      <div className="bg-white w-full h-[91vh] flex flex-col">
+        {/* Header */}
+        <div className="px-8 py-5 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
+          <h2 className="text-2xl font-bold text-gray-800">Credit Entry</h2>
+          <p className="text-sm text-gray-500 mt-1">Record all credit transactions and payments</p>
         </div>
 
-        {/* Party Information Card */}
-        <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center mb-5">
-            <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
-            <h3 className="text-lg font-semibold text-gray-800">Party Information</h3>
-          </div>
-          <div className="grid grid-cols-4 gap-5">
-            {/* Supplier */}
-            <div>
-              <Autocomplete
-                options={allSuppliers}
-                getOptionLabel={(option) => option.supplierName || ""}
-                getOptionKey={(option) => option.id}
-                value={allSuppliers.find(s => s.id === formData.supplierId) || null}
-                onChange={handleSupplierSelect}
-                loading={supplierLoading}
-                isOptionEqualToValue={(option, value) => option.id === value?.id}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Supplier"
-                    error={!!errors.supplierName}
-                    helperText={errors.supplierName || ""}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {supplierLoading ? (
-                            <span className="text-xs text-gray-500">Loading...</span>
-                          ) : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+
+          {/* Party Information Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Party Information</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-5">
+              {/* Supplier */}
+              <div>
+                <Autocomplete
+                  options={allSuppliers}
+                  getOptionLabel={(option) => option.supplierName || ""}
+                  getOptionKey={(option) => option.id}
+                  value={allSuppliers.find(s => s.id === formData.supplierId) || null}
+                  onChange={handleSupplierSelect}
+                  loading={supplierLoading}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}
+                      label="Supplier"
+                      error={!!errors.supplierName}
+                      helperText={errors.supplierName || ""}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {supplierLoading ? (
+                              <span className="text-xs text-gray-500">Loading...</span>
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Supplier Current Balance */}
+              <CustomTextField
+                name="supplierCurrentBalance"
+                value={formData.supplierCurrentBalance}
+                onChange={handleAmountChange}
+                onBlur={() => handleAmountBlur("supplierCurrentBalance")}
+                label="Supplier Current Balance"
+                className="w-full"
+                error={!!errors.supplierCurrentBalance}
+                helperText={errors.supplierCurrentBalance || ""}
+              />
+
+              {/* Customer */}
+              <div>
+                <Autocomplete
+                  options={allCustomers}
+                  getOptionLabel={(option) => option.customerName || ""}
+                  getOptionKey={(option) => option.id}
+                  value={allCustomers.find(c => c.id === formData.customerId) || null}
+                  onChange={handleCustomerSelect}
+                  loading={customerLoading}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}
+                      label="Customer"
+                      error={!!errors.customerName}
+                      helperText={errors.customerName || ""}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {customerLoading ? (
+                              <span className="text-xs text-gray-500">Loading...</span>
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Customer Current Balance */}
+              <CustomTextField
+                name="customerCurrentBalance"
+                value={formData.customerCurrentBalance}
+                onChange={handleAmountChange}
+                onBlur={() => handleAmountBlur("customerCurrentBalance")}
+                label="Customer Current Balance"
+                className="w-full"
+                error={!!errors.customerCurrentBalance}
+                helperText={errors.customerCurrentBalance || ""}
               />
             </div>
+          </div>
 
-            {/* Supplier Current Balance */}
-            <CustomTextField
-              name="supplierCurrentBalance"
-              value={formData.supplierCurrentBalance}
-              onChange={handleAmountChange}
-              onBlur={() => handleAmountBlur("supplierCurrentBalance")}
-              label="Supplier Current Balance"
-              className="w-full"
-              error={!!errors.supplierCurrentBalance}
-              helperText={errors.supplierCurrentBalance || ""}
-            />
+          {/* Transaction Details Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-blue-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Transaction Details</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-5">
+              <BasicSelect
+                name="paymentType"
+                value={formData.paymentType}
+                onChange={handleChange}
+                label="Select Payment Type"
+                options={[
+                  { value: "CASH", label: "CASH" },
+                  { value: "CHEQUE", label: "CHEQUE" },
+                  { value: "UPI", label: "UPI" },
+                ]}
+                error={!!errors.paymentType}
+                helperText={errors.paymentType || ""}
+                className="w-full"
+              />
 
-            {/* Customer */}
-            <div>
-              <Autocomplete
-                options={allCustomers}
-                getOptionLabel={(option) => option.customerName || ""}
-                getOptionKey={(option) => option.id}
-                value={allCustomers.find(c => c.id === formData.customerId) || null}
-                onChange={handleCustomerSelect}
-                loading={customerLoading}
-                isOptionEqualToValue={(option, value) => option.id === value?.id}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Customer"
-                    error={!!errors.customerName}
-                    helperText={errors.customerName || ""}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {customerLoading ? (
-                            <span className="text-xs text-gray-500">Loading...</span>
-                          ) : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
+              <CustomTextField
+                name="billNumber"
+                value={formData.billNumber}
+                onChange={handleChange}
+                label="Bill Number"
+                className="w-full"
+                error={!!errors.billNumber}
+                helperText={errors.billNumber || ""}
+              />
+
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Date"
+                  value={formData.date ? dayjs(formData.date) : null}
+                  onChange={(newValue) => handleDateChange("date", newValue)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      error: !!errors.date,
+                      helperText: errors.date || "",
+                      onClick: (e) => {
+                        const iconButton =
+                          e.currentTarget.parentElement.querySelector(
+                            "button[aria-label]"
+                          );
+                        iconButton?.click();
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+            </div>
+          </div>
+
+          {/* Cheque Details Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Payment Details</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-5">
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Cheque Date"
+                  value={
+                    formData.chequeDate ? dayjs(formData.chequeDate) : null
+                  }
+                  onChange={(newValue) =>
+                    handleDateChange("chequeDate", newValue)
+                  }
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      error: !!errors.chequeDate,
+                      helperText: errors.chequeDate || "",
+                      onClick: (e) => {
+                        const iconButton =
+                          e.currentTarget.parentElement.querySelector(
+                            "button[aria-label]"
+                          );
+                        iconButton?.click();
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+
+              <CustomTextField
+                name="chequeNumber"
+                value={formData.chequeNumber}
+                onChange={handleChange}
+                label="Cheque Number"
+                className="w-full"
+                error={!!errors.chequeNumber}
+                helperText={errors.chequeNumber || ""}
+              />
+
+              <CustomTextField
+                name="receivedAmount"
+                type="text"
+                value={formData.receivedAmount}
+                onChange={handleAmountChange}
+                onBlur={() => handleAmountBlur("receivedAmount")}
+                label="Received Amount"
+                className="w-full"
+                error={!!errors.receivedAmount}
+                helperText={errors.receivedAmount || ""}
+              />
+
+              <CustomTextField
+                name="slipNumber"
+                label="Slip Number"
+                value={formData.slipNumber}
+                onChange={handleChange}
+                className="w-full"
+                error={!!errors.slipNumber}
+                helperText={errors.slipNumber || ""}
               />
             </div>
-
-            {/* Customer Current Balance */}
-            <CustomTextField
-              name="customerCurrentBalance"
-              value={formData.customerCurrentBalance}
-              onChange={handleAmountChange}
-              onBlur={() => handleAmountBlur("customerCurrentBalance")}
-              label="Customer Current Balance"
-              className="w-full"
-              error={!!errors.customerCurrentBalance}
-              helperText={errors.customerCurrentBalance || ""}
-            />
           </div>
-        </div>
 
-        {/* Cheque Details Card */}
-        <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center mb-5">
-            <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
-            <h3 className="text-lg font-semibold text-gray-800">Payment Details</h3>
-          </div>
-          <div className="grid grid-cols-4 gap-5">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Cheque Date"
-                value={
-                  formData.chequeDate ? dayjs(formData.chequeDate) : null
-                }
-                onChange={(newValue) =>
-                  handleDateChange("chequeDate", newValue)
-                }
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    size: "small",
-                    error: !!errors.chequeDate,
-                    helperText: errors.chequeDate || "",
-                    onClick: (e) => {
-                      const iconButton =
-                        e.currentTarget.parentElement.querySelector(
-                          "button[aria-label]"
-                        );
-                      iconButton?.click();
-                    },
-                  },
+          {/* Miscellaneous Card */}
+          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center mb-5">
+              <div className="w-1 h-8 bg-orange-600 rounded-full mr-3"></div>
+              <h3 className="text-lg font-semibold text-gray-800">Additional Information</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <BasicSelect
+                name="drawType"
+                value={formData.drawType}
+                onChange={handleChange}
+                label="Draw / Cheque"
+                options={[
+                  { value: "DRAW", label: "DRAW" },
+                  { value: "CHEQUE", label: "CHEQUE" },
+                ]}
+                className="w-full"
+              />
+
+              <CustomTextField
+                name="remark"
+                value={formData.remark}
+                onChange={handleChange}
+                label="Remarks"
+                className="w-full"
+                multiline
+                InputProps={{
+                  style: { height: '100%', overflowY: 'auto' }
                 }}
               />
-            </LocalizationProvider>
-
-            <CustomTextField
-              name="chequeNumber"
-              value={formData.chequeNumber}
-              onChange={handleChange}
-              label="Cheque Number"
-              className="w-full"
-              error={!!errors.chequeNumber}
-              helperText={errors.chequeNumber || ""}
-            />
-
-            <CustomTextField
-              name="receivedAmount"
-              type="text"
-              value={formData.receivedAmount}
-              onChange={handleAmountChange}
-              onBlur={() => handleAmountBlur("receivedAmount")}
-              label="Received Amount"
-              className="w-full"
-              error={!!errors.receivedAmount}
-              helperText={errors.receivedAmount || ""}
-            />
-
-            <CustomTextField
-              name="slipNumber"
-              label="Slip Number"
-              value={formData.slipNumber}
-              onChange={handleChange}
-              className="w-full"
-              error={!!errors.slipNumber}
-              helperText={errors.slipNumber || ""}
-            />
+            </div>
           </div>
         </div>
 
-        {/* Miscellaneous Card */}
-        <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center mb-5">
-            <div className="w-1 h-8 bg-orange-600 rounded-full mr-3"></div>
-            <h3 className="text-lg font-semibold text-gray-800">Additional Information</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <BasicSelect
-              name="drawType"
-              value={formData.drawType}
-              onChange={handleChange}
-              label="Draw / Cheque"
-              options={[
-                { value: "DRAW", label: "DRAW" },
-                { value: "CHEQUE", label: "CHEQUE" },
-              ]}
-              className="w-full"
-            />
-
-            <CustomTextField
-              name="remark"
-              value={formData.remark}
-              onChange={handleChange}
-              label="Remarks"
-              className="w-full"
-              multiline
-              InputProps={{
-                style: { height: '100%', overflowY: 'auto' }
-              }}
-            />
-          </div>
+        {/* Footer */}
+        <div className="px-8 py-5 border-t border-gray-200 flex justify-end space-x-4 shrink-0 bg-gray-50">
+          <button
+            onClick={handleReset}
+            type="button"
+            className="px-6 py-3 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+          >
+            Reset Form
+          </button>
+          <button
+            onClick={handleSubmit}
+            type="button"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+          >
+            Save Credit Entry
+          </button>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="px-8 py-5 border-t border-gray-200 flex justify-end space-x-4 shrink-0 bg-gray-50">
-        <button
-          onClick={handleReset}
-          type="button"
-          className="px-6 py-3 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
-        >
-          Reset Form
-        </button>
-      <button
-          onClick={handleSubmit}
-          type="button"
-          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
-        >
-          Save Credit Entry
-        </button>
       </div>
     </div>
-  </div>
-);
+  );
 }

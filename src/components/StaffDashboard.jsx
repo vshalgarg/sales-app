@@ -3,7 +3,8 @@ import { Trash2 } from "lucide-react";
 import { getStaffs, searchStaffs, deleteStaff } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 import AddNewStaff from "../modals/AddNewStaff";
-import PaginationComponent from "./PaginationComponenet";
+import DataTable from "./DataTable";
+import UniversalSearch from "./UniversalSearch";
 
 export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
@@ -22,6 +23,31 @@ export default function StaffDashboard() {
   const searchRef = useRef(null);
   const { showSnackbar } = useSnackbar();
   const [totalItems, setTotalItems] = useState(0);
+
+
+  const columns = [
+    {
+      key: "staffId",
+      label: "Staff ID",
+      width: "15%",
+    },
+    {
+      key: "staffName",
+      label: "Staff Name",
+      width: "30%",
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      width: "20%",
+    },
+    {
+      key: "joiningDate",
+      label: "Joining Date",
+      width: "20%",
+    },
+  ];
+
 
   const [form, setForm] = useState({
     staffName: "",
@@ -57,17 +83,27 @@ export default function StaffDashboard() {
 
   const handleChangePage = async (newPage) => {
     if (newPage < 1 || (totalPages > 0 && newPage > totalPages)) return;
-    
+
     setCurrentPage(newPage);
-    
-    if (isSearchActive) {
-      const start = (newPage - 1) * rowsPerPage;
-      const end = start + rowsPerPage;
-      setStaffs(searchResults.slice(start, end));
+
+    if (isSearchActive && query.trim()) {
+      try {
+        const backendPage = newPage - 1;
+        const response = await searchStaffs(
+          query,
+          backendPage,
+          rowsPerPage
+        );
+        handleSearchResult(response, query);
+      } catch (error) {
+        console.error("Error fetching search page:", error);
+        showSnackbar("Error loading search results", "error");
+      }
     } else {
       fetchStaffs(newPage);
     }
   };
+
 
   const handleDelete = async () => {
     if (!staffToDelete) return;
@@ -81,7 +117,7 @@ export default function StaffDashboard() {
           (s) => s.staffId !== staffToDelete.staffId
         );
         setSearchResults(updated);
-        
+
         const start = (currentPage - 1) * rowsPerPage;
         const end = start + rowsPerPage;
         setStaffs(updated.slice(start, end));
@@ -126,71 +162,12 @@ export default function StaffDashboard() {
     }
   };
 
-  const handleSuggestionClick = async (name) => {
-    setQuery(name);
-    setSuggestions([]);
-    setIsDropdownOpen(false);
-    try {
-      const result = await searchStaffs(name);
-      if (result && result.length) {
-        setSearchResults(result);
-        setIsSearchActive(true);
-        setTotalPages(Math.ceil(result.length / rowsPerPage));
-        setTotalItems(result.length);
-        
-        const start = 0;
-        const end = start + rowsPerPage;
-        setStaffs(result.slice(start, end));
-        setCurrentPage(1);
-      }
-    } catch (err) {
-      console.error(err);
-      showSnackbar("Error loading staff details", "error");
-    }
-  };
-    
-  const handleKeyDown = async (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (!query.trim()) {
-        handleClearSearch();
-        return;
-      }
-      try {
-        const result = await searchStaffs(query.trim());
-        if (result && result.length) {
-          setSearchResults(result);
-          setIsSearchActive(true);
-          setTotalPages(Math.ceil(result.length / rowsPerPage));
-          setTotalItems(result.length);
-          
-          const start = 0;
-          const end = start + rowsPerPage;
-          setStaffs(result.slice(start, end));
-          setCurrentPage(1);
-        } else {
-          setStaffs([]);
-          setIsSearchActive(true);
-          setTotalPages(1);
-          setTotalItems(0);
-        }
-        setSuggestions([]);
-        setIsDropdownOpen(false);
-      } catch (err) {
-        console.error(err);
-        showSnackbar("Error searching staff", "error");
-      }
-    }
-  };
-
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
-    setSearchResults([]);
-    setSuggestions([]);
-    setIsDropdownOpen(false);
     fetchStaffs(1);
   }, [fetchStaffs]);
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -204,9 +181,23 @@ export default function StaffDashboard() {
     };
   }, []);
 
+
+  const handleSearchResult = (response, searchQuery) => {
+    console.log("response and searchQuery"+response+searchQuery)
+    const results = response.content || [];
+    console.log(results)
+    setStaffs(results);
+    setTotalPages(response.totalPages || 1);
+    setTotalItems(response.totalElements || 0);
+    setIsSearchActive(searchQuery.trim() !== "");
+    setCurrentPage(1);
+  };
+
+
   return (
-    <div className="text-gray-900 dark:text-gray-100">
-      <div className="flex justify-between items-center mb-6 h-[8vh]">
+    <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
+      <div className="pt-4">
+      <div className="flex justify-between items-center mb-2">
         <h2 className="text-2xl font-bold">Staff Overview</h2>
         <button
           onClick={() => setOpen(true)}
@@ -215,123 +206,49 @@ export default function StaffDashboard() {
           Add New Staff
         </button>
       </div>
-
+     </div>
       {/* Search */}
       <div className="flex items-center gap-2 mb-6">
-        <div ref={searchRef} className="relative w-1/2">
-          <input
-            type="text"
-            value={query}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onFocus={() => query.length > 1 && setIsDropdownOpen(true)}
-            placeholder="Search staff by name..."
-            className="w-full border rounded-lg p-2 bg-white dark:bg-gray-800 pr-10"
-          />
-          
-          {/* Clear button inside search input */}
-          {query && (
-            <button
-              onClick={handleClearSearch}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            >
-              ✕
-            </button>
-          )}
-          
-          {/* Suggestions dropdown */}
-          {isDropdownOpen && suggestions.length > 0 && (
-            <ul className="absolute bg-white dark:bg-gray-800 border rounded-lg shadow w-full mt-1 z-10 max-h-60 overflow-y-auto">
-              {suggestions.map((s, idx) => (
-                <li
-                  key={idx}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleSuggestionClick(s)}
-                >
-                  {s}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        
-        {/*Clear search button outside */}
+        <UniversalSearch
+          placeholder="Search staff..."
+          query={query}
+          setQuery={setQuery}
+          searchFn={searchStaffs}
+          onResult={handleSearchResult}
+          onClear={handleClearSearch}
+          suggestionKey="staffName"
+          pageSize={rowsPerPage}
+          showSuggestions={false}
+        />
+
         {isSearchActive && (
           <button
             onClick={handleClearSearch}
-            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            Clear Search
+            Clear
           </button>
         )}
       </div>
 
+
       {/* Staff Table */}
-      <div className="relative mt-6 rounded-lg shadow bg-white dark:bg-gray-900">
-        {loading && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-10 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-              <p className="text-gray-600 dark:text-gray-400">Loading staff...</p>
-            </div>
-          </div>
-        )}
-
-        <table className="min-w-full table-auto text-sm text-left">
-          <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs">
-            <tr>
-              <th className="px-6 py-3">Staff Id</th>
-              <th className="px-6 py-3">Staff Name</th>
-              <th className="px-6 py-3">Phone</th>
-              <th className="px-6 py-3">Joining Date</th>
-              <th className="px-6 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {staffs.length > 0 ? (
-              staffs.map((s, i) => (
-                <tr key={i} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-6 py-2">{s.staffId}</td>
-                  <td className="px-6 py-2">{s.staffName}</td>
-                  <td className="px-6 py-2">{s.phone}</td>
-                  <td className="px-6 py-2">{s.joiningDate}</td>
-                  <td className="px-6 py-2">
-                    <button
-                      onClick={() => {
-                        setStaffToDelete(s);
-                        setDeleteModalOpen(true);
-                      }}
-                      className="text-red-600 hover:text-red-800 dark:hover:text-red-400"
-                      title="Delete Staff"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center text-gray-500 dark:text-gray-400 py-4">
-                  {loading ? "Loading..." : "No staff found"}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="flex-1 min-h-0 border mb-2 rounded-lg bg-white dark:bg-zinc-900">
+        <DataTable
+          columns={columns}
+          data={staffs}
+          loading={loading}
+          emptyMessage="No staff found"
+          page={currentPage}
+          totalCount={isSearchActive ? searchResults.length : totalItems}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onDelete={(staff) => {
+            setStaffToDelete(staff);
+            setDeleteModalOpen(true);
+          }}
+        />
       </div>
-
-      {/* Pagination*/}
-      {(totalPages > 1 || (isSearchActive && searchResults.length > rowsPerPage)) && (
-        <div className="mt-6">
-          <PaginationComponent
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={isSearchActive ? searchResults.length : totalItems}
-            onPageChange={handleChangePage}
-            showInfo={false}
-          />
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && staffToDelete && (
