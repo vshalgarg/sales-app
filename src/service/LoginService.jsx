@@ -4,6 +4,7 @@ import api from "../api/api";
 export const loginUser = async (username, password) => {
   try {
     const { data } = await api.post("/login", { username, password });
+    console.log("chhhhhhhh")
     return data;
   } catch (err) {
     const message =

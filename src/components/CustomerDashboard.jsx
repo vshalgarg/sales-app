@@ -96,7 +96,7 @@ export default function CustomerDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [rowsPerPage, showSnackbar]);
+  }, [rowsPerPage]);
 
   const handleSearchResult = (response, searchQuery) => {
     const results = response.content || [];

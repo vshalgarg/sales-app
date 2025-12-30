@@ -113,7 +113,7 @@ export default function SupplierDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [rowsPerPage, showSnackbar]);
+  }, [rowsPerPage]);
 
   const handleSearchResult = (response, searchQuery) => {
     const results = response.content || [];
