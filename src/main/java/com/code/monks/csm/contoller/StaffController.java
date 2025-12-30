@@ -7,6 +7,11 @@ import com.code.monks.csm.service.StaffService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,8 +61,14 @@ public class StaffController {
     }
 
     @GetMapping(SEARCH_STAFFS)
-    public ResponseEntity<List<SearchStaffsResponseDto>> searchStaffs(@RequestParam String keyword){
-        List<SearchStaffsResponseDto> response = staffService.searchStaffs(keyword);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<PagedResponseDto<SearchStaffsResponseDto>> searchStaffs(
+            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        String trimmedKeyword = (keyword != null ? keyword.trim() : "");
+        Pageable pageable = PageRequest.of(page, size);
+        PagedResponseDto<SearchStaffsResponseDto> responseDto = staffService.searchStaffs(trimmedKeyword,pageable);
+        return ResponseEntity.ok(responseDto);
     }
 }

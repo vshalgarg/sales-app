@@ -17,6 +17,7 @@ import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.SupplierService;
 import com.code.monks.csm.utils.ContactUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
+import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -76,9 +77,12 @@ public class SupplierServiceImpl implements SupplierService {
         List<ValidatorUtil.DuplicateCheck> duplicateChecks = new ArrayList<>();
 
         // Supplier-level checks
-        duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                "GST number", () -> supplierRepo.existsByGstNo(requestDto.getSupplierGstNo())
-        ));
+        if (StringUtils.isNotBlank(requestDto.getSupplierGstNo())) {
+            duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+                    "GST number",
+                    () -> supplierRepo.existsByGstNo(requestDto.getSupplierGstNo())
+            ));
+        }
         duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
                 "code", () -> supplierRepo.existsByCode(code)
         ));
@@ -90,10 +94,14 @@ public class SupplierServiceImpl implements SupplierService {
                         "mobile number (" + contact.getMobileNumber() + ")",
                         () -> contactRepo.existsByMobileNumber(contact.getMobileNumber())
                 ));
-                duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                        "phone (" + contact.getPhone() + ")",
-                        () -> contactRepo.existsByPhone(contact.getPhone())
-                ));
+
+                String phone = contact.getPhone();
+                if (StringUtils.isNotBlank(phone)) {
+                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+                            "phone (" + phone + ")",
+                            () -> contactRepo.existsByPhone(phone)
+                    ));
+                }
             }
         }
 
@@ -326,7 +334,7 @@ public class SupplierServiceImpl implements SupplierService {
 
         return SearchSuppliersResponseDto.builder()
                 .id(record.getId())
-                .supplierCode(record.getCode())
+                .code(record.getCode())
                 .supplierName(record.getSupplierName())
                 .supplierGroup(record.getGroupName())
                 .supplierGstNo(record.getGstNo())

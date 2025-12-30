@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 public class SearchSuppliersResponseDto {
     private int id;
-    private String supplierCode;
+    private String code;
     private String supplierName;
     private String supplierGroup;
     private String supplierGstNo;
