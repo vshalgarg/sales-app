@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import SupplierService from "../service/SupplierService";
 import TransportService from "../service/TransportService";
+import Autocomplete from "@mui/material/Autocomplete";
+import Chip from "@mui/material/Chip";
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
@@ -23,6 +25,26 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [transportResults, setTransportResults] = useState([]);
   const [isTransportInputFocused, setIsTransportInputFocused] = useState(false);
 
+  const [allTransports, setAllTransports] = useState([]);
+  const [transportLoading, setTransportLoading] = useState(false);
+  
+
+
+
+  useEffect(() => {
+    const fetchTransports = async () => {
+      try {
+        setTransportLoading(true);
+        const transports = await TransportService.getAllTransports();
+        setAllTransports(transports || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setTransportLoading(false);
+      }
+    };
+    fetchTransports();
+  }, []);
 
   const handleTransportSearch = async (value) => {
     setTransportSearch(value);
@@ -196,53 +218,71 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   };
 
   const handleAddSupplier = async () => {
-    const newErrors = {};
-    let contactErrors = [];
+   const newErrors = {};
+let contactErrors = [];
 
-    // Validate top-level fields
-    Object.keys(form).forEach((field) => {
-      if (field !== "contacts") {
-        const error = validate(field, form[field]);
-        if (error) newErrors[field] = error;
-      }
-    });
+// Validate top-level fields
+Object.keys(form).forEach((field) => {
+  if (field !== "contacts") {
+    const error = validate(field, form[field]);
+    if (error) newErrors[field] = error;
+  }
+});
 
-    // Validate each contact field
-    contactErrors = form.contacts.map((contact) => {
-      const contactError = {};
-      ["contactPerson", "mobileNumber", "phone"].forEach((field) => {
-        const error = validate(field, contact[field]);
-        if (error) contactError[field] = error;
-      });
-      return contactError;
-    });
+// Validate contacts
+contactErrors = form.contacts.map((contact) => {
+  const contactError = {};
+  ["contactPerson", "mobileNumber"].forEach((field) => {
+    const error = validate(field, contact[field]);
+    if (error) contactError[field] = error;
+  });
+  return contactError;
+});
 
-    newErrors.contacts = contactErrors;
-    setErrors(newErrors);
+newErrors.contacts = contactErrors;
+setErrors(newErrors);
 
-    // Check if any errors exist
-    const hasTopLevelErrors = Object.keys(newErrors).some(
-      (key) => key !== "contacts" && newErrors[key]
-    );
-    const hasContactErrors = contactErrors.some((err) =>
-      Object.values(err).some((msg) => !!msg)
-    );
+// ---------- ERROR CHECK ----------
+const hasTopLevelErrors = Object.keys(newErrors).some(
+  (key) => key !== "contacts" && newErrors[key]
+);
 
-    if (hasTopLevelErrors || hasContactErrors) {
-      showSnackbar("Please fill required fields in the form.", "error");
-      return;
-    }
+const hasContactErrors = contactErrors.some((err) =>
+  Object.values(err).some(Boolean)
+);
+
+// ---------- SHOW ACTUAL ERROR ----------
+if (hasTopLevelErrors) {
+  // first top-level error message
+  const firstErrorMessage = Object.values(newErrors).find(
+    (val) => typeof val === "string"
+  );
+  showSnackbar(firstErrorMessage, "error");
+  return;
+}
+
+if (hasContactErrors) {
+  // first contact error message
+  const firstContactError = contactErrors
+    .flatMap(err => Object.values(err))
+    .find(Boolean);
+
+  showSnackbar(firstContactError, "error");
+  return;
+}
+
+
+    const payload = {
+      ...form,
+      preferredTransportIds: selectedTransports.map(t => t.id),
+    };
+
+    console.log("Sending payload:", payload);
 
     // Save supplier
     try {
-      const response = await SupplierService.saveSupplier(form);
-      if (
-        response &&
-        typeof response === "object" &&
-        "code" in response &&
-        "message" in response &&
-        "timestamp" in response
-      ) {
+      const response = await SupplierService.saveSupplier(payload);
+      if (response && response.code && response.message) {
         showSnackbar(response.message, "error");
         return;
       }
@@ -251,31 +291,30 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       setOpen(false);
       fetchSuppliers();
     } catch (err) {
-      console.error("🔥 Error while saving supplier:", err);
-      showSnackbar("Network or server error.", "error");
+      console.error("Save error:", err);
+      showSnackbar("Failed to save supplier", "error");
     }
   };
-
   // Handle typing (suggestions only)
-  const handleChange = async (e) => {
-    const value = e.target.value;
-    setQuery(value);
+  // const handleChange = async (e) => {
+  //   const value = e.target.value;
+  //   setQuery(value);
 
-    if (value.length > 1) {
-      try {
-        const result = await searchSuppliers(value); // result is array of supplier objects
-        if (result && result.length) {
-          // Extract names for suggestions
-          const names = result.map((supplier) => supplier.name);
-          setSuggestions(names);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      setSuggestions([]);
-    }
-  };
+  //   if (value.length > 1) {
+  //     try {
+  //       const result = await searchSuppliers(value); // result is array of supplier objects
+  //       if (result && result.length) {
+  //         // Extract names for suggestions
+  //         const names = result.map((supplier) => supplier.name);
+  //         setSuggestions(names);
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   } else {
+  //     setSuggestions([]);
+  //   }
+  // };
 
   const resetForm = () => {
     setForm({
@@ -291,7 +330,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     setErrors({ contacts: [{}] });
     setSelectedTransports([]);
     setTransportSearch("");
-  setTransportResults([]);
+    setTransportResults([]);
   };
 
   return (
@@ -314,7 +353,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="supplierName"
                     value={form.supplierName}
                     onChange={handleFormChange}
-                    label="Supplier Name"
+                    label="Supplier Name*"
                     className="border p-2 rounded"
                     error={!!errors.supplierName}
                     helperText={errors.supplierName}
@@ -323,7 +362,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="supplierGroup"
                     value={form.supplierGroup}
                     onChange={handleFormChange}
-                    label="Group"
+                    label="Group*"
                     className="border p-2 rounded"
                     error={!!errors.supplierGroup}
                     helperText={errors.supplierGroup}
@@ -334,14 +373,13 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     onChange={handleFormChange}
                     label="GST Number"
                     className="border p-2 rounded"
-                    error={!!errors.supplierGstNo}
-                    helperText={errors.supplierGstNo || ""}
+
                   />
                   <BasicSelect
                     name="supplierMsme"
                     value={form.supplierMsme}
                     onChange={handleFormChange}
-                    label="MSME"
+                    label="MSME*"
                     error={!!errors.supplierMsme}
                     helperText={errors.supplierMsme || ""}
                     options={[
@@ -354,7 +392,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="commissionScheme"
                     value={form.commissionScheme}
                     onChange={handleFormChange}
-                    label="Commission Scheme"
+                    label="Commission Scheme*"
                     error={!!errors.commissionScheme}
                     helperText={errors.commissionScheme || ""}
                     options={[
@@ -367,7 +405,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="commissionRate"
                     value={form.commissionRate}
                     onChange={handleFormChange}
-                    label="Commission % (Rate)"
+                    label="Commission % (Rate)*"
                     className="border p-2 rounded"
                     error={!!errors.commissionRate}
                     helperText={errors.commissionRate}
@@ -383,7 +421,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="addressLine1"
                     value={form.addressLine1}
                     onChange={handleFormChange}
-                    label="Address Line 1"
+                    label="Address Line 1*"
                     className="border p-2 rounded"
                     error={!!errors.addressLine1}
                     helperText={errors.addressLine1}
@@ -399,7 +437,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="state"
                     value={form.state}
                     onChange={handleFormChange}
-                    label="Select State"
+                    label="State*"
                     error={!!errors.state}
                     helperText={errors.state || ""}
                     options={states.map((s) => ({
@@ -411,7 +449,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
-                    label="Select City"
+                    label="City*"
                     error={!!errors.city}
                     helperText={errors.city || ""}
                     options={cities.map((c) => ({
@@ -425,7 +463,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="pinCode"
                     value={form.pinCode}
                     readOnly
-                    label="Pin Code"
+                    label="Pin Code*"
                     disabled={!form.state} // ✅ disabled until state is chosen
                     className="border p-2 rounded cursor-not-allowed"
                   />
@@ -447,7 +485,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
-                        label="Contact Person"
+                        label="Contact Person*"
                         className="w-full border p-2 rounded"
                         error={!!errors.contacts?.[index]?.contactPerson}
                         helperText={errors.contacts?.[index]?.contactPerson}
@@ -463,7 +501,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="Mobile No."
+                        label="Mobile No.*"
                         className="w-full border p-2 rounded"
                         error={!!errors.contacts?.[index]?.mobileNumber}
                         helperText={errors.contacts?.[index]?.mobileNumber}
@@ -515,80 +553,58 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 </Button>
               </div>
 
-              {/* Financial & Logistics */}
+              {/* Transport Section */}
               <div>
-                <h3 className="text-lg font-medium mb-2">
-                  Financial & Logistics
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Preferred Transports</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-                  
-                    <div className="border rounded-md p-2 min-h-10 flex flex-wrap gap-2 items-center">
-                      {/* Selected badges */}
-                      {selectedTransports.map((transport) => (
-                        <span
-                          key={transport.id}
-                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
-                        >
-                          {transport.name}
-                          <button
-                            type="button"
-                            onClick={() => removeTransport(transport.id)}
-                            className="text-blue-600 hover:text-blue-900 font-bold"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      {/* Search input */}
-                      <input
-                        type="text"
-                        value={transportSearch}
-                        onChange={(e) => handleTransportSearch(e.target.value)}
-                        onFocus={() => setIsTransportInputFocused(true)}
-                        onBlur={() => {
-                          setTimeout(() => setIsTransportInputFocused(false), 200);
-                        }}
-                        placeholder={
-                          selectedTransports.length === 0
-                            ? "Type to search transport..."
-                            : ""
-                        }
-                        className="flex-1 outline-none min-w-48"
-                      />
-                    </div>
-                    {/* Dropdown results */}
-                    {isTransportInputFocused && transportResults.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                        {transportResults.map((transport) => (
-                          <div
-                            key={transport.id}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => addTransport(transport)}
-                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                          >
-                            {transport.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {/* Error message */}
-                    {errors.preferredTransportIds && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.preferredTransportIds}
-                      </p>
-                    )}
-                  </div>        
+                   <Autocomplete
+                  multiple
+                  options={allTransports}
+                  getOptionLabel={(option) => option.transportName || option.name || ""}
+                  value={selectedTransports}
+                  onChange={(event, newValue) => {
+                    setSelectedTransports(newValue);
+                    setForm((prev) => ({
+                      ...prev,
+                      preferredTransportIds: newValue.map(t => t.id),
+                    }));
+                    setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
+                  }}
+                  loading={transportLoading}
+                  disableCloseOnSelect
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}
+                      label="Select Preferred Transports"
+                      error={!!errors.preferredTransportIds}
+                      helperText={errors.preferredTransportIds || "Select one or multiple transports"}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {transportLoading ? <span className="text-xs text-gray-500">Loading...</span> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                />
 
                   <CustomTextField
-                    name="remark"
-                    value={form.remark}
-                    onChange={handleFormChange}
-                    label="Remarks"
-                    className="border p-2 rounded"
-                  />
+                  name="remark"
+                  value={form.remark}
+                  onChange={handleFormChange}
+                  label="Remarks (optional)"
+                  size="small"
+                  multiline
+                />
                 </div>
+               
               </div>
+
+              
             </div>
 
             {/* Footer with buttons */}

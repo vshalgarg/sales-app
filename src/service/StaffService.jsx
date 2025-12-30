@@ -23,10 +23,16 @@ export const getStaffs = async (page = 1, size = 5) => {
   }
 };
 
-export const searchStaffs = async (keyword) => {
+export const searchStaffs = async (keyword,page=0,size=10) => {
   try {
-    const response = await api.get(`/staffs/search`, { params: { keyword } });
-    return response.data; // Return response data
+    const response = await api.get(`/staffs/search`, { 
+      params: {
+         keyword,
+         page,
+         size
+
+        } });
+    return response.data; 
   } catch (error) {
     throw error.response?.data || error;
   }

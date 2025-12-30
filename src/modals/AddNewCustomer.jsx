@@ -1,4 +1,4 @@
-import { Button, IconButton, Autocomplete, TextField } from "@mui/material";
+import { Button, IconButton, Autocomplete, TextField, Chip } from "@mui/material";
 import { useState, useEffect } from "react";
 import BasicSelect from "../components/BasicSelect";
 import CustomTextField from "../components/CustomTextField";
@@ -19,10 +19,32 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [pinCodes, setPinCodes] = useState([]);
   const [cities, setCities] = useState([]);
   const { showSnackbar } = useSnackbar();
-  const [selectedTransports, setSelectedTransports] = useState([]);
   const [transportSearch, setTransportSearch] = useState("");
   const [transportResults, setTransportResults] = useState([]);
   const [isTransportInputFocused, setIsTransportInputFocused] = useState(false);
+
+  const [allTransports, setAllTransports] = useState([]);
+  const [transportLoading, setTransportLoading] = useState(false);
+  const [selectedTransports, setSelectedTransports] = useState([]);
+
+
+  /* ---------- Load all transports once ---------- */
+  useEffect(() => {
+    const loadTransports = async () => {
+      try {
+        setTransportLoading(true);
+        const data = await TransportService.getAllTransports();
+        setAllTransports(data || []);
+      } catch (err) {
+        console.error(err);
+        showSnackbar("Failed to load transports", "error");
+      } finally {
+        setTransportLoading(false);
+      }
+    };
+    loadTransports();
+  }, []);
+
 
 
   const handleTransportSearch = async (value) => {
@@ -213,13 +235,11 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       })
       .catch((err) => console.error("Error fetching pincode:", err));
   }, [form.city]);
-  // ✅ runs whenever city changes
 
   const handleAddCustomer = async () => {
     const newErrors = {};
     let contactErrors = [];
 
-    // Validate top-level fields
     Object.keys(form).forEach((field) => {
       if (field !== "contacts") {
         const error = validate(field, form[field]);
@@ -227,10 +247,9 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       }
     });
 
-    // Validate each contact field
     contactErrors = form.contacts.map((contact) => {
       const contactError = {};
-      ["contactPerson", "mobileNumber", "phone"].forEach((field) => {
+      ["contactPerson", "mobileNumber"].forEach((field) => {
         const error = validate(field, contact[field]);
         if (error) contactError[field] = error;
       });
@@ -240,18 +259,36 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     newErrors.contacts = contactErrors;
     setErrors(newErrors);
 
-    // Check if any errors exist
     const hasTopLevelErrors = Object.keys(newErrors).some(
       (key) => key !== "contacts" && newErrors[key]
     );
+
     const hasContactErrors = contactErrors.some((err) =>
-      Object.values(err).some((msg) => !!msg)
+      Object.values(err).some(Boolean)
     );
 
     if (hasTopLevelErrors || hasContactErrors) {
-      showSnackbar("Please fill required fields in the form.", "error");
-      return; // Don’t proceed
+      let errorMessage = "";
+
+      const topError = Object.values(newErrors).find(
+        (val) => typeof val === "string"
+      );
+
+      if (topError) {
+        errorMessage = topError;
+      } else {
+        // 2️⃣ contact error
+        const contactError = contactErrors
+          .flatMap((err) => Object.values(err))
+          .find(Boolean);
+
+        errorMessage = contactError;
+      }
+
+      showSnackbar(errorMessage || "Validation error", "error");
+      return;
     }
+
 
     // Save customer
     try {
@@ -314,55 +351,42 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="customerName"
                     value={form.customerName}
                     onChange={handleFormChange}
-                    label="Customer Name"
-                    className="border p-2 rounded"
+                    label="CustomerName*"
                     error={!!errors.customerName}
                     helperText={errors.customerName}
                   />
-
                   <CustomTextField
                     name="customerGroup"
                     value={form.customerGroup}
                     onChange={handleFormChange}
-                    label="Group Name"
-                    className="border p-2 rounded"
+                    label="GroupName*"
                     error={!!errors.customerGroup}
-                    helperText={errors.customerGroup || ""}
+                    helperText={errors.customerGroup}
                   />
-
                   <CustomTextField
                     name="customerGstNo"
                     value={form.customerGstNo}
                     onChange={handleFormChange}
                     label="GST Number"
-                    className="border p-2 rounded"
-                    error={!!errors.customerGstNo}
-                    helperText={errors.customerGstNo || ""}
                   />
-
                   <BasicSelect
                     name="customerMsme"
                     value={form.customerMsme}
                     onChange={handleFormChange}
-                    label="MSME"
-                    className="border p-2 rounded"
+                    label="MSME*"
                     error={!!errors.customerMsme}
-                    helperText={errors.customerMsme || ""}
+                    helperText={errors.customerMsme}
                     options={[
                       { value: "Micro", label: "Micro" },
                       { value: "Small", label: "Small" },
                       { value: "Medium", label: "Medium" },
                     ]}
                   />
-
                   <CustomTextField
                     name="referencedBy"
                     value={form.referencedBy}
                     onChange={handleFormChange}
                     label="Referenced By"
-                    className="border p-2 rounded"
-                    error={!!errors.referencedBy}
-                    helperText={errors.referencedBy || ""}
                   />
                 </div>
               </div>
@@ -375,8 +399,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="addressLine1"
                     value={form.addressLine1}
                     onChange={handleFormChange}
-                    label="Address Line 1"
-                    className="border p-2 rounded"
+                    label="Address Line 1*"
                     error={!!errors.addressLine1}
                     helperText={errors.addressLine1}
                   />
@@ -385,41 +408,32 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     value={form.addressLine2}
                     onChange={handleFormChange}
                     label="Address Line 2 (Optional)"
-                    className="border p-2 rounded"
                   />
                   <BasicSelect
                     name="state"
                     value={form.state}
                     onChange={handleFormChange}
-                    label="Select State"
+                    label="SelectState*"
                     error={!!errors.state}
-                    helperText={errors.state || ""}
-                    options={states.map((s) => ({
-                      value: s.name,
-                      label: s.name,
-                    }))}
+                    helperText={errors.state}
+                    options={states.map((s) => ({ value: s.name, label: s.name }))}
                   />
-
                   <BasicSelect
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
-                    label="Select City"
+                    label="SelectCity*"
                     error={!!errors.city}
-                    helperText={errors.city || ""}
-                    options={cities.map((c) => ({
-                      value: c,
-                      label: c,
-                    }))}
+                    helperText={errors.city}
+                    options={cities.map((c) => ({ value: c, label: c }))}
                     disabled={!form.state}
                   />
-
                   <CustomTextField
                     name="pinCode"
                     value={form.pinCode}
                     readOnly
-                    label="Pin Code"
-                    disabled={!form.state} // ✅ disabled until state is chosen
+                    label="PinCode*"
+                    disabled={!form.state}
                     className="border p-2 rounded cursor-not-allowed"
                   />
                 </div>
@@ -427,9 +441,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
 
               {/* Contact Information */}
               <div>
-                <h3 className="text-lg font-medium mb-2">
-                  Contact Information
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Contact Information</h3>
                 {form.contacts.map((contact, index) => (
                   <div
                     key={index}
@@ -440,8 +452,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
-                        label="Contact Person"
-                        className="w-full border p-2 rounded"
+                        label="ContactPerson*"
                         error={!!errors.contacts?.[index]?.contactPerson}
                         helperText={errors.contacts?.[index]?.contactPerson}
                       />
@@ -456,12 +467,11 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="Mobile No."
-                        className="w-full border p-2 rounded"
-                        error={!!errors.contacts?.[index]?.mobileNumber}
-                        helperText={errors.contacts?.[index]?.mobileNumber}
+                        label="MobileNo.*"
                         type="tel"
                         inputProps={{ maxLength: 10 }}
+                        error={!!errors.contacts?.[index]?.mobileNumber}
+                        helperText={errors.contacts?.[index]?.mobileNumber}
                       />
                     </div>
                     <div className="col-span-3">
@@ -475,15 +485,10 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                           }
                         }}
                         label="Phone No."
-                        className="w-full border p-2 rounded"
-                        error={!!errors.contacts?.[index]?.phone}
-                        helperText={errors.contacts?.[index]?.phone}
                         type="tel"
                         inputProps={{ maxLength: 10 }}
                       />
                     </div>
-
-                    {/* Delete icon button - hidden for first contact */}
                     <div className="col-span-1 flex justify-center">
                       {index > 0 && (
                         <IconButton
@@ -497,7 +502,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     </div>
                   </div>
                 ))}
-
                 <Button
                   variant="outlined"
                   startIcon={<AddIcon />}
@@ -508,86 +512,73 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 </Button>
               </div>
 
-              {/* Financial & Logistics */}
+              {/* Financial & Logistics - Transport & Remark*/}
               <div>
-                <h3 className="text-lg font-medium mb-2">
-                  Financial & Logistics
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-
-                    <div className="border rounded-md p-2 min-h-10 flex flex-wrap gap-2 items-center">
-                      {/* Selected badges */}
-                      {selectedTransports.map((transport) => (
-                        <span
-                          key={transport.id}
-                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
-                        >
-                          {transport.name}
-                          <button
-                            type="button"
-                            onClick={() => removeTransport(transport.id)}
-                            className="text-blue-600 hover:text-blue-900 font-bold"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-
-                      {/* Search input */}
-                      <input
-                        type="text"
-                        value={transportSearch}
-                        onChange={(e) => handleTransportSearch(e.target.value)}
-                        onFocus={() => setIsTransportInputFocused(true)}
-                        onBlur={() => {
-                          setTimeout(() => setIsTransportInputFocused(false), 200);
-                        }}
-                        placeholder={
-                          selectedTransports.length === 0
-                            ? "Type to search transport..."
-                            : ""
-                        }
-                        className="flex-1 outline-none min-w-48"
-                      />
-                    </div>
-
-                    {/* Dropdown results */}
-                    {isTransportInputFocused && transportResults.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                        {transportResults.map((transport) => (
-                          <div
-                            key={transport.id}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => addTransport(transport)}
-                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                          >
-                            {transport.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Error message */}
-                    {errors.preferredTransportIds && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.preferredTransportIds}
-                      </p>
-                    )}
+                <h3 className="text-lg font-medium mb-3">Financial & Logistics</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Transport Autocomplete */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Preferred Transports
+                    </label>
+                    <Autocomplete
+                      multiple
+                      options={allTransports}
+                      getOptionLabel={(opt) => opt.transportName || opt.name || ""}
+                      value={selectedTransports}
+                      onChange={(_, newVal) => {
+                        setSelectedTransports(newVal);
+                        setForm((prev) => ({
+                          ...prev,
+                          preferredTransportIds: newVal.map((t) => t.id),
+                        }));
+                        setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
+                      }}
+                      loading={transportLoading}
+                      disableCloseOnSelect
+                      isOptionEqualToValue={(opt, val) => opt.id === val.id}
+                      renderInput={(params) => (
+                        <CustomTextField
+                          {...params}
+                          size="small"
+                          label="Select transports"
+                          error={!!errors.preferredTransportIds}
+                          helperText={errors.preferredTransportIds || "Multiple select"}
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {transportLoading ? (
+                                  <span className="text-xs text-gray-500">Loading...</span>
+                                ) : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            ),
+                          }}
+                        />
+                      )}
+                    />
                   </div>
 
-                  <CustomTextField
-                    name="remark"
-                    value={form.remark}
-                    onChange={handleFormChange}
-                    label="Remarks"
-                    className="border p-2 rounded"
-                  />
+                  {/* Remark */}
+                  <div>
+                    <label className=" text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Remarks
+                    </label>
+                    <CustomTextField
+                      name="remark"
+                      value={form.remark}
+                      onChange={handleFormChange}
+                      label="Remarks (optional)"
+                      size="small"
+                      multiline
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Footer with buttons */}
+            {/* Footer */}
             <div className="p-4 border-t flex justify-end space-x-3">
               <button
                 onClick={() => {
@@ -599,7 +590,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 Cancel
               </button>
               <button
-                type="submit"
                 onClick={handleAddCustomer}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >

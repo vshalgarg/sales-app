@@ -44,8 +44,10 @@ const Bills = () => {
     setFilterObject,
   } = useBillForm();
 
+
+  const today = dayjs().format("YYYY-MM-DD");
   useEffect(() => {
-    const today = dayjs().format("YYYY-MM-DD");
+    
     if (!filterObject.fromDate && !filterObject.toDate) {
       setFilterObject(prev => ({
         ...prev,

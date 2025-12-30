@@ -1,23 +1,17 @@
-import {logicalError} from "../utils/errorHandler"
+// src/service/LoginService.js
+import api from "../api/api";
+
 export const loginUser = async (username, password) => {
   try {
-    const response = await fetch("http://192.168.1.100:8087/csm/api/v1/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }), // ✅ match backend key
-    });
-
-    const data = await response.json();
-    const data1=logicalError(data)
-
-    if (!response.ok) {
-      throw new Error(data.message || "Login failed");
-    }
-
-    return data1;
+    const { data } = await api.post("/login", { username, password });
+    return data;
   } catch (err) {
-    throw err;
+    const message =
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      err.message ||
+      "Login failed. Please try again.";
+
+    throw new Error(message);
   }
 };

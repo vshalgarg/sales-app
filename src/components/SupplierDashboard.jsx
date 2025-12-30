@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Ellipsis, Eye, Trash2 } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import AddNewSupplier from "../modals/AddNewSupplier";
 import SupplierDetail from "../modals/SupplierDetail";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
-import PaginationComponent from "./PaginationComponenet";
+import DataTable from "./DataTable";
+import { Typography } from "@mui/material";
 
 export default function SupplierDashboard() {
   const [loading, setLoading] = useState(false);
@@ -17,10 +17,8 @@ export default function SupplierDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const rowsPerPage = 10;
-  const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const searchRef = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -28,6 +26,47 @@ export default function SupplierDashboard() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
+  const dropdownRef = useRef(null);
+
+  const columns = [
+    {
+      key: "code",
+      label: "Code",
+      width: "10%",
+      render: (row) => row.supplierCode || row.code || "-",
+    },
+    { key: "supplierName", label: "Name", width: "15%" },
+    { key: "supplierGstNo", label: "GST", width: "12%" },
+    {
+      key: "address",
+      label: "Address",
+      width: "20%",
+      render: (row) => (
+        <Typography
+          variant="body2"
+          noWrap
+          title={row.address}
+          sx={{ maxWidth: 200 }}
+        >
+          {row.address || "-"}
+        </Typography>
+      ),
+    },
+    { key: "city", label: "City", width: "10%" },
+    {
+      key: "contactPerson",
+      label: "Contact Person",
+      width: "12%",
+      render: (row) => row.contacts?.[0]?.contactPerson || "-",
+    },
+    {
+      key: "mobile",
+      label: "Mobile",
+      width: "11%",
+      render: (row) => row.contacts?.[0]?.mobileNumber || "-",
+    },
+  ];
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -87,17 +126,18 @@ export default function SupplierDashboard() {
 
   const handleChangePage = async (newPage) => {
     if (newPage < 1 || (totalPages > 0 && newPage > totalPages)) return;
-    
+
     setCurrentPage(newPage);
-    
+
     if (isSearchActive && query.trim()) {
       try {
         const backendPage = newPage - 1;
         const response = await SupplierService.searchSuppliers(
-          query, 
-          backendPage, 
+          query,
+          backendPage,
           rowsPerPage
         );
+
         handleSearchResult(response, query);
       } catch (error) {
         console.error("Error fetching search page:", error);
@@ -132,12 +172,6 @@ export default function SupplierDashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const confirmDelete = (supplier) => {
-    setSupplierToDelete(supplier);
-    setDeleteModalOpen(true);
-    setOpenMenuIndex(null);
-  };
-
   const handleDelete = async () => {
     if (!supplierToDelete) return;
     try {
@@ -158,143 +192,67 @@ export default function SupplierDashboard() {
   }, [fetchSuppliers]);
 
   return (
-    <div className="text-gray-900 dark:text-gray-100">
-      {/* Header*/}
-      <div className="flex justify-between items-center mb-6 h-[8vh]">
-        <h2 className="text-2xl font-bold">Supplier Overview</h2>
-        <button
-          onClick={() => setOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-        >
-          Add New Supplier
-        </button>
-      </div>
-
-      {/* Search*/}
-      <div className="flex items-center gap-2 mb-6">
-        <UniversalSearch
-          placeholder="Search suppliers by name..."
-          query={query}
-          setQuery={setQuery}
-          searchFn={SupplierService.searchSuppliers}
-          onResult={handleSearchResult}
-          onClear={handleClearSearch}
-          suggestionKey="supplierName"
-          pageSize={rowsPerPage}
-        />
-        {isSearchActive && (
+    <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
+      {/* Header Section */}
+      <div className="py-4 flex-shrink-0">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-2xl font-bold">Supplier Overview</h2>
           <button
-            onClick={handleClearSearch}
-            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            onClick={() => setOpen(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Clear
+            Add New Supplier
           </button>
-        )}
-      </div>
+        </div>
 
-      {/* Table*/}
-      <div className="relative mt-6 rounded-lg shadow bg-white dark:bg-gray-900">
-        <table className="min-w-full table-fixed text-sm text-left">
-          <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs">
-            <tr>
-              <th className="px-6 py-3 w-[10%]">Code</th>
-              <th className="px-6 py-3 w-[15%]">Name</th>
-              <th className="px-6 py-3 w-[12%]">GST</th>
-              <th className="px-6 py-3 w-[20%]">Address</th>
-              <th className="px-6 py-3 w-[10%]">City</th>
-              <th className="px-6 py-3 w-[12%]">Contact Person</th>
-              <th className="px-6 py-3 w-[11%]">Mobile</th>
-              <th className="px-6 py-3 w-[10%]">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="8" className="text-center py-8">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                </td>
-              </tr>
-            ) : suppliers.length > 0 ? (
-              suppliers.map((s, i) => (
-                <tr
-                  key={i}
-                  className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <td className="px-6 py-2">{s.code || `S00${i + 1}`}</td>
-                  <td className="px-6 py-2">{s.supplierName}</td>
-                  <td className="px-6 py-2">{s.supplierGstNo}</td>
-                  <td className="px-6 py-2">{s.address}</td>
-                  <td className="px-6 py-2">{s.city}</td>
-                  <td className="px-6 py-2">
-                    {s.contacts?.[0]?.contactPerson || "-"}
-                  </td>
-                  <td className="px-6 py-2">
-                    {s.contacts?.[0]?.mobileNumber || "-"}
-                  </td>
-                  <td className="px-6 py-2 relative">
-                    <button
-                      onClick={() =>
-                        setOpenMenuIndex(openMenuIndex === i ? null : i)
-                      }
-                      className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                    >
-                      <Ellipsis />
-                    </button>
-
-                    {openMenuIndex === i && (
-                      <div
-                        ref={dropdownRef}
-                        className="absolute bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow-md mt-1 z-10 w-22"
-                      >
-                        <button
-                          onClick={() => {
-                            setSelectedSupplier(s);
-                            setIsModalOpen(true);
-                            setOpenMenuIndex(null);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          <Eye className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                        </button>
-                        <button
-                          onClick={() => confirmDelete(s)}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          <Trash2 className="w-5 h-5 text-red-600" />
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="8"
-                  className="text-center text-gray-500 dark:text-gray-400 py-4"
-                >
-                  No Suppliers Found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination*/}
-       <div className="mt-6">
-        {totalPages > 0 && (
-          <PaginationComponent
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            onPageChange={handleChangePage}
-            showInfo={false}
+        {/* Search Section */}
+        <div className="flex items-center gap-2 mb-4">
+          <UniversalSearch
+            placeholder="Search suppliers ..."
+            query={query}
+            setQuery={setQuery}
+            searchFn={SupplierService.searchSuppliers}
+            onResult={handleSearchResult}
+            onClear={handleClearSearch}
+            suggestionKey="supplierName"
+            pageSize={rowsPerPage}
+            showSuggestions={false}
           />
-        )}
+          {isSearchActive && (
+            <button
+              onClick={handleClearSearch}
+              className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Table Section*/}
+      <div className="flex-1 min-h-0  border rounded-lg mb-2 bg-white dark:bg-zinc-900">
+        <DataTable
+          columns={columns}
+          data={suppliers}
+          loading={loading}
+          onView={(supplier) => {
+            setSelectedSupplier(supplier);
+            setIsModalOpen(true);
+          }}
+          onDelete={(supplier) => {
+            setSupplierToDelete(supplier);
+            setDeleteModalOpen(true);
+          }}
+          emptyMessage="No suppliers found"
+          page={currentPage}
+          totalCount={totalItems}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+        />
+
+
+      </div>
+
 
       {/* Modals */}
       {isModalOpen && selectedSupplier && (

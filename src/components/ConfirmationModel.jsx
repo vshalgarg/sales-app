@@ -8,70 +8,68 @@ const ConfirmationModal = ({
   message = "Are you sure you want to proceed?",
   confirmText = "Confirm",
   cancelText = "Cancel",
-  confirmButtonColor = "blue", 
-  loading = false, 
+  confirmButtonColor = "blue",
+  loading = false,
 }) => {
   if (!isOpen) return null;
 
-  const colorClasses = {
-    blue: "bg-blue-600 hover:bg-blue-800",
-    red: "bg-red-600 hover:bg-red-800",
-    green: "bg-green-600 hover:bg-green-800",
+  const colorMap = {
+    blue: "bg-blue-600 hover:bg-blue-700",
+    red: "bg-red-600 hover:bg-red-700",
+    green: "bg-green-600 hover:bg-green-700",
   };
 
-  const confirmBtnClass = colorClasses[confirmButtonColor] || colorClasses.blue;
+  const btnClass = colorMap[confirmButtonColor] || colorMap.blue;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black opacity-50"
+        className="fixed inset-0 bg-black/60"
         onClick={onClose}
-      ></div>
+        aria-hidden="true"
+      />
 
-      {/* Modal */}
-      <div className="relative w-auto max-w-md mx-auto my-6">
-        <div className="bg-white rounded-lg shadow-lg relative flex flex-col w-full outline-none focus:outline-none">
-          {/* Header */}
-          <div className="flex items-start justify-between p-5 border-b border-solid border-gray-300 rounded-t">
-            <h3 className="text-xl font-semibold">{title}</h3>
-            <button
-              className="p-1 ml-auto bg-transparent border-0 text-black float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
-              onClick={onClose}
-              disabled={loading}
-            >
-              <span className="bg-transparent text-black h-6 w-6 text-2xl block outline-none focus:outline-none">
-                ×
-              </span>
-            </button>
-          </div>
+      {/* Modal Card */}
+      <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
 
-          {/* Body */}
-          <div className="relative p-6 flex-auto">
-            <p className="my-4 text-gray-600 text-lg leading-relaxed">
-              {message}
-            </p>
-          </div>
+        {/* Body */}
+        <div className="px-6 py-6">
+          <p className="text-gray-600 text-base">{message}</p>
+        </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end p-6 border-t border-solid border-gray-300 rounded-b gap-4">
-            <button
-              className="px-6 py-2 bg-gray-200 border-solid border-2 border-gray-400 rounded hover:bg-gray-400 disabled:opacity-50"
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-            >
-              {cancelText}
-            </button>
-            <button
-              className={`px-6 py-2 text-white rounded ${confirmBtnClass} disabled:opacity-50`}
-              type="button"
-              onClick={onConfirm}
-              disabled={loading}
-            >
-              {loading ? "Processing..." : confirmText}
-            </button>
-          </div>
+        {/* Footer */}
+        <div className="px-6 py-5 border-t border-gray-200 flex justify-end gap-4">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-60 transition-colors"
+          >
+            {cancelText}
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={loading}
+            className={`px-5 py-2.5 text-white rounded-lg font-medium transition-colors disabled:opacity-60 ${btnClass}`}
+          >
+            {loading ? "Processing..." : confirmText}
+          </button>
         </div>
       </div>
     </div>

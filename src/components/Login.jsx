@@ -2,34 +2,44 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../service/LoginService";
 import { useSnackbar } from "../context/SnackbarContext";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
+  const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     try {
       const data = await loginUser(email, password);
-        
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.username);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      showSnackbar("Login successful!", "success");
       navigate("/suppliers", { replace: true });
     } catch (err) {
-      console.error("API Error:", err);
-      setError(err.message || "Login failed. Please try again.");
-      showSnackbar(err.message, "error");
+      console.error("Login error:", err);
+      const errorMsg = err.message || "Login failed. Please try again.";
+      setError(errorMsg);
+      showSnackbar(errorMsg, "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Left */}
+    <div className="flex min-h-screen">
+      {/* Left decorative side */}
       <div className="flex flex-1 bg-[#6c63ff] items-center justify-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -47,69 +57,129 @@ const Login = () => {
         </svg>
       </div>
 
-      {/* Right */}
-      <div className="flex flex-1 items-center justify-center bg-white">
-        <div className="w-full max-w-sm">
-          <div className="flex justify-center mb-6">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="#6c63ff"
-              className="w-10 h-10"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4l6 8H6l6-8zM6 20h12"
-              />
-            </svg>
+      {/* Right - Form */}
+      <div className="flex-1 flex items-center justify-center bg-gray-50 p-6">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="#6c63ff"
+                className="w-10 h-10"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4l6 8H6l6-8zM6 20h12"
+                />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800">Management Portal</h2>
+            <p className="mt-2 text-gray-600">
+              Simplified Billing, Streamlined Business
+            </p>
           </div>
 
-          <h2 className="text-center text-2xl font-bold mb-1">
-            Management Portal
-          </h2>
-          <p className="text-center text-gray-500 mb-6">
-            Simplified Billing, Streamlined Business.
-          </p>
-
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                type="email"
                 placeholder="Enter your email"
-                className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#6c63ff] focus:border-[#6c63ff]"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                         focus:outline-none focus:ring-2 focus:ring-[#6c63ff]/40 
+                         focus:border-[#6c63ff] transition-colors"
+                required
+                autoFocus
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
+            {/* Password with eye icon */}
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
               <input
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                type="password"
                 placeholder="Enter your password"
-                className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#6c63ff] focus:border-[#6c63ff]"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                         focus:outline-none focus:ring-2 focus:ring-[#6c63ff]/40 
+                         focus:border-[#6c63ff] transition-colors pr-12"
+                required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[42px] text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? (
+                  // Eye off icon
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c4.756 0 8.773-3.162 10.065-7.5a10.477 10.477 0 00-2.047-3.777m-3.018-1.5A9.98 9.98 0 0112 4.5c1.58 0 3.056.403 4.335 1.11M9 9l6 6m-6-6l6-6"
+                    />
+                  </svg>
+                ) : (
+                  // Eye icon
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                )}
+              </button>
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
+              <div className="text-red-600 text-sm text-center bg-red-50 py-2 rounded-md">
+                {error}
+              </div>
             )}
 
             <button
               type="submit"
-              className="w-full bg-[#6c63ff] text-white py-2 rounded-md hover:bg-[#5a53d6]"
+              disabled={isLoading}
+              className={`w-full py-3 px-4 bg-[#6c63ff] text-white font-medium 
+                       rounded-lg shadow-sm transition-all duration-200
+                       ${isLoading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-[#5a53d6] active:scale-[0.98]"
+                }`}
             >
-              Login →
+              {isLoading ? "Signing in..." : "Login →"}
             </button>
           </form>
         </div>

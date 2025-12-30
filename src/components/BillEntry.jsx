@@ -184,7 +184,32 @@ const BillEntry = () => {
     await saveBillEntry();
   };
 
+  const validateBillForm = () => {
+  const newErrors = {};
+
+  // Required fields check
+  if (!formData.date) newErrors.date = "Date is required";
+  if (!formData.receivedDate) newErrors.receivedDate = "Received Date is required";
+  if (!formData.order?.trim()) newErrors.order = "Order is required";
+
+  if (!formData.supplierId) newErrors.supplierName = "Supplier is required";
+  if (!formData.customerId) newErrors.customerName = "Customer is required";
+  // console.log("formData.transport",formData.transport.trim())
+  // if (formData.transport?.trim()==='') newErrors.transport = "Transport is required";
+  if (savedItems.length === 0) newErrors.items = "At least one item is required";
+
+  setErrors((prev) => ({ ...prev, ...newErrors }));
+
+  return Object.keys(newErrors).length === 0;
+};
+
   const saveBillEntry = async () => {
+
+    if (!validateBillForm()) {
+    showSnackbar("Please fill all required fields", "error");
+    return;
+  }
+  
     const payload = {
       ...formData,
       date: formData.date || null,
@@ -282,7 +307,7 @@ const BillEntry = () => {
   };
 
   const handleSupplierSelect = (event, value) => {
-    console.log("value", value)
+    
     if (value) {
       setFormData(prev => ({
         ...prev,
@@ -681,7 +706,9 @@ const BillEntry = () => {
                           allTransports.find(t => t.name === formData.transport) || null
                         }
                         {...params}
-                        label="Select Transport"
+                        label="SelectTransport*"
+      //                   error={!!errors.transport}
+      // helperText={errors.transport || "Select transport"}
                       />
                     )}
                   />
@@ -795,7 +822,13 @@ const BillEntry = () => {
                       <CustomTextField
                         name="pieces"
                         value={formData.pieces}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          //(no letters, no decimal)
+                          if (/^\d*$/.test(val)) {
+                            handleChange({ target: { name: "pieces", value: val } });
+                          }
+                        }}
                         label="Pieces"
                         error={!!errors.pieces}
                         helperText={errors.pieces}
@@ -803,7 +836,13 @@ const BillEntry = () => {
                       <CustomTextField
                         name="grossAmount"
                         value={formData.grossAmount}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          // Allow positive number with max 2 decimal
+                          if (/^\d*\.?\d{0,2}$/.test(val)) {
+                            handleChange({ target: { name: "grossAmount", value: val } });
+                          }
+                        }}
                         label="Gross Amount"
                         error={!!errors.grossAmount}
                         helperText={errors.grossAmount || ""}
@@ -842,7 +881,12 @@ const BillEntry = () => {
                       <CustomTextField
                         name="addOnAmount"
                         value={formData.addOnAmount}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*\.?\d{0,2}$/.test(val)) {
+                            handleChange({ target: { name: "addOnAmount", value: val } });
+                          }
+                        }}
                         label="Add-On Amount"
                         error={!!errors.addOnAmount}
                         helperText={errors.addOnAmount || ""}
@@ -850,7 +894,12 @@ const BillEntry = () => {
                       <CustomTextField
                         name="ecrAmount"
                         value={formData.ecrAmount}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*\.?\d{0,2}$/.test(val)) {
+                            handleChange({ target: { name: "ecrAmount", value: val } });
+                          }
+                        }}
                         label="ECR Amount"
                         error={!!errors.ecrAmount}
                         helperText={errors.ecrAmount || ""}
@@ -905,13 +954,13 @@ const BillEntry = () => {
 
                 {/* BUTTON SECTION*/}
                 <div className="flex justify-end mt-5 gap-4">
-                 { !isEditing ?
-                  <button
-                    onClick={handleResetBillDetail}
-                    className="px-6 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 text-sm font-medium"
-                  >
-                    Reset
-                  </button>:null}
+                  {!isEditing ?
+                    <button
+                      onClick={handleResetBillDetail}
+                      className="px-6 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 text-sm font-medium"
+                    >
+                      Reset
+                    </button> : null}
                   <button
                     onClick={() => {
                       if (!formData.grossAmount || Number(formData.grossAmount) <= 0) {

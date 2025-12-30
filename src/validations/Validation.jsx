@@ -71,26 +71,27 @@ const validate = (field, value) => {
       if (!value.trim()) error = "Msme is required.";
       break;
     case "customerGstNo":
+      if (!value || value.trim() === "") {
+        error = "";
+        break;
+      }
       const gstRegx =
         /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-      if (!value.trim()) {
-        error = "GSTIN is required.";
-      } else if (!gstRegx.test(value)) {
+      if (!gstRegx.test(value)) {
         error = "Invalid GST Number format.";
       }
-      if (!value.trim()) error = "GSTIN is required.";
       break;
     case "supplierGstNo":
-      const gstRegex =
-        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-      if (!value.trim()) {
-        error = "GSTIN is required.";
-      } else if (!gstRegex.test(value)) {
+      if (!value || value.trim() === "") {
+        error = "";
+        break;
+      }
+      const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+      if (!gstRegex.test(value)) {
         error = "Invalid GST Number format.";
       }
-      if (!value.trim()) error = "GSTIN is required.";
       break;
-
     case "commissionRate":
       const rate = parseFloat(value);
       if (!value) {
@@ -106,18 +107,8 @@ const validate = (field, value) => {
       }
       break;
 
-    case "referencedBy":
-      if (!value.trim()) {
-        error = "Referenced by is required.";
-      }
-      break;
-
     case "addressLine1":
       if (!value.trim()) error = "AddressLine1 is required.";
-      break;
-
-    case "addressLine2":
-      if (!value.trim()) error = "AddressLine2 is required.";
       break;
 
     case "contactPerson":
@@ -130,17 +121,17 @@ const validate = (field, value) => {
       if (value.length < 10) return "Must be at least 10 digits";
       break;
 
-    case "phone":
-      if (!value) return "Phone number is required";
-      if (!/^\d+$/.test(value)) return "Only digits allowed";
-      if (value.length < 10) return "Must be at least 10 digits";
-      break;
+    // case "phone":
+    //   if (!value) return "Phone number is required";
+    //   if (!/^\d+$/.test(value)) return "Only digits allowed";
+    //   if (value.length < 10) return "Must be at least 10 digits";
+    //   break;
 
-    case "preferredTransport":
-      if (!value || value.length === 0) {
-        error = "Select transport is required.";
-      }
-      break;
+    // case "preferredTransport":
+    //   if (!value || value.length === 0) {
+    //     error = "Select transport is required.";
+    //   }
+    //   break;
 
     case "state":
       if (!value || value.length === 0) {
@@ -197,7 +188,7 @@ const validate = (field, value) => {
         error = "Pieces is required";
       }
       break;
-  
+
     case "taxableValue":
       if (!value || value.length === 0) {
         error = "Taxable value is required";
@@ -213,11 +204,12 @@ const validate = (field, value) => {
         error = "LR Number is required";
       }
       break;
-    case "transport":
-      if (!value.trim() || !value || value.length === 0) {
-        error = "Transport is required";
-      }
-      break;
+    // case "transport":
+    //   console.log(value)
+    //   if (!value.trim() || !value || value.length === 0) {
+    //     error = "Transport is required";
+    //   }
+    //   break;
     case "paymentType":
       if (!value.trim() || !value || value.length === 0) {
         error = "Payment Type is required";
@@ -233,6 +225,7 @@ const validate = (field, value) => {
         error = "Purchase Amount is required";
       }
       break;
+      
     default:
       break;
   }

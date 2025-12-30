@@ -71,9 +71,9 @@ const AppLayout = () => {
         onSectionChange={handleSectionChange}
         activeSection={activeSection}
       />
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0">
         <Sidebar className="w-64" activeSection={activeSection} />
-        <main className="relative flex-1 h-full px-4 overflow-hidden ">
+        <main className=" flex-1 min-h-0 px-4 overflow-hidden ">
           <Outlet />
         </main>
       </div>

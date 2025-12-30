@@ -147,7 +147,8 @@ const Users = () => {
   return (
     <div className="text-gray-900 dark:text-gray-100">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 h-[8vh]">
+       <div className="pt-4">
+      <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-bold">Users</h1>
         <button
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
@@ -156,6 +157,7 @@ const Users = () => {
           <Plus size={18} className="mr-2" />
           Add New User
         </button>
+      </div>
       </div>
        
       {/* Search input */}
