@@ -30,10 +30,10 @@ const DataTable = ({
   onDelete,
   emptyMessage = "No records found",
   actions = true,
-  page,                // ← new: current page (1-based)
-  totalCount,          // ← new: total number of items
+  page,
+  totalCount,
   rowsPerPage = 10,
-  onPageChange,        // ← new: callback for page change
+  onPageChange,
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -71,16 +71,16 @@ const DataTable = ({
                 <TableCell
                   key={col.key}
                   sx={{
-                     fontWeight: 600, width: col.width,
+                    fontWeight: 600, width: col.width,
                     //  backgroundColor: '#e0e0e0',
-                     bgcolor: 'inherit',
-                    
-                    }}
+                    bgcolor: 'inherit',
+
+                  }}
                 >
                   {col.label}
                 </TableCell>
               ))}
-              {actions && <TableCell sx={{ width: "80px", backgroundColor: '#e0e0e0'}}>Actions</TableCell>}
+              {actions && <TableCell sx={{ width: "80px", backgroundColor: '#e0e0e0',fontWeight: 600 }}>Actions</TableCell>}
             </TableRow>
           </TableHead>
 
@@ -101,7 +101,12 @@ const DataTable = ({
                 <TableRow key={row.id || row.code || index} hover>
                   {columns.map((col) => (
                     <TableCell key={col.key}>
-                      {col.render ? col.render(row, index) : row[col.key] ?? "-"}
+                      {col.render
+                        ? col.render(row, index)
+                        : (row[col.key] == null || row[col.key] === "")
+                          ? "-"
+                          : row[col.key]
+                      }
                     </TableCell>
                   ))}
                   {actions && (

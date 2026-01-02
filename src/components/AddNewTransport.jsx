@@ -1,6 +1,19 @@
-"use client";
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Stack,
+  Typography,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  CircularProgress,
+} from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
 import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 
@@ -14,173 +27,322 @@ export default function AddNewTransport({
 
   const [formData, setFormData] = useState({
     name: "",
-    isActive: true,
+    gstNo: "",
+    contactNumber: "",
+    city: "",
+    address: "",
+    status: "ACTIVE",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState({});
 
+  // ---------- RESET ----------
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      gstNo: "",
+      contactNumber: "",
+      city: "",
+      address: "",
+      status: "ACTIVE",
+    });
+    setErrors({});
+  };
+
+  // ---------- EDIT MODE ----------
   useEffect(() => {
     if (editingTransport) {
       setFormData({
         name: editingTransport.name || "",
-        isActive: editingTransport.isActive ?? true,
+        gstNo: editingTransport.gstNo || "",
+        contactNumber: editingTransport.contactNumber || "",
+        city: editingTransport.city || "",
+        address: editingTransport.address || "",
+        status: editingTransport.status || "ACTIVE",
       });
     } else {
-      setFormData({
-        name: "",
-        isActive: true,
-      });
+      resetForm();
     }
   }, [editingTransport, open]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
+  // ---------- VALIDATION ----------
+  const validateForm = () => {
+    const newErrors = {};
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!formData.name.trim()) {
-    showSnackbar("Transport name is required.", "error");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    let response;
-
-    if (editingTransport) {
-      // UPDATE CASE
-      const updateRequest = {
-        id: editingTransport.id,
-        name: formData.name.trim(),
-        isActive: formData.isActive, 
-      };
-
-      response = await TransportService.updateTransport(updateRequest);
-    } else {
-      // CREATE CASE
-      const createRequest = {
-        name: formData.name.trim(),
-        isActive: true, // new transports are active by default
-      };
-
-      response = await TransportService.createTransport(createRequest);
+    if (!formData.name.trim()) {
+      newErrors.name = "Transport name is required";
     }
 
-    if (response.success) {
-      showSnackbar(response.message || "Transport saved successfully!", "success");
-    } else {
-      showSnackbar(response.message || "Operation failed.", "error");
+    if (formData.contactNumber && !/^\d{10}$/.test(formData.contactNumber)) {
+      newErrors.contactNumber = "Enter valid 10-digit number";
+    }
+
+    if (
+      formData.gstNo &&
+      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+        formData.gstNo.toUpperCase()
+      )
+    ) {
+      newErrors.gstNo = "Enter valid GST number (15 characters)";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // ---------- handleChange ----------
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  // ---------- SUBMIT (REUSABLE) ----------
+  const handleSubmit = async ({ closeAfterSave }) => {
+    if (isSaving) return;
+
+    if (!validateForm()) {
+      showSnackbar("Please fix validation errors", "error");
       return;
     }
-    onSuccess();
 
-  } catch (error) {
-    console.error("Error saving transport:", error);
-    const msg =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      "Failed to save transport. Please try again.";
+    try {
+      setIsSaving(true);
 
-    showSnackbar(msg, "error");
-  } finally {
-    setLoading(false);
-  }
-};
+      const payload = {
+        name: formData.name.trim(),
+        gstNo: formData.gstNo.trim(),
+        contactNumber: formData.contactNumber.trim(),
+        city: formData.city.trim(),
+        address: formData.address.trim(),
+        status: formData.status,
+      };
 
-  const handleClose = () => {
-    if (!loading) {
-      setOpen(false);
+      const response = editingTransport
+        ? await TransportService.updateTransport({
+          id: editingTransport.id,
+          ...payload,
+        })
+        : await TransportService.createTransport(payload);
+
+      if (!response?.success) {
+        showSnackbar(response?.message || "Failed to save transport", "error");
+        return;
+      }
+
+      showSnackbar(
+        editingTransport ? "Transport updated successfully" : "Transport added successfully",
+        "success"
+      );
+
+      onSuccess();
+      resetForm();
+
+      if (closeAfterSave) {
+        setOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to save transport", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[420px] p-6 relative">
-        {/* Close Button */}
-        <button
-          onClick={handleClose}
-          disabled={loading}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X size={24} />
-        </button>
-
-        {/* Title */}
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">
-          {editingTransport ? "Edit Transport" : "Add New Transport"}
-        </h2>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name Field */}
+    <Dialog
+      open={open}
+      onClose={() => !isSaving && setOpen(false)}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+        },
+      }}
+    >
+      {/* ================= HEADER ================= */}
+      <DialogTitle sx={{ px: 3, py: 2, borderBottom: "1px solid #eee", backgroundColor: "#fafafa", borderBottom: "1px solid #e5e7eb", }}>
+        <div className="flex justify-between items-center">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Transport Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
+            <Typography fontWeight={600}>
+              {editingTransport ? "Edit Transport" : "Add Transport"}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Transport basic and contact details
+            </Typography>
+          </div>
+
+          <CloseIcon
+            onClick={() => !isSaving && setOpen(false)}
+            className="cursor-pointer text-gray-500 hover:text-black"
+          />
+        </div>
+      </DialogTitle>
+
+      {/* ================= CONTENT ================= */}
+      <DialogContent sx={{ px: 3, py: 3 }}>
+        <Stack spacing={3}>
+
+          {/* -------- BASIC INFO -------- */}
+          <div>
+            <Typography fontSize={14} fontWeight={600} mb={1} mt={1}>
+              Basic Information
+            </Typography>
+
+            <TextField
+              label="Transport Name *"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              placeholder="Enter transport name"
-              required
+              error={!!errors.name}
+              helperText={errors.name}
+              fullWidth
+              size="small"
             />
           </div>
 
-          {/* Active Status (only show in edit mode or if you want control) */}
-          {editingTransport && (
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="isActive"
-                name="isActive"
-                checked={formData.isActive}
-                onChange={handleChange}
-                disabled={loading}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Active
-              </label>
-            </div>
-          )}
+          {/* -------- CONTACT INFO -------- */}
+          <div>
+            <Typography fontSize={14} fontWeight={600} mb={1}>
+              Contact Details
+            </Typography>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={loading}
-              className="px-5 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? (
-                <>Saving...</>
-              ) : (
-                <>{editingTransport ? "Update" : "Add"} Transport</>
-              )}
-            </button>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="GST Number"
+                name="gstNo"
+                value={formData.gstNo}
+                onChange={handleChange}
+                fullWidth
+                size="small"
+                error={!!errors.gstNo}
+                helperText={errors.gstNo}
+              />
+
+              <TextField
+                label="Contact Number"
+                name="contactNumber"
+                value={formData.contactNumber}
+                onChange={handleChange}
+                error={!!errors.contactNumber}
+                helperText={errors.contactNumber}
+                fullWidth
+                size="small"
+              />
+            </Stack>
           </div>
-        </form>
-      </div>
-    </div>
+
+          {/* -------- ADDRESS -------- */}
+          <div>
+            <Typography fontSize={14} fontWeight={600} mb={1}>
+              Address
+            </Typography>
+
+            <Stack spacing={1.5}>
+
+              <TextField
+                label="City"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="Address Line 1"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                fullWidth
+                size="small"
+              />
+
+              <TextField
+                label="Address Line 2"
+                name="addressLine2"
+                placeholder="Landmark / Area (optional)"
+                fullWidth
+                size="small"
+              />
+            </Stack>
+          </div>
+
+          {/* -------- STATUS -------- */}
+          <div>
+            <Typography fontSize={14} fontWeight={600} mb={0.5}>
+              Status
+            </Typography>
+
+            <RadioGroup
+              row
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+            >
+              <FormControlLabel
+                value="ACTIVE"
+                control={<Radio size="small" />}
+                label="Active"
+              />
+              <FormControlLabel
+                value="INACTIVE"
+                control={<Radio size="small" />}
+                label="Inactive"
+              />
+            </RadioGroup>
+          </div>
+
+        </Stack>
+      </DialogContent>
+
+      {/* ================= FOOTER ================= */}
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2,
+          borderTop: "1px solid #eee",
+          background: "#fafafa",
+        }}
+      >
+        <Button
+          disabled={isSaving}
+          onClick={() => setOpen(false)}
+          size="small"
+        >
+          Cancel
+        </Button>
+
+        {/* ONLY IN ADD MODE */}
+        {!editingTransport && (
+          <Button
+            disabled={isSaving}
+            variant="outlined"
+            size="small"
+            onClick={() => handleSubmit({ closeAfterSave: false })}
+            startIcon={isSaving && <CircularProgress size={14} />}
+          >
+            Save & Add New
+          </Button>
+        )}
+
+        {/* SAVE / UPDATE */}
+        <Button
+          disabled={isSaving}
+          variant="contained"
+          size="small"
+          onClick={() => handleSubmit({ closeAfterSave: true })}
+          startIcon={isSaving && <CircularProgress size={14} />}
+        >
+          {editingTransport ? "Update Transport" : "Save Transport"}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
+
 }

@@ -49,27 +49,16 @@ const validate = (field, value) => {
     case "receivedAmount":
       if (!value.trim()) error = "Received Amount is required";
       break;
-    case "slipNumber":
-      if (!value.trim()) error = "Slip Number is required";
-      break;
+    // case "slipNumber":
+    //   if (!value.trim()) error = "Slip Number is required";
+    //   break;
     case "supplierName":
       if (!value.trim()) error = "Supplier Name is required.";
       break;
     case "customerName":
       if (!value.trim()) error = "Customer Name is required.";
       break;
-    case "supplierGroup":
-      if (!value.trim()) error = "Group Name is required.";
-      break;
-    case "supplierMsme":
-      if (!value.trim()) error = "Msme is required.";
-      break;
-    case "customerGroup":
-      if (!value.trim()) error = "Group Name is required.";
-      break;
-    case "customerMsme":
-      if (!value.trim()) error = "Msme is required.";
-      break;
+
     case "customerGstNo":
       if (!value || value.trim() === "") {
         error = "";
@@ -81,6 +70,7 @@ const validate = (field, value) => {
         error = "Invalid GST Number format.";
       }
       break;
+      
     case "supplierGstNo":
       if (!value || value.trim() === "") {
         error = "";
@@ -92,20 +82,19 @@ const validate = (field, value) => {
         error = "Invalid GST Number format.";
       }
       break;
+
     case "commissionRate":
-      const rate = parseFloat(value);
-      if (!value) {
-        error = "Commission rate is required.";
-      } else if (isNaN(rate) || rate < 0 || rate > 100) {
-        error = "Commission rate must be between 0 and 100.";
+      if (value !== undefined && value !== null && value !== "") {
+        const rate = parseFloat(value);
+
+        if (isNaN(rate)) {
+          error = "Commission rate must be a valid number.";
+        } else if (rate < 0 || rate > 100) {
+          error = "Commission rate must be between 0 and 100.";
+        }
       }
       break;
 
-    case "commissionScheme":
-      if (!value || value === "None" || value === "") {
-        error = "Please select correct scheme.";
-      }
-      break;
 
     case "addressLine1":
       if (!value.trim()) error = "AddressLine1 is required.";
@@ -225,7 +214,7 @@ const validate = (field, value) => {
         error = "Purchase Amount is required";
       }
       break;
-      
+
     default:
       break;
   }

@@ -1,18 +1,15 @@
 // src/service/LoginService.js
 import api from "../api/api";
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
+
 
 export const loginUser = async (username, password) => {
   try {
     const { data } = await api.post("/login", { username, password });
-    console.log("chhhhhhhh")
-    return data;
+    const result = checkLogicalError(data);
+    
+    return result;
   } catch (err) {
-    const message =
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      err.message ||
-      "Login failed. Please try again.";
-
-    throw new Error(message);
+     throw new Error(handleApiError(err));
   }
 };
