@@ -8,8 +8,10 @@ import CustomerService from "../service/CustomerService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import TransportService from "../service/TransportService";
+import { sanitizePayload } from "../utils/sanitizePayload";
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
+  const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({
     contacts: [{}],
   });
@@ -26,6 +28,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
   const [selectedTransports, setSelectedTransports] = useState([]);
+  const [selectedTransport, setSelectedTransport] = useState(null);
 
 
   /* ---------- Load all transports once ---------- */
@@ -45,27 +48,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     loadTransports();
   }, []);
 
-
-
-  const handleTransportSearch = async (value) => {
-    setTransportSearch(value);
-
-    if (value.trim().length < 2) {
-      setTransportResults([]);
-      return;
-    }
-
-    try {
-      const results = await TransportService.searchTransports(value.trim());
-      const filtered = results.filter(
-        (t) => !selectedTransports.some((s) => s.id === t.id)
-      );
-      setTransportResults(filtered || []);
-    } catch (err) {
-      console.error("Transport search error:", err);
-      setTransportResults([]);
-    }
-  };
 
   const addTransport = (transport) => {
     if (selectedTransports.find((t) => t.id === transport.id)) return;
@@ -151,20 +133,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     }));
   };
 
-  const handleMultiSelectChange = (e) => {
-    const { name, value, error } = e.target; // value is guaranteed array by BasicSelect
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    const errMsg = error || validate(name, value); // <- use custom error first
-    setErrors((prev) => ({
-      ...prev,
-      [name]: errMsg,
-    }));
-  };
-
   const handleContactChange = (index, e) => {
     const { name, value } = e.target;
 
@@ -236,10 +204,13 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       .catch((err) => console.error("Error fetching pincode:", err));
   }, [form.city]);
 
-  const handleAddCustomer = async () => {
+  const handleAddCustomer = async ({ closeAfterSave }) => {
+    if (isSaving) return;
+
     const newErrors = {};
     let contactErrors = [];
 
+    // ---------- VALIDATION ----------
     Object.keys(form).forEach((field) => {
       if (field !== "contacts") {
         const error = validate(field, form[field]);
@@ -259,59 +230,61 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     newErrors.contacts = contactErrors;
     setErrors(newErrors);
 
-    const hasTopLevelErrors = Object.keys(newErrors).some(
-      (key) => key !== "contacts" && newErrors[key]
+    const hasTopErrors = Object.keys(newErrors).some(
+      (k) => k !== "contacts" && newErrors[k]
     );
 
-    const hasContactErrors = contactErrors.some((err) =>
-      Object.values(err).some(Boolean)
+    const hasContactErrors = contactErrors.some((e) =>
+      Object.values(e).some(Boolean)
     );
 
-    if (hasTopLevelErrors || hasContactErrors) {
-      let errorMessage = "";
+    if (hasTopErrors || hasContactErrors) {
+      const msg =
+        Object.values(newErrors).find((v) => typeof v === "string") ||
+        contactErrors.flatMap((e) => Object.values(e)).find(Boolean);
 
-      const topError = Object.values(newErrors).find(
-        (val) => typeof val === "string"
-      );
-
-      if (topError) {
-        errorMessage = topError;
-      } else {
-        // 2️⃣ contact error
-        const contactError = contactErrors
-          .flatMap((err) => Object.values(err))
-          .find(Boolean);
-
-        errorMessage = contactError;
-      }
-
-      showSnackbar(errorMessage || "Validation error", "error");
+      showSnackbar(msg || "Validation error", "error");
       return;
     }
 
+    const payload = sanitizePayload({
+      ...form,
+      preferredTransportIds: selectedTransports.map((t) => t.id),
+    });
 
-    // Save customer
     try {
-      const response = await CustomerService.saveCustomer(form);
-      if (
-        response &&
-        typeof response === "object" &&
-        "code" in response &&
-        "message" in response &&
-        "timestamp" in response
-      ) {
+      setIsSaving(true);
+
+      const response = await CustomerService.saveCustomer(payload);
+
+      if (response?.code && response?.message) {
         showSnackbar(response.message, "error");
         return;
       }
-      showSnackbar(response.message, "success");
-      console.log("Customer added successfully : ", response);
-      resetForm();
-      setOpen(false);
+
+      showSnackbar("Customer added successfully", "success");
       fetchCustomers();
+      resetForm();
+
+      if (closeAfterSave) {
+        setOpen(false);
+      }
     } catch (err) {
-      console.error("🔥 Error while saving supplier:", err);
-      showSnackbar("Network or server error.", "error");
+      console.error(err);
+      showSnackbar("Network or server error", "error");
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const resetTransport = () => {
+    setSelectedTransport(null);
+    setFormData(prev => ({
+      ...prev,
+      transportId: null,
+      transportName: "",
+      transportCity: "",
+    }));
   };
 
   const resetForm = () => {
@@ -359,9 +332,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="customerGroup"
                     value={form.customerGroup}
                     onChange={handleFormChange}
-                    label="GroupName*"
-                    error={!!errors.customerGroup}
-                    helperText={errors.customerGroup}
+                    label="GroupName"
                   />
                   <CustomTextField
                     name="customerGstNo"
@@ -373,9 +344,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="customerMsme"
                     value={form.customerMsme}
                     onChange={handleFormChange}
-                    label="MSME*"
-                    error={!!errors.customerMsme}
-                    helperText={errors.customerMsme}
+                    label="MSME"
                     options={[
                       { value: "Micro", label: "Micro" },
                       { value: "Small", label: "Small" },
@@ -522,42 +491,37 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                       Preferred Transports
                     </label>
                     <Autocomplete
-                      multiple
-                      options={allTransports}
-                      getOptionLabel={(opt) => opt.transportName || opt.name || ""}
-                      value={selectedTransports}
-                      onChange={(_, newVal) => {
-                        setSelectedTransports(newVal);
-                        setForm((prev) => ({
-                          ...prev,
-                          preferredTransportIds: newVal.map((t) => t.id),
-                        }));
-                        setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
-                      }}
-                      loading={transportLoading}
-                      disableCloseOnSelect
-                      isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                      renderInput={(params) => (
-                        <CustomTextField
-                          {...params}
-                          size="small"
-                          label="Select transports"
-                          error={!!errors.preferredTransportIds}
-                          helperText={errors.preferredTransportIds || "Multiple select"}
-                          InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {transportLoading ? (
-                                  <span className="text-xs text-gray-500">Loading...</span>
-                                ) : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            ),
-                          }}
-                        />
-                      )}
-                    />
+                    options={allTransports}
+                    value={selectedTransport}
+                    isOptionEqualToValue={(o, v) => o.id === v?.id}
+                    getOptionLabel={(o) =>
+                      o?.name ? `${o.name} - ${o.city || ""}` : ""
+                    }
+                    onChange={(e, value) => {
+                      if (!value) {
+                        resetTransport();
+                        return;
+                      }
+
+                      setSelectedTransport(value);
+                      setFormData(prev => ({
+                        ...prev,
+                        transportId: value.id,
+                        transportName: value.name,
+                        transportCity: value.city,
+                      }));
+
+                      setErrors(prev => ({ ...prev, transport: "" }));
+                    }}
+                    renderInput={(params) => (
+                      <CustomTextField
+                        {...params}
+                        label="Transport *"
+                      // error={!!errors.transport}
+                      // helperText={errors.transport || "Search transport"}
+                      />
+                    )}
+                  />
                   </div>
 
                   {/* Remark */}
@@ -579,23 +543,69 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t flex justify-end space-x-3">
+            <div className="p-4 border-t flex justify-end gap-3 bg-gray-50">
+
+              {/* Cancel */}
               <button
+                disabled={isSaving}
                 onClick={() => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 border rounded-lg text-sm
+      hover:bg-gray-100
+      disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
+
+              {/* Save & Add New */}
               <button
-                onClick={handleAddCustomer}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: false })}
+                className="px-4 py-2 border border-blue-600 text-blue-600
+      rounded-lg text-sm hover:bg-blue-50
+      flex items-center gap-2
+      disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Save Customer
+                {isSaving ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    Saving…
+                  </>
+                ) : (
+                  "Save & Add New"
+                )}
+              </button>
+
+              {/* Save Customer */}
+              <button
+                disabled={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: true })}
+                className="px-4 py-2 bg-blue-600 text-white
+      rounded-lg text-sm hover:bg-blue-700
+      flex items-center gap-2
+      disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    Saving…
+                  </>
+                ) : (
+                  "Save Customer"
+                )}
               </button>
             </div>
+
+
+
           </div>
         </div>
       )}

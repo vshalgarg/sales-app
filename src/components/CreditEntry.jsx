@@ -16,25 +16,9 @@ import CustomerService from "../service/CustomerService";
 export default function CreditEntryForm() {
   const { showSnackbar } = useSnackbar();
   const {
-    searchSupplierRef,
-    searchCustomerRef,
-    isFilterObject,
     setIsFilterObject,
     errors,
     setErrors,
-    suggestions,
-    isDropdownOpen,
-    setIsDropdownOpen,
-    handleSupplierInput,
-    searchRef,
-    handleSupplierSuggestionClick,
-    custSearchRef,
-    custSuggestions,
-    isCustDropdownOpen,
-    setIsCustDropdownOpen,
-    handleCustomerSuggestionClick,
-    handleCustomerInput,
-    filterObject,
     setFilterObject,
   } = useBillForm();
 
@@ -47,9 +31,7 @@ export default function CreditEntryForm() {
     receivedAmount: "",
     supplierId: "",
     customerId: "",
-    supplierCurrentBalance: "",
-    customerCurrentBalance: "",
-    slipNumber: "",
+    //slipNumber: "",
     drawType: "",
     remark: "",
   });
@@ -58,6 +40,10 @@ export default function CreditEntryForm() {
   const [allCustomers, setAllCustomers] = useState([]);
   const [supplierLoading, setSupplierLoading] = useState(true);
   const [customerLoading, setCustomerLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+
 
 
   useEffect(() => {
@@ -83,13 +69,28 @@ export default function CreditEntryForm() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (formData.paymentType !== "CHEQUE") {
+      setFormData(prev => ({
+        ...prev,
+        chequeNumber: "",
+        chequeDate: ""
+      }));
+
+      setErrors(prev => ({
+        ...prev,
+        chequeNumber: "",
+        chequeDate: ""
+      }));
+    }
+  }, [formData.paymentType]);
+
 
   const handleSupplierSelect = (event, value) => {
     if (value) {
       setFormData(prev => ({
         ...prev,
-        supplierId: value.id,
-        supplierName: value.supplierName,
+        supplierId: value.id
       }));
       setErrors(prev => ({ ...prev, supplierName: "" }));
     } else {
@@ -106,7 +107,6 @@ export default function CreditEntryForm() {
       setFormData(prev => ({
         ...prev,
         customerId: value.id,
-        customerName: value.customerName,
       }));
       setErrors(prev => ({ ...prev, customerName: "" }));
     } else {
@@ -128,53 +128,87 @@ export default function CreditEntryForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+
+    if (isSaving) return;
+    setIsSaving(true);
 
     const newErrors = {};
+
     Object.keys(formData).forEach((field) => {
-      if (field !== "drawType" && field !== "remark") {
-        const error = validate(field, formData[field]);
-        if (error) {
-          if (field === "supplierId") {
-            newErrors.supplierName = error;
-          } else if (field === "customerId") {
-            newErrors.customerName = error;
-          } else {
-            newErrors[field] = error;
-          }
-        }
+
+      if (field === "drawType" || field === "remark") return;
+
+      // Supplier
+      if (field === "supplierId" && !formData.supplierId) {
+        newErrors.supplierName = "Supplier is required";
+        return;
+      }
+
+      // Customer
+      if (field === "customerId" && !formData.customerId) {
+        newErrors.customerName = "Customer is required";
+        return;
+      }
+
+      if (field === "supplierId" || field === "customerId") return;
+
+      // Cheque conditional
+      if (
+        (field === "chequeNumber" || field === "chequeDate") &&
+        formData.paymentType !== "CHEQUE"
+      ) {
+        return;
+      }
+
+      const error = validate(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
       }
     });
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
+      setIsSaving(false);
       showSnackbar("Please fill required fields in the form.", "error");
       return;
     }
 
     try {
-      const response = await addCreditEntry(formData);
+      const payload = {
+        ...formData,
+        drawType: formData.drawType || null
+      };
+
+      const response = await addCreditEntry(payload);
+
       if (
         response &&
         typeof response === "object" &&
         "code" in response &&
-        "message" in response &&
-        "timestamp" in response
+        "message" in response
       ) {
         showSnackbar(response.message, "error");
         return;
       }
+
       showSnackbar(response.message, "success");
       handleReset();
       setFilterObject({});
+
     } catch (error) {
       showSnackbar("Error while saving bill entry", "error");
-      console.error("Error while saving bill entry:", error);
+      console.error(error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
+
   const handleReset = () => {
+    resetSupplier();
+    resetCustomer();
+
     setFormData({
       paymentType: "",
       billNumber: "",
@@ -184,8 +218,6 @@ export default function CreditEntryForm() {
       receivedAmount: "",
       supplierId: "",
       customerId: "",
-      supplierCurrentBalance: "",
-      customerCurrentBalance: "",
       slipNumber: "",
       drawType: "",
       remark: "",
@@ -194,6 +226,23 @@ export default function CreditEntryForm() {
     setIsFilterObject(false);
     setFilterObject({});
   };
+
+  const resetSupplier = () => {
+    setSelectedSupplier(null);
+    setFormData(prev => ({
+      ...prev,
+      supplierId: "",
+    }));
+  };
+
+  const resetCustomer = () => {
+    setSelectedCustomer(null);
+    setFormData(prev => ({
+      ...prev,
+      customerId: "",
+    }));
+  };
+
 
   const formatAmount = (val) => {
     if (val === "" || isNaN(val)) return "0.00";
@@ -228,147 +277,179 @@ export default function CreditEntryForm() {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
-      <div className="bg-white w-full h-[91vh] flex flex-col">
+      <div className="bg-gray-50 w-full h-[87vh] flex flex-col">
         {/* Header */}
-        <div className="px-8 py-5 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
-          <h2 className="text-2xl font-bold text-gray-800">Credit Entry</h2>
-          <p className="text-sm text-gray-500 mt-1">Record all credit transactions and payments</p>
-        </div>
+        <div className="px-6 py-3 border-b border-gray-200 shrink-0
+                bg-gray-50">
+          <div className="flex items-center justify-between">
 
+            {/* Title Section */}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
+                Credit Entry
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Record and manage all credit transactions and payments
+              </p>
+            </div>
+
+            {/* Right-side */}
+            <div className="text-sm text-gray-400">
+              Accounting
+            </div>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
 
           {/* Party Information Card */}
-          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">Party Information</h3>
-            </div>
-            <div className="grid grid-cols-4 gap-5">
-              {/* Supplier */}
+          <div className="border border-gray-200 p-6 rounded-xl bg-white">
+            <div className="flex items-start mb-5">
+              <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
               <div>
-                <Autocomplete
-                  options={allSuppliers}
-                  getOptionLabel={(option) => option.supplierName || ""}
-                  getOptionKey={(option) => option.id}
-                  value={allSuppliers.find(s => s.id === formData.supplierId) || null}
-                  onChange={handleSupplierSelect}
-                  loading={supplierLoading}
-                  isOptionEqualToValue={(option, value) => option.id === value?.id}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}
-                      label="Supplier"
-                      error={!!errors.supplierName}
-                      helperText={errors.supplierName || ""}
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {supplierLoading ? (
-                              <span className="text-xs text-gray-500">Loading...</span>
-                            ) : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                />
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Party Information
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Select supplier and customer
+                </p>
               </div>
+            </div>
 
-              {/* Supplier Current Balance */}
-              <CustomTextField
-                name="supplierCurrentBalance"
-                value={formData.supplierCurrentBalance}
-                onChange={handleAmountChange}
-                onBlur={() => handleAmountBlur("supplierCurrentBalance")}
-                label="Supplier Current Balance"
-                className="w-full"
-                error={!!errors.supplierCurrentBalance}
-                helperText={errors.supplierCurrentBalance || ""}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Supplier */}
+              <Autocomplete
+                options={allSuppliers}
+                value={selectedSupplier}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) =>
+                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                }
+                loading={supplierLoading}
+                onChange={(e, value) => {
+                  if (!value) {
+                    resetSupplier();
+                    return;
+                  }
+
+                  setSelectedSupplier(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    supplierId: value.id,
+                  }));
+
+                  setErrors(prev => ({ ...prev, supplierName: "" }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Supplier"
+                    error={!!errors.supplierName}
+                    helperText={errors.supplierName || "Search supplier by name or city"}
+                  />
+                )}
               />
+
 
               {/* Customer */}
-              <div>
-                <Autocomplete
-                  options={allCustomers}
-                  getOptionLabel={(option) => option.customerName || ""}
-                  getOptionKey={(option) => option.id}
-                  value={allCustomers.find(c => c.id === formData.customerId) || null}
-                  onChange={handleCustomerSelect}
-                  loading={customerLoading}
-                  isOptionEqualToValue={(option, value) => option.id === value?.id}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}
-                      label="Customer"
-                      error={!!errors.customerName}
-                      helperText={errors.customerName || ""}
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {customerLoading ? (
-                              <span className="text-xs text-gray-500">Loading...</span>
-                            ) : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </div>
+              <Autocomplete
+                options={allCustomers}
+                value={selectedCustomer}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) =>
+                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+                }
+                loading={customerLoading}
+                onChange={(e, value) => {
+                  if (!value) {
+                    resetCustomer();
+                    return;
+                  }
 
-              {/* Customer Current Balance */}
-              <CustomTextField
-                name="customerCurrentBalance"
-                value={formData.customerCurrentBalance}
-                onChange={handleAmountChange}
-                onBlur={() => handleAmountBlur("customerCurrentBalance")}
-                label="Customer Current Balance"
-                className="w-full"
-                error={!!errors.customerCurrentBalance}
-                helperText={errors.customerCurrentBalance || ""}
+                  setSelectedCustomer(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    customerId: value.id,
+                  }));
+
+                  setErrors(prev => ({ ...prev, customerName: "" }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Customer"
+                    error={!!errors.customerName}
+                    helperText={errors.customerName || "Search customer by name or city"}
+                  />
+                )}
               />
+
             </div>
           </div>
 
+
           {/* Transaction Details Card */}
-          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-blue-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">Transaction Details</h3>
+          <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
+            <div className="flex items-start mb-5">
+              {/* Vertical Gradient Line */}
+              <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Transaction Details
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Payment mode, bill and amount information
+                </p>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-5">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Payment Mode */}
               <BasicSelect
                 name="paymentType"
                 value={formData.paymentType}
                 onChange={handleChange}
-                label="Select Payment Type"
+                label="Payment Mode"
                 options={[
+                  { value: "NEFT_RTGS", label: "NEFT / RTGS" },
+                  { value: "UPI", label: "UPI" },
                   { value: "CASH", label: "CASH" },
                   { value: "CHEQUE", label: "CHEQUE" },
-                  { value: "UPI", label: "UPI" },
                 ]}
                 error={!!errors.paymentType}
                 helperText={errors.paymentType || ""}
-                className="w-full"
               />
 
+              {/* Bill Number */}
               <CustomTextField
                 name="billNumber"
                 value={formData.billNumber}
                 onChange={handleChange}
                 label="Bill Number"
-                className="w-full"
                 error={!!errors.billNumber}
                 helperText={errors.billNumber || ""}
               />
 
+              {/* Received Amount */}
+              <CustomTextField
+                name="receivedAmount"
+                type="text"
+                value={formData.receivedAmount}
+                onChange={handleAmountChange}
+                onBlur={() => handleAmountBlur("receivedAmount")}
+                label="Received Amount"
+                error={!!errors.receivedAmount}
+                helperText={errors.receivedAmount || ""}
+                InputProps={{
+                  className: "text-lg font-semibold"
+                }}
+              />
+
+              {/* Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Date"
+                  label="Transaction Date"
                   value={formData.date ? dayjs(formData.date) : null}
                   onChange={(newValue) => handleDateChange("date", newValue)}
                   slotProps={{
@@ -377,13 +458,6 @@ export default function CreditEntryForm() {
                       size: "small",
                       error: !!errors.date,
                       helperText: errors.date || "",
-                      onClick: (e) => {
-                        const iconButton =
-                          e.currentTarget.parentElement.querySelector(
-                            "button[aria-label]"
-                          );
-                        iconButton?.click();
-                      },
                     },
                   }}
                 />
@@ -392,90 +466,70 @@ export default function CreditEntryForm() {
           </div>
 
           {/* Cheque Details Card */}
-          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">Payment Details</h3>
-            </div>
-            <div className="grid grid-cols-4 gap-5">
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Cheque Date"
-                  value={
-                    formData.chequeDate ? dayjs(formData.chequeDate) : null
-                  }
-                  onChange={(newValue) =>
-                    handleDateChange("chequeDate", newValue)
-                  }
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      error: !!errors.chequeDate,
-                      helperText: errors.chequeDate || "",
-                      onClick: (e) => {
-                        const iconButton =
-                          e.currentTarget.parentElement.querySelector(
-                            "button[aria-label]"
-                          );
-                        iconButton?.click();
-                      },
-                    },
-                  }}
+          {formData.paymentType === "CHEQUE" && (
+            <div className="border border-purple-300 bg-purple-50 p-6 rounded-xl">
+              <div className="flex items-start mb-4">
+                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full mr-3"></div>
+                <h4 className="font-semibold text-purple-700">
+                  Cheque Details
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CustomTextField
+                  name="chequeNumber"
+                  label="Cheque Number"
+                  value={formData.chequeNumber}
+                  onChange={handleChange}
+                  error={!!errors.chequeNumber}
+                  helperText={errors.chequeNumber || ""}
                 />
-              </LocalizationProvider>
 
-              <CustomTextField
-                name="chequeNumber"
-                value={formData.chequeNumber}
-                onChange={handleChange}
-                label="Cheque Number"
-                className="w-full"
-                error={!!errors.chequeNumber}
-                helperText={errors.chequeNumber || ""}
-              />
-
-              <CustomTextField
-                name="receivedAmount"
-                type="text"
-                value={formData.receivedAmount}
-                onChange={handleAmountChange}
-                onBlur={() => handleAmountBlur("receivedAmount")}
-                label="Received Amount"
-                className="w-full"
-                error={!!errors.receivedAmount}
-                helperText={errors.receivedAmount || ""}
-              />
-
-              <CustomTextField
-                name="slipNumber"
-                label="Slip Number"
-                value={formData.slipNumber}
-                onChange={handleChange}
-                className="w-full"
-                error={!!errors.slipNumber}
-                helperText={errors.slipNumber || ""}
-              />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="Cheque Date"
+                    value={formData.chequeDate ? dayjs(formData.chequeDate) : null}
+                    onChange={(newValue) =>
+                      handleDateChange("chequeDate", newValue)
+                    }
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        error: !!errors.chequeDate,
+                        helperText: errors.chequeDate || "",
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Miscellaneous Card */}
-          <div className="border border-gray-200 p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-orange-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">Additional Information</h3>
+          {/* Additional Information */}
+          <div className="border border-gray-200 p-6 rounded-xl bg-white">
+            <div className="flex items-start mb-5">
+              <div className="w-1 h-10 bg-gradient-to-b from-orange-500 to-orange-700 rounded-full mr-3"></div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Additional Information
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Optional details
+                </p>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <BasicSelect
                 name="drawType"
                 value={formData.drawType}
                 onChange={handleChange}
-                label="Draw / Cheque"
+                label="Draw Type"
                 options={[
                   { value: "DRAW", label: "DRAW" },
                   { value: "CHEQUE", label: "CHEQUE" },
                 ]}
-                className="w-full"
               />
 
               <CustomTextField
@@ -483,33 +537,82 @@ export default function CreditEntryForm() {
                 value={formData.remark}
                 onChange={handleChange}
                 label="Remarks"
-                className="w-full"
                 multiline
-                InputProps={{
-                  style: { height: '100%', overflowY: 'auto' }
-                }}
+                minRows={0}
               />
             </div>
           </div>
+
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-5 border-t border-gray-200 flex justify-end space-x-4 shrink-0 bg-gray-50">
-          <button
-            onClick={handleReset}
-            type="button"
-            className="px-6 py-3 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
-          >
-            Reset Form
-          </button>
-          <button
-            onClick={handleSubmit}
-            type="button"
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
-          >
-            Save Credit Entry
-          </button>
+        <div className="px-8 py-4 border-t border-gray-200 bg-white
+                flex items-center justify-between
+                shrink-0 sticky bottom-0 z-10 shadow-md">
+
+          {/* Left side – helper text */}
+          <p className="text-sm text-gray-500">
+            Please review all details before saving the credit entry.
+          </p>
+
+          {/* Right side – actions */}
+          <div className="flex items-center space-x-3">
+            {/* Reset */}
+            <button
+              onClick={handleReset}
+              type="button"
+              className="px-5 py-2.5 text-sm font-medium text-gray-600
+                 border border-gray-300 rounded-lg
+                 hover:bg-gray-100 hover:text-gray-800
+                 transition-all duration-200"
+            >
+              Reset
+            </button>
+
+            {/* Save */}
+            <button
+              onClick={handleSubmit}
+              type="button"
+              className="px-6 py-2.5 text-sm font-semibold text-white
+     rounded-lg
+     bg-gradient-to-r from-blue-600 to-blue-700
+     hover:from-blue-700 hover:to-blue-800
+     shadow-md hover:shadow-lg
+     transition-all duration-200
+     flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                "Save Credit Entry"
+              )}
+            </button>
+
+          </div>
         </div>
+
+
       </div>
     </div>
   );

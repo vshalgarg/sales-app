@@ -4,7 +4,6 @@ import { useState } from "react";
 import { saveStaff } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 
-// ⬇️ Import DatePicker
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -18,75 +17,92 @@ export default function AddNewStaff({
   fetchStaffs,
 }) {
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
   const { showSnackbar } = useSnackbar();
 
   if (!open) return null;
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+  // ---------- HELPERS ----------
+  const validatePhone = (value) => {
+    if (!value) return "Phone number is required";
+    if (!/^\d{10}$/.test(value)) return "Phone number must be 10 digits";
+    return "";
+  };
+
+  const resetForm = () => {
+    setForm({ staffName: "", phone: "", joiningDate: "" });
+    setErrors({});
+  };
+
+  // ---------- CHANGE ----------
+  const handleFormChange = (name, value) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
   };
 
-  const handleAddStaff = async () => {
-    const newErrors = {};
+  // ---------- SUBMIT (REUSABLE) ----------
+  const handleAddStaff = async ({ closeAfterSave }) => {
+    if (isSaving) return;
 
-    Object.keys(form).forEach((field) => {
-      const error = validate(field, form[field]);
-      if (error) newErrors[field] = error;
-    });
+    const newErrors = {
+      staffName: validate("staffName", form.staffName),
+      phone: validatePhone(form.phone),
+      joiningDate: validate("joiningDate", form.joiningDate),
+    };
 
     setErrors(newErrors);
 
-    const hasTopLevelErrors = Object.keys(newErrors).some(
-      (key) => key !== "contacts" && newErrors[key]
-    );
-
-    if (hasTopLevelErrors) {
-      showSnackbar("Please fill required fields in the form.", "error");
+    if (Object.values(newErrors).some(Boolean)) {
+      showSnackbar("Please fill all required fields.", "error");
       return;
     }
 
     try {
+      setIsSaving(true);
+
       const response = await saveStaff(form);
-      if (
-        response &&
-        typeof response === "object" &&
-        "code" in response &&
-        "message" in response &&
-        "timestamp" in response
-      ) {
+
+      if (response?.code && response?.message) {
         showSnackbar(response.message, "error");
         return;
       }
-      showSnackbar(response.message, "success");
-      console.log("Customer added successfully : ", response);
-      setErrors({});
-      setForm({ staffName: "", phone: "", joiningDate: "" });
-      setOpen(false);
+
+      showSnackbar("Staff added successfully", "success");
       fetchStaffs();
+      resetForm();
+
+      if (closeAfterSave) {
+        setOpen(false);
+      }
     } catch (err) {
-      console.error("🔥 Error while saving supplier:", err);
+      console.error("🔥 Error while saving staff:", err);
       showSnackbar("Network or server error.", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-      <div className="bg-white w-full max-w-md max-h-[50vh] rounded-lg shadow-lg flex flex-col">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-lg flex flex-col">
+
         {/* Header */}
         <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-bold">Add New Staff</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Add New Staff
+          </h2>
+          <p className="text-sm text-gray-500">
+            Enter staff basic details
+          </p>
         </div>
 
-        {/* Form content */}
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-3">
+        {/* Body */}
+        <div className="px-6 py-4 space-y-4">
           <CustomTextField
             name="staffName"
             value={form.staffName}
-            onChange={handleFormChange}
-            label="Staff Name"
-            className="border p-2 rounded w-full"
+            onChange={(e) => handleFormChange("staffName", e.target.value)}
+            label="Staff Name *"
             error={!!errors.staffName}
             helperText={errors.staffName || ""}
           />
@@ -97,11 +113,10 @@ export default function AddNewStaff({
             onChange={(e) => {
               const value = e.target.value;
               if (/^\d{0,10}$/.test(value)) {
-                handleFormChange(e);
+                handleFormChange("phone", value);
               }
             }}
-            label="Phone"
-            className="border p-2 rounded w-full"
+            label="Phone Number *"
             error={!!errors.phone}
             helperText={errors.phone || ""}
             type="tel"
@@ -110,31 +125,20 @@ export default function AddNewStaff({
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
-              label="Joining Date"
+              label="Joining Date *"
               value={form.joiningDate ? dayjs(form.joiningDate) : null}
               onChange={(newValue) => {
                 const formatted = newValue
                   ? dayjs(newValue).format("YYYY-MM-DD")
                   : "";
-                setForm({ ...form, joiningDate: formatted });
-                setErrors((prev) => ({
-                  ...prev,
-                  joiningDate: validate("joiningDate", formatted),
-                }));
+                handleFormChange("joiningDate", formatted);
               }}
               slotProps={{
                 textField: {
-                  size: "small",
                   fullWidth: true,
+                  size: "small",
                   error: !!errors.joiningDate,
                   helperText: errors.joiningDate || "",
-                  onClick: (e) => {
-                    const iconButton =
-                      e.currentTarget.parentElement.querySelector(
-                        "button[aria-label]"
-                      );
-                    iconButton?.click();
-                  },
                 },
               }}
             />
@@ -142,25 +146,67 @@ export default function AddNewStaff({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t flex justify-end space-x-2">
+        <div className="px-6 py-4 border-t flex justify-end gap-3 bg-gray-50">
+
+          {/* Cancel */}
           <button
+            disabled={isSaving}
             onClick={() => {
+              resetForm();
               setOpen(false);
-              setErrors({});
-              setForm({ staffName: "", phone: "", joiningDate: "" });
             }}
-            className="px-3 py-2 border rounded-lg hover:bg-gray-200 text-sm"
+            className="px-4 py-2 border rounded-lg text-sm
+              hover:bg-gray-100
+              disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
+
+          {/* Save & Add New */}
           <button
-            type="submit"
-            onClick={handleAddStaff}
-            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+            disabled={isSaving}
+            onClick={() => handleAddStaff({ closeAfterSave: false })}
+            className="px-4 py-2 border border-blue-600 text-blue-600
+              rounded-lg text-sm hover:bg-blue-50
+              flex items-center gap-2
+              disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Save Staff
+            {isSaving ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Saving…
+              </>
+            ) : (
+              "Save & Add New"
+            )}
+          </button>
+
+          {/* Save Staff */}
+          <button
+            disabled={isSaving}
+            onClick={() => handleAddStaff({ closeAfterSave: true })}
+            className="px-4 py-2 bg-blue-600 text-white
+              rounded-lg text-sm hover:bg-blue-700
+              flex items-center gap-2
+              disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSaving ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Saving…
+              </>
+            ) : (
+              "Save Staff"
+            )}
           </button>
         </div>
+
       </div>
     </div>
   );

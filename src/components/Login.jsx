@@ -20,7 +20,6 @@ const Login = () => {
 
     try {
       const data = await loginUser(email, password);
-console.log("blabla")
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.username);
       localStorage.setItem("user", JSON.stringify(data.user));

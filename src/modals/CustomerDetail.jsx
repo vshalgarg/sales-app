@@ -86,68 +86,67 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
 
             {/* Section: Contact Information */}
             <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
-            {selectedCustomer.contacts.map((c, idx) => (
+            {Array.isArray(selectedCustomer.contacts) && selectedCustomer.contacts.length > 0 ? (
+            selectedCustomer.contacts.map((c, idx) => (
               <div className="grid grid-cols-3 gap-4 mb-4" key={idx}>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Contact Person
-                  </label>
+                  <label className="block text-sm font-medium mb-1">Contact Person</label>
                   <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.contactPerson}
+                    {c.contactPerson || "-"}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Mobile No.
-                  </label>
+                  <label className="block text-sm font-medium mb-1">Mobile No.</label>
                   <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.mobileNumber}
+                    {c.mobileNumber || "-"}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Phone No.
-                  </label>
+                  <label className="block text-sm font-medium mb-1">Phone No.</label>
                   <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.phone}
+                    {c.phone || "-"}
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded p-4 text-center text-gray-500">
+              No contact information available
+            </div>
+          )}
 
-            {/* Section: Other Information */}
-            <h3 className="text-lg font-semibold mb-3">Other Information</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Preferred Transport
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
-                  {selectedCustomer.preferredTransports && selectedCustomer.preferredTransports.length > 0 ? (
-                    selectedCustomer.preferredTransports.map((transport, idx) => (
-                      <span
-                        key={idx}
-                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
-                      >
-                        {transport.name}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-gray-500 text-sm">-</span>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Remark</label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
-                  {selectedCustomer.remark || "-"}
-                </div>
+            {/* ------------------ Other Information ------------------ */}
+          <h3 className="text-lg font-semibold mb-3">Other Information</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Preferred Transport</label>
+              <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
+                {/* Yeh bhi safe bana diya ↓↓↓ */}
+                {Array.isArray(selectedCustomer.preferredTransports) && selectedCustomer.preferredTransports.length > 0 ? (
+                  selectedCustomer.preferredTransports.map((transport, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+                    >
+                      {transport.name || transport.transportName || "Unnamed"}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500 text-sm">-</span>
+                )}
               </div>
             </div>
 
-            {/* Footer Button */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Remark</label>
+              <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
+                {selectedCustomer.remark || "-"}
+              </div>
+            </div>
           </div>
+        </div>
+
+            {/* Footer Button */}
           <div className="p-4 border-t boder-gray-300 flex justify-end space-x-3">
             <button
               onClick={() => setModalOpen(false)}

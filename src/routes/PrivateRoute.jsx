@@ -3,10 +3,11 @@ import { Navigate, Outlet } from "react-router-dom";
 
 const PrivateRoute = ({ requiredRoles }) => {
   const token = localStorage.getItem("token");
-  const roles = JSON.parse(localStorage.getItem("roles")); // optional
+  console.log("token",!token)
+  const roles = JSON.parse(localStorage.getItem("roles")); 
 
-  if (!token) {
-    return <Navigate to="/" replace />;
+  if (token=="undefined" || token == null) {
+   return <Navigate to="/" replace />;
   }
 
   // Optional: role-based access

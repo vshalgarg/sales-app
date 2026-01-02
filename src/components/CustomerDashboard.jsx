@@ -211,14 +211,6 @@ export default function CustomerDashboard() {
             pageSize={rowsPerPage}
             showSuggestions={false}
           />
-          {isSearchActive && (
-            <button
-              onClick={handleClearSearch}
-              className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              Clear
-            </button>
-          )}
         </div>
       </div>
 
@@ -229,6 +221,7 @@ export default function CustomerDashboard() {
           data={customers}
           loading={loading}
           onView={(customer) => {
+            
             setSelectedCustomer(customer);
             setModalOpen(true);
           }}

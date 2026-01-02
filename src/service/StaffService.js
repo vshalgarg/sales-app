@@ -38,6 +38,16 @@ export const searchStaffs = async (keyword,page=0,size=10) => {
   }
 };
 
+export const getAllActiveStaffs = async () => {
+  try {
+    const response = await api.get(`/staffs/get/all`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all active staffs:", error);
+    throw error.response?.data || error.message || "Failed to load active staffs";
+  }
+};
+
 export const deleteStaff = async (staffId) => {
   try {
     const response = await api.put(`/staff/delete`, { staffId });

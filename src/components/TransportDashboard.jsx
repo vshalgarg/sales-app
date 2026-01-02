@@ -23,30 +23,67 @@ export default function TransportDashboard() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [transportToDelete, setTransportToDelete] = useState(null);
 
-  const columns = [
-    {
-      key: "sno",
-      label: "S.No.",
-      width: "10%",
-      render: (row, index) => index + 1,
-    },
-    { key: "name", label: "Name", width: "60%" },
-    {
-      key: "isActive",
-      label: "Status",
-      width: "15%",
-      render: (row) => (
+const columns = [
+  { 
+    key: "sno", 
+    label: "S.No.", 
+    width: "6%", 
+    render: (_, i) => i + 1 
+  },
+
+  { 
+    key: "name", 
+    label: "Transport Name", 
+    width: "20%"
+  },
+
+  { 
+    key: "gstNo", 
+    label: "GST No.", 
+    width: "14%" 
+  },
+
+  { 
+    key: "contactNumber", 
+    label: "Contact", 
+    width: "14%" 
+  },
+
+  // ✅ NEW CITY COLUMN (ORDERED)
+  { 
+    key: "city", 
+    label: "City", 
+    width: "12%",
+    render: (row) => row.city || "-"
+  },
+
+  { 
+    key: "address", 
+    label: "Address", 
+    width: "22%"
+  },
+
+  {
+    key: "status",
+    label: "Status",
+    width: "10%",
+    render: (row) => {
+      const isActive = row.status === "ACTIVE";
+      return (
         <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${row.isActive
-              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+          className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${
+            isActive
+              ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
               : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-            }`}
+          }`}
         >
-          {row.isActive ? "Active" : "Inactive"}
+          {isActive ? "Active" : "Inactive"}
         </span>
-      ),
+      );
     },
-  ];
+  },
+];
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -182,22 +219,21 @@ export default function TransportDashboard() {
 
   const handleSuccess = () => {
     fetchTransports(currentPage);
-    handleModalClose();
   };
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       {/* Header Section*/}
       <div className="pt-4">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-2xl font-bold">Transport Overview</h2>
-        <button
-          onClick={handleAddNew}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-        >
-          Add New Transport
-        </button>
-      </div>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-2xl font-bold">Transport Overview</h2>
+          <button
+            onClick={handleAddNew}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+          >
+            Add New Transport
+          </button>
+        </div>
       </div>
 
       {/* Search Section */}
@@ -213,14 +249,6 @@ export default function TransportDashboard() {
           pageSize={rowsPerPage}
           showSuggestions={false}
         />
-        {isSearchActive && (
-          <button
-            onClick={handleClearSearch}
-            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            Clear
-          </button>
-        )}
       </div>
 
       {/* Table Section */}
@@ -247,7 +275,7 @@ export default function TransportDashboard() {
       {open && (
         <AddNewTransport
           open={open}
-          setOpen={handleModalClose}
+          setOpen={setOpen}
           editingTransport={editingTransport}
           onSuccess={handleSuccess}
         />

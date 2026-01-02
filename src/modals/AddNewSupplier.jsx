@@ -9,7 +9,9 @@ import AddIcon from "@mui/icons-material/Add";
 import SupplierService from "../service/SupplierService";
 import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
-import Chip from "@mui/material/Chip";
+import { sanitizePayload } from "../utils/sanitizePayload";
+
+
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
@@ -23,12 +25,11 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [selectedTransports, setSelectedTransports] = useState([]);
   const [transportSearch, setTransportSearch] = useState("");
   const [transportResults, setTransportResults] = useState([]);
-  const [isTransportInputFocused, setIsTransportInputFocused] = useState(false);
 
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
-  
-
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedTransport, setSelectedTransport] = useState(null);
 
 
   useEffect(() => {
@@ -190,21 +191,49 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   }, [form.city]);
 
   const handleFormChange = (e) => {
+
     const { name, value } = e.target;
+    if (name === "commissionRate") {
+      //max 100%
+      if (/^\d*\.?\d{0,2}$/.test(value) && (value === "" || parseFloat(value) <= 100)) {
+        // Update form
+        if (name === "state") {
+          setForm((prev) => ({
+            ...prev,
+            state: value,
+            city: "",
+            pinCode: "",
+          }));
+        } else if (name === "city") {
+          setForm((prev) => ({
+            ...prev,
+            city: value,
+            pinCode: "",
+          }));
+        } else {
+          setForm({ ...form, [name]: value });
+        }
+
+        // Validate
+        setTouched((prev) => ({ ...prev, [name]: true }));
+        setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
+      }
+      return;
+    }
 
     // 🧠 New: handle dependency clearing
     if (name === "state") {
       setForm((prev) => ({
         ...prev,
         state: value,
-        city: "", // clear city when state removed or changed
-        pinCode: "", // clear pin when state removed or changed
+        city: "",
+        pinCode: "",
       }));
     } else if (name === "city") {
       setForm((prev) => ({
         ...prev,
         city: value,
-        pinCode: "", // clear pin when city removed or changed
+        pinCode: "",
       }));
     } else {
       setForm({ ...form, [name]: value });
@@ -217,84 +246,85 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
   };
 
-  const handleAddSupplier = async () => {
-   const newErrors = {};
-let contactErrors = [];
+  const handleAddSupplier = async ({ closeAfterSave }) => {
+    if (isSaving) return;
 
-// Validate top-level fields
-Object.keys(form).forEach((field) => {
-  if (field !== "contacts") {
-    const error = validate(field, form[field]);
-    if (error) newErrors[field] = error;
-  }
-});
+    const newErrors = {};
+    let contactErrors = [];
 
-// Validate contacts
-contactErrors = form.contacts.map((contact) => {
-  const contactError = {};
-  ["contactPerson", "mobileNumber"].forEach((field) => {
-    const error = validate(field, contact[field]);
-    if (error) contactError[field] = error;
-  });
-  return contactError;
-});
+    // ---- validate top-level ----
+    Object.keys(form).forEach((field) => {
+      if (field !== "contacts") {
+        const error = validate(field, form[field]);
+        if (error) newErrors[field] = error;
+      }
+    });
 
-newErrors.contacts = contactErrors;
-setErrors(newErrors);
+    // ---- validate contacts ----
+    contactErrors = form.contacts.map((contact) => {
+      const contactError = {};
+      ["contactPerson", "mobileNumber"].forEach((field) => {
+        const error = validate(field, contact[field]);
+        if (error) contactError[field] = error;
+      });
+      return contactError;
+    });
 
-// ---------- ERROR CHECK ----------
-const hasTopLevelErrors = Object.keys(newErrors).some(
-  (key) => key !== "contacts" && newErrors[key]
-);
+    newErrors.contacts = contactErrors;
+    setErrors(newErrors);
 
-const hasContactErrors = contactErrors.some((err) =>
-  Object.values(err).some(Boolean)
-);
+    const hasTopLevelErrors = Object.keys(newErrors).some(
+      (key) => key !== "contacts" && newErrors[key]
+    );
 
-// ---------- SHOW ACTUAL ERROR ----------
-if (hasTopLevelErrors) {
-  // first top-level error message
-  const firstErrorMessage = Object.values(newErrors).find(
-    (val) => typeof val === "string"
-  );
-  showSnackbar(firstErrorMessage, "error");
-  return;
-}
+    const hasContactErrors = contactErrors.some((err) =>
+      Object.values(err).some(Boolean)
+    );
 
-if (hasContactErrors) {
-  // first contact error message
-  const firstContactError = contactErrors
-    .flatMap(err => Object.values(err))
-    .find(Boolean);
+    if (hasTopLevelErrors) {
+      const msg = Object.values(newErrors).find((v) => typeof v === "string");
+      showSnackbar(msg, "error");
+      return;
+    }
 
-  showSnackbar(firstContactError, "error");
-  return;
-}
+    if (hasContactErrors) {
+      const msg = contactErrors.flatMap((e) => Object.values(e)).find(Boolean);
+      showSnackbar(msg, "error");
+      return;
+    }
 
-
-    const payload = {
+    const payload = sanitizePayload({
       ...form,
-      preferredTransportIds: selectedTransports.map(t => t.id),
-    };
+      preferredTransportIds: selectedTransports.map((t) => t.id),
+    });
 
-    console.log("Sending payload:", payload);
-
-    // Save supplier
     try {
+      setIsSaving(true);
+
       const response = await SupplierService.saveSupplier(payload);
-      if (response && response.code && response.message) {
+
+      if (response?.code && response?.message) {
         showSnackbar(response.message, "error");
         return;
       }
+
       showSnackbar("Supplier added successfully!", "success");
-      resetForm();
-      setOpen(false);
       fetchSuppliers();
+      resetForm();
+
+      if (closeAfterSave) {
+        setOpen(false);
+      }
     } catch (err) {
-      console.error("Save error:", err);
+      console.error(err);
       showSnackbar("Failed to save supplier", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
+
+
+
   // Handle typing (suggestions only)
   // const handleChange = async (e) => {
   //   const value = e.target.value;
@@ -317,6 +347,7 @@ if (hasContactErrors) {
   // };
 
   const resetForm = () => {
+
     setForm({
       ...Object.fromEntries(
         Object.keys(form).map((key) => [
@@ -331,6 +362,17 @@ if (hasContactErrors) {
     setSelectedTransports([]);
     setTransportSearch("");
     setTransportResults([]);
+
+  };
+
+  const resetTransport = () => {
+    setSelectedTransport(null);
+    setFormData(prev => ({
+      ...prev,
+      transportId: null,
+      transportName: "",
+      transportCity: "",
+    }));
   };
 
   return (
@@ -362,10 +404,8 @@ if (hasContactErrors) {
                     name="supplierGroup"
                     value={form.supplierGroup}
                     onChange={handleFormChange}
-                    label="Group*"
+                    label="Group"
                     className="border p-2 rounded"
-                    error={!!errors.supplierGroup}
-                    helperText={errors.supplierGroup}
                   />
                   <CustomTextField
                     name="supplierGstNo"
@@ -379,9 +419,7 @@ if (hasContactErrors) {
                     name="supplierMsme"
                     value={form.supplierMsme}
                     onChange={handleFormChange}
-                    label="MSME*"
-                    error={!!errors.supplierMsme}
-                    helperText={errors.supplierMsme || ""}
+                    label="MSME"
                     options={[
                       { value: "Micro", label: "Micro" },
                       { value: "Small", label: "Small" },
@@ -392,9 +430,7 @@ if (hasContactErrors) {
                     name="commissionScheme"
                     value={form.commissionScheme}
                     onChange={handleFormChange}
-                    label="Commission Scheme*"
-                    error={!!errors.commissionScheme}
-                    helperText={errors.commissionScheme || ""}
+                    label="Commission Scheme"
                     options={[
                       { value: "Fixed", label: "Fixed" },
                       { value: "Percentage", label: "Percentage" },
@@ -405,10 +441,8 @@ if (hasContactErrors) {
                     name="commissionRate"
                     value={form.commissionRate}
                     onChange={handleFormChange}
-                    label="Commission % (Rate)*"
+                    label="Commission % (Rate)"
                     className="border p-2 rounded"
-                    error={!!errors.commissionRate}
-                    helperText={errors.commissionRate}
                   />
                 </div>
               </div>
@@ -557,75 +591,139 @@ if (hasContactErrors) {
               <div>
                 <h3 className="text-lg font-medium mb-2">Preferred Transports</h3>
                 <div className="grid grid-cols-2 gap-4">
-                   <Autocomplete
-                  multiple
-                  options={allTransports}
-                  getOptionLabel={(option) => option.transportName || option.name || ""}
-                  value={selectedTransports}
-                  onChange={(event, newValue) => {
-                    setSelectedTransports(newValue);
-                    setForm((prev) => ({
-                      ...prev,
-                      preferredTransportIds: newValue.map(t => t.id),
-                    }));
-                    setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
-                  }}
-                  loading={transportLoading}
-                  disableCloseOnSelect
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}
-                      label="Select Preferred Transports"
-                      error={!!errors.preferredTransportIds}
-                      helperText={errors.preferredTransportIds || "Select one or multiple transports"}
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {transportLoading ? <span className="text-xs text-gray-500">Loading...</span> : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                />
+                  <Autocomplete
+                    options={allTransports}
+                    value={selectedTransport}
+                    isOptionEqualToValue={(o, v) => o.id === v?.id}
+                    getOptionLabel={(o) =>
+                      o?.name ? `${o.name} - ${o.city || ""}` : ""
+                    }
+                    onChange={(e, value) => {
+                      if (!value) {
+                        resetTransport();
+                        return;
+                      }
+
+                      setSelectedTransport(value);
+                      setFormData(prev => ({
+                        ...prev,
+                        transportId: value.id,
+                        transportName: value.name,
+                        transportCity: value.city,
+                      }));
+
+                      setErrors(prev => ({ ...prev, transport: "" }));
+                    }}
+                    renderInput={(params) => (
+                      <CustomTextField
+                        {...params}
+                        label="Transport *"
+                      // error={!!errors.transport}
+                      // helperText={errors.transport || "Search transport"}
+                      />
+                    )}
+                  />
 
                   <CustomTextField
-                  name="remark"
-                  value={form.remark}
-                  onChange={handleFormChange}
-                  label="Remarks (optional)"
-                  size="small"
-                  multiline
-                />
+                    name="remark"
+                    value={form.remark}
+                    onChange={handleFormChange}
+                    label="Remarks (optional)"
+                    size="small"
+                    multiline
+                  />
                 </div>
-               
+
               </div>
 
-              
             </div>
 
-            {/* Footer with buttons */}
-            <div className="p-4 border-t flex justify-end space-x-3">
+            {/* Footer*/}
+            <div className="p-4 border-t flex justify-end gap-3 bg-gray-50">
+
+              {/* Cancel */}
               <button
+                disabled={isSaving}
                 onClick={() => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                className="px-4 py-2 border rounded-lg text-sm
+               text-gray-700 hover:bg-gray-100
+               disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
+
+              {/* Save & Add New */}
               <button
-                type="submit"
-                onClick={handleAddSupplier}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={isSaving}
+                onClick={() => handleAddSupplier({ closeAfterSave: false })}
+                className="px-4 py-2 border border-blue-600 text-blue-600
+               rounded-lg text-sm hover:bg-blue-50
+               flex items-center gap-2
+               disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Save Supplier
+                {isSaving ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    Saving…
+                  </>
+                ) : (
+                  "Save & Add New"
+                )}
+              </button>
+
+              {/* Save Supplier */}
+              <button
+                disabled={isSaving}
+                onClick={() => handleAddSupplier({ closeAfterSave: true })}
+                className="px-4 py-2 bg-blue-600 text-white
+               rounded-lg text-sm hover:bg-blue-700
+               flex items-center gap-2
+               disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    Saving…
+                  </>
+                ) : (
+                  "Save Supplier"
+                )}
               </button>
             </div>
+
           </div>
         </div>
       )}

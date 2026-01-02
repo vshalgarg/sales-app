@@ -220,17 +220,7 @@ export default function StaffDashboard() {
           pageSize={rowsPerPage}
           showSuggestions={false}
         />
-
-        {isSearchActive && (
-          <button
-            onClick={handleClearSearch}
-            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            Clear
-          </button>
-        )}
       </div>
-
 
       {/* Staff Table */}
       <div className="flex-1 min-h-0 border mb-2 rounded-lg bg-white dark:bg-zinc-900">

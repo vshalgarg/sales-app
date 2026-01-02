@@ -69,6 +69,7 @@ export const useBillForm = () => {
     supplierName: "",
     supplierGroup: "",
     supplierMsme: "",
+    supplierCity: "",
     supplierGstNo: "",
     customerName: "",
     customerGroup: "",
@@ -352,6 +353,7 @@ export const useBillForm = () => {
       supplierGroup: s.supplierGroup || "",
       supplierMsme: s.supplierMsme || "",
       supplierGstNo: s.supplierGstNo || "",
+      supplierCity: s.city || "",
     }));
 
     setErrors((prev) => ({
@@ -359,6 +361,7 @@ export const useBillForm = () => {
       supplierName: "",
       supplierGroup: "",
       supplierMsme: "",
+      supplierCity: "",
       supplierGstNo: "",
     }));
 
