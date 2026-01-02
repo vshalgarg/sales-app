@@ -70,14 +70,29 @@ export default function AddNewTransport({
   const validateForm = () => {
     const newErrors = {};
 
+    // Transport Name
     if (!formData.name.trim()) {
       newErrors.name = "Transport name is required";
     }
 
-    if (formData.contactNumber && !/^\d{10}$/.test(formData.contactNumber)) {
-      newErrors.contactNumber = "Enter valid 10-digit number";
+    // Contact Number (REQUIRED + 10 DIGITS ONLY)
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = "Contact number is required";
+    } else if (!/^\d{10}$/.test(formData.contactNumber)) {
+      newErrors.contactNumber = "Contact number must be exactly 10 digits";
     }
 
+    // City (REQUIRED)
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required";
+    }
+
+    // Address Line 1 (REQUIRED)
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+
+    // GST (optional but validated if present)
     if (
       formData.gstNo &&
       !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
@@ -90,6 +105,7 @@ export default function AddNewTransport({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
 
   // ---------- handleChange ----------
   const handleChange = (e) => {
@@ -226,15 +242,25 @@ export default function AddNewTransport({
               />
 
               <TextField
-                label="Contact Number"
+                label="Contact Number*"
                 name="contactNumber"
                 value={formData.contactNumber}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d{0,10}$/.test(value)) {
+                    handleChange(e);
+                  }
+                }}
                 error={!!errors.contactNumber}
                 helperText={errors.contactNumber}
                 fullWidth
                 size="small"
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: "numeric",
+                }}
               />
+
             </Stack>
           </div>
 
@@ -247,21 +273,27 @@ export default function AddNewTransport({
             <Stack spacing={1.5}>
 
               <TextField
-                label="City"
+                label="City*"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
+                error={!!errors.city}
+                helperText={errors.city}
                 fullWidth
                 size="small"
               />
+
               <TextField
-                label="Address Line 1"
+                label="Address Line 1*"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
+                error={!!errors.address}
+                helperText={errors.address}
                 fullWidth
                 size="small"
               />
+
 
               <TextField
                 label="Address Line 2"
