@@ -147,16 +147,19 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   };
 
   useEffect(() => {
-    fetch(
-      "http://api.geonames.org/searchJSON?country=IN&featureClass=P&maxRows=1000&username=tarunbaisla_14"
-    )
+    fetch("https://countriesnow.space/api/v0.1/countries/states", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ country: "India" }),
+    })
       .then((res) => res.json())
-      .then((data) => {
-        const uniqueStates = [
-          ...new Set(data.geonames.map((c) => c.adminName1)),
-        ];
-        setStates(uniqueStates.sort().map((s) => ({ name: s })));
-      })
+      .then((data) => setStates(data.data.states || []))
+      // .then((data) => {
+      //   const uniqueStates = [
+      //     ...new Set(data.geonames.map((c) => c.adminName1)),
+      //   ];
+      //   setStates(uniqueStates.sort().map((s) => ({ name: s })));
+      // })
       .catch((err) => console.error("Error fetching states:", err));
   }, []);
 
