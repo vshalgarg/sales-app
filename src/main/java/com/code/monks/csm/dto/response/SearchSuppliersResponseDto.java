@@ -21,6 +21,6 @@ public class SearchSuppliersResponseDto {
     private String pinCode;
     private List<ContactRequestDto> contacts;
     private String supplierMsme;
-    private String[] preferredTransport;
+    private List<TransportDto> preferredTransports;
     private String remark;
 }

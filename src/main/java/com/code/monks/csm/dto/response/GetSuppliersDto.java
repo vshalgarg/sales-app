@@ -16,7 +16,7 @@ public class GetSuppliersDto {
     private String supplierGstNo;
     private String supplierMsme;
     private String commissionScheme;
-    private double commissionRate;
+    private Double commissionRate;
     private String address;
     private String city;
     private String pinCode;

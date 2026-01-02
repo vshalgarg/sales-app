@@ -6,6 +6,8 @@ import com.code.monks.csm.enums.StatusEnum;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Optional;
+
 @Data
 @Builder
 public class AddSupplierResponseDto {
@@ -17,7 +19,9 @@ public class AddSupplierResponseDto {
         entity.setGroupName(requestDto.getSupplierGroup());
         entity.setGstNo(requestDto.getSupplierGstNo());
         entity.setCommissionScheme(requestDto.getCommissionScheme());
-        entity.setCommissionRate(requestDto.getCommissionRate());
+        entity.setCommissionRate(
+                Optional.ofNullable(requestDto.getCommissionRate()).orElse(0.0)
+        );
         entity.setAddressLine1(requestDto.getAddressLine1());
         entity.setAddressLine2(requestDto.getAddressLine2());
         entity.setCity(requestDto.getCity());

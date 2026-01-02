@@ -4,9 +4,10 @@ import lombok.Getter;
 
 @Getter
 public enum CreditEntryEnum {
-    CASH(1),
-        CHEQUE(2),
-            UPI(3);
+    NEFT_RTGS(1),
+    UPI(2),
+    CASH(3),
+    CHEQUE(4);
 
     private final int code;
 

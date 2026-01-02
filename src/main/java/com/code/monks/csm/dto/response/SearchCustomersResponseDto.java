@@ -20,6 +20,6 @@ public class SearchCustomersResponseDto {
     private String pinCode;
     private String customerMsme;
     private List<ContactRequestDto> contacts;
-    private String preferredTransports;
+    private List<TransportDto> preferredTransports;
     private String remark;
 }

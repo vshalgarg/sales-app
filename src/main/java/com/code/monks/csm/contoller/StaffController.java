@@ -50,6 +50,12 @@ public class StaffController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping(GET_STAFF_V2)
+    public ResponseEntity<List<GetStaffDto>> getAllStaff() {
+        return ResponseEntity.ok(staffService.getAllActiveStaff());
+    }
+
+
     @PutMapping(DELETE_STAFF)
     public ResponseEntity<DeleteStaffResponseDto> deleteStaff(@Valid @RequestBody DeleteStaffRequestDto requestDto) {
         log.info("DELETE_STAFF API called for staffId: {}", requestDto.getStaffId());

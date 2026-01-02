@@ -7,6 +7,7 @@ import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.TransportDto;
 import com.code.monks.csm.dto.response.UpdateTransportResponseDto;
 import com.code.monks.csm.entity.TransportEntity;
+import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.TransportService;
@@ -34,6 +35,93 @@ public class TransportServiceImpl implements TransportService {
 
     private final TransportRepository transportRepository;
 
+
+    @Override
+    public CreateTransportResponseDto add(CreateTransportRequest request) {
+
+        String name = request.getName().trim();
+        String contact = request.getContactNumber().trim();
+        String gst = request.getGstNo() != null ? request.getGstNo().trim() : null;
+
+        if (name.isEmpty()) {
+            return createFailure("Transport name is required");
+        }
+        Optional<String> duplicateError =
+                validateDuplicate(name, contact, gst, null);
+        if (duplicateError.isPresent()) {
+            return createFailure(duplicateError.get());
+        }
+
+        TransportEntity transport = new TransportEntity();
+        transport.setName(request.getName().trim());
+        transport.setStatus(StatusEnum.ACTIVE); // new transport always active
+        transport.setContactNumber(request.getContactNumber());
+        transport.setCity(request.getCity());
+        transport.setGstNo(request.getGstNo());
+        transport.setAddress(request.getAddress());
+
+        TransportEntity savedTransport = transportRepository.save(transport);
+
+        CreateTransportResponseDto response = new CreateTransportResponseDto();
+        response.setId(savedTransport.getId());
+        response.setName(savedTransport.getName());
+        response.setSuccess(true);
+        response.setMessage("Transport added successfully");
+
+        return response;
+    }
+
+
+    @Override
+    public UpdateTransportResponseDto update(UpdateTransportRequest request) {
+
+        TransportEntity transport = transportRepository.findById(request.getId())
+                .orElse(null);
+        if (transport == null) {
+            return updateFailure("Transport not found with id: " + request.getId());
+        }
+        String name = request.getName().trim();
+        String contact = request.getContactNumber().trim();
+        String gst = request.getGstNo() != null ? request.getGstNo().trim() : null;
+
+        Optional<String> duplicateError =
+                validateDuplicate(name, contact, gst, request.getId());
+
+        if (duplicateError.isPresent()) {
+            return updateFailure(duplicateError.get());
+        }
+
+        transport.setName(name);
+        transport.setContactNumber(contact);
+        transport.setGstNo(gst);
+        transport.setCity(request.getCity());
+        transport.setAddress(request.getAddress());
+        transport.setStatus(request.getStatus());
+        TransportEntity updatedTransport = transportRepository.save(transport);
+
+        UpdateTransportResponseDto response = new UpdateTransportResponseDto();
+        response.setId(updatedTransport.getId());
+        response.setName(updatedTransport.getName());
+        response.setSuccess(true);
+        response.setMessage("Transport updated successfully");
+        return response;
+    }
+
+    public void deleteTransport(Integer id) {
+        log.info("Attempting to soft delete transport with ID: {}", id);
+        TransportEntity transport = transportRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(TRANSPORT_NOT_FOUND, "Transport not found"));
+        log.info("Found transport '{}' (ID: {}) for deletion", transport.getName(), id);
+
+        StatusEnum oldStatus = transport.getStatus();
+        log.debug("Transport current status before delete: {}", oldStatus);
+        transport.setStatus(StatusEnum.DELETE);
+        transportRepository.save(transport);
+        log.info("Transport '{}' (ID: {}) soft deleted successfully. Status changed from {} to DELETE",
+                transport.getName(), id, oldStatus);
+    }
+
+
     @Override
     public PagedResponseDto<TransportDto> searchTransports(String query, Pageable pageable) {
         log.info("Search transports called - query: '{}', pageable: {}", query, pageable);
@@ -47,7 +135,7 @@ public class TransportServiceImpl implements TransportService {
         } else {
             String trimmedQuery = query.trim();
             log.info("Searching with trimmed query: '{}'", trimmedQuery);
-            transportPage = transportRepository.searchByName(trimmedQuery, pageable);
+            transportPage = transportRepository.searchByName(trimmedQuery,StatusEnum.ACTIVE, pageable);
         }
 
             log.info("Search completed - found {} transports (page {}/{})",
@@ -62,7 +150,11 @@ public class TransportServiceImpl implements TransportService {
                         return TransportDto.builder()
                                 .id(entity.getId())
                                 .name(entity.getName())
-                                .isActive(entity.getIsActive())
+                                .gstNo(entity.getGstNo())
+                                .address(entity.getAddress())
+                                .contactNumber(entity.getContactNumber())
+                                .city(entity.getCity())
+                                .status(entity.getStatus())
                                 .build();
                     })
                     .toList();
@@ -90,7 +182,7 @@ public class TransportServiceImpl implements TransportService {
                 .orElseGet(() -> {
                     TransportEntity newTransport = new TransportEntity();
                     newTransport.setName(trimmed);
-                    newTransport.setIsActive(true);
+                    newTransport.setStatus(StatusEnum.ACTIVE);
                     return transportRepository.save(newTransport);
                 });
     }
@@ -109,6 +201,11 @@ public class TransportServiceImpl implements TransportService {
                         TransportDto dto = new TransportDto();
                         dto.setId(t.getId());
                         dto.setName(t.getName());
+                        dto.setContactNumber(t.getContactNumber());
+                        dto.setAddress(t.getAddress());
+                        dto.setStatus(t.getStatus());
+                        dto.setGstNo(t.getGstNo());
+                        dto.setCity(t.getCity());
                         return dto;
                     })
                     .collect(Collectors.toList());
@@ -124,89 +221,75 @@ public class TransportServiceImpl implements TransportService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
-        Page<TransportEntity> transportPage = transportRepository.findAll(pageable);
+        Page<TransportEntity> transportPage = transportRepository
+                .findAllByStatusNot(StatusEnum.DELETE, pageable);
+        log.info("Found {} transports (ACTIVE+INACTIVE only)", transportPage.getTotalElements());
         return transportPage.map(this::convertToDto);
-    }
-
-
-    @Override
-    public UpdateTransportResponseDto update(UpdateTransportRequest request) {
-
-       Optional<TransportEntity> transportOpt = transportRepository.findById(request.getId());
-        if (transportOpt.isEmpty()) {
-            UpdateTransportResponseDto response = new UpdateTransportResponseDto();
-            response.setSuccess(false);
-            response.setMessage("Transport not found with id: " + request.getId());
-            return response;
-        }
-
-        TransportEntity transport = transportOpt.get();
-        transport.setName(request.getName().trim());
-        transport.setIsActive(request.getIsActive());
-        TransportEntity updatedTransport = transportRepository.save(transport);
-
-        UpdateTransportResponseDto response = new UpdateTransportResponseDto();
-        response.setId(updatedTransport.getId());
-        response.setName(updatedTransport.getName());
-        response.setIsActive(updatedTransport.getIsActive());
-        response.setSuccess(true);
-        response.setMessage("Transport updated successfully");
-        return response;
-    }
-
-
-    @Override
-    public CreateTransportResponseDto add(CreateTransportRequest request) {
-
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            CreateTransportResponseDto response = new CreateTransportResponseDto();
-            response.setSuccess(false);
-            response.setMessage("Transport name is required.");
-            return response;
-        }
-
-         if (transportRepository.existsByNameIgnoreCase(request.getName().trim())) {
-             CreateTransportResponseDto response = new CreateTransportResponseDto();
-             response.setSuccess(false);
-             response.setMessage("Transport with this name already exists.");
-             return response;
-         }
-
-        TransportEntity transport = new TransportEntity();
-        transport.setName(request.getName().trim());
-        transport.setIsActive(true); // new transport always active
-
-        if (request.getIsActive() != null) {
-            transport.setIsActive(request.getIsActive());
-        }
-
-        TransportEntity savedTransport = transportRepository.save(transport);
-
-        CreateTransportResponseDto response = new CreateTransportResponseDto();
-        response.setId(savedTransport.getId());
-        response.setName(savedTransport.getName());
-        response.setIsActive(savedTransport.getIsActive());
-        response.setSuccess(true);
-        response.setMessage("Transport added successfully");
-
-        return response;
-    }
-
-    public void deleteTransport(Integer id) {
-        TransportEntity transport = transportRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(TRANSPORT_NOT_FOUND, "Failed to delete transport"));
-        transportRepository.delete(transport);
     }
 
     private TransportDto convertToDto(TransportEntity t) {
         TransportDto dto = new TransportDto();
         dto.setId(t.getId());
         dto.setName(t.getName());
-        dto.setIsActive(t.getIsActive());
+        dto.setContactNumber(t.getContactNumber());
+        dto.setAddress(t.getAddress());
+        dto.setStatus(t.getStatus());
+        dto.setGstNo(t.getGstNo());
+        dto.setCity(t.getCity());
         return dto;
     }
 
     public Optional<TransportEntity> findByNameIgnoreCase(String name) {
         return transportRepository.findByNameIgnoreCase(name);
+    }
+
+    private Optional<String> validateDuplicate(
+            String name,
+            String contact,
+            String gst,
+            Integer excludeId // null for CREATE
+    ) {
+
+        if (excludeId == null) {
+            // CREATE
+            if (transportRepository.existsByNameIgnoreCase(name)) {
+                return Optional.of("Transport name already exists");
+            }
+            if (transportRepository.existsByContactNumber(contact)) {
+                return Optional.of("Contact number already exists");
+            }
+            if (gst != null && !gst.isEmpty()
+                    && transportRepository.existsByGstNoIgnoreCase(gst)) {
+                return Optional.of("GST number already exists");
+            }
+        } else {
+            // UPDATE
+            if (transportRepository.existsByNameIgnoreCaseAndIdNot(name, excludeId)) {
+                return Optional.of("Transport name already exists");
+            }
+            if (transportRepository.existsByContactNumberAndIdNot(contact, excludeId)) {
+                return Optional.of("Contact number already exists");
+            }
+            if (gst != null && !gst.isEmpty()
+                    && transportRepository.existsByGstNoIgnoreCaseAndIdNot(gst, excludeId)) {
+                return Optional.of("GST number already exists");
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private CreateTransportResponseDto createFailure(String message) {
+        CreateTransportResponseDto res = new CreateTransportResponseDto();
+        res.setSuccess(false);
+        res.setMessage(message);
+        return res;
+    }
+
+    private UpdateTransportResponseDto updateFailure(String message) {
+        UpdateTransportResponseDto res = new UpdateTransportResponseDto();
+        res.setSuccess(false);
+        res.setMessage(message);
+        return res;
     }
 }

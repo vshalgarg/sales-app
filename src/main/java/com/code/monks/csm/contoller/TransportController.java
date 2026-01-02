@@ -7,6 +7,7 @@ import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.TransportDto;
 import com.code.monks.csm.dto.response.UpdateTransportResponseDto;
 import com.code.monks.csm.service.TransportService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ public class TransportController {
     }
 
     @PostMapping(ADD_TRANSPORT)
-    public ResponseEntity<CreateTransportResponseDto> add(@RequestBody CreateTransportRequest request) {
+    public ResponseEntity<CreateTransportResponseDto> add(@RequestBody @Valid CreateTransportRequest request) {
         CreateTransportResponseDto response = transportService.add(request);
         return ResponseEntity.ok(response);
     }
@@ -79,7 +80,7 @@ public class TransportController {
         transportService.deleteTransport(id);
         return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Transport deleted successfully"
+                "message", "Transport marked as deleted"
         ));
     }
 }

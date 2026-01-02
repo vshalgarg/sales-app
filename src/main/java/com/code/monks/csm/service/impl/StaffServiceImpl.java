@@ -38,7 +38,6 @@ import static com.code.monks.csm.enums.StatusEnum.INACTIVE;
 public class StaffServiceImpl implements StaffService {
 
     private final StaffRepo staffRepo;
-
     private final ValidatorUtil validatorUtil;
 
     @Override
@@ -207,6 +206,32 @@ public class StaffServiceImpl implements StaffService {
         } catch (Exception e) {
             log.error("Error while searching staffs with keyword: '{}'", trimmedKeyword, e);
             throw new StaffException(UNEXPECTED_EXCEPTION);
+        }
+    }
+
+    @Override
+    public List<GetStaffDto> getAllActiveStaff() {
+        log.info("Fetching all active staffs (no pagination)...");
+
+        try {
+            // Using the overloaded method with Sort
+            List<StaffEntity> records = staffRepo.findAllByStatus(
+                    Sort.by(Sort.Direction.DESC, "id"),
+                    StatusEnum.ACTIVE
+            );
+
+            log.debug("Fetched {} active staff records", records.size());
+
+            return records.stream()
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+
+        } catch (DataAccessException dae) {
+            log.error("Database error while fetching all active staff: {}", dae.getMessage(), dae);
+            throw new StaffException(DATA_ACCESS_ERROR, dae.getMessage());
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching all active staff: {}", ex.getMessage(), ex);
+            throw new StaffException(UNEXPECTED_EXCEPTION, ex.getMessage());
         }
     }
 

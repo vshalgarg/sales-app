@@ -6,6 +6,7 @@ import com.code.monks.csm.entity.BillEntryEntity;
 import com.code.monks.csm.entity.CreditEntryEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.enums.CreditEntryEnum;
 import com.code.monks.csm.exception.CreditException;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CreditEntryRepo;
@@ -44,39 +45,60 @@ public class CreditServiceImpl implements CreditService {
 
     @Transactional
     public AddCreditEntryResponseDto addCreditEntry(AddCreditEntryRequestDto requestDto) {
+
         log.info("Attempting to add credit entry: {}", requestDto);
 
         try {
+            if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE) {
+
+                if (requestDto.getChequeNumber() == null || requestDto.getChequeNumber().isBlank()) {
+                    throw new CreditException(
+                            INVALID_REQUEST,
+                            "Cheque number is required for CHEQUE payment"
+                    );
+                }
+
+                if (requestDto.getChequeDate() == null) {
+                    throw new CreditException(
+                            INVALID_REQUEST,
+                            "Cheque date is required for CHEQUE payment"
+                    );
+                }
+            }
+
             List<String> errorMessages = new ArrayList<>();
 
-            // ✅ Check for duplicate bill number
+            // Bill number duplicate
             if (billEntryRepo.existsByBillNumber(requestDto.getBillNumber())) {
                 errorMessages.add("Bill number already exists");
             }
 
-            // ✅ Check for duplicate cheque number
-            if (creditEntryRepo.existsByChequeNumber(requestDto.getChequeNumber())) {
+            // Cheque number duplicate → ONLY FOR CHEQUE
+            if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE &&
+                    creditEntryRepo.existsByChequeNumber(requestDto.getChequeNumber())) {
+
                 errorMessages.add("Cheque number already exists");
             }
-            System.out.println("Cheque Number exists or not : "+creditEntryRepo.existsByChequeNumber(requestDto.getChequeNumber()));
 
-            // ❌ If any duplicates found, throw combined error
             if (!errorMessages.isEmpty()) {
-                String message = String.join(", ", errorMessages);
-                throw new CreditException(DUPLICATE_ENTRY, message);
+                throw new CreditException(
+                        DUPLICATE_ENTRY,
+                        String.join(", ", errorMessages)
+                );
             }
+
             CreditEntryEntity entity = AddCreditEntryResponseDto.dtoToEntity(requestDto);
             creditEntryRepo.save(entity);
+
             log.info("Credit entry saved successfully with bill number: {}", entity.getBillNumber());
 
             return AddCreditEntryResponseDto.builder()
                     .message("Credit entry successfully added.")
                     .build();
 
-        }catch(CreditException ce){
+        } catch (CreditException ce) {
             throw ce;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("Failed to add credit entry. Request data: {}", requestDto, ex);
             throw new CreditException(UNEXPECTED_EXCEPTION, ex.getMessage());
         }

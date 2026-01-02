@@ -52,7 +52,16 @@ public class SupplierServiceImpl implements SupplierService {
 
         try {
             String code = generateCode();
+            if (requestDto.getSupplierGroup() == null ||
+                    requestDto.getSupplierGroup().trim().isEmpty()) {
 
+                requestDto.setSupplierGroup(requestDto.getSupplierName());
+            }
+            if (requestDto.getSupplierMsme() == null ||
+                    requestDto.getSupplierMsme().trim().isEmpty()) {
+
+                requestDto.setSupplierMsme("SMALL");
+            }
             validateSupplierAndContacts(requestDto, code);
             SupplierEntity entity = mapToSupplierEntity(requestDto, code);
 
@@ -149,13 +158,15 @@ public class SupplierServiceImpl implements SupplierService {
     public PagedResponseDto<GetSuppliersDto> getSuppliers(int page, int size) {
         log.info("Fetching active suppliers...");
 
-        Page<SupplierEntity> records = Page.empty();;
+        Page<SupplierEntity> records;
         try {
             // ✅ Add sorting by latest (descending order of ID)
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
 
             // ✅ Fetch only active suppliers with sorting
-            records = supplierRepo.findAllByStatus(ACTIVE, pageable);
+            records = supplierRepo.findAllByStatus(
+                    StatusEnum.ACTIVE, pageable
+            );
 
             log.debug("Fetched {} active supplier records (page {}/{})",
                     records.getNumberOfElements(), page, records.getTotalPages());
@@ -332,6 +343,16 @@ public class SupplierServiceImpl implements SupplierService {
                 ContactEntity::getPhone
         );
 
+        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(t -> TransportDto.builder()
+                        .id(t.getId())
+                        .name(t.getName())
+                        .build())
+                .sorted(Comparator.comparing(TransportDto::getName))
+                .toList();
+
         return SearchSuppliersResponseDto.builder()
                 .id(record.getId())
                 .code(record.getCode())
@@ -345,7 +366,7 @@ public class SupplierServiceImpl implements SupplierService {
                 .pinCode(record.getPinCode())
                 .contacts(contacts)
                 .supplierMsme(record.getMsme())
-                //.preferredTransport(record.getPreferredTransport())
+                .preferredTransports(transportDtos)
                 .remark(record.getRemark())
                 .build();
     }

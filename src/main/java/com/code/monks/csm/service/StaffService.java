@@ -13,4 +13,5 @@ public interface StaffService {
     PagedResponseDto<GetStaffDto> getStaff(int page, int size);
     DeleteStaffResponseDto deleteStaff(DeleteStaffRequestDto requestDto);
     PagedResponseDto<SearchStaffsResponseDto> searchStaffs(String keyword, Pageable pageable);
+    List<GetStaffDto> getAllActiveStaff();
 }

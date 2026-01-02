@@ -1,5 +1,7 @@
 package com.code.monks.csm.dto.request;
 
+import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
+import jakarta.persistence.Convert;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,20 +14,21 @@ public class AddCustomerRequestDto {
     @NotBlank(message = "Customer name is required")
     private String customerName;
 
-    @NotBlank(message = "Group name is required")
     private String customerGroup;
 
+    @Convert(converter = EmptyStringToNullConverter.class)
     private String customerGstNo;
 
-    @NotBlank(message = "Customer msme is required")
+
     private String customerMsme;
 
+    @Convert(converter = EmptyStringToNullConverter.class)
     private String referencedBy;
 
     @NotBlank(message = "Address line 1 is required")
     private String addressLine1;
 
-    @NotBlank(message = "Address line 2 is required")
+    @Convert(converter = EmptyStringToNullConverter.class)
     private String addressLine2;
 
     @NotBlank(message = "City is required")

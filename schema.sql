@@ -1,55 +1,151 @@
-CREATE TABLE IF NOT EXISTS transports (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active TINYINT(1) DEFAULT 1
-);
+CREATE TABLE transports (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    gst_no VARCHAR(50),
+    contact_number VARCHAR(20) NOT NULL,
+    city VARCHAR(100),
+    address VARCHAR(255) NOT NULL,
+    status TINYINT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL
+            DEFAULT CURRENT_TIMESTAMP
+            ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT uk_transports_name UNIQUE (name),
+    CONSTRAINT uk_transports_contact_number UNIQUE (contact_number),
+    CONSTRAINT uk_transports_gst_no UNIQUE (gst_no),
 
+    INDEX idx_transports_name (name),
+        INDEX idx_transports_city (city),
+        INDEX idx_transports_status (status),
+        INDEX idx_transports_created_at (created_at)
+);
 
 CREATE TABLE IF NOT EXISTS supplier (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(5) NOT NULL UNIQUE,
+
+    code VARCHAR(5) NOT NULL,
     name VARCHAR(50) NOT NULL,
+
     group_name VARCHAR(50),
-    gst_no VARCHAR(15) UNIQUE,
+
+    gst_no VARCHAR(15) NULL,
+
     commission_scheme VARCHAR(20),
     commission_rate DECIMAL(10,2),
+
     address_line1 VARCHAR(120),
     address_line2 VARCHAR(120),
+
     city VARCHAR(25),
     pin_code VARCHAR(8),
     msme VARCHAR(8),
+
     remark VARCHAR(150),
+
     status TINYINT,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    -- UNIQUE CONSTRAINTS
+    CONSTRAINT uk_supplier_code UNIQUE (code),
+    CONSTRAINT uk_supplier_gst UNIQUE (gst_no),
+
+    -- INDEXES
+    INDEX idx_supplier_name (name),
+    INDEX idx_supplier_gst (gst_no),
+    INDEX idx_supplier_code (code)
+);
+
+CREATE TABLE IF NOT EXISTS supplier_preferred_transport (
+    supplier_id INT NOT NULL,
+    transport_id INT NOT NULL,
+
+    PRIMARY KEY (supplier_id, transport_id),
+
+    FOREIGN KEY (supplier_id)
+        REFERENCES supplier(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (transport_id)
+        REFERENCES transports(id)
+        ON DELETE CASCADE
 );
 
 
 CREATE TABLE IF NOT EXISTS customer (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(5) NOT NULL UNIQUE,
+
+    code VARCHAR(5) NOT NULL,
     name VARCHAR(50) NOT NULL,
+
     group_name VARCHAR(50),
-    gst_no VARCHAR(15) UNIQUE,
+
+    gst_no VARCHAR(15) NULL,
+
     referenced_by VARCHAR(50),
+
     address_line1 VARCHAR(120),
     address_line2 VARCHAR(120),
+
     city VARCHAR(50),
     pin_code VARCHAR(8),
     msme VARCHAR(8),
+
     remark VARCHAR(150),
+
     status TINYINT,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    -- UNIQUE CONSTRAINTS
+    CONSTRAINT uk_customer_code UNIQUE (code),
+    CONSTRAINT uk_customer_gst UNIQUE (gst_no),
+
+    -- INDEXES (as per @Table(indexes))
+    INDEX idx_customer_name (name),
+    INDEX idx_customer_gst (gst_no),
+    INDEX idx_customer_code (code)
 );
 
+CREATE TABLE customer_preferred_transport (
+    customer_id INT NOT NULL,
+    transport_id INT NOT NULL,
+
+    PRIMARY KEY (customer_id, transport_id),
+
+    CONSTRAINT fk_cpt_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customer(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_cpt_transport
+        FOREIGN KEY (transport_id)
+        REFERENCES transports(id)
+        ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE purchase (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date DATE,
+    staff_id INT,
+    supplier_id INT,
+    customer_id INT,
+    purchase_amount BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS staff (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     phone VARCHAR(15) UNIQUE,
-    joining_date DATE,
+    joining_date DATE NOT NULL,
     status TINYINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -73,27 +169,6 @@ CREATE TABLE IF NOT EXISTS contact (
         FOREIGN KEY (customer_id) REFERENCES customer(id)
         ON DELETE CASCADE
 );
-
-
-
-CREATE TABLE IF NOT EXISTS supplier_preferred_transport (
-    supplier_id INT NOT NULL,
-    transport_id INT NOT NULL,
-    PRIMARY KEY (supplier_id, transport_id),
-    FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE CASCADE,
-    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
-);
-
-
-
-CREATE TABLE IF NOT EXISTS customer_preferred_transport (
-    customer_id INT NOT NULL,
-    transport_id INT NOT NULL,
-    PRIMARY KEY (customer_id, transport_id),
-    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
-    FOREIGN KEY (transport_id) REFERENCES transports(id) ON DELETE CASCADE
-);
-
 
 CREATE TABLE IF NOT EXISTS bill (
     id INT AUTO_INCREMENT PRIMARY KEY,

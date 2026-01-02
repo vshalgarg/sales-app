@@ -21,10 +21,10 @@ public class StaffEntity extends BaseEntity{
     @Column(name = "name")
     private String staffName;
 
-    @Column(name = "phone")
+    @Column(name = "phone", unique = true, nullable = false)
     private String phone;
 
-    @Column(name = "joining_date")
+    @Column(name = "joining_date", nullable = false)
     private LocalDate joiningDate;
 
     @Column(name = "status")
