@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://192.168.1.100:8087/csm/api/v1",
+  baseURL: environment.VITA_APP_BASE_URI
 });
   
 api.interceptors.request.use((config) => {
