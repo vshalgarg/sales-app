@@ -95,6 +95,15 @@ const validate = (field, value) => {
       }
       break;
 
+      case "pinCode":
+  if (!value || value.trim() === "") {
+    return "Pin Code is required";
+  }
+  if (!/^\d{6}$/.test(value)) {
+    return "Pin Code must be exactly 6 digits";
+  }
+  return "";
+
 
     case "addressLine1":
       if (!value.trim()) error = "AddressLine1 is required.";

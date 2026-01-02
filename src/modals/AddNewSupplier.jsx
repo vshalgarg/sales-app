@@ -159,38 +159,38 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   }, []);
 
 
- const handleFormChange = (e) => {
-  const { name, value } = e.target;
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
 
-  if (name === "pinCode" && !/^\d{0,6}$/.test(value)) return;
+    if (name === "pinCode" && !/^\d{0,6}$/.test(value)) return;
 
-  // 🔹commissionRate (max 100, 2 decimals)
-  if (name === "commissionRate") {
-    if (
-      /^\d*\.?\d{0,2}$/.test(value) &&
-      (value === "" || parseFloat(value) <= 100)
-    ) {
-      setForm(prev => ({ ...prev, commissionRate: value }));
+    // 🔹commissionRate (max 100, 2 decimals)
+    if (name === "commissionRate") {
+      if (
+        /^\d*\.?\d{0,2}$/.test(value) &&
+        (value === "" || parseFloat(value) <= 100)
+      ) {
+        setForm(prev => ({ ...prev, commissionRate: value }));
 
-      setTouched(prev => ({ ...prev, commissionRate: true }));
-      setErrors(prev => ({
-        ...prev,
-        commissionRate: validate("commissionRate", value),
-      }));
+        setTouched(prev => ({ ...prev, commissionRate: true }));
+        setErrors(prev => ({
+          ...prev,
+          commissionRate: validate("commissionRate", value),
+        }));
+      }
+      return;
     }
-    return;
-  }
 
-  // 🔹fields (state, city, pinCode, others)
-  setForm(prev => ({
-    ...prev,
-    [name]: value,
-  }));
+    // 🔹fields (state, city, pinCode, others)
+    setForm(prev => ({
+      ...prev,
+      [name]: value,
+    }));
 
-  // 🔹 Validation
-  setTouched(prev => ({ ...prev, [name]: true }));
-  setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
-};
+    // 🔹 Validation
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
+  };
 
 
   const handleAddSupplier = async ({ closeAfterSave }) => {
@@ -441,6 +441,8 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     value={form.pinCode}
                     onChange={handleFormChange}
                     label="Pin Code*"
+                    error={!!errors.pinCode}
+                    helperText={errors.pinCode}
                   />
                 </div>
               </div>
