@@ -1,5 +1,7 @@
 package com.code.monks.csm.dto.request;
 
+import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
+import jakarta.persistence.Convert;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
@@ -13,5 +15,6 @@ public class ContactRequestDto {
     @NotBlank(message = "Mobile number is required")
     private String mobileNumber;
 
+    @Convert(converter = EmptyStringToNullConverter.class)
     private String phone;
 }

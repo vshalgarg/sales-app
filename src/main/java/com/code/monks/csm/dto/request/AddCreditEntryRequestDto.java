@@ -19,26 +19,15 @@ public class AddCreditEntryRequestDto {
     @NotNull(message = "Date is required")
     private LocalDate date;
 
-    @NotNull(message = "Cheque number is required")
     private String chequeNumber;
-
-    @NotNull(message = "Cheque date is required")
     private LocalDate chequeDate;
 
     @NotNull(message = "Received amount is required")
     private Double receivedAmount;
 
-    @NotNull(message = "Supplier current balance is required")
-    private Double supplierCurrentBalance;
-
-    @NotNull(message = "Customer current balance is required")
-    private Double customerCurrentBalance;
-
     private DrawTypeEnum drawType;
-
     private String remark;
 
     private Integer supplierId;
-
     private Integer customerId;
 }

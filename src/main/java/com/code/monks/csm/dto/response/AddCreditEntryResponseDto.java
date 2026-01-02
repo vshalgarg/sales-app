@@ -18,8 +18,6 @@ public class AddCreditEntryResponseDto {
         entity.setChequeNumber(dto.getChequeNumber());
         entity.setChequeDate(dto.getChequeDate());
         entity.setReceivedAmount(Math.round(dto.getReceivedAmount() * 100));
-        entity.setSupplierCurrentBalance(Math.round(dto.getSupplierCurrentBalance() * 100));
-        entity.setCustomerCurrentBalance(Math.round(dto.getCustomerCurrentBalance() * 100));
         entity.setDrawType(dto.getDrawType());
         entity.setRemark(dto.getRemark());
         entity.setSupplierId(dto.getSupplierId());

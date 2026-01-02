@@ -53,6 +53,17 @@ public class CustomerServiceImpl implements CustomerService {
         try {
             String code = generateCode();
 
+            if (requestDto.getCustomerGroup() == null ||
+                    requestDto.getCustomerGroup().trim().isEmpty()) {
+
+                requestDto.setCustomerGroup(requestDto.getCustomerName());
+            }
+            if (requestDto.getCustomerMsme() == null ||
+                    requestDto.getCustomerMsme().trim().isEmpty()) {
+
+                requestDto.setCustomerMsme("SMALL");
+            }
+
             // Step 1: Validate all unique fields
             validateCustomerAndContacts(requestDto, code);
 
@@ -328,17 +339,15 @@ public class CustomerServiceImpl implements CustomerService {
                 ContactEntity::getPhone
         );
 
-        String preferredTransports = Optional.ofNullable(record.getPreferredTransports())
+        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
                 .orElse(Collections.emptySet())
                 .stream()
-                .map(TransportEntity::getName)
-                .filter(Objects::nonNull)
-                .sorted()  // optional: alphabetical order
-                .collect(Collectors.joining(", "));
-
-        if (preferredTransports.isEmpty()) {
-            preferredTransports = null;
-        }
+                .map(transport -> TransportDto.builder()
+                        .id(transport.getId())
+                        .name(transport.getName())
+                        .build())
+                .sorted(Comparator.comparing(TransportDto::getName))
+                .toList();
         return SearchCustomersResponseDto.builder()
                 .id(record.getId())
                 .code(record.getCode())
@@ -351,7 +360,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .pinCode(record.getPinCode())
                 .customerMsme(record.getMsme())
                 .contacts(contacts)
-                .preferredTransports(preferredTransports)
+                .preferredTransports(transportDtos)
                 .remark(record.getRemark())
                 .build();
     }

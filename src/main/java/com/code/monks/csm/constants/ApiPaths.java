@@ -19,6 +19,7 @@ public class ApiPaths {
     public static final String ADD_STAFF = "/staff/add";
 
     public static final String GET_STAFF = "/staffs/get";
+    public static final String GET_STAFF_V2 = "/staffs/get/all";
 
     public static final String SEARCH_STAFFS = "/staffs/search";
 

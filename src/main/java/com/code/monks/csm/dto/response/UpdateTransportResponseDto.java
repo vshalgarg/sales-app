@@ -7,7 +7,6 @@ public class UpdateTransportResponseDto {
 
     private Integer id;
     private String name;
-    private Boolean isActive;
     private boolean success;
     private String message;
 }

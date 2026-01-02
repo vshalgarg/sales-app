@@ -3,17 +3,18 @@ package com.code.monks.csm.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.hibernate.annotations.processing.Pattern;
 
 import java.time.LocalDate;
 
 @Data
 public class AddStaffRequestDto {
-    @NotBlank(message = "Staff name must not be blank.")
+    @NotBlank(message = "Staff name is required")
     private String staffName;
 
-    @NotBlank(message = "Phone must not be blank.")
+    @NotBlank(message = "Phone number is required")
     private String phone;
 
-    @NotNull(message = "Joining date must not be null.")
+    @NotNull(message = "Joining date is required")
     private LocalDate joiningDate;
 }

@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.response;
 
+import com.code.monks.csm.enums.StatusEnum;
 import lombok.*;
 
 @Getter
@@ -10,5 +11,9 @@ import lombok.*;
 public class TransportDto {
     private Integer id;
     private String name;
-    private Boolean isActive;
+    private String gstNo;
+    private String contactNumber;
+    private String city;
+    private String address;
+    private StatusEnum status;
 }

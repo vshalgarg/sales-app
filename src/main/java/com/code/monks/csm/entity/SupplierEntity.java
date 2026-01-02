@@ -1,9 +1,12 @@
 package com.code.monks.csm.entity;
 
 import com.code.monks.csm.enums.StatusEnum;
+import com.code.monks.csm.enums.converter.StatusEnumConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -11,7 +14,8 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 @Table(
         name = "supplier",
@@ -35,14 +39,18 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "group_name")
     private String groupName;
 
-    @Column(name = "gst_no")
+    @Column(
+            name = "gst_no",
+            unique = true,
+            nullable = true
+    )
     private String gstNo;
 
     @Column(name = "commission_scheme")
     private String commissionScheme;
 
     @Column(name = "commission_rate")
-    private double commissionRate;
+    private Double commissionRate;
 
     @Column(name = "address_line1")
     private String addressLine1;

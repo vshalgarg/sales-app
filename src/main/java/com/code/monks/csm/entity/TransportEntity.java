@@ -1,16 +1,26 @@
 package com.code.monks.csm.entity;
 
+import com.code.monks.csm.enums.StatusEnum;
+import com.code.monks.csm.enums.converter.StatusEnumConverter;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter@Setter
 @Entity
-@Table(name = "transports", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "name")
-})
-public class TransportEntity {
+@Table(
+        name = "transports",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "contact_number"),
+                @UniqueConstraint(columnNames = "gst_no")
+        }
+)
+@EqualsAndHashCode(callSuper = true)
+public class TransportEntity extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,10 +29,18 @@ public class TransportEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "gst_no")
+    private String gstNo;
 
-    @Column(name = "is_active")
-    private Boolean isActive = true;
+    @Column(name = "contact_number", nullable = false)
+    private String contactNumber;
 
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "address", nullable = false)
+    private String address;
+
+    @Column(name = "status")
+    private StatusEnum status;
 }

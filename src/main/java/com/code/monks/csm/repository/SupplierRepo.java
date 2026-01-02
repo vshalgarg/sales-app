@@ -20,12 +20,11 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
     SupplierEntity findBySupplierName(String SupplierName);
 
     //Page<SupplierEntity> findAllByStatus(Pageable pageable, StatusEnum status);
-    @Query("SELECT DISTINCT s FROM SupplierEntity s " +
-            "LEFT JOIN FETCH s.contactList c " +
-            "LEFT JOIN FETCH s.preferredTransports t " +
-            "WHERE s.status = :status " +
-            "ORDER BY s.id DESC")
-    Page<SupplierEntity> findAllByStatus(@Param("status") StatusEnum status, Pageable pageable);
+
+    Page<SupplierEntity> findAllByStatus(
+            @Param("status") StatusEnum status,
+            Pageable pageable
+    );
 
     Optional<SupplierEntity> findOneByCode(String code);
 
@@ -33,7 +32,7 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
 
     boolean existsByCode(String code);
 
-    List<SupplierEntity> findBySupplierNameContainingIgnoreCaseAndStatus(String keyword,StatusEnum status);
+    //List<SupplierEntity> findBySupplierNameContainingIgnoreCaseAndStatus(String keyword,StatusEnum status);
 
     @Query(value = "SELECT DISTINCT s FROM SupplierEntity s " +
             "LEFT JOIN s.contactList c " +
