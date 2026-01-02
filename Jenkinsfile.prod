@@ -10,7 +10,7 @@ pipeline {
         SSH_USER      = "${E2E_SSH_USER}"
         SSH_HOST      = "${E2E_SSH_HOST}"
 
-        DB_PASSWORD   = credentials('CSM_MYSQL_PASSWORD')
+        DB_PASSWORD   = credentials('E2E_DB_PSWD_HRMS')  // Jenkins secret
     }
 
     stages {
@@ -24,7 +24,6 @@ pipeline {
         stage('Build JAR') {
             steps {
                 sh '''
-                    chmod +x mvnw
                     ./mvnw clean package -DskipTests
                 '''
             }
@@ -46,31 +45,24 @@ pipeline {
             }
         }
 
-        stage('Transfer Docker Image') {
+         stage('Transfer Docker Image') {
+                   steps {
+                       withCredentials([sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')]) {
+                           sh """
+                               ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_PATH"
+                               rsync -avz --progress -e "ssh -i $SSH_KEY" ${IMAGE_NAME}.tar $SSH_USER@$SSH_HOST:${REMOTE_PATH}/
+                           """
+                       }
+                   }
+               }
+
+        stage('Deploy on E2E') {
             steps {
                 withCredentials([
                     sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')
                 ]) {
                     sh """
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \
-                          $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_PATH"
-
-                        rsync -avz -e "ssh -i \$SSH_KEY" \
-                          ${IMAGE_NAME}.tar \
-                          $SSH_USER@$SSH_HOST:${REMOTE_PATH}/
-                    """
-                }
-            }
-        }
-
-        stage('Deploy on PROD') {
-            steps {
-                withCredentials([
-                    sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')
-                ]) {
-                    sh """
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \
-                        $SSH_USER@$SSH_HOST << 'EOF'
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
 
                         cd $REMOTE_PATH
 
@@ -84,7 +76,7 @@ pipeline {
                             --restart unless-stopped \\
                             -e SPRING_PROFILES_ACTIVE=prod \\
                             -e spring.datasource.password=${DB_PASSWORD} \\
-                            -v /var/log/sales-api:/logs \\
+                             --restart unless-stopped \\
                             ${IMAGE_NAME}:${TAG}
 
                         exit 0
