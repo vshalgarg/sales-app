@@ -1,0 +1,114 @@
+pipeline {
+  agent any
+
+  environment {
+    APP_NAME    = 'sales-app-ui-prod'
+    IMAGE_NAME  = 'sales-app-ui-prod'
+    TAG         = 'latest'
+
+    PORT        = '8088'
+
+    REMOTE_PATH = "${E2E_REMOTE_PATH_BASE}/${APP_NAME}"
+    SSH_USER    = "${E2E_SSH_USER}"
+    SSH_HOST    = "${E2E_SSH_HOST}"
+
+    ENV_FILE      = 'prod' // or pull from Jenkins parameter if you want
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install & Build React App') {
+      steps {
+        sh '''
+          npm install
+          cp .env.${ENV_FILE} .env
+          npm run build
+        '''
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh '''
+          docker build -t ${IMAGE_NAME}:${TAG} .
+        '''
+      }
+    }
+
+    stage('Save Docker Image') {
+      steps {
+        sh '''
+          docker save ${IMAGE_NAME}:${TAG} -o ${IMAGE_NAME}.tar
+        '''
+      }
+    }
+
+    stage('Transfer Docker Image') {
+      steps {
+        withCredentials([
+          sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')
+        ]) {
+          sh """
+            ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \
+              $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_PATH"
+
+            rsync -avz -e "ssh -i \$SSH_KEY" \
+              ${IMAGE_NAME}.tar \
+              $SSH_USER@$SSH_HOST:${REMOTE_PATH}/
+          """
+        }
+      }
+    }
+
+
+    stage('Deploy on E2E') {
+      steps {
+        withCredentials([
+          sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')
+        ]) {
+          sh """
+            ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \
+            $SSH_USER@$SSH_HOST << 'EOF'
+
+            cd $REMOTE_PATH
+
+            docker load -i ${IMAGE_NAME}.tar
+
+            docker stop ${IMAGE_NAME} || true
+            docker rm ${IMAGE_NAME} || true
+
+            docker run -d --name ${IMAGE_NAME} \\
+              --restart unless-stopped \\
+              --network backend-net \\
+              -p ${PORT}:${PORT} \\
+              ${IMAGE_NAME}:${TAG}
+
+            exit 0
+EOF
+          """
+        }
+      }
+    }
+
+    stage('Clean Up') {
+      steps {
+        sh 'docker image prune -f'
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "SALES-APP-UI PROD deployed successfully on port ${PORT}"
+    }
+    failure {
+      echo "SALES-APP-UI PROD deployment failed"
+    }
+  }
+}
