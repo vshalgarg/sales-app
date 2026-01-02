@@ -1,0 +1,106 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME      = 'sales-api-prod'
+        IMAGE_NAME    = 'sales-api-prod'
+        TAG           = 'latest'
+
+        REMOTE_PATH   = "${E2E_REMOTE_PATH_BASE}/${APP_NAME}"
+        SSH_USER      = "${E2E_SSH_USER}"
+        SSH_HOST      = "${E2E_SSH_HOST}"
+
+        DB_PASSWORD   = credentials('E2E_DB_PSWD_HRMS')  // Jenkins secret
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build JAR') {
+            steps {
+                sh '''
+                    ./mvnw clean package -DskipTests
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    docker build -t ${IMAGE_NAME}:${TAG} .
+                '''
+            }
+        }
+
+        stage('Save Docker Image') {
+            steps {
+                sh '''
+                    docker save ${IMAGE_NAME}:${TAG} -o ${IMAGE_NAME}.tar
+                '''
+            }
+        }
+
+         stage('Transfer Docker Image') {
+                   steps {
+                       withCredentials([sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')]) {
+                           sh """
+                               ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_PATH"
+                               rsync -avz --progress -e "ssh -i $SSH_KEY" ${IMAGE_NAME}.tar $SSH_USER@$SSH_HOST:${REMOTE_PATH}/
+                           """
+                       }
+                   }
+               }
+
+        stage('Deploy on E2E') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')
+                ]) {
+                    sh """
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
+
+                        cd $REMOTE_PATH
+
+                        docker load -i ${IMAGE_NAME}.tar
+
+                        docker stop ${IMAGE_NAME} || true
+                        docker rm ${IMAGE_NAME} || true
+
+                        docker run -d --name ${IMAGE_NAME} \\
+                            --network backend-net \\
+                            --restart unless-stopped \\
+                            -e SPRING_PROFILES_ACTIVE=prod \\
+                            -e spring.datasource.password=${DB_PASSWORD} \\
+                             --restart unless-stopped \\
+                            ${IMAGE_NAME}:${TAG}
+
+                        exit 0
+EOF
+                    """
+                }
+            }
+        }
+
+        stage('Clean Up') {
+            steps {
+                sh '''
+                    docker image prune -f
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "SALES-API PROD deployment successful!"
+        }
+        failure {
+            echo "SALES-API PROD deployment failed!"
+        }
+    }
+}
