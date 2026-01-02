@@ -18,7 +18,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     contacts: [{}],
   });
   const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
   const [touched, setTouched] = useState({});
   const { showSnackbar } = useSnackbar();
 
@@ -159,92 +158,40 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       .catch((err) => console.error("Error fetching states:", err));
   }, []);
 
-  // Fetch Cities when State changes
-  useEffect(() => {
-    if (!form.state) return;
-    fetch("https://countriesnow.space/api/v0.1/countries/state/cities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ country: "India", state: form.state }),
-    })
-      .then((res) => res.json())
-      .then((data) => setCities(data.data || []))
-      .catch((err) => console.error("Error fetching cities:", err));
-  }, [form.state]);
 
-  useEffect(() => {
-    if (!form.city) return;
+ const handleFormChange = (e) => {
+  const { name, value } = e.target;
 
-    fetch(`https://api.postalpincode.in/postoffice/${form.city}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const result = data[0];
-        if (result.Status === "Success" && result.PostOffice?.length > 0) {
-          const firstPin = result.PostOffice[0].Pincode;
-          setForm((prev) => ({ ...prev, pinCode: firstPin }));
-        } else {
-          setForm((prev) => ({ ...prev, pinCode: "" }));
-          console.warn("No PIN found for city:", form.city);
-        }
-      })
-      .catch((err) => console.error("Error fetching PIN code:", err));
-  }, [form.city]);
+  if (name === "pinCode" && !/^\d{0,6}$/.test(value)) return;
 
-  const handleFormChange = (e) => {
+  // 🔹commissionRate (max 100, 2 decimals)
+  if (name === "commissionRate") {
+    if (
+      /^\d*\.?\d{0,2}$/.test(value) &&
+      (value === "" || parseFloat(value) <= 100)
+    ) {
+      setForm(prev => ({ ...prev, commissionRate: value }));
 
-    const { name, value } = e.target;
-    if (name === "commissionRate") {
-      //max 100%
-      if (/^\d*\.?\d{0,2}$/.test(value) && (value === "" || parseFloat(value) <= 100)) {
-        // Update form
-        if (name === "state") {
-          setForm((prev) => ({
-            ...prev,
-            state: value,
-            city: "",
-            pinCode: "",
-          }));
-        } else if (name === "city") {
-          setForm((prev) => ({
-            ...prev,
-            city: value,
-            pinCode: "",
-          }));
-        } else {
-          setForm({ ...form, [name]: value });
-        }
-
-        // Validate
-        setTouched((prev) => ({ ...prev, [name]: true }));
-        setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
-      }
-      return;
-    }
-
-    // 🧠 New: handle dependency clearing
-    if (name === "state") {
-      setForm((prev) => ({
+      setTouched(prev => ({ ...prev, commissionRate: true }));
+      setErrors(prev => ({
         ...prev,
-        state: value,
-        city: "",
-        pinCode: "",
+        commissionRate: validate("commissionRate", value),
       }));
-    } else if (name === "city") {
-      setForm((prev) => ({
-        ...prev,
-        city: value,
-        pinCode: "",
-      }));
-    } else {
-      setForm({ ...form, [name]: value });
     }
+    return;
+  }
 
-    // mark field as touched for validation
-    setTouched((prev) => ({ ...prev, [name]: true }));
+  // 🔹fields (state, city, pinCode, others)
+  setForm(prev => ({
+    ...prev,
+    [name]: value,
+  }));
 
-    // validate current field
-    setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
-  };
+  // 🔹 Validation
+  setTouched(prev => ({ ...prev, [name]: true }));
+  setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
+};
+
 
   const handleAddSupplier = async ({ closeAfterSave }) => {
     if (isSaving) return;
@@ -479,27 +426,21 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                       label: s.name,
                     }))}
                   />
-                  <BasicSelect
+                  <CustomTextField
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
                     label="City*"
+                    className="border p-2 rounded"
                     error={!!errors.city}
-                    helperText={errors.city || ""}
-                    options={cities.map((c) => ({
-                      value: c,
-                      label: c,
-                    }))}
-                    disabled={!form.state}
+                    helperText={errors.city}
                   />
 
                   <CustomTextField
                     name="pinCode"
                     value={form.pinCode}
-                    readOnly
+                    onChange={handleFormChange}
                     label="Pin Code*"
-                    disabled={!form.state} // ✅ disabled until state is chosen
-                    className="border p-2 rounded cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -617,7 +558,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     renderInput={(params) => (
                       <CustomTextField
                         {...params}
-                        label="Transport *"
+                        label="Transport"
                       // error={!!errors.transport}
                       // helperText={errors.transport || "Search transport"}
                       />
@@ -635,7 +576,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 </div>
 
               </div>
-
             </div>
 
             {/* Footer*/}

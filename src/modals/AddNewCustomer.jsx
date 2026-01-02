@@ -18,12 +18,9 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [touched, setTouched] = useState({});
 
   const [states, setStates] = useState([]);
-  const [pinCodes, setPinCodes] = useState([]);
-  const [cities, setCities] = useState([]);
   const { showSnackbar } = useSnackbar();
   const [transportSearch, setTransportSearch] = useState("");
   const [transportResults, setTransportResults] = useState([]);
-  const [isTransportInputFocused, setIsTransportInputFocused] = useState(false);
 
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
@@ -76,30 +73,26 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
 
-    // 🧠 New: handle dependency clearing
-    if (name === "state") {
-      setForm((prev) => ({
-        ...prev,
-        state: value,
-        city: "", // clear city when state removed or changed
-        pinCode: "", // clear pin when state removed or changed
-      }));
-    } else if (name === "city") {
-      setForm((prev) => ({
-        ...prev,
-        city: value,
-        pinCode: "", // clear pin when city removed or changed
-      }));
-    } else {
-      setForm({ ...form, [name]: value });
+    // PinCode: digits only, max 6
+    if (name === "pinCode") {
+      if (!/^\d{0,6}$/.test(value)) return;
+
+      setForm(prev => ({ ...prev, pinCode: value }));
+      setTouched(prev => ({ ...prev, pinCode: true }));
+      setErrors(prev => ({ ...prev, pinCode: validate("pinCode", value) }));
+      return;
     }
 
-    // mark field as touched for validation
-    setTouched((prev) => ({ ...prev, [name]: true }));
+    // fields (state, city, others)
+    setForm(prev => ({
+      ...prev,
+      [name]: value,
+    }));
 
-    // validate current field
-    setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
   };
+
 
   const addContact = () => {
     setForm({
@@ -167,42 +160,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       .catch((err) => console.error("Error fetching states:", err));
   }, []);
 
-  useEffect(() => {
-    if (!form.state) return;
-
-    fetch(
-      "http://api.geonames.org/searchJSON?country=IN&featureClass=P&maxRows=1000&username=tarunbaisla_14"
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        const filteredCities = data.geonames
-          .filter((c) => c.adminName1 === form.state)
-          .map((c) => c.name);
-        setCities([...new Set(filteredCities)].sort());
-      })
-      .catch((err) => console.error("Error fetching cities:", err));
-  }, [form.state]);
-
-  // Inside your component
-  useEffect(() => {
-    if (!form.city) return;
-
-    fetch(
-      `http://api.geonames.org/postalCodeSearchJSON?placename=${form.city}&country=IN&maxRows=10&username=tarunbaisla_14`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.postalCodes && data.postalCodes.length > 0) {
-          // Take the first pin only (autofill, not dropdown)
-          const pin = data.postalCodes[0].postalCode;
-          setForm((prev) => ({ ...prev, pinCode: pin }));
-        } else {
-          // If no pin found, keep empty so user can type manually
-          setForm((prev) => ({ ...prev, pinCode: "" }));
-        }
-      })
-      .catch((err) => console.error("Error fetching pincode:", err));
-  }, [form.city]);
 
   const handleAddCustomer = async ({ closeAfterSave }) => {
     if (isSaving) return;
@@ -324,7 +281,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="customerName"
                     value={form.customerName}
                     onChange={handleFormChange}
-                    label="CustomerName*"
+                    label="Customer Name*"
                     error={!!errors.customerName}
                     helperText={errors.customerName}
                   />
@@ -332,7 +289,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="customerGroup"
                     value={form.customerGroup}
                     onChange={handleFormChange}
-                    label="GroupName"
+                    label="Group Name"
                   />
                   <CustomTextField
                     name="customerGstNo"
@@ -382,28 +339,32 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="state"
                     value={form.state}
                     onChange={handleFormChange}
-                    label="SelectState*"
+                    label="State*"
                     error={!!errors.state}
                     helperText={errors.state}
                     options={states.map((s) => ({ value: s.name, label: s.name }))}
                   />
-                  <BasicSelect
+                  <CustomTextField
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
-                    label="SelectCity*"
+                    label="City*"
                     error={!!errors.city}
                     helperText={errors.city}
-                    options={cities.map((c) => ({ value: c, label: c }))}
-                    disabled={!form.state}
                   />
+
                   <CustomTextField
                     name="pinCode"
                     value={form.pinCode}
-                    readOnly
-                    label="PinCode*"
-                    disabled={!form.state}
-                    className="border p-2 rounded cursor-not-allowed"
+                    onChange={handleFormChange}
+                    label="Pin Code*"
+                    error={!!errors.pinCode}
+                    helperText={errors.pinCode}
+                    inputProps={{
+                      maxLength: 6,
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                    }}
                   />
                 </div>
               </div>
@@ -421,7 +382,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
-                        label="ContactPerson*"
+                        label="Contact Person*"
                         error={!!errors.contacts?.[index]?.contactPerson}
                         helperText={errors.contacts?.[index]?.contactPerson}
                       />
@@ -491,37 +452,37 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                       Preferred Transports
                     </label>
                     <Autocomplete
-                    options={allTransports}
-                    value={selectedTransport}
-                    isOptionEqualToValue={(o, v) => o.id === v?.id}
-                    getOptionLabel={(o) =>
-                      o?.name ? `${o.name} - ${o.city || ""}` : ""
-                    }
-                    onChange={(e, value) => {
-                      if (!value) {
-                        resetTransport();
-                        return;
+                      options={allTransports}
+                      value={selectedTransport}
+                      isOptionEqualToValue={(o, v) => o.id === v?.id}
+                      getOptionLabel={(o) =>
+                        o?.name ? `${o.name} - ${o.city || ""}` : ""
                       }
+                      onChange={(e, value) => {
+                        if (!value) {
+                          resetTransport();
+                          return;
+                        }
 
-                      setSelectedTransport(value);
-                      setFormData(prev => ({
-                        ...prev,
-                        transportId: value.id,
-                        transportName: value.name,
-                        transportCity: value.city,
-                      }));
+                        setSelectedTransport(value);
+                        setFormData(prev => ({
+                          ...prev,
+                          transportId: value.id,
+                          transportName: value.name,
+                          transportCity: value.city,
+                        }));
 
-                      setErrors(prev => ({ ...prev, transport: "" }));
-                    }}
-                    renderInput={(params) => (
-                      <CustomTextField
-                        {...params}
-                        label="Transport *"
-                      // error={!!errors.transport}
-                      // helperText={errors.transport || "Search transport"}
-                      />
-                    )}
-                  />
+                        setErrors(prev => ({ ...prev, transport: "" }));
+                      }}
+                      renderInput={(params) => (
+                        <CustomTextField
+                          {...params}
+                          label="Transport"
+                        // error={!!errors.transport}
+                        // helperText={errors.transport || "Search transport"}
+                        />
+                      )}
+                    />
                   </div>
 
                   {/* Remark */}
