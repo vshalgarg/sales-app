@@ -88,11 +88,10 @@ export default function CustomerDashboard() {
       setCurrentPage(uiPage);
       setIsSearchActive(false);
     } catch (error) {
-      console.error("Error fetching customers:", error);
       setCustomers([]);
       setTotalPages(0);
       setTotalItems(0);
-      showSnackbar("Error loading customers", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -124,7 +123,7 @@ export default function CustomerDashboard() {
         handleSearchResult(response, query);
       } catch (error) {
         console.error("Error fetching search page:", error);
-        showSnackbar("Error loading search results", "error");
+        showSnackbar(error.message, "error");
       }
     } else {
       fetchCustomers(newPage);
@@ -177,7 +176,7 @@ export default function CustomerDashboard() {
       fetchCustomers(currentPage);
     } catch (error) {
       console.error("Error deleting customer:", error);
-      showSnackbar("Failed to delete customer.", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setDeleteModalOpen(false);
       setCustomerToDelete(null);

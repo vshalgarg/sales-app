@@ -38,7 +38,7 @@ export default function AppRoutes() {
           <Route element={<AppLayout />}>
             <Route path="suppliers" element={<SupplierDashboard />} />
             <Route path="customers" element={<CustomerDashboard />} />
-            <Route path="staff" element={<StaffDashboard />} />
+            <Route path="staff" element={<StaffDashboard />}  />
             <Route path="users" element={<Users />} />
             <Route path="bill-entry" element={<BillEntry />} />
             <Route path="bills" element={<Bills />} />

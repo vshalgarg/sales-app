@@ -1,4 +1,5 @@
 import api from "../api/api";
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export default class CommonService {
   static async searchWithPagination(endpoint, keyword, page = 0, size = 8, sortBy = 'supplierName', sortDir = 'asc') {
@@ -8,17 +9,12 @@ export default class CommonService {
       const response = await api.get(endpoint, {
         params: { keyword, page, size, sortBy, sortDir }
       });
+      const result = checkLogicalError(response.data);
 
-    console.log("Full Response:", response);
-    console.log("Response Data:", response.data);
-    console.log("Response Data (stringified):", JSON.stringify(response.data, null, 2));
-    console.log("Response Headers:", response.headers);
-      return response.data;
+      return result;
     } catch (error) {
 
-      console.error("Search Error:", error);
-    console.error("Error Response:", error.response);
-      throw error.response?.data || error;
+   throw new Error(handleApiError(error));
     }
   }
 }

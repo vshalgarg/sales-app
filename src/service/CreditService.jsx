@@ -1,11 +1,13 @@
 import api from "../api/api";
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export const addCreditEntry = async (formData) => {
   try {
     const response = await api.post(`/credit/entry/add`, formData);
-    return response.data;
-  } catch (err) {
-    throw err.response?.data || err;
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (checkLogicalError) {
+      throw new Error(handleApiError(error));
   }
 };
 
@@ -29,8 +31,9 @@ export const searchCreditHistory = async (
         size,
       },
     });
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (error) {
-    throw error.response?.data || error;
+      throw new Error(handleApiError(error));
   }
 };

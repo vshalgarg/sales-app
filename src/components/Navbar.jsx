@@ -139,17 +139,13 @@ export default function Navbar({activeSection, onSectionChange }) {
             </h2>
 
             <div className="space-y-2 text-gray-800 dark:text-gray-100">
-              <p>
-                <strong>User ID:</strong> {userId || "Not available"}
-              </p>
+              
               <p>
                 <strong>Username:</strong> {name || "Not available"}
               </p>
+              
               <p>
-                <strong>Password:</strong> ******** (hidden)
-              </p>
-              <p>
-                <strong>Date of Creation:</strong> Coming from API later
+                <strong>Date of Creation:</strong>
               </p>
             </div>
 
