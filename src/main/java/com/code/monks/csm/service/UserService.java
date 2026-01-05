@@ -9,7 +9,7 @@ import java.util.List;
 public interface UserService {
     AddUserResponseDto addUser(AddUserRequestDto requestDto);
     GetUsersDto getUsers();
-    DeleteUserResponseDto deleteUser(DeleteUserRequestDto requestDto);
+    DeleteUserResponseDto deleteUser(Long userId);
     List<SearchUsersResponseDTO> searchUsers(String keyword);
     EncryptedResponseDTO getEncryptedUserDetail(Long userId);
 }

@@ -108,21 +108,25 @@ public class AuthRestClient {
         return authGetUsersDto;
     }
 
-    public AuthDeleteUserResponseDto callDeleteUser(AuthDeleteUserRequestDto authRequestDto) {
+    public AuthDeleteUserResponseDto callDeleteUser(Long userId) {
         String url = authHost + deleteUserUrl;
         log.info("Calling Auth Service DELETE_USER endpoint: {}", url);
 
         Map<String, String> headers = new HashMap<>();
         updateHeadersForClientNameAndSecret(headers);
         log.debug("Headers for DELETE_USER request: {}", headers.keySet());
-        log.debug("Request payload for DELETE_USER: {}", authRequestDto);
 
-        AuthDeleteUserResponseDto authDeleteUserResponseDto = genericRestClient.exchange(
-                url, HttpMethod.PUT, authRequestDto, headers, AuthDeleteUserResponseDto.class
+        Map<String, Object> uriVariables = new HashMap<>();
+        uriVariables.put("userId", userId);
+
+        return genericRestClient.exchange(
+                url,
+                HttpMethod.POST,
+                null,
+                headers,
+                AuthDeleteUserResponseDto.class,
+                uriVariables
         );
-
-        log.info("Received response from Auth Service DELETE_USER: {}", authDeleteUserResponseDto.getMessage());
-        return authDeleteUserResponseDto;
     }
 
     public AuthSearchUsersResponseDto callSearchUsers(String searchKeyword) {
@@ -138,7 +142,7 @@ public class AuthRestClient {
         return genericRestClient.exchange(
                 url,
                 HttpMethod.GET,
-                null,       // no body for GET
+                null,
                 headers,
                 AuthSearchUsersResponseDto.class
         );

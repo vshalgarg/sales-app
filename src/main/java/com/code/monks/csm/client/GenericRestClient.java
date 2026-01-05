@@ -79,5 +79,75 @@ public class GenericRestClient {
             throw new ExternalServiceException(EXTERNAL_API_CALL_FAILED, ex);
         }
     }
+
+    public <T, R> R exchange(
+            String url,
+            HttpMethod method,
+            T requestBody,
+            Map<String, String> headers,
+            Class<R> responseType,
+            Map<String, ?> uriVariables
+    ) {
+        try {
+            HttpHeaders reqHeaders = new HttpHeaders();
+
+            if (method != HttpMethod.GET) {
+                reqHeaders.setContentType(MediaType.APPLICATION_JSON);
+            }
+
+            reqHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+            if (!CollectionUtils.isEmpty(headers)) {
+                headers.forEach(reqHeaders::add);
+            }
+
+            HttpEntity<?> requestEntity = (method == HttpMethod.GET)
+                    ? new HttpEntity<>(reqHeaders)
+                    : new HttpEntity<>(requestBody, reqHeaders);
+
+            ResponseEntity<String> response;
+
+            if (uriVariables != null && !uriVariables.isEmpty()) {
+                response = restTemplate.exchange(
+                        url,
+                        method,
+                        requestEntity,
+                        String.class,
+                        uriVariables
+                );
+            } else {
+                response = restTemplate.exchange(
+                        url,
+                        method,
+                        requestEntity,
+                        String.class
+                );
+            }
+
+            String responseBody = response.getBody();
+            if (responseBody == null || responseBody.trim().isEmpty()) {
+                throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, "Empty response body");
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(responseBody);
+
+            if (node.has("responseCode") && node.has("message") && node.size() == 2) {
+                throw new ExternalServiceException(
+                        EXTERNAL_SERVICE_ERROR,
+                        node.get("responseCode").asText() + "::" + node.get("message").asText()
+                );
+            }
+
+            return mapper.readValue(responseBody, responseType);
+
+        } catch (JsonProcessingException e) {
+            throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, "Failed to parse response");
+        } catch (RestClientException ex) {
+            throw new ExternalServiceException(EXTERNAL_API_CALL_FAILED, ex);
+        }
+    }
+
+
 }
 

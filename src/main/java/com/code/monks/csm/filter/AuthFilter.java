@@ -139,6 +139,9 @@ public class AuthFilter extends OncePerRequestFilter {
         log.warn("Responding with unauthorized: {}", message);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
         response.getWriter().write(String.format("{\"error\": \"%s\"}", message));
     }
 
