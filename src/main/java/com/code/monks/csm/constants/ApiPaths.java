@@ -12,7 +12,7 @@ public class ApiPaths {
 
     public static final String GET_ENCRYPTED_USER_DETAIL = "/get/user/detail/{userId}";
 
-    public static final String DELETE_USER = "/user/delete";
+    public static final String DELETE_USER = "/user/delete/{userId}";
 
     public static final String LOGIN = "/login";
 
