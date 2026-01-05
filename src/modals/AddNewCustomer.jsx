@@ -19,8 +19,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
 
   const [states, setStates] = useState([]);
   const { showSnackbar } = useSnackbar();
-  const [transportSearch, setTransportSearch] = useState("");
-  const [transportResults, setTransportResults] = useState([]);
 
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
@@ -35,40 +33,14 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
         setTransportLoading(true);
         const data = await TransportService.getAllTransports();
         setAllTransports(data || []);
-      } catch (err) {
-        console.error(err);
-        showSnackbar("Failed to load transports", "error");
+      } catch (error) {
+        showSnackbar(error.message, "error");
       } finally {
         setTransportLoading(false);
       }
     };
     loadTransports();
   }, []);
-
-
-  const addTransport = (transport) => {
-    if (selectedTransports.find((t) => t.id === transport.id)) return;
-
-    const newSelected = [...selectedTransports, transport];
-    setSelectedTransports(newSelected);
-
-    setForm((prev) => ({
-      ...prev,
-      preferredTransportIds: newSelected.map((t) => t.id),
-    }));
-
-    setTransportSearch("");
-    setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
-  };
-
-  const removeTransport = (idToRemove) => {
-    const newSelected = selectedTransports.filter((t) => t.id !== idToRemove);
-    setSelectedTransports(newSelected);
-    setForm((prev) => ({
-      ...prev,
-      preferredTransportIds: newSelected.map((t) => t.id),
-    }));
-  };
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -154,13 +126,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     })
       .then((res) => res.json())
       .then((data) => setStates(data.data.states || []))
-      // .then((data) => {
-      //   const uniqueStates = [
-      //     ...new Set(data.geonames.map((c) => c.adminName1)),
-      //   ];
-      //   setStates(uniqueStates.sort().map((s) => ({ name: s })));
-      // })
-      .catch((err) => console.error("Error fetching states:", err));
+      .catch((err) => showSnackbar("Error fetching states:", err));
   }, []);
 
 
@@ -229,22 +195,11 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       if (closeAfterSave) {
         setOpen(false);
       }
-    } catch (err) {
-      console.error(err);
-      showSnackbar("Network or server error", "error");
+    } catch (error) {
+      showSnackbar(error.message, "error");
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const resetTransport = () => {
-    setSelectedTransport(null);
-    setFormData(prev => ({
-      ...prev,
-      transportId: null,
-      transportName: "",
-      transportCity: "",
-    }));
   };
 
   const resetForm = () => {
@@ -260,8 +215,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     });
     setErrors({ contacts: [{}] });
     setSelectedTransports([]);
-    setTransportSearch("");
-    setTransportResults([]);
   };
 
   return (
@@ -455,37 +408,52 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                       Preferred Transports
                     </label>
                     <Autocomplete
+                      multiple
                       options={allTransports}
-                      value={selectedTransport}
-                      isOptionEqualToValue={(o, v) => o.id === v?.id}
-                      getOptionLabel={(o) =>
-                        o?.name ? `${o.name} - ${o.city || ""}` : ""
-                      }
-                      onChange={(e, value) => {
-                        if (!value) {
-                          resetTransport();
-                          return;
-                        }
+                      value={selectedTransports}
+                      loading={transportLoading}
+                      filterSelectedOptions
+                      isOptionEqualToValue={(o, v) => o.id === v.id}
 
-                        setSelectedTransport(value);
-                        setFormData(prev => ({
+                      // search NAME
+                      getOptionLabel={(o) => o.name}
+
+                      //dropdown NAME + CITY
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.id}>
+                          {option.name} – {option.city}
+                        </li>
+                      )}
+
+                      onChange={(e, values) => {
+                        setSelectedTransports(values);
+                        setForm(prev => ({
                           ...prev,
-                          transportId: value.id,
-                          transportName: value.name,
-                          transportCity: value.city,
+                          preferredTransportIds: values.map(v => v.id),
                         }));
-
-                        setErrors(prev => ({ ...prev, transport: "" }));
+                        setErrors(prev => ({ ...prev, preferredTransportIds: "" }));
                       }}
+
+                      renderTags={(value, getTagProps) =>
+                        value.map((option, index) => (
+                          <Chip
+                            {...getTagProps({ index })}
+                            key={option.id}
+                            label={option.name}
+                            size="small"
+                          />
+                        ))
+                      }
+
                       renderInput={(params) => (
                         <CustomTextField
                           {...params}
-                          label="Transport"
-                        // error={!!errors.transport}
-                        // helperText={errors.transport || "Search transport"}
+                          label="Preferred Transports"
+                          placeholder="Type transport name"
                         />
                       )}
                     />
+
                   </div>
 
                   {/* Remark */}
@@ -567,9 +535,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 )}
               </button>
             </div>
-
-
-
           </div>
         </div>
       )}

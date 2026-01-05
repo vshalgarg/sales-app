@@ -1,14 +1,16 @@
 // src/services/SupplierService.js
 import api from "../api/api";
 import CommonService from './CommonService';
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 class SupplierService {
   static async saveSupplier(supplierData) {
     try {
       const response = await api.post("/supplier/add", supplierData);
-      return response.data;
+      const result = checkLogicalError(response.data);
+    return result;
     } catch (error) {
-      throw error.response?.data || error;
+     throw new Error(handleApiError(error));
     }
   }
 
@@ -17,27 +19,30 @@ class SupplierService {
       const response = await api.get("/suppliers/get", {
         params: { page, size },
       });
-      return response.data;
+      const result = checkLogicalError(response.data);
+    return result;
     } catch (error) {
-      throw error.response?.data || error;
+      throw new Error(handleApiError(error));
     }
   }
 
   static async getAllSuppliers() {
     try {
       const response = await api.get("/suppliers/get/all");
-      return response.data;
+      const result = checkLogicalError(response.data);
+    return result;
     } catch (error) {
-      throw error.response?.data || error;
+      throw new Error(handleApiError(error));
     }
   }
 
   static async deleteSupplier(code) {
     try {
       const response = await api.put("/supplier/delete", { code });
-      return response.data;
+      const result = checkLogicalError(response.data);
+    return result;
     } catch (error) {
-      throw error.response?.data || error;
+     throw new Error(handleApiError(error));
     }
   }
 

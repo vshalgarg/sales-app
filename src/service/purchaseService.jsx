@@ -1,11 +1,13 @@
 import api from "../api/api";
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export const addPurchaseEntry = async (formData) => {
   try {
     const response = await api.post(`/purchase/entry/add`, formData);
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (err) {
-    throw err.response?.data || err;
+    throw new Error(handleApiError(err));
   }
 };
 
@@ -29,8 +31,9 @@ export const searchPurchaseHistory = async (
         size,
       },
     });
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (error) {
-    throw error.response?.data || error;
+     throw new Error(handleApiError(error));
   }
 };

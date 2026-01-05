@@ -67,11 +67,10 @@ export default function StaffDashboard() {
       setIsSearchActive(false);
       setSearchResults([]);
     } catch (error) {
-      console.error("Error fetching staffs:", error);
       setStaffs([]);
       setTotalPages(1);
       setTotalItems(0);
-      showSnackbar("Error loading staffs", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -97,7 +96,7 @@ export default function StaffDashboard() {
         handleSearchResult(response, query);
       } catch (error) {
         console.error("Error fetching search page:", error);
-        showSnackbar("Error loading search results", "error");
+        showSnackbar(error.message, "error");
       }
     } else {
       fetchStaffs(newPage);
@@ -127,38 +126,7 @@ export default function StaffDashboard() {
         fetchStaffs(currentPage);
       }
     } catch (error) {
-      console.error("Error deleting staff:", error);
-      showSnackbar("Failed to delete staff", "error");
-    }
-  };
-
-  const handleInputChange = async (e) => {
-    const value = e.target.value;
-    setQuery(value);
-
-    if (!value.trim()) {
-      handleClearSearch();
-      return;
-    }
-
-    if (value.length > 1) {
-      try {
-        const result = await searchStaffs(value);
-        if (result && result.length) {
-          const names = result.map((staff) => staff.staffName);
-          setSuggestions(names);
-          setIsDropdownOpen(true);
-        } else {
-          setSuggestions([]);
-          setIsDropdownOpen(false);
-        }
-      } catch (err) {
-        console.error(err);
-        setSuggestions([]);
-      }
-    } else {
-      setSuggestions([]);
-      setIsDropdownOpen(false);
+      showSnackbar(error.message, "error");
     }
   };
 

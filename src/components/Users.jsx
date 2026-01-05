@@ -28,7 +28,6 @@ const Users = () => {
     password: "",
     roles: roles,
   });
-
   // 🔹 Delete modal states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -47,15 +46,14 @@ const Users = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [users]);
+  }, []);
 
   const fetchUsers = async () => {
     try {
       const data = await getUsers();
-      setUsers(data);
+      setUsers(data.users);
     } catch (error) {
-      console.error("Error fetching users:", error);
-      setUsers([]);
+      showSnackbar(error.message)
     }
   };
 
@@ -74,9 +72,9 @@ const Users = () => {
         // ✅ Backend returns a list of objects
         setSuggestions(result || []);
         setIsDropdownOpen(true);
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
         setSuggestions([]);
+        showSnackbar(error.message)
       }
     } else {
       setSuggestions([]);
@@ -91,24 +89,31 @@ const Users = () => {
     setIsDropdownOpen(false);
   };
 
-  const confirmDelete = (username) => {
-    setUserToDelete(username);
+  const confirmDelete = (user) => {
+    setUserToDelete(user);
     setDeleteModalOpen(true);
   };
 
   const handleDelete = async () => {
-    if (!userToDelete) return;
-    try {
-      const response = await deleteUser(userToDelete);
-      showSnackbar(response?.message || "User deleted", "success");
-      fetchUsers();
-    } catch (error) {
-      showSnackbar(error.message || "Error deleting user", "error");
-    } finally {
-      setDeleteModalOpen(false);
-      setUserToDelete(null);
-    }
-  };
+  if (!userToDelete?.id) return;
+
+  try {
+    const response = await deleteUser(userToDelete.id);
+
+    showSnackbar(
+      response?.message || "User deactivated successfully",
+      "success"
+    );
+
+    fetchUsers();
+  } catch (error) {
+    showSnackbar(error.message || "Error deleting user", "error");
+  } finally {
+    setDeleteModalOpen(false);
+    setUserToDelete(null);
+  }
+};
+
 
   const handleAddUser = async (e) => {
     e.preventDefault();
@@ -124,15 +129,13 @@ const Users = () => {
     }
     try {
       const response = await createUser(form);
-      console.log("API Response:", response);
-      if (response?.message) {
-        showSnackbar(response.message, "success");
+
+     showSnackbar(response.message, "success");
         setForm({ username: "", password: "", roles: roles });
         fetchUsers();
-      }
     } catch (error) {
       console.error("Error creating user:", error);
-      showSnackbar("Error creating user", "error");
+      showSnackbar(error.message, "error");
     }finally {
     setIsModalOpen(false);
   }
@@ -190,7 +193,7 @@ const Users = () => {
         <table className="min-w-full table-auto text-sm text-left">
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
             <tr>
-              <th className="px-6 py-3">User Id</th>
+              
               <th className="px-6 py-3">Username</th>
               <th className="px-6 py-3">Action</th>
             </tr>
@@ -199,11 +202,11 @@ const Users = () => {
             {users.length > 0 ? (
               users.map((u, i) => (
                 <tr key={i} className="border-t hover:bg-gray-50 relative">
-                  <td className="px-6 py-2">{u.id}</td>
+                  
                   <td className="px-6 py-2">{u.username}</td>
                   <td>
                     <button
-                      onClick={() => confirmDelete(u.username)}
+                      onClick={() => confirmDelete(u)}
                       className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                     >
                       <Trash2 className="w-5 h-5 text-red-600" />
@@ -297,7 +300,7 @@ const Users = () => {
             <p className="text-center text-gray-600 dark:text-gray-400 text-sm mb-6">
               Are you sure you want to permanently delete{" "}
               <span className="font-medium text-blue-600 dark:text-blue-400">
-                {userToDelete}
+                {userToDelete?.username}
               </span>
               ? This action cannot be undone.
             </p>

@@ -74,9 +74,8 @@ export default function AddNewStaff({
       if (closeAfterSave) {
         setOpen(false);
       }
-    } catch (err) {
-      console.error("🔥 Error while saving staff:", err);
-      showSnackbar("Network or server error.", "error");
+    } catch (error) {
+      showSnackbar(error.message, "error");
     } finally {
       setIsSaving(false);
     }

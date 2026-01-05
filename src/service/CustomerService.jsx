@@ -1,14 +1,16 @@
 // src/services/CustomerService.js
 import api from "../api/api";
 import CommonService from './CommonService';
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 class CustomerService {
   static async saveCustomer(customerData) {
     try {
       const response = await api.post("/customer/add", customerData);
-      return response.data;
+      const result = checkLogicalError(response.data);
+      return result;
     } catch (error) {
-      throw error.response?.data || error;
+        throw new Error(handleApiError(error));
     }
   }
 
@@ -17,27 +19,30 @@ class CustomerService {
       const response = await api.get("/customers/get", {
         params: { page, size },
       });
-      return response.data;
+      const result = checkLogicalError(response.data);
+      return result;
     } catch (error) {
-      throw error.response?.data || error;
+        throw new Error(handleApiError(error));
     }
   }
 
   static async getAllCustomers() {
     try {
       const response = await api.get("/customers/get/all");
-      return response.data;
+      const result = checkLogicalError(response.data);
+      return result;
     } catch (error) {
-      throw error.response?.data || error;
+        throw new Error(handleApiError(error));
     }
   }
 
   static async deleteCustomer(customerCode) {
     try {
       const response = await api.put("/customer/delete", { customerCode });
-      return response.data;
+      const result = checkLogicalError(response.data);
+      return result;
     } catch (error) {
-      throw error.response?.data || error;
+        throw new Error(handleApiError(error));
     }
   }
 

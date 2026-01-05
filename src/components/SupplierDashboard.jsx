@@ -109,7 +109,7 @@ export default function SupplierDashboard() {
       setSuppliers([]);
       setTotalPages(0);
       setTotalItems(0);
-      showSnackbar("Error loading suppliers", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -141,7 +141,7 @@ export default function SupplierDashboard() {
         handleSearchResult(response, query);
       } catch (error) {
         console.error("Error fetching search page:", error);
-        showSnackbar("Error loading search results", "error");
+        showSnackbar(error.message, "error");
       }
     } else {
       fetchSuppliers(newPage);
@@ -180,7 +180,7 @@ export default function SupplierDashboard() {
       fetchSuppliers(currentPage);
     } catch (error) {
       console.error("Error deleting supplier:", error);
-      showSnackbar("Failed to delete supplier.", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setDeleteModalOpen(false);
       setSupplierToDelete(null);

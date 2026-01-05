@@ -6,6 +6,7 @@ import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 
 export default function TransportDashboard() {
+  // throw new Error("error in transport page");
   const [loading, setLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [open, setOpen] = useState(false);
@@ -49,7 +50,6 @@ const columns = [
     width: "14%" 
   },
 
-  // ✅ NEW CITY COLUMN (ORDERED)
   { 
     key: "city", 
     label: "City", 
@@ -109,7 +109,7 @@ const columns = [
       setTransports([]);
       setTotalPages(0);
       setTotalItems(0);
-      showSnackbar("Failed to load transports.", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ const columns = [
         handleSearchResult(response, query);
       } catch (error) {
         console.error("Error fetching search page:", error);
-        showSnackbar("Error loading search results", "error");
+        showSnackbar(error.message, "error");
       }
     } else {
       fetchTransports(newPage);
@@ -195,7 +195,7 @@ const columns = [
       }
     } catch (error) {
       console.error("Error deleting transport:", error);
-      showSnackbar("Failed to delete transport.", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setDeleteModalOpen(false);
       setTransportToDelete(null);

@@ -1,21 +1,23 @@
 import api from "../api/api";
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export const addBill = async (billData) => {
   try {
     const response = await api.post("/bill/entry/add", billData);
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (error) {
-    console.error("Error creating user:", error);
-    throw error;
+    throw new Error(handleApiError(error));
   }
 };
 
 export const getBillHistory = async () => {
   try {
     const response = await api.get(`/bill/entries/get`);
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (error) {
-    throw error.response?.data || error;
+    throw new Error(handleApiError(error));
   }
 };
 
@@ -26,9 +28,10 @@ export const updateBillApi = async (billNumber, updates) => {
       `/bill/entry/update/${billNumber}`,
       updates
     );
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (error) {
-    throw error.response?.data || error;
+   throw new Error(handleApiError(error));
   }
 };
 
@@ -47,10 +50,11 @@ export const searchBillHistory = async (data, page, rowsPerPage) => {
       },
     });
 console.log("search data:", JSON.stringify(response.data));
+const result = checkLogicalError(response.data);
 
-    return response.data;
+    return result;
   } catch (error) {
-    throw error.response?.data || error;
+    throw new Error(handleApiError(error));
   }
 };
 
@@ -63,10 +67,9 @@ export const searchTransports = async (query) => {
     const response = await api.get("/transports/search", {
       params: { query: query.trim() }
     });
-    console.log("Transport search response:", response.data);
-    return response.data || [];
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (error) {
-    console.error("Transport search failed:", error);
-    return [];
+    throw new Error(handleApiError(error));
   }
 };
