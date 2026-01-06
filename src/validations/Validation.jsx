@@ -170,13 +170,9 @@ const validate = (field, value) => {
         error = "Received Date is required";
       }
       break;
-    case "order":
-      if (!value?.trim()) return "Order is required";
-      if (!/^[a-zA-Z0-9]+$/.test(value)) {
-        return "Order can contain only letters and numbers";
-      }
-      return "";
-
+   case "order":
+  if (!value?.trim()) return "Order is required";
+  return "";
 
     case "grossAmount":
       if (!value || value.length === 0) {
@@ -231,13 +227,7 @@ const validate = (field, value) => {
       if (!value || !value.trim()) {
         error = "Reference Number is required";
         break;
-      }
-
-      // Allow alphanumeric + - /
-      if (!/^[a-zA-Z0-9/-]+$/.test(value)) {
-        error =
-          "Reference Number can contain only letters, numbers, / or -";
-      }
+      }    
       break;
 
     case "referenceDate":

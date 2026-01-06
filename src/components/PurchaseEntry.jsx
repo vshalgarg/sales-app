@@ -95,7 +95,7 @@ const PurchaseEntry = () => {
 
   const handleAmountChange = (e) => {
     const { name, value } = e.target;
-    if (/^\d*\.?\d*$/.test(value)) {
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
       setFormData((prev) => ({ ...prev, [name]: value }));
       setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
     }
@@ -114,7 +114,7 @@ const PurchaseEntry = () => {
     e.preventDefault();
 
     if (isSaving) return;
-  
+
     const newErrors = {};
 
     Object.keys(formData).forEach((field) => {
@@ -163,246 +163,246 @@ const PurchaseEntry = () => {
   };
 
   const resetSupplier = () => {
-  setSelectedSupplier(null);
-  setFormData(prev => ({
-    ...prev,
-    supplierId: "",
-  }));
-};
+    setSelectedSupplier(null);
+    setFormData(prev => ({
+      ...prev,
+      supplierId: "",
+    }));
+  };
 
-const resetCustomer = () => {
-  setSelectedCustomer(null);
-  setFormData(prev => ({
-    ...prev,
-    customerId: "",
-  }));
-};
+  const resetCustomer = () => {
+    setSelectedCustomer(null);
+    setFormData(prev => ({
+      ...prev,
+      customerId: "",
+    }));
+  };
 
   return (
-  <div className="flex flex-col h-full overflow-y-auto">
-    <div className="bg-gray-50 w-full h-[91vh] flex flex-col">
+    <div className="flex flex-col h-full overflow-y-auto">
+      <div className="bg-gray-50 w-full h-[91vh] flex flex-col">
 
-      {/* Header */}
-      <div className="px-6 py-3 border-b border-gray-200 shrink-0 bg-gray-50">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
-              Purchase Entry
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Record purchase transactions and manage inventory
-            </p>
-          </div>
-          <div className="text-sm text-gray-400">Inventory</div>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-
-        {/* Party Information */}
-        <div className="border border-gray-200 p-6 rounded-xl bg-white">
-          <div className="flex items-start mb-5">
-            <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
+        {/* Header */}
+        <div className="px-6 py-3 border-b border-gray-200 shrink-0 bg-gray-50">
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Party Information
-              </h3>
-              <p className="text-sm text-gray-500">
-                Select supplier and customer
+              <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
+                Purchase Entry
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Record purchase transactions and manage inventory
               </p>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           <Autocomplete
-  options={allSuppliers}
-  value={selectedSupplier}
-  loading={supplierLoading}
-  isOptionEqualToValue={(o, v) => o.id === v?.id}
-  getOptionLabel={(o) =>
-    o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
-  }
-  onChange={(e, value) => {
-    if (!value) {
-      resetSupplier();
-      return;
-    }
-
-    setSelectedSupplier(value);
-    setFormData(prev => ({
-      ...prev,
-      supplierId: value.id,
-    }));
-
-    setErrors(prev => ({ ...prev, supplierName: "" }));
-  }}
-  renderInput={(params) => (
-    <CustomTextField
-      {...params}
-      label="Supplier"
-      error={!!errors.supplierName}
-      helperText={errors.supplierName || "Search supplier by name or city"}
-    />
-  )}
-/>
-
-           <Autocomplete
-  options={allCustomers}
-  value={selectedCustomer}
-  loading={customerLoading}
-  isOptionEqualToValue={(o, v) => o.id === v?.id}
-  getOptionLabel={(o) =>
-    o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
-  }
-  onChange={(e, value) => {
-    if (!value) {
-      resetCustomer();
-      return;
-    }
-
-    setSelectedCustomer(value);
-    setFormData(prev => ({
-      ...prev,
-      customerId: value.id,
-    }));
-  }}
-  renderInput={(params) => (
-    <CustomTextField
-      {...params}
-      label="Customer"
-      helperText="Search customer by name or city"
-    />
-  )}
-/>
-
+            <div className="text-sm text-gray-400">Inventory</div>
           </div>
         </div>
 
-        {/* Transaction Details */}
-        <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
-          <div className="flex items-start mb-5">
-            <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Transaction Details
-              </h3>
-              <p className="text-sm text-gray-500">
-                Date, staff and purchase amount
-              </p>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+
+          {/* Party Information */}
+          <div className="border border-gray-200 p-6 rounded-xl bg-white">
+            <div className="flex items-start mb-5">
+              <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Party Information
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Select supplier and customer
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Autocomplete
+                options={allSuppliers}
+                value={selectedSupplier}
+                loading={supplierLoading}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) =>
+                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                }
+                onChange={(e, value) => {
+                  if (!value) {
+                    resetSupplier();
+                    return;
+                  }
+
+                  setSelectedSupplier(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    supplierId: value.id,
+                  }));
+
+                  setErrors(prev => ({ ...prev, supplierName: "" }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Supplier"
+                    error={!!errors.supplierName}
+                    helperText={errors.supplierName || "Search supplier by name or city"}
+                  />
+                )}
+              />
+
+              <Autocomplete
+                options={allCustomers}
+                value={selectedCustomer}
+                loading={customerLoading}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) =>
+                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+                }
+                onChange={(e, value) => {
+                  if (!value) {
+                    resetCustomer();
+                    return;
+                  }
+
+                  setSelectedCustomer(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    customerId: value.id,
+                  }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Customer"
+                    helperText="Search customer by name or city"
+                  />
+                )}
+              />
+
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Transaction Date"
-                value={formData.date ? dayjs(formData.date) : null}
-                onChange={(v) => handleDateChange("date", v)}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    size: "small",
-                    error: !!errors.date,
-                    helperText: errors.date || "",
-                  },
+          {/* Transaction Details */}
+          <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
+            <div className="flex items-start mb-5">
+              <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Transaction Details
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Date, staff and purchase amount
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Transaction Date"
+                  value={formData.date ? dayjs(formData.date) : null}
+                  onChange={(v) => handleDateChange("date", v)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      error: !!errors.date,
+                      helperText: errors.date || "",
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+
+              <Autocomplete
+                options={allStaffs}
+                getOptionLabel={(o) => o.staffName || ""}
+                value={allStaffs.find(s => s.staffId === formData.staffId) || null}
+                onChange={handleStaffSelect}
+                loading={staffLoading}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Staff"
+                    error={!!errors.staff}
+                    helperText={errors.staff || ""}
+                  />
+                )}
+              />
+
+              <CustomTextField
+                name="purchaseAmount"
+                label="Purchase Amount"
+                value={formData.purchaseAmount}
+                onChange={handleAmountChange}
+                onBlur={() => handleAmountBlur("purchaseAmount")}
+                error={!!errors.purchaseAmount}
+                helperText={errors.purchaseAmount || ""}
+                InputProps={{
+                  className: "text-lg font-semibold",
                 }}
               />
-            </LocalizationProvider>
-
-            <Autocomplete
-              options={allStaffs}
-              getOptionLabel={(o) => o.staffName || ""}
-              value={allStaffs.find(s => s.staffId === formData.staffId) || null}
-              onChange={handleStaffSelect}
-              loading={staffLoading}
-              renderInput={(params) => (
-                <CustomTextField
-                  {...params}
-                  label="Staff"
-                  error={!!errors.staff}
-                  helperText={errors.staff || ""}
-                />
-              )}
-            />
-
-            <CustomTextField
-              name="purchaseAmount"
-              label="Purchase Amount"
-              value={formData.purchaseAmount}
-              onChange={handleAmountChange}
-              onBlur={() => handleAmountBlur("purchaseAmount")}
-              error={!!errors.purchaseAmount}
-              helperText={errors.purchaseAmount || ""}
-              InputProps={{
-                className: "text-lg font-semibold",
-              }}
-            />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="px-8 py-4 border-t border-gray-200 bg-white
+        {/* Footer */}
+        <div className="px-8 py-4 border-t border-gray-200 bg-white
                       flex items-center justify-between
                       shrink-0 sticky bottom-0 z-10 shadow-md">
 
-        <p className="text-sm text-gray-500">
-          Please review all details before saving the purchase entry.
-        </p>
+          <p className="text-sm text-gray-500">
+            Please review all details before saving the purchase entry.
+          </p>
 
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleReset}
-            type="button"
-            className="px-5 py-2.5 text-sm font-medium text-gray-600
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleReset}
+              type="button"
+              className="px-5 py-2.5 text-sm font-medium text-gray-600
                        border border-gray-300 rounded-lg
                        hover:bg-gray-100 transition-all"
-          >
-            Reset
-          </button>
+            >
+              Reset
+            </button>
 
-          <button
-            onClick={handleSubmit}
-            type="button"
-            className="px-6 py-2.5 text-sm font-semibold text-white
+            <button
+              onClick={handleSubmit}
+              type="button"
+              className="px-6 py-2.5 text-sm font-semibold text-white
                        rounded-lg
                        bg-gradient-to-r from-blue-600 to-blue-700
                        hover:from-blue-700 hover:to-blue-800
                        shadow-md hover:shadow-lg
                        transition-all
                        flex items-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  />
-                </svg>
-                Saving...
-              </>
-            ) : (
-              "Save Purchase Entry"
-            )}
-          </button>
+            >
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                "Save Purchase Entry"
+              )}
+            </button>
+          </div>
         </div>
-      </div>
 
+      </div>
     </div>
-  </div>
-);
+  );
 
 };
 

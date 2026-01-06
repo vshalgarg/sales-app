@@ -25,7 +25,7 @@ export default function CreditEntryForm() {
   const [formData, setFormData] = useState({
     paymentType: "",
     billNumber: "",
-    date: dayjs().format("YYYY-MM-DD"),
+    date: dayjs().format("DD-MM-YYYY"),
     referenceNumber: "",
     referenceDate: "",
     receivedAmount: "",
@@ -89,6 +89,85 @@ export default function CreditEntryForm() {
     }
   };
 
+  const handleReset = () => {
+    resetSupplier();
+    resetCustomer();
+
+    setFormData({
+      paymentType: "",
+      billNumber: "",
+      referenceNumber: "",
+      date: dayjs().format("YYYY-MM-DD"),
+      referenceDate: "",
+      receivedAmount: "",
+      supplierId: "",
+      customerId: "",
+      slipNumber: "",
+      drawType: "",
+      remark: "",
+    });
+    setErrors({});
+    setIsFilterObject(false);
+    setFilterObject({});
+  };
+
+  const resetSupplier = () => {
+    setSelectedSupplier(null);
+    setFormData(prev => ({
+      ...prev,
+      supplierId: "",
+    }));
+  };
+
+  const resetCustomer = () => {
+    setSelectedCustomer(null);
+    setFormData(prev => ({
+      ...prev,
+      customerId: "",
+    }));
+  };
+
+
+  const formatAmount = (val) => {
+    if (val === "" || isNaN(val)) return "0.00";
+    const num = parseFloat(val);
+    return Number.isInteger(num) ? num.toFixed(2) : String(num);
+  };
+
+  const handleDateChange = (name, newValue) => {
+    const formatted = newValue
+      ? dayjs(newValue).format("DD-MM-YYYY")
+      : "";
+
+    setFormData(prev => ({ ...prev, [name]: formatted }));
+    setErrors(prev => ({ ...prev, [name]: validate(name, formatted) || "" }));
+  };
+
+
+  const handleAmountChange = (e) => {
+    const { name, value } = e.target;
+
+    //allow only numbers + decimal with max 2 digits
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validate(name, value) || "",
+      }));
+    }
+  };
+
+  const handleAmountBlur = (name) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: formatAmount(prev[name]),
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -140,6 +219,13 @@ export default function CreditEntryForm() {
     try {
       const payload = {
         ...formData,
+        date: formData.date
+          ? dayjs(formData.date, "DD-MM-YYYY").format("YYYY-MM-DD")
+          : null,
+
+        referenceDate: formData.referenceDate
+          ? dayjs(formData.referenceDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+          : null,
         drawType: formData.drawType || null
       };
 
@@ -167,74 +253,7 @@ export default function CreditEntryForm() {
   };
 
 
-  const handleReset = () => {
-    resetSupplier();
-    resetCustomer();
 
-    setFormData({
-      paymentType: "",
-      billNumber: "",
-      referenceNumber: "",
-      date: dayjs().format("YYYY-MM-DD"),
-      referenceDate: "",
-      receivedAmount: "",
-      supplierId: "",
-      customerId: "",
-      slipNumber: "",
-      drawType: "",
-      remark: "",
-    });
-    setErrors({});
-    setIsFilterObject(false);
-    setFilterObject({});
-  };
-
-  const resetSupplier = () => {
-    setSelectedSupplier(null);
-    setFormData(prev => ({
-      ...prev,
-      supplierId: "",
-    }));
-  };
-
-  const resetCustomer = () => {
-    setSelectedCustomer(null);
-    setFormData(prev => ({
-      ...prev,
-      customerId: "",
-    }));
-  };
-
-
-  const formatAmount = (val) => {
-    if (val === "" || isNaN(val)) return "0.00";
-    const num = parseFloat(val);
-    return Number.isInteger(num) ? num.toFixed(2) : String(num);
-  };
-
-  const handleDateChange = (name, newValue) => {
-    const formatted = newValue ? dayjs(newValue).format("YYYY-MM-DD") : "";
-    setFormData((prev) => ({ ...prev, [name]: formatted }));
-    setErrors((prev) => ({ ...prev, [name]: validate(name, formatted) || "" }));
-  };
-
-  const handleAmountChange = (e) => {
-    const { name, value } = e.target;
-    if (/^\d*\.?\d*$/.test(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-      setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
-    }
-  };
-
-  const handleAmountBlur = (name) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: formatAmount(prev[name]),
-    }));
-  };
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -353,7 +372,6 @@ export default function CreditEntryForm() {
           {/* Transaction Details Card */}
           <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
             <div className="flex items-start mb-5">
-              {/* Vertical Gradient Line */}
               <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
 
               <div>
@@ -413,6 +431,11 @@ export default function CreditEntryForm() {
                 name="referenceNumber"
                 value={formData.referenceNumber}
                 onChange={handleChange}
+                onBeforeInput={(e) => {
+                  if (!/^[a-zA-Z0-9/-]$/.test(e.data)) {
+                    e.preventDefault();
+                  }
+                }}
                 label="Reference Number"
                 error={!!errors.referenceNumber}
                 helperText={errors.referenceNumber || "Cheque / UPI / NEFT reference"}
@@ -422,6 +445,7 @@ export default function CreditEntryForm() {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Reference Date"
+                  format="DD-MM-YYYY"
                   value={formData.referenceDate ? dayjs(formData.referenceDate) : null}
                   onChange={(newValue) =>
                     handleDateChange("referenceDate", newValue)
@@ -441,7 +465,12 @@ export default function CreditEntryForm() {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Transaction Date"
-                  value={formData.date ? dayjs(formData.date) : null}
+                  format="DD-MM-YYYY"
+                  value={
+                    formData.date
+                      ? dayjs(formData.date, "DD-MM-YYYY")
+                      : null
+                  }
                   onChange={(newValue) => handleDateChange("date", newValue)}
                   slotProps={{
                     textField: {
