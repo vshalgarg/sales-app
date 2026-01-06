@@ -250,3 +250,11 @@ CREATE TABLE IF NOT EXISTS credit (
         FOREIGN KEY (customer_id) REFERENCES customer(id)
         ON DELETE SET NULL
 );
+
+ALTER TABLE credit
+CHANGE cheque_number reference_number VARCHAR(100);
+
+ALTER TABLE credit
+CHANGE cheque_date reference_date DATE;
+
+

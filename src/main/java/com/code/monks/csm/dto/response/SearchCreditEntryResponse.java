@@ -16,9 +16,9 @@ public class SearchCreditEntryResponse {
 
     private LocalDate date;
 
-    private String chequeNumber;
+    private String referenceNumber;
 
-    private LocalDate chequeDate;
+    private LocalDate referenceDate;
 
     private long receivedAmount;
 

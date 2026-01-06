@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Repository
 public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer> {
 
-    boolean existsByChequeNumber(String chequeNumber);
+    boolean existsByReferenceNumber(String referenceNumber);
 
     Page<CreditEntryEntity> findByDateBetweenAndSupplierIdEqualsAndCustomerIdEquals(
             LocalDate fromDate,
