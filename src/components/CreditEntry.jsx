@@ -80,14 +80,20 @@ export default function CreditEntryForm() {
   const handleSlipNumberChange = (e) => {
     const { value } = e.target;
 
-    //only digits allowed
-    if (/^\d*$/.test(value)) {
+    // allow only alphanumeric
+    if (/^[a-zA-Z0-9]*$/.test(value)) {
       setFormData((prev) => ({
         ...prev,
         slipNumber: value,
       }));
+
+      setErrors((prev) => ({
+        ...prev,
+        slipNumber: "",
+      }));
     }
   };
+
 
   const handleReset = () => {
     resetSupplier();
@@ -489,10 +495,10 @@ export default function CreditEntryForm() {
                 onChange={handleSlipNumberChange}
                 label="Slip Number (Optional)"
                 inputProps={{
-                  inputMode: "numeric",
-                  pattern: "[0-9]*",
+                  maxLength: 30,
                 }}
               />
+
             </div>
           </div>
 
