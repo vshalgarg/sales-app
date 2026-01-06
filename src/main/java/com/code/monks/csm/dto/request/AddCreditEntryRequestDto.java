@@ -30,5 +30,5 @@ public class AddCreditEntryRequestDto {
 
     private Integer supplierId;
     private Integer customerId;
-    private int slipNumber;
+    private String slipNumber;
 }

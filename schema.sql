@@ -257,4 +257,8 @@ CHANGE cheque_number reference_number VARCHAR(100);
 ALTER TABLE credit
 CHANGE cheque_date reference_date DATE;
 
+ALTER TABLE credit
+MODIFY slip_number VARCHAR(30);
+
+
 
