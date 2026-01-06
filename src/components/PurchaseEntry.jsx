@@ -87,12 +87,6 @@ const PurchaseEntry = () => {
   };
 
 
-  const handleDateChange = (name, newValue) => {
-    const formatted = newValue ? dayjs(newValue).format("YYYY-MM-DD") : "";
-    setFormData((prev) => ({ ...prev, [name]: formatted }));
-    setErrors((prev) => ({ ...prev, [name]: validate(name, formatted) || "" }));
-  };
-
   const handleAmountChange = (e) => {
     const { name, value } = e.target;
     if (/^\d*\.?\d{0,2}$/.test(value)) {
@@ -297,8 +291,27 @@ const PurchaseEntry = () => {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Transaction Date"
-                  value={formData.date ? dayjs(formData.date) : null}
-                  onChange={(v) => handleDateChange("date", v)}
+                  format="DD-MM-YYYY"
+                  value={
+                    formData.date
+                      ? dayjs(formData.date, "YYYY-MM-DD")
+                      : null
+                  }
+                  onChange={(newValue) => {
+                    const formatted = newValue
+                      ? dayjs(newValue).format("YYYY-MM-DD")
+                      : "";
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      date: formatted,
+                    }));
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      date: validate("date", formatted) || "",
+                    }));
+                  }}
                   slotProps={{
                     textField: {
                       fullWidth: true,
@@ -325,7 +338,6 @@ const PurchaseEntry = () => {
                   />
                 )}
               />
-
               <CustomTextField
                 name="purchaseAmount"
                 label="Purchase Amount"

@@ -5,6 +5,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import AddNewStaff from "../modals/AddNewStaff";
 import DataTable from "./DataTable";
 import UniversalSearch from "./UniversalSearch";
+import dayjs from "dayjs";
 
 export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
@@ -51,26 +52,37 @@ export default function StaffDashboard() {
     joiningDate: "",
   });
 
-  const fetchStaffs = useCallback(async (uiPage = 1) => {
-    const backendPage = uiPage - 1;
-    setLoading(true);
-    try {
-      const data = await getStaffs(backendPage, rowsPerPage);
-      setStaffs(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalItems(data.totalElements || 0);
-      setCurrentPage(uiPage);
-      setIsSearchActive(false);
-      setSearchResults([]);
-    } catch (error) {
-      setStaffs([]);
-      setTotalPages(1);
-      setTotalItems(0);
-      showSnackbar(error.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [rowsPerPage]);
+ const fetchStaffs = useCallback(async (uiPage = 1) => {
+  const backendPage = uiPage - 1;
+  setLoading(true);
+  try {
+    const data = await getStaffs(backendPage, rowsPerPage);
+
+    const formatted = (data.content || []).map((s) => ({
+      ...s,
+      joiningDate: s.joiningDate
+        ? dayjs(s.joiningDate).isValid()
+          ? dayjs(s.joiningDate).format("DD-MM-YYYY")
+          : "-"
+        : "-",
+    }));
+
+    setStaffs(formatted);
+    setTotalPages(data.totalPages || 1);
+    setTotalItems(data.totalElements || 0);
+    setCurrentPage(uiPage);
+    setIsSearchActive(false);
+    setSearchResults([]);
+  } catch (error) {
+    setStaffs([]);
+    setTotalPages(1);
+    setTotalItems(0);
+    showSnackbar(error.message, "error");
+  } finally {
+    setLoading(false);
+  }
+}, [rowsPerPage]);
+
 
   useEffect(() => {
     fetchStaffs(1);

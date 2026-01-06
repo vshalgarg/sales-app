@@ -125,11 +125,17 @@ export default function AddNewStaff({
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="Joining Date *"
-              value={form.joiningDate ? dayjs(form.joiningDate) : null}
+              format="DD-MM-YYYY"
+              value={
+                form.joiningDate
+                  ? dayjs(form.joiningDate, "YYYY-MM-DD")
+                  : null
+              }
               onChange={(newValue) => {
                 const formatted = newValue
                   ? dayjs(newValue).format("YYYY-MM-DD")
                   : "";
+
                 handleFormChange("joiningDate", formatted);
               }}
               slotProps={{
@@ -142,6 +148,7 @@ export default function AddNewStaff({
               }}
             />
           </LocalizationProvider>
+
         </div>
 
         {/* Footer */}
