@@ -22,7 +22,7 @@ public class GetCreditEntries {
     private String remark;
     private Integer supplierId;
     private Integer customerId;
-    private int slipNumber;
+    private String slipNumber;
 
     public static GetCreditEntries convertToGetCreditEntries(CreditEntryEntity creditEntry){
         return GetCreditEntries.builder()
