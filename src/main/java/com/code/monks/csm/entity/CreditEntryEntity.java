@@ -47,8 +47,8 @@ public class CreditEntryEntity extends BaseEntity{
     @Column(name = "remark")
     private String remark;
 
-    @Column(name = "slip_number")
-    private int slipNumber;
+    @Column(name = "slip_number", length = 30)
+    private String slipNumber;
 
     @Column(name = "supplier_id")
     private int supplierId;
