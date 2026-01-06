@@ -77,6 +77,18 @@ export default function CreditEntryForm() {
     }
   };
 
+  const handleSlipNumberChange = (e) => {
+    const { value } = e.target;
+
+    //only digits allowed
+    if (/^\d*$/.test(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        slipNumber: value,
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -148,8 +160,7 @@ export default function CreditEntryForm() {
       setFilterObject({});
 
     } catch (error) {
-      showSnackbar("Error while saving bill entry", "error");
-      console.error(error);
+      showSnackbar(error.message, "error");
     } finally {
       setIsSaving(false);
     }
@@ -442,13 +453,17 @@ export default function CreditEntryForm() {
                   }}
                 />
               </LocalizationProvider>
-               {/* Slip Number (Optional) */}
-            <CustomTextField
-              name="slipNumber"
-              value={formData.slipNumber}
-              onChange={handleChange}
-              label="Slip Number (Optional)"
-            />
+              {/* Slip Number (Optional) */}
+              <CustomTextField
+                name="slipNumber"
+                value={formData.slipNumber}
+                onChange={handleSlipNumberChange}
+                label="Slip Number (Optional)"
+                inputProps={{
+                  inputMode: "numeric",
+                  pattern: "[0-9]*",
+                }}
+              />
             </div>
           </div>
 

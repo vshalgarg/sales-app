@@ -247,8 +247,7 @@ const BillEntry = () => {
         showSnackbar("Unexpected response", "error");
       }
     } catch (err) {
-      console.error(err);
-      showSnackbar("Error saving bill entry", "error");
+      showSnackbar(err.message,"error");
     }
     finally {
       setIsSaving(false);
