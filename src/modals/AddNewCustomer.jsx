@@ -418,7 +418,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                       // search NAME
                       getOptionLabel={(o) => o.name}
 
-                      //dropdown NAME + CITY
+                      // dropdown NAME + CITY
                       renderOption={(props, option) => (
                         <li {...props} key={option.id}>
                           {option.name} – {option.city}
@@ -427,22 +427,26 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
 
                       onChange={(e, values) => {
                         setSelectedTransports(values);
-                        setForm(prev => ({
+                        setForm((prev) => ({
                           ...prev,
-                          preferredTransportIds: values.map(v => v.id),
+                          preferredTransportIds: values.map((v) => v.id),
                         }));
-                        setErrors(prev => ({ ...prev, preferredTransportIds: "" }));
+                        setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
                       }}
 
                       renderTags={(value, getTagProps) =>
-                        value.map((option, index) => (
-                          <Chip
-                            {...getTagProps({ index })}
-                            key={option.id}
-                            label={option.name}
-                            size="small"
-                          />
-                        ))
+                        value.map((option, index) => {
+                          const { key, ...tagProps } = getTagProps({ index });
+
+                          return (
+                            <Chip
+                              key={key}
+                              label={option.name}
+                              size="small"
+                              {...tagProps}
+                            />
+                          );
+                        })
                       }
 
                       renderInput={(params) => (
@@ -453,7 +457,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         />
                       )}
                     />
-
                   </div>
 
                   {/* Remark */}

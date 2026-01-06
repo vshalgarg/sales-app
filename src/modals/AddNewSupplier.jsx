@@ -10,6 +10,7 @@ import SupplierService from "../service/SupplierService";
 import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
 import { sanitizePayload } from "../utils/sanitizePayload";
+import Chip from "@mui/material/Chip";
 
 
 
@@ -219,21 +220,21 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   };
 
 
- const resetForm = () => {
-  setForm({
-    ...Object.fromEntries(
-      Object.keys(form).map((key) => [
-        key,
-        Array.isArray(form[key]) ? [] : "",
-      ])
-    ),
-    contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
-    preferredTransportIds: [],
-  });
+  const resetForm = () => {
+    setForm({
+      ...Object.fromEntries(
+        Object.keys(form).map((key) => [
+          key,
+          Array.isArray(form[key]) ? [] : "",
+        ])
+      ),
+      contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+      preferredTransportIds: [],
+    });
 
-  setErrors({ contacts: [{}] });
-  setSelectedTransports([]);   // ✅ enough
-};
+    setErrors({ contacts: [{}] });
+    setSelectedTransports([]);
+  };
 
 
   return (
@@ -456,10 +457,8 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     filterSelectedOptions
                     isOptionEqualToValue={(o, v) => o.id === v.id}
 
-                    //  SEARCH
                     getOptionLabel={(o) => o.name}
 
-                    //DISPLAY NAME + CITY
                     renderOption={(props, option) => (
                       <li {...props} key={option.id}>
                         {option.name} – {option.city}
@@ -468,23 +467,26 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
 
                     onChange={(e, values) => {
                       setSelectedTransports(values);
-                      setForm(prev => ({
+                      setForm((prev) => ({
                         ...prev,
-                        preferredTransportIds: values.map(v => v.id),
+                        preferredTransportIds: values.map((v) => v.id),
                       }));
-                      setErrors(prev => ({ ...prev, preferredTransportIds: "" }));
+                      setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
                     }}
 
                     renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <span
-                          key={option.id}
-                          {...getTagProps({ index })}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm mr-1"
-                        >
-                          {option.name}
-                        </span>
-                      ))
+                      value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+
+                        return (
+                          <Chip
+                            key={key}
+                            label={option.name}
+                            size="small"
+                            {...tagProps}
+                          />
+                        );
+                      })
                     }
 
                     renderInput={(params) => (
@@ -497,7 +499,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                       />
                     )}
                   />
-
                   <CustomTextField
                     name="remark"
                     value={form.remark}

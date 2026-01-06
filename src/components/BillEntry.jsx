@@ -354,7 +354,7 @@ const BillEntry = () => {
   return (
    <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
-      <div className="bg-gray-50 w-full h-[87vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
+      <div className="bg-gray-50 w-full h-[91vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
 
         {/* Header */}
         <div className="px-6 py-3 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
@@ -459,7 +459,7 @@ const BillEntry = () => {
               <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
               <h3 className="text-lg font-semibold text-gray-800">Supplier Information</h3>
             </div>
-            <div className="grid grid-cols-4 gap-5 relative">
+            <div className="grid grid-cols-3 gap-5 relative">
               <div>
                 <Autocomplete
                   options={allSuppliers}
@@ -504,12 +504,6 @@ const BillEntry = () => {
               />
 
               <CustomTextField
-                value={formData.supplierMsme}
-                label="MSME"
-                InputProps={{ readOnly: true }}
-              />
-
-              <CustomTextField
                 value={formData.supplierGstNo}
                 label="GSTIN"
                 InputProps={{ readOnly: true }}
@@ -524,7 +518,7 @@ const BillEntry = () => {
               <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
               <h3 className="text-lg font-semibold text-gray-800">Customer Information</h3>
             </div>
-            <div className="grid grid-cols-4 gap-5 relative">
+            <div className="grid grid-cols-3 gap-5 relative">
               <div>
                 <Autocomplete
                   options={allCustomers}
@@ -565,12 +559,6 @@ const BillEntry = () => {
               <CustomTextField
                 value={formData.customerGroup}
                 label="Customer Group"
-                InputProps={{ readOnly: true }}
-              />
-
-              <CustomTextField
-                value={formData.customerMsme}
-                label="MSME"
                 InputProps={{ readOnly: true }}
               />
 
@@ -724,7 +712,7 @@ const BillEntry = () => {
                     renderInput={(params) => (
                       <CustomTextField
                         {...params}
-                        label="Transport *"
+                        //label="Transport"
                       // error={!!errors.transport}
                       // helperText={errors.transport || "Search transport"}
                       />

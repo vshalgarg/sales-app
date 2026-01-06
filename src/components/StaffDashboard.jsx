@@ -26,25 +26,21 @@ export default function StaffDashboard() {
 
 
   const columns = [
-    {
-      key: "staffId",
-      label: "Staff ID",
-      width: "15%",
-    },
+
     {
       key: "staffName",
       label: "Staff Name",
-      width: "30%",
+      width: "40%",
     },
     {
       key: "phone",
       label: "Phone",
-      width: "20%",
+      width: "30%",
     },
     {
       key: "joiningDate",
       label: "Joining Date",
-      width: "20%",
+      width: "30%",
     },
   ];
 
