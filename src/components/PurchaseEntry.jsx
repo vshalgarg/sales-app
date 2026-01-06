@@ -24,7 +24,7 @@ const PurchaseEntry = () => {
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
-const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
 
 
@@ -140,7 +140,7 @@ const [selectedCustomer, setSelectedCustomer] = useState(null);
       showSnackbar(response.message || "Purchase entry saved", "success");
       handleReset();
     } catch (error) {
-      showSnackbar("Error saving purchase entry", "error");
+      showSnackbar(error.message, "error");
       console.error(error);
     }
     finally {

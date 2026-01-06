@@ -6,7 +6,7 @@ export const addCreditEntry = async (formData) => {
     const response = await api.post(`/credit/entry/add`, formData);
     const result = checkLogicalError(response.data);
     return result;
-  } catch (checkLogicalError) {
+  } catch (error) {
       throw new Error(handleApiError(error));
   }
 };
