@@ -94,14 +94,14 @@ export default function Navbar({activeSection, onSectionChange }) {
                 onClick={toggleTheme}
                 className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-800 dark:text-white"
               >
-                {theme === "light" ? (
+                {/* {theme === "light" ? (
                   <MoonStar className="w-4 h-4" />
                 ) : (
                   <SunMedium className="w-4 h-4 text-yellow-400" />
-                )}
-                <span className="ml-2">
+                )} */}
+                {/* <span className="ml-2">
                   {theme === "light" ? "Dark Mode" : "Light Mode"}
-                </span>
+                </span> */}
               </button>
 
               {/*Profile */}
@@ -142,10 +142,6 @@ export default function Navbar({activeSection, onSectionChange }) {
               
               <p>
                 <strong>Username:</strong> {name || "Not available"}
-              </p>
-              
-              <p>
-                <strong>Date of Creation:</strong>
               </p>
             </div>
 
