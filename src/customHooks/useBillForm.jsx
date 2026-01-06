@@ -63,7 +63,7 @@ export const useBillForm = () => {
   const initialFormData = {
     customerId: "",
     supplierId: "",
-    date: dayjs().format("YYYY-MM-DD"),
+    date: dayjs().format("DD-MM-YYYY"),
     receivedDate: "",
     order: "",
     supplierName: "",
@@ -176,11 +176,33 @@ export const useBillForm = () => {
   }, []);
 
   // 🔹 Handlers
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
-  };
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  let finalValue = value;
+
+  // 🔹 Order & LR Number: only alphanumeric
+  if (name === "order" || name === "lrNumber") {
+    finalValue = value.replace(/[^a-zA-Z0-9]/g, "");
+  }
+
+  setFormData(prev => ({
+    ...prev,
+    [name]: finalValue,
+  }));
+
+    if (
+    name === "order" ||
+    name === "lrNumber"
+  ) {
+    return;
+  }
+    setErrors(prev => ({
+    ...prev,
+    [name]: validate(name, finalValue) || "",
+  }));
+};
+
 
   const handleReset = () => {
     setFormData(initialFormData);
@@ -378,7 +400,7 @@ export const useBillForm = () => {
     return [];
   };
 
-   useEffect(() => {
+  useEffect(() => {
     const gross = parseFloat(formData.grossAmount) || 0;
     const discPercent = parseFloat(formData.discountPercent) || 0;
     const addOn = parseFloat(formData.addOnAmount) || 0;
@@ -387,13 +409,13 @@ export const useBillForm = () => {
 
     const discountAmount =
       gross && discPercent ? (gross * discPercent) / 100 : "";
-      
-      const taxableValue =
+
+    const taxableValue =
       gross || discPercent || addOn || ecr
         ? gross - (gross * discPercent) / 100 + addOn + ecr
         : "";
 
-      const gstAmount =
+    const gstAmount =
       taxableValue && gstPercent
         ? (parseFloat(taxableValue) * gstPercent) / 100
         : "";
