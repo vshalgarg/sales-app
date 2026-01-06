@@ -14,28 +14,30 @@ public class GetCreditEntries {
     private CreditEntryEnum paymentType;
     private String billNumber;
     private LocalDate date;
-    private String chequeNumber;
-    private LocalDate chequeDate;
+    private String referenceNumber;
+    private LocalDate referenceDate;
     private Double receivedAmount;
     private Double supplierCurrentBalance;
     private Double customerCurrentBalance;
     private String remark;
     private Integer supplierId;
     private Integer customerId;
+    private int slipNumber;
 
     public static GetCreditEntries convertToGetCreditEntries(CreditEntryEntity creditEntry){
         return GetCreditEntries.builder()
                 .paymentType(creditEntry.getPaymentType())
                 .billNumber(creditEntry.getBillNumber())
                 .date(creditEntry.getDate())
-                .chequeNumber(creditEntry.getChequeNumber())
-                .chequeDate(creditEntry.getChequeDate())
+                .referenceNumber(creditEntry.getReferenceNumber())
+                .referenceDate(creditEntry.getReferenceDate())
                 .receivedAmount(creditEntry.getReceivedAmount() / 100.0)
                 .supplierCurrentBalance(creditEntry.getSupplierCurrentBalance() / 100.0)
                 .customerCurrentBalance(creditEntry.getCustomerCurrentBalance() / 100.0)
                 .remark(creditEntry.getRemark())
                 .supplierId(creditEntry.getSupplierId())
                 .customerId(creditEntry.getCustomerId())
+                .slipNumber(creditEntry.getSlipNumber())
                 .build();
     }
 

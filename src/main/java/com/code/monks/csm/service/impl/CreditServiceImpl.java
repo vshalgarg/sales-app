@@ -51,14 +51,14 @@ public class CreditServiceImpl implements CreditService {
         try {
             if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE) {
 
-                if (requestDto.getChequeNumber() == null || requestDto.getChequeNumber().isBlank()) {
+                if (requestDto.getReferenceNumber() == null || requestDto.getReferenceNumber().isBlank()) {
                     throw new CreditException(
                             INVALID_REQUEST,
                             "Cheque number is required for CHEQUE payment"
                     );
                 }
 
-                if (requestDto.getChequeDate() == null) {
+                if (requestDto.getReferenceDate() == null) {
                     throw new CreditException(
                             INVALID_REQUEST,
                             "Cheque date is required for CHEQUE payment"
@@ -75,7 +75,7 @@ public class CreditServiceImpl implements CreditService {
 
             // Cheque number duplicate → ONLY FOR CHEQUE
             if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE &&
-                    creditEntryRepo.existsByChequeNumber(requestDto.getChequeNumber())) {
+                    creditEntryRepo.existsByReferenceNumber(requestDto.getReferenceNumber())) {
 
                 errorMessages.add("Cheque number already exists");
             }
@@ -200,8 +200,8 @@ public class CreditServiceImpl implements CreditService {
                 .paymentType(entity.getPaymentType())
                 .billNumber(entity.getBillNumber())
                 .date(entity.getDate())
-                .chequeNumber(entity.getChequeNumber())
-                .chequeDate(entity.getChequeDate())
+                .referenceNumber(entity.getReferenceNumber())
+                .referenceDate(entity.getReferenceDate())
                 .receivedAmount(entity.getReceivedAmount())
 
                 // ✅ Names only if entities exist

@@ -15,13 +15,14 @@ public class AddCreditEntryResponseDto {
         entity.setPaymentType(dto.getPaymentType());
         entity.setBillNumber(dto.getBillNumber());
         entity.setDate(dto.getDate());
-        entity.setChequeNumber(dto.getChequeNumber());
-        entity.setChequeDate(dto.getChequeDate());
+        entity.setReferenceNumber(dto.getReferenceNumber());
+        entity.setReferenceDate(dto.getReferenceDate());
         entity.setReceivedAmount(Math.round(dto.getReceivedAmount() * 100));
         entity.setDrawType(dto.getDrawType());
         entity.setRemark(dto.getRemark());
         entity.setSupplierId(dto.getSupplierId());
         entity.setCustomerId(dto.getCustomerId());
+        entity.setSlipNumber(dto.getSlipNumber());
         return entity;
     }
 }
