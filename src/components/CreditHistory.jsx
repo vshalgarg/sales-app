@@ -30,7 +30,7 @@ const CreditHistory = ({ initialCreditHistory, creditFiltersApplied }) => {
               <th className="px-6 py-3">Payment Type</th>
               <th className="px-6 py-3">Supplier</th>
               <th className="px-6 py-3">Customer</th>
-              <th className="px-6 py-3">Cheque Number</th>
+              <th className="px-6 py-3">Reference Number</th>
               <th className="px-6 py-3">Received Amount</th>
               <th className="px-6 py-3">Actions</th>
             </tr>
@@ -47,7 +47,7 @@ const CreditHistory = ({ initialCreditHistory, creditFiltersApplied }) => {
                   <td className="px-6 py-2">{h.paymentType}</td>
                   <td className="px-6 py-2">{h.supplierName}</td>
                   <td className="px-6 py-2">{h.customerName}</td>
-                  <td className="px-6 py-2">{h.chequeNumber}</td>
+                  <td className="px-6 py-2">{h.referenceNumber}</td>
                   <td className="px-6 py-2">{h.receivedAmount}</td>
                   <td className="px-6 py-2 relative">
                     <button

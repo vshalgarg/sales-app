@@ -70,7 +70,7 @@ const validate = (field, value) => {
         error = "Invalid GST Number format.";
       }
       break;
-      
+
     case "supplierGstNo":
       if (!value || value.trim() === "") {
         error = "";
@@ -95,14 +95,14 @@ const validate = (field, value) => {
       }
       break;
 
-      case "pinCode":
-  if (!value || value.trim() === "") {
-    return "Pin Code is required";
-  }
-  if (!/^\d{6}$/.test(value)) {
-    return "Pin Code must be exactly 6 digits";
-  }
-  return "";
+    case "pinCode":
+      if (!value || value.trim() === "") {
+        return "Pin Code is required";
+      }
+      if (!/^\d{6}$/.test(value)) {
+        return "Pin Code must be exactly 6 digits";
+      }
+      return "";
 
 
     case "addressLine1":
@@ -171,10 +171,12 @@ const validate = (field, value) => {
       }
       break;
     case "order":
-      if (!value.trim() || !value || value.length === 0) {
-        error = "Order is required";
+      if (!value?.trim()) return "Order is required";
+      if (!/^[a-zA-Z0-9]+$/.test(value)) {
+        return "Order can contain only letters and numbers";
       }
-      break;
+      return "";
+
 
     case "grossAmount":
       if (!value || value.length === 0) {
@@ -223,6 +225,27 @@ const validate = (field, value) => {
         error = "Purchase Amount is required";
       }
       break;
+
+
+    case "referenceNumber":
+      if (!value || !value.trim()) {
+        error = "Reference Number is required";
+        break;
+      }
+
+      // Allow alphanumeric + - /
+      if (!/^[a-zA-Z0-9/-]+$/.test(value)) {
+        error =
+          "Reference Number can contain only letters, numbers, / or -";
+      }
+      break;
+
+    case "referenceDate":
+      if (!value || !value.trim()) {
+        error = "Reference Date is required";
+      }
+      break;
+
 
     default:
       break;

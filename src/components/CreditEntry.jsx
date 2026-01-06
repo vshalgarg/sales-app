@@ -26,12 +26,12 @@ export default function CreditEntryForm() {
     paymentType: "",
     billNumber: "",
     date: dayjs().format("YYYY-MM-DD"),
-    chequeNumber: "",
-    chequeDate: "",
+    referenceNumber: "",
+    referenceDate: "",
     receivedAmount: "",
     supplierId: "",
     customerId: "",
-    //slipNumber: "",
+    slipNumber: "",
     drawType: "",
     remark: "",
   });
@@ -68,55 +68,6 @@ export default function CreditEntryForm() {
 
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (formData.paymentType !== "CHEQUE") {
-      setFormData(prev => ({
-        ...prev,
-        chequeNumber: "",
-        chequeDate: ""
-      }));
-
-      setErrors(prev => ({
-        ...prev,
-        chequeNumber: "",
-        chequeDate: ""
-      }));
-    }
-  }, [formData.paymentType]);
-
-
-  const handleSupplierSelect = (event, value) => {
-    if (value) {
-      setFormData(prev => ({
-        ...prev,
-        supplierId: value.id
-      }));
-      setErrors(prev => ({ ...prev, supplierName: "" }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        supplierId: "",
-        supplierName: "",
-      }));
-    }
-  };
-
-  const handleCustomerSelect = (event, value) => {
-    if (value) {
-      setFormData(prev => ({
-        ...prev,
-        customerId: value.id,
-      }));
-      setErrors(prev => ({ ...prev, customerName: "" }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        customerId: "",
-        customerName: "",
-      }));
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -212,9 +163,9 @@ export default function CreditEntryForm() {
     setFormData({
       paymentType: "",
       billNumber: "",
-      chequeNumber: "",
+      referenceNumber: "",
       date: dayjs().format("YYYY-MM-DD"),
-      chequeDate: "",
+      referenceDate: "",
       receivedAmount: "",
       supplierId: "",
       customerId: "",
@@ -277,7 +228,7 @@ export default function CreditEntryForm() {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
-      <div className="bg-gray-50 w-full h-[87vh] flex flex-col">
+      <div className="bg-gray-50 w-full h-[91vh] flex flex-col">
         {/* Header */}
         <div className="px-6 py-3 border-b border-gray-200 shrink-0
                 bg-gray-50">
@@ -404,7 +355,7 @@ export default function CreditEntryForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Payment Mode */}
               <BasicSelect
                 name="paymentType"
@@ -446,6 +397,35 @@ export default function CreditEntryForm() {
                 }}
               />
 
+              {/* Reference Number (Cheque / UPI / NEFT) */}
+              <CustomTextField
+                name="referenceNumber"
+                value={formData.referenceNumber}
+                onChange={handleChange}
+                label="Reference Number"
+                error={!!errors.referenceNumber}
+                helperText={errors.referenceNumber || "Cheque / UPI / NEFT reference"}
+              />
+
+              {/* Reference Date */}
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Reference Date"
+                  value={formData.referenceDate ? dayjs(formData.referenceDate) : null}
+                  onChange={(newValue) =>
+                    handleDateChange("referenceDate", newValue)
+                  }
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      error: !!errors.referenceDate,
+                      helperText: errors.referenceDate || "",
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+
               {/* Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
@@ -462,49 +442,15 @@ export default function CreditEntryForm() {
                   }}
                 />
               </LocalizationProvider>
+               {/* Slip Number (Optional) */}
+            <CustomTextField
+              name="slipNumber"
+              value={formData.slipNumber}
+              onChange={handleChange}
+              label="Slip Number (Optional)"
+            />
             </div>
           </div>
-
-          {/* Cheque Details Card */}
-          {formData.paymentType === "CHEQUE" && (
-            <div className="border border-purple-300 bg-purple-50 p-6 rounded-xl">
-              <div className="flex items-start mb-4">
-                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full mr-3"></div>
-                <h4 className="font-semibold text-purple-700">
-                  Cheque Details
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <CustomTextField
-                  name="chequeNumber"
-                  label="Cheque Number"
-                  value={formData.chequeNumber}
-                  onChange={handleChange}
-                  error={!!errors.chequeNumber}
-                  helperText={errors.chequeNumber || ""}
-                />
-
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="Cheque Date"
-                    value={formData.chequeDate ? dayjs(formData.chequeDate) : null}
-                    onChange={(newValue) =>
-                      handleDateChange("chequeDate", newValue)
-                    }
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        size: "small",
-                        error: !!errors.chequeDate,
-                        helperText: errors.chequeDate || "",
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-              </div>
-            </div>
-          )}
 
           {/* Additional Information */}
           <div className="border border-gray-200 p-6 rounded-xl bg-white">

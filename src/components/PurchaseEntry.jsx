@@ -86,35 +86,6 @@ const [selectedCustomer, setSelectedCustomer] = useState(null);
     }
   };
 
-  const handleSupplierSelect = (event, value) => {
-    if (value) {
-      setFormData((prev) => ({
-        ...prev,
-        supplierId: value.id,
-      }));
-      setErrors((prev) => ({ ...prev, supplierName: "" }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        supplierId: "",
-      }));
-    }
-  };
-
-  const handleCustomerSelect = (event, value) => {
-    if (value) {
-      setFormData((prev) => ({
-        ...prev,
-        customerId: value.id,
-      }));
-      //setErrors((prev) => ({ ...prev, customerName: "" }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        customerId: "",
-      }));
-    }
-  };
 
   const handleDateChange = (name, newValue) => {
     const formatted = newValue ? dayjs(newValue).format("YYYY-MM-DD") : "";
@@ -207,10 +178,9 @@ const resetCustomer = () => {
   }));
 };
 
-
   return (
   <div className="flex flex-col h-full overflow-y-auto">
-    <div className="bg-gray-50 w-full h-[87vh] flex flex-col">
+    <div className="bg-gray-50 w-full h-[91vh] flex flex-col">
 
       {/* Header */}
       <div className="px-6 py-3 border-b border-gray-200 shrink-0 bg-gray-50">
