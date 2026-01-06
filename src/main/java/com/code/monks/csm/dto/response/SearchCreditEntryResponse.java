@@ -30,7 +30,7 @@ public class SearchCreditEntryResponse {
 
     private long customerCurrentBalance;
 
-    private int slipNumber;
+    private String slipNumber;
 
     private DrawTypeEnum drawType;
 
