@@ -31,11 +31,8 @@ public class BillEntryEntity extends BaseEntity{
     @Column(name = "bill_amount")
     private double billAmount;
 
-    @Column(name = "transport_id")
-    private Integer transportId;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transport_id", insertable = false, updatable = false)
+    @JoinColumn(name = "transport_id")
     private TransportEntity transportEntity;
 
     private String lrNumber;

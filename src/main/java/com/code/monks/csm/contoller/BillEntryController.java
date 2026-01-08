@@ -61,8 +61,8 @@ public class BillEntryController {
     public ResponseEntity<PagedResponseDto<SearchBillEntryResponse>> getBillHistory(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-            @RequestParam(required = false) String supplierName,
-            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) Integer supplierId,
+            @RequestParam(required = false) Integer customerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size) {
 
@@ -74,8 +74,8 @@ public class BillEntryController {
         PagedResponseDto<SearchBillEntryResponse> history = billService.searchBillHistory(
                 fromDate,
                 toDate,
-                supplierName,
-                customerName,
+                supplierId,
+                customerId,
                 page,
                 size
         );

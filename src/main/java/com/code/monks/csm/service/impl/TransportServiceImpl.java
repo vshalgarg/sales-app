@@ -170,7 +170,6 @@ public class TransportServiceImpl implements TransportService {
     }
 
     @Override
-    @Transactional
     public TransportEntity getOrCreateTransport(String transportName) {
         if (transportName == null || transportName.trim().isEmpty()) {
             return null;

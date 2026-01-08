@@ -32,4 +32,9 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer> {
 
     boolean existsByLrNumber(String lrNumber);
 
+    Page<BillEntryEntity> findByDateBetweenAndSupplierIdAndCustomerId(LocalDate fromDate, LocalDate toDate, Integer supplierId, Integer customerId, Pageable pageable);
+
+    Page<BillEntryEntity> findByDateBetweenAndSupplierId(LocalDate fromDate, LocalDate toDate, Integer supplierId, Pageable pageable);
+
+    Page<BillEntryEntity> findByDateBetweenAndCustomerId(LocalDate fromDate, LocalDate toDate, Integer customerId, Pageable pageable);
 }

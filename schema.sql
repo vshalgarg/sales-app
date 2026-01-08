@@ -261,4 +261,13 @@ ALTER TABLE credit
 MODIFY slip_number VARCHAR(30);
 
 
+ALTER TABLE bill
+ADD INDEX idx_bill_date (date),
+ADD INDEX idx_bill_supplier (supplier_id),
+ADD INDEX idx_bill_customer (customer_id);
+
+ALTER TABLE bill
+MODIFY remarks VARCHAR(255);
+
+
 

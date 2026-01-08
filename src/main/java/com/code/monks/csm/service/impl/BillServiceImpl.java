@@ -5,11 +5,9 @@ import com.code.monks.csm.dto.request.BillUpdateRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.*;
 import com.code.monks.csm.exception.BillException;
-import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
-import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.BillService;
 import com.code.monks.csm.service.TransportService;
 import com.code.monks.csm.utils.ValidatorUtil;
@@ -25,11 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
@@ -48,21 +43,22 @@ public class BillServiceImpl implements BillService {
     private final SupplierRepo supplierRepo;
     private final TransportService transportService;
 
+    @Transactional
     public BillEntryResponseDto addBill(BillEntryRequestDto requestDto) {
         log.info("addBill() called with items: {}", requestDto);
 
         checkLrNumberDuplicate(requestDto.getLrNumber());
 
         String billNumber = generateBillNumber();
-        String transportName = requestDto.getTransport();
-
+        String transportName = requestDto.getTransportName();
         try {
             BillEntryEntity header = new BillEntryEntity();
             if (transportName != null && !transportName.trim().isEmpty()) {
-                TransportEntity transport = transportService.getOrCreateTransport(transportName.trim());
-                header.setTransportId(transport.getId());
+                TransportEntity transport =
+                        transportService.getOrCreateTransport(transportName.trim());
+                header.setTransportEntity(transport);
             } else {
-                header.setTransportId(null);
+                header.setTransportEntity(null);
             }
             header.setBillNumber(billNumber);
             header.setDate(requestDto.getDate());
@@ -208,18 +204,20 @@ public class BillServiceImpl implements BillService {
             String newName = request.getTransport().trim();
 
             if (newName.isEmpty()) {
-                bill.setTransportId(null);
+                bill.setTransportEntity(null);
             } else {
                 TransportEntity transport = transportService
                         .findByNameIgnoreCase(newName)
                         .orElseThrow(() ->
-                                new BillException(TRANSPORT_NOT_FOUND, "Transport does not exist: " + newName)
+                                new BillException(
+                                        TRANSPORT_NOT_FOUND,
+                                        "Transport does not exist: " + newName
+                                )
                         );
 
-                bill.setTransportId(transport.getId());
+                bill.setTransportEntity(transport);
             }
         }
-
         if (request.getLrNumber() != null) {
             bill.setLrNumber(request.getLrNumber());
         }
@@ -263,89 +261,61 @@ public class BillServiceImpl implements BillService {
     public PagedResponseDto<SearchBillEntryResponse> searchBillHistory(
             LocalDate fromDate,
             LocalDate toDate,
-            String supplierName,
-            String customerName,
+            Integer supplierId,
+            Integer customerId,
             int page,
             int size) {
 
-        log.info("SearchBillHistory called with fromDate={}, toDate={}, supplierName='{}', customerName='{}', page={}, size={}",
-                fromDate, toDate, supplierName, customerName, page, size);
+        log.info(
+                "SearchBillHistory fromDate={}, toDate={}, supplierId={}, customerId={}, page={}, size={}",
+                fromDate, toDate, supplierId, customerId, page, size
+        );
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("date", "id").descending()); // sorting by date desc
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date", "id").descending()); // sorting by date desc
         Page<BillEntryEntity> billRecords;
 
-        Integer customerId = null;
-        if (customerName != null && !customerName.isEmpty()) {
-            CustomerEntity customerEntity = customerRepo.findByCustomerName(customerName);
-            if (customerEntity != null) {
-                customerId = customerEntity.getId();
-                log.info("Customer entity found: {} with ID={}", customerEntity.getCustomerName(), customerId);
-            } else {
-                log.warn("No customer found with name '{}'", customerName);
-            }
-        } else {
-            log.info("Customer name not provided");
-        }
-
-        Integer supplierId = null;
-        if (supplierName != null && !supplierName.isEmpty()) {
-            SupplierEntity supplierEntity = supplierRepo.findBySupplierName(supplierName);
-            if (supplierEntity != null) {
-                supplierId = supplierEntity.getId();
-                log.info("Supplier entity found: {} with ID={}", supplierEntity.getSupplierName(), supplierId);
-            } else {
-                log.warn("No supplier found with name '{}'", supplierName);
-            }
-        } else {
-            log.info("Supplier name not provided");
-        }
-
-        System.out.println("Resolved IDs -> Supplier ID: " + supplierId + ", Customer ID: " + customerId);
-
-        // Determine which branch to take
         if (supplierId != null && customerId != null) {
-            log.info("Fetching bills for both Supplier ID={} and Customer ID={}", supplierId, customerId);
-            billRecords = billRepo.findByDateBetweenAndSupplierIdEqualsAndCustomerIdEquals(
-                    fromDate, toDate, supplierId, customerId, pageable
-            );
+
+            billRecords =
+                    billRepo.findByDateBetweenAndSupplierIdAndCustomerId(
+                            fromDate, toDate, supplierId, customerId, pageable
+                    );
+
         } else if (supplierId != null) {
-            log.info("Fetching bills for Supplier ID={}", supplierId);
-            billRecords = billRepo.findByDateBetweenAndSupplierIdEquals(
-                    fromDate, toDate, supplierId, pageable
-            );
+
+            billRecords =
+                    billRepo.findByDateBetweenAndSupplierId(
+                            fromDate, toDate, supplierId, pageable
+                    );
+
         } else if (customerId != null) {
-            log.info("Fetching bills for Customer ID={}", customerId);
-            billRecords = billRepo.findByDateBetweenAndCustomerIdEquals(
-                    fromDate, toDate, customerId, pageable
-            );
+
+            billRecords =
+                    billRepo.findByDateBetweenAndCustomerId(
+                            fromDate, toDate, customerId, pageable
+                    );
+
         } else {
-            log.info("Fetching bills for all suppliers and customers");
-            billRecords = billRepo.findByDateBetween(
-                    fromDate, toDate, pageable
-            );
+
+            billRecords =
+                    billRepo.findByDateBetween(
+                            fromDate, toDate, pageable
+                    );
         }
 
-        log.info("Fetched {} bill records", billRecords.getTotalElements());
-
-        // Convert entities to response DTOs
-        List<SearchBillEntryResponse> content = billRecords.getContent()
-                .stream()
-                .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
-
-        log.info("Returning page {} of {} (page size {}), isLast={}",
-                billRecords.getNumber() + 1,
-                billRecords.getTotalPages(),
-                billRecords.getSize(),
-                billRecords.isLast());
+        List<SearchBillEntryResponse> content =
+                billRecords.getContent()
+                        .stream()
+                        .map(this::convertToResponseDto)
+                        .toList();
 
         return new PagedResponseDto<>(
                 content,
-                billRecords.getNumber() + 1,        // current page (1-based)
-                billRecords.getSize(),              // page size
-                billRecords.getTotalElements(),     // total records
-                billRecords.getTotalPages(),        // total pages
-                billRecords.isLast()                // last page?
+                billRecords.getNumber(),
+                billRecords.getSize(),
+                billRecords.getTotalElements(),
+                billRecords.getTotalPages(),
+                billRecords.isLast()
         );
     }
 
