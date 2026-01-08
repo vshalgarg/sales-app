@@ -12,24 +12,21 @@ export const addCreditEntry = async (formData) => {
 };
 
 export const searchCreditHistory = async (
-  data,
-  supplierId,
-  customerId,
+  filterObject,
   page,
   rowsPerPage
 ) => {
-  const { fromDate, toDate } = data;
-  const size = rowsPerPage;
+  const { fromDate, toDate, supplierId, customerId } = filterObject;
   try {
     const response = await api.get(`/credit/entries/search`, {
       params: {
-        fromDate,
-        toDate,
-        supplierId,
-        customerId,
-        page,
-        size,
-      },
+      fromDate,
+      toDate,
+      supplierId: supplierId ?? null,
+      customerId: customerId ?? null,
+      page,
+      size: rowsPerPage,
+    },
     });
     const result = checkLogicalError(response.data);
     return result;

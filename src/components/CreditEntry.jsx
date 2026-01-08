@@ -199,7 +199,7 @@ const handleBillNumberChange = (e) => {
 
 const handleReferenceNumberChange = (e) => {
   const raw = e.target.value;
-  const sanitized = raw.replace(/[^a-zA-Z0-9/-]/g, "");
+  const sanitized = raw.replace(/[^a-zA-Z0-9-]/g, "");
 
   setFormData((prev) => ({
     ...prev,
@@ -218,9 +218,7 @@ const handleReferenceNumberChange = (e) => {
   }));
 };
 
-
-
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isSaving) return;

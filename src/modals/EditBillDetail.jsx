@@ -9,39 +9,88 @@ import validate from "../validations/Validation";
 import { useSnackbar } from "../context/SnackbarContext";
 import { updateBillApi, searchTransports } from "../service/BillService";
 import { Trash2 } from "lucide-react";
+import SupplierService from "../service/SupplierService";
+import CustomerService from "../service/CustomerService";
+import TransportService from "../service/TransportService";
+import Autocomplete from "@mui/material/Autocomplete";
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
   const { showSnackbar } = useSnackbar();
-  const [transportSuggestions, setTransportSuggestions] = useState([]);
-  const [isTransportDropdownOpen, setIsTransportDropdownOpen] = useState(false);
-  const [transportLoading, setTransportLoading] = useState(false);
-  const transportTimeout = useRef(null);
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [pendingTransportName, setPendingTransportName] = useState("");
+  // ===== OPTIONS =====
+  const [allSuppliers, setAllSuppliers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [allTransports, setAllTransports] = useState([]);
+
+  // ===== SELECTED =====
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedTransport, setSelectedTransport] = useState(null);
+
+  // ===== LOADING =====
+  const [loading, setLoading] = useState({
+    supplier: false,
+    customer: false,
+    transport: false,
+  });
+
 
   const {
     formData,
     setFormData,
     errors,
     setErrors,
-    suggestions,
-    custSuggestions,
-    isDropdownOpen,
-    isCustDropdownOpen,
-    setIsDropdownOpen,
-    setIsCustDropdownOpen,
-    handleSupplierInput,
-    handleSupplierSuggestionClick,
-    handleCustomerInput,
-    handleCustomerSuggestionClick,
     searchRef,
     custSearchRef,
     transportSearchRef,
-    getActiveTransports,
   } = useBillForm();
 
-  // Items jo edit honge
   const [items, setItems] = useState([]);
+
+
+  useEffect(() => {
+    const loadMasterData = async () => {
+      try {
+        setLoading({ supplier: true, customer: true, transport: true });
+
+        const [suppliers, customers, transports] = await Promise.all([
+          SupplierService.getAllSuppliers(),
+          CustomerService.getAllCustomers(),
+          TransportService.getAllTransports(),
+        ]);
+
+        setAllSuppliers(suppliers || []);
+        setAllCustomers(customers || []);
+        setAllTransports(transports || []);
+
+      } catch (e) {
+        showSnackbar("Failed to load master data", "error");
+      } finally {
+        setLoading({ supplier: false, customer: false, transport: false });
+      }
+    };
+
+    loadMasterData();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedBillDetail) return;
+
+    setSelectedSupplier(
+      allSuppliers.find(s => s.id === selectedBillDetail.supplierId) || null
+    );
+
+    setSelectedCustomer(
+      allCustomers.find(c => c.id === selectedBillDetail.customerId) || null
+    );
+
+    setSelectedTransport(
+      allTransports.find(t => t.name === selectedBillDetail.transport) || null
+    );
+
+  }, [selectedBillDetail, allSuppliers, allCustomers, allTransports]);
+
 
   // Load data when modal opens
   useEffect(() => {
@@ -98,34 +147,6 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     }));
   }, [items, setFormData]);
 
-  const handleTransportInput = (e) => {
-    const value = e.target.value;
-    setFormData(prev => ({ ...prev, transport: value }));
-
-    if (transportTimeout.current) {
-      clearTimeout(transportTimeout.current);
-    }
-
-    transportTimeout.current = setTimeout(async () => {
-      if (!value || value.trim().length < 1) {
-        setTransportSuggestions([]);
-        setIsTransportDropdownOpen(false);
-        return;
-      }
-
-      setTransportLoading(true);
-      try {
-        const results = await searchTransports(value);
-        setTransportSuggestions(results);
-        setIsTransportDropdownOpen(results.length > 0);
-      } catch (err) {
-        console.error("Transport search failed", err);
-        setTransportSuggestions([]);
-      } finally {
-        setTransportLoading(false);
-      }
-    }, 300);
-  };
 
   // Handle inline editing of any item field
   const handleItemChange = (index, field, value) => {
@@ -220,11 +241,17 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Date"
-                value={formData.date ? dayjs(formData.date) : null}
+                format="DD-MM-YYYY"
+                value={
+                  formData.date
+                    ? dayjs(formData.date, "YYYY-MM-DD")
+                    : null
+                }
                 onChange={(newValue) => {
                   const formatted = newValue
                     ? dayjs(newValue).format("YYYY-MM-DD")
                     : "";
+
                   setFormData((prev) => ({ ...prev, date: formatted }));
                   setErrors((prev) => ({
                     ...prev,
@@ -241,16 +268,21 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                 }}
               />
             </LocalizationProvider>
+
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Received Date"
+                format="DD-MM-YYYY"
                 value={
-                  formData.receivedDate ? dayjs(formData.receivedDate) : null
+                  formData.receivedDate
+                    ? dayjs(formData.receivedDate, "YYYY-MM-DD")
+                    : null
                 }
                 onChange={(newValue) => {
                   const formatted = newValue
                     ? dayjs(newValue).format("YYYY-MM-DD")
                     : "";
+
                   setFormData((prev) => ({
                     ...prev,
                     receivedDate: formatted,
@@ -260,16 +292,15 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                     receivedDate: validate("receivedDate", formatted),
                   }));
                 }}
-                slotProps={{
+                 slotProps={{
                   textField: {
                     size: "small",
                     fullWidth: true,
-                    error: !!errors.receivedDate,
-                    helperText: errors.receivedDate || "",
                   },
                 }}
               />
             </LocalizationProvider>
+
             <CustomTextField
               name="order"
               value={formData.order}
@@ -284,35 +315,31 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
           <h3 className="text-lg font-semibold mb-3">Supplier Information</h3>
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div ref={searchRef} className="relative w-full">
-              <CustomTextField
-                name="supplierName"
-                value={formData.supplierName}
-                onChange={handleSupplierInput}
-                onFocus={() => {
-                  if (
-                    formData.supplierName.length > 1 &&
-                    suggestions.length > 0
-                  ) {
-                    setIsDropdownOpen(true);
-                  }
+              <Autocomplete
+                options={allSuppliers}
+                value={selectedSupplier}
+                loading={loading.supplier}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) =>
+                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                }
+                onChange={(e, value) => {
+                  setSelectedSupplier(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    supplierId: value ? value.id : null
+                  }));
+                  setErrors(prev => ({ ...prev, supplierName: "" }));
                 }}
-                label="Supplier"
-                error={!!errors.supplierName}
-                helperText={errors.supplierName || ""}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Supplier"
+                    error={!!errors.supplierName}
+                    helperText={errors.supplierName || ""}
+                  />
+                )}
               />
-              {isDropdownOpen && suggestions.length > 0 && (
-                <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
-                  {suggestions.map((s, idx) => (
-                    <li
-                      key={idx}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleSupplierSuggestionClick(s)}
-                    >
-                      {s.supplierName}
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
             <CustomTextField
               name="supplierGroup"
@@ -347,36 +374,31 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
           <h3 className="text-lg font-semibold mb-3">Customer Information</h3>
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div ref={custSearchRef} className="relative w-full">
-              <CustomTextField
-                name="customerName"
-                value={formData.customerName}
-                onChange={handleCustomerInput}
-                onFocus={() => {
-                  if (
-                    formData.customerName.length > 1 &&
-                    custSuggestions.length > 0
-                  ) {
-                    setIsCustDropdownOpen(true);
-                  }
+              <Autocomplete
+                options={allCustomers}
+                value={selectedCustomer}
+                loading={loading.customer}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) =>
+                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+                }
+                onChange={(e, value) => {
+                  setSelectedCustomer(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    customerId: value ? value.id : null
+                  }));
+                  setErrors(prev => ({ ...prev, customerName: "" }));
                 }}
-                error={!!errors.customerName}
-                helperText={errors.customerName || ""}
-                label="Customer"
-                autoComplete="off"
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Customer"
+                    error={!!errors.customerName}
+                    helperText={errors.customerName || ""}
+                  />
+                )}
               />
-              {isCustDropdownOpen && custSuggestions.length > 0 && (
-                <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
-                  {custSuggestions.map((c, idx) => (
-                    <li
-                      key={idx}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleCustomerSuggestionClick(c)}
-                    >
-                      {c.customerName}
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
             <CustomTextField
               name="customerGroup"
@@ -407,7 +429,6 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             />
           </div>
 
-          {/* EDITABLE ITEMS TABLE - NO ADD/DELETE */}
           {/* DYNAMIC EDITABLE ITEMS TABLE WITH ADD/DELETE */}
           <div className="border p-6 rounded-lg border-gray-300 bg-gray-50">
             <div className="flex justify-between items-center mb-6">
@@ -568,44 +589,35 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div ref={transportSearchRef} className="relative w-full">
-              <CustomTextField
-                name="transport"
-                value={formData.transport || ""}
-                onChange={handleTransportInput}
-                onFocus={() => {
-                  if (transportSuggestions.length > 0) {
-                    setIsTransportDropdownOpen(true);
-                  }
+              <Autocomplete
+                options={allTransports}
+                value={selectedTransport}
+                loading={loading.transport}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) => o?.name || ""}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.name} – {option.city}
+                  </li>
+                )}
+                onChange={(e, value) => {
+                  setSelectedTransport(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    transport: value ? value.name : null
+                  }));
+                  setErrors(prev => ({ ...prev, transport: "" }));
                 }}
-                label="Transport"
-                autoComplete="off"
-                error={!!errors.transport}
-                helperText={errors.transport || ""}
-                InputProps={{
-                  endAdornment: transportLoading ? (
-                    <span className="text-xs text-gray-500">Searching...</span>
-                  ) : null
-                }}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Transport"
+                    placeholder="Select transport"
+                    error={!!errors.transport}
+                    helperText={errors.transport || ""}
+                  />
+                )}
               />
-
-              {/* Suggestions Dropdown */}
-              {isTransportDropdownOpen && transportSuggestions.length > 0 && (
-                <ul className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto text-sm">
-                  {transportSuggestions.map((t, idx) => (
-                    <li
-                      key={t.id || idx}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, transport: t.name }));
-                        setIsTransportDropdownOpen(false);
-                        setErrors(prev => ({ ...prev, transport: "" }));
-                      }}
-                    >
-                      {t.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
             <CustomTextField
               name="lrNumber"

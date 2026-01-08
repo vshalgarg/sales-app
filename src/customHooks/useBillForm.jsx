@@ -3,15 +3,9 @@ import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import validate from "../validations/Validation";
 import dayjs from "dayjs";
+const today = dayjs().format("YYYY-MM-DD");
 
 export const useBillForm = () => {
-  const searchSupplierRef = useRef(null);
-  const searchCustomerRef = useRef(null);
-
-  // 🔹 Refs
-  const searchRef = useRef(null);
-  const custSearchRef = useRef(null);
-  const transportSearchRef = useRef(null);
 
   // 🔹 States
   const [supplierTransports, setSupplierTransports] = useState([]);
@@ -21,43 +15,43 @@ export const useBillForm = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCustDropdownOpen, setIsCustDropdownOpen] = useState(false);
   const [isTransportDropdownOpen, setIsTransportDropdownOpen] = useState(false);
-  const [isFilterObject, setIsFilterObject] = useState(false);
+
   const [filterObject, setFilterObject] = useState({
-    supplierName: "",
-    customerName: "",
-    fromDate: "",
-    toDate: "",
+    supplierId: null,
+    customerId: null,
+    fromDate: today,
+    toDate: today,
   });
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        searchSupplierRef.current &&
-        !searchSupplierRef.current.contains(e.target)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (e) => {
+  //     if (
+  //       searchSupplierRef.current &&
+  //       !searchSupplierRef.current.contains(e.target)
+  //     ) {
+  //       setIsDropdownOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        searchCustomerRef.current &&
-        !searchCustomerRef.current.contains(e.target)
-      ) {
-        setIsCustDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (e) => {
+  //     if (
+  //       searchCustomerRef.current &&
+  //       !searchCustomerRef.current.contains(e.target)
+  //     ) {
+  //       setIsCustDropdownOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
   // 🔹 Form data
   const initialFormData = {
@@ -155,53 +149,53 @@ export const useBillForm = () => {
   // }, [errors]);
 
   // 🔹 Handle clicks outside dropdowns
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsDropdownOpen(false);
-      }
-      if (custSearchRef.current && !custSearchRef.current.contains(e.target)) {
-        setIsCustDropdownOpen(false);
-      }
-      if (
-        transportSearchRef.current &&
-        !transportSearchRef.current.contains(e.target)
-      ) {
-        setIsTransportDropdownOpen(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (e) => {
+  //     if (searchRef.current && !searchRef.current.contains(e.target)) {
+  //       setIsDropdownOpen(false);
+  //     }
+  //     if (custSearchRef.current && !custSearchRef.current.contains(e.target)) {
+  //       setIsCustDropdownOpen(false);
+  //     }
+  //     if (
+  //       transportSearchRef.current &&
+  //       !transportSearchRef.current.contains(e.target)
+  //     ) {
+  //       setIsTransportDropdownOpen(false);
+  //     }
+  //   };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
 
   // 🔹 Handlers
- const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  let finalValue = value;
+    let finalValue = value;
 
-  // 🔹 Order & LR Number: only alphanumeric
-  if (name === "order" || name === "lrNumber") {
-    finalValue = value.replace(/[^a-zA-Z0-9]/g, "");
-  }
+    // 🔹 Order & LR Number: only alphanumeric
+    if (name === "order" || name === "lrNumber") {
+      finalValue = value.replace(/[^a-zA-Z0-9]/g, "");
+    }
 
-  setFormData(prev => ({
-    ...prev,
-    [name]: finalValue,
-  }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: finalValue,
+    }));
 
     if (
-    name === "order" ||
-    name === "lrNumber"
-  ) {
-    return;
-  }
+      name === "order" ||
+      name === "lrNumber"
+    ) {
+      return;
+    }
     setErrors(prev => ({
-    ...prev,
-    [name]: validate(name, finalValue) || "",
-  }));
-};
+      ...prev,
+      [name]: validate(name, finalValue) || "",
+    }));
+  };
 
 
   const handleReset = () => {
@@ -442,12 +436,8 @@ export const useBillForm = () => {
   ]);
 
   return {
-    searchCustomerRef,
-    searchSupplierRef,
     filterObject,
     setFilterObject,
-    isFilterObject,
-    setIsFilterObject,
     formData,
     setFormData,
     errors,
@@ -471,8 +461,5 @@ export const useBillForm = () => {
     handleSupplierSuggestionClick,
     handleCustomerInput,
     handleCustomerSuggestionClick,
-    searchRef,
-    custSearchRef,
-    transportSearchRef,
   };
 };

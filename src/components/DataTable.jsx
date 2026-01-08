@@ -28,12 +28,12 @@ const DataTable = ({
   onView,
   onEdit,
   onDelete,
-  emptyMessage = "No records found",
   actions = true,
   page,
   totalCount,
   rowsPerPage = 10,
   onPageChange,
+  emptyMessage = "No records found",
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
