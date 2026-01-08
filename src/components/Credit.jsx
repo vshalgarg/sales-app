@@ -1,478 +1,260 @@
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import CustomTextField from "./CustomTextField";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
-import CreditHistory from "./CreditHistory";
-import { useState, useEffect} from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 import { searchCreditHistory } from "../service/CreditService";
 import { useSnackbar } from "../context/SnackbarContext";
+import SupplierService from "../service/SupplierService";
+import CustomerService from "../service/CustomerService";
+import Autocomplete from "@mui/material/Autocomplete";
+import CreditHistory from "./CreditHistory";
+import CreditDetail from "../modals/CreditDetail";
 
 const Credit = () => {
   const { showSnackbar } = useSnackbar();
-  const [creditFiltersApplied, setCreditFiltersApplied] = useState(false);
-  const [supplierId, setSupplierId] = useState();
-  const [customerId, setCustomerId] = useState();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const rowsPerPage = 10;
 
   const [creditHistoryData, setCreditHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [filtersApplied, setFiltersApplied] = useState(false);
 
-  const {
-    searchCustomerRef,
-    searchSupplierRef,
-    isFilterObject,
-    setIsFilterObject,
-    errors,
-    setErrors,
-    suggestions,
-    isDropdownOpen,
-    setIsDropdownOpen,
-    handleSupplierInput,
-    searchRef,
-    handleSupplierSuggestionClick,
-    custSearchRef,
-    custSuggestions,
-    isCustDropdownOpen,
-    setIsCustDropdownOpen,
-    handleCustomerSuggestionClick,
-    handleCustomerInput,
-    filterObject,
-    setFilterObject,
-  } = useBillForm();
+  const [allSuppliers, setAllSuppliers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCreditDetail, setSelectedCreditDetail] = useState(null);
 
-  const handleSupplierChange = (e) => {
-    handleSupplierInput(e);
-    setIsFilterObject(true);
-  };
 
-  const handleCustomerChange = (e) => {
-    handleCustomerInput(e);
-    setIsFilterObject(true);
-  };
+  const todayDayjs = dayjs();
+  const today = dayjs().format("YYYY-MM-DD");
 
+  const { errors, setErrors, filterObject, setFilterObject } = useBillForm();
+
+  /* ================= LOAD SUPPLIERS & CUSTOMERS ================= */
   useEffect(() => {
-    const today = dayjs().format("YYYY-MM-DD");
-
-    if (!filterObject.fromDate) {
-      setFilterObject(prev => ({
-        ...prev,
-        fromDate: today
-      }));
-    }
+    const loadData = async () => {
+      try {
+        const [suppliers, customers] = await Promise.all([
+          SupplierService.getAllSuppliers(),
+          CustomerService.getAllCustomers(),
+        ]);
+        setAllSuppliers(suppliers || []);
+        setAllCustomers(customers || []);
+      } catch {
+        showSnackbar("Error loading suppliers/customers", "error");
+      }
+    };
+    loadData();
   }, []);
 
-  const clearFiltersAndResults = () => {
-    const today = dayjs().format("YYYY-MM-DD");
-    setFilterObject({
-      supplierName: "",
-      customerName: "",
-      fromDate: today,
-      toDate: "",
-    });
-    setErrors([]);
-    setCreditFiltersApplied(false);
-    setCreditHistoryData([]);
-    setCurrentPage(1);
-    setTotalPages(1);
-  };
-
-  const handleChangePage = async (page) => {
-    if (page < 1 || page > totalPages || page === currentPage || loading)
-      return;
-    await handleCreditDetailHistory(page);
-  };
-
-  const renderPaginationButtons = () => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-        <button
-          key={p}
-          onClick={() => handleChangePage(p)}
-          className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-            currentPage === p
-              ? "bg-blue-600 text-white"
-              : "bg-white hover:bg-gray-200"
-          }`}
-          disabled={loading}
-        >
-          {p}
-        </button>
-      ));
-    }
-
-    // For larger page counts show: 1, maybe left ellipsis, (current-1, current, current+1), maybe right ellipsis, last
-    const pages = [];
-    pages.push(1);
-
-    const left = Math.max(2, currentPage - 1);
-    const right = Math.min(totalPages - 1, currentPage + 1);
-
-    if (left > 2) pages.push("left-ellipsis");
-
-    for (let p = left; p <= right; p++) {
-      pages.push(p);
-    }
-
-    if (right < totalPages - 1) pages.push("right-ellipsis");
-
-    pages.push(totalPages);
-
-    return pages.map((item, idx) => {
-      if (item === "left-ellipsis" || item === "right-ellipsis") {
-        return (
-          <span key={idx} className="px-2 text-gray-500">
-            ...
-          </span>
-        );
-      }
-      return (
-        <button
-          key={item}
-          onClick={() => handleChangePage(item)}
-          className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-            currentPage === item
-              ? "bg-blue-600 text-white"
-              : "bg-white hover:bg-gray-200"
-          }`}
-          disabled={loading}
-        >
-          {item}
-        </button>
-      );
-    });
-  };
-
-  const handleCreditDetailHistory = async (page = 1) => {
-    const { fromDate, toDate } = filterObject;
+  /* ================= API CALL ================= */
+  const handleCreditHistory = async (page = 1) => {
+    const { fromDate } = filterObject;
     const newErrors = {};
 
-    const from = fromDate ? dayjs(fromDate, "YYYY-MM-DD", true) : null;
-    const to = toDate ? dayjs(toDate, "YYYY-MM-DD", true) : null;
+    if (!fromDate) newErrors.fromDate = "Please select From Date";
 
-    // Step 1: Empty fields
-    if (!fromDate) {
-      newErrors.fromDate = "Please select From Date";
-    } else if (!from?.isValid()) {
-      newErrors.fromDate = "Invalid From Date format";
-    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length) return;
 
-    if (!toDate) {
-      newErrors.toDate = "Please select To Date";
-    } else if (!to?.isValid()) {
-      newErrors.toDate = "Invalid To Date format";
-    }
-
-    // Step 2: Logical date comparison
-    if (from?.isValid() && to?.isValid() && from.isAfter(to)) {
-      newErrors.fromDate = "From Date cannot be after To Date";
-      newErrors.toDate = "To Date cannot be before From Date";
-
-      const activeField = document.activeElement?.name;
-
-      const message =
-        activeField === "toDate"
-          ? `To Date (${to.format(
-              "DD MMM YYYY"
-            )}) cannot be before From Date (${from.format("DD MMM YYYY")})`
-          : `From Date (${from.format(
-              "DD MMM YYYY"
-            )}) cannot be after To Date (${to.format("DD MMM YYYY")})`;
-
-      showSnackbar(message, "error");
-    }
-
-    // Step 3: Show snackbar for missing dates
-    if (!fromDate || !toDate) {
-      showSnackbar("Please select both From Date and To Date", "warning");
-    }
-
-    // Step 4: Set all errors
-    setErrors((prev) => ({
-      ...prev,
-      ...newErrors,
-    }));
-
-    // Step 5: Return early if errors exist
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
-
-    // Step 6: Proceed to fetch data
-    const requestedPage = page < 1 ? 1 : page;
-    setCreditFiltersApplied(true);
     try {
       setLoading(true);
+      setFiltersApplied(true);
+
       const data = await searchCreditHistory(
-        filterObject,
-        supplierId,
-        customerId,
-        requestedPage,
+        {
+          ...filterObject,
+          toDate: filterObject.toDate || null,
+        },
+        page - 1,
         rowsPerPage
       );
 
-      // backend `Page` (Spring) often returns zero-based `number`
-      // convert to 1-based page for the UI
-      const backendNumber =
-        typeof data?.number === "number" ? data.number + 1 : requestedPage;
-
-      // get totalPages or compute fallback from totalElements
-      const backendTotalPages =
-        typeof data?.totalPages === "number"
-          ? data.totalPages
-          : data?.totalElements
-          ? Math.max(1, Math.ceil(data.totalElements / rowsPerPage))
-          : 1;
-
       setCreditHistoryData(data?.content ?? []);
-      setCurrentPage(backendNumber);
-      setTotalPages(backendTotalPages);
-    } catch (err) {
-      console.error("Error fetching bill history:", err);
+      setTotalItems(data?.totalElements ?? 0);
+      setCurrentPage(page);
+    } catch {
       setCreditHistoryData([]);
+      setTotalItems(0);
       setCurrentPage(1);
-      setTotalPages(1);
+      setFiltersApplied(true);
     } finally {
       setLoading(false);
     }
   };
 
+  const clearFiltersAndResults = () => {
+    setSelectedSupplier(null);
+    setSelectedCustomer(null);
+
+    setFilterObject({
+      supplierId: null,
+      customerId: null,
+      fromDate: today,
+      toDate: today,
+    });
+
+    setErrors({});
+    setCreditHistoryData([]);
+    setCurrentPage(1);
+    setTotalItems(0);
+    setFiltersApplied(false);
+  };
+
   return (
-    <>
-      <div className="flex flex-col h-full overflow-y-auto">
-        {/* Card (Filter Section) */}
-        <div className="bg-white w-full h-[30vh] flex flex-col border p-4 mt-2 rounded border-gray-300">
-          <div className="border-b border-gray-300 shrink-0">
-            <h2 className="text-2xl font-semibold">Credits</h2>
-            <p className="mb-2">
-              Select criteria to refine your credit history view
-            </p>
+    <div className="flex flex-col h-full overflow-y-auto">
+      {/* ================= FILTER CARD ================= */}
+      <div className="bg-gray-50 border rounded-t-lg shadow-sm mt-4">
+        <div className="px-6 py-4 border-b">
+          <h2 className="text-xl font-semibold">Credits</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Filter and review credit history by supplier, customer and date range
+          </p>
+        </div>
+
+        <div className="px-6 py-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="From Date"
+                format="DD-MM-YYYY"
+                value={filterObject.fromDate ? dayjs(filterObject.fromDate) : null}
+                maxDate={todayDayjs}
+                onChange={(v) => {
+                  const formatted = v ? dayjs(v).format("YYYY-MM-DD") : "";
+                  setFilterObject(prev => ({
+                    ...prev,
+                    fromDate: formatted,
+                    toDate:
+                      prev.toDate && dayjs(prev.toDate).isBefore(v)
+                        ? ""
+                        : prev.toDate,
+                  }));
+                  setErrors(prev => ({ ...prev, fromDate: "" }));
+                }}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                  },
+                }}
+              />
+            </LocalizationProvider>
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="To Date"
+                format="DD-MM-YYYY"
+                value={filterObject.toDate ? dayjs(filterObject.toDate) : null}
+                minDate={
+                  filterObject.fromDate
+                    ? dayjs(filterObject.fromDate)
+                    : undefined
+                }
+                maxDate={todayDayjs}
+                onChange={(v) =>
+                  setFilterObject(prev => ({
+                    ...prev,
+                    toDate: v ? dayjs(v).format("YYYY-MM-DD") : "",
+                  }))
+                }
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                  },
+                }}
+              />
+            </LocalizationProvider>
+
+            <Autocomplete
+              options={allSuppliers}
+              value={selectedSupplier}
+              isOptionEqualToValue={(o, v) => o.id === v?.id}
+              getOptionLabel={(o) => o?.supplierName || ""}
+              onChange={(e, value) => {
+                setSelectedSupplier(value);
+                setFilterObject(prev => ({
+                  ...prev,
+                  supplierId: value ? value.id : null,
+                }));
+              }}
+              renderInput={(params) => (
+                <CustomTextField {...params} label="Supplier" />
+              )}
+            />
+
+            <Autocomplete
+              options={allCustomers}
+              value={selectedCustomer}
+              isOptionEqualToValue={(o, v) => o.id === v?.id}
+              getOptionLabel={(o) => o?.customerName || ""}
+              onChange={(e, value) => {
+                setSelectedCustomer(value);
+                setFilterObject(prev => ({
+                  ...prev,
+                  customerId: value ? value.id : null,
+                }));
+              }}
+              renderInput={(params) => (
+                <CustomTextField {...params} label="Customer" />
+              )}
+            />
           </div>
 
-          {/* Middle content (Filter Inputs) */}
-          <div className="flex-1 py-4 space-y-4">
-            <div>
-              <div className="grid grid-cols-4 gap-4">
-                <div ref={searchSupplierRef} className="relative w-full">
-                  <CustomTextField
-                    name="supplierName"
-                    value={filterObject.supplierName ?? ""}
-                    onChange={handleSupplierChange}
-                    onFocus={() => {
-                      if (
-                        (filterObject?.supplierName?.length ?? 0) > 1 &&
-                        suggestions.length > 0
-                      ) {
-                        setIsDropdownOpen(true);
-                      }
-                    }}
-                    label="Supplier"
-                  />
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              onClick={clearFiltersAndResults}
+              className="px-5 py-2 text-sm rounded-lg border text-gray-600"
+            >
+              Clear Filters
+            </button>
 
-                  {isDropdownOpen && suggestions.length > 0 && (
-                    <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
-                      {suggestions.map((s, idx) => (
-                        <li
-                          key={idx}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            handleSupplierSuggestionClick(s);
-                            setIsFilterObject(true);
-                            setSupplierId((prev) => ({
-                              ...prev,
-                              supplierId: s.id,
-                            }));
-                          }}
-                        >
-                          {s.supplierName}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div ref={searchCustomerRef} className="relative w-full">
-                  <CustomTextField
-                    name="customerName"
-                    value={filterObject.customerName ?? ""}
-                    onChange={handleCustomerChange}
-                    onFocus={() => {
-                      if (
-                        (filterObject.customerName?.length ?? 0) > 1 &&
-                        custSuggestions.length > 0
-                      ) {
-                        setIsCustDropdownOpen(true);
-                      }
-                    }}
-                    label="Customer"
-                  />
-
-                  {isCustDropdownOpen && custSuggestions.length > 0 && (
-                    <ul className="absolute mt-1 bg-white border rounded shadow-lg z-50 max-h-60 overflow-y-auto text-sm w-full">
-                      {custSuggestions.map((c, idx) => (
-                        <li
-                          key={idx}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            handleCustomerSuggestionClick(c);
-                            setIsFilterObject(true);
-                            setCustomerId((prev) => ({
-                              ...prev,
-                              customerId: c.id,
-                            }));
-                          }}
-                        >
-                          {c.customerName}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="From Date"
-                    value={
-                      filterObject.fromDate
-                        ? dayjs(filterObject.fromDate)
-                        : null
-                    }
-                    onChange={(newValue) => {
-                      const formatted = newValue
-                        ? dayjs(newValue).format("YYYY-MM-DD")
-                        : "";
-
-                      // Reset toDate if it's before new fromDate
-                      if (
-                        filterObject.toDate &&
-                        dayjs(filterObject.toDate).isBefore(formatted)
-                      ) {
-                        setFilterObject((prev) => ({
-                          ...prev,
-                          fromDate: formatted,
-                          toDate: "", // reset toDate
-                        }));
-                      } else {
-                        setFilterObject((prev) => ({
-                          ...prev,
-                          fromDate: formatted,
-                        }));
-                      }
-
-                      setErrors((prev) => ({ ...prev, fromDate: "" }));
-                    }}
-                    slotProps={{
-                      textField: {
-                        size: "small",
-                        fullWidth: true,
-                        error: Boolean(errors.fromDate),
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="To Date"
-                    value={
-                      filterObject.toDate ? dayjs(filterObject.toDate) : null
-                    }
-                    minDate={
-                      filterObject.fromDate
-                        ? dayjs(filterObject.fromDate)
-                        : undefined
-                    } // ✅ disables earlier dates
-                    onChange={(newValue) => {
-                      const formatted = newValue
-                        ? dayjs(newValue).format("YYYY-MM-DD")
-                        : "";
-                      setFilterObject((prev) => ({
-                        ...prev,
-                        toDate: formatted,
-                      }));
-                      setErrors((prev) => ({ ...prev, toDate: "" }));
-                    }}
-                    slotProps={{
-                      textField: {
-                        size: "small",
-                        fullWidth: true,
-                        error: Boolean(errors.toDate),
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-              </div>
-
-              <div className="mt-5 flex justify-end space-x-3">
-                <button
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-300"
-                  onClick={clearFiltersAndResults}
-                  disabled={loading}
-                >
-                  Clear Filters
-                </button>
-
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
-                  onClick={() => handleCreditDetailHistory(1)}
-                  disabled={loading}
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={() => handleCreditHistory(1)}
+              className="px-6 py-2 text-sm rounded-lg bg-blue-600 text-white"
+            >
+              Apply Filters
+            </button>
           </div>
         </div>
-        <CreditHistory
-          initialCreditHistory={creditHistoryData}
-          creditFiltersApplied={creditFiltersApplied}
-        />
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="absolute bottom-0 left-0 right-0 text-center p-3">
-            <div className="max-w-sm mx-auto flex justify-between items-center space-x-2">
-              {/* Prev */}
-              <div>
-                <button
-                  onClick={() => handleChangePage(currentPage - 1)}
-                  disabled={currentPage === 1 || loading}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                    currentPage === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white hover:bg-gray-200"
-                  }`}
-                >
-                  <ArrowLeft size={18} />
-                </button>
-              </div>
-
-              {/* Page numbers */}
-              <div className="flex">{renderPaginationButtons()}</div>
-
-              {/* Next */}
-              <div>
-                <button
-                  onClick={() => handleChangePage(currentPage + 1)}
-                  disabled={currentPage === totalPages || loading}
-                  className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                    currentPage === totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white hover:bg-gray-200"
-                  }`}
-                >
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </>
+
+      {/* ================= TABLE ================= */}
+      <CreditHistory
+        data={creditHistoryData}
+        loading={loading}
+        page={currentPage}
+        totalItems={totalItems}
+        rowsPerPage={rowsPerPage}
+        onPageChange={handleCreditHistory}
+        emptyMessage={
+          filtersApplied
+            ? "No data found for selected filters"
+            : "Apply filters to view credit history"
+        }
+        onView={(row) => {
+          setSelectedCreditDetail(row);
+          setIsModalOpen(true);
+        }}
+      />
+
+      {isModalOpen && selectedCreditDetail && (
+        <CreditDetail
+          selectedCreditDetail={selectedCreditDetail}
+          setIsModalOpen={setIsModalOpen}
+        />
+      )}
+
+    </div>
   );
 };
 

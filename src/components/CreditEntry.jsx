@@ -174,7 +174,51 @@ export default function CreditEntryForm() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+const handleBillNumberChange = (e) => {
+  const raw = e.target.value;
+  const sanitized = raw.replace(/[^a-zA-Z0-9]/g, "");
+
+  setFormData((prev) => ({
+    ...prev,
+    billNumber: sanitized,
+  }));
+
+  // ❗ special char case → validation skip
+  if (raw !== sanitized) {
+    setErrors((prev) => ({ ...prev, billNumber: "" }));
+    return;
+  }
+
+  // normal typing → validate
+  setErrors((prev) => ({
+    ...prev,
+    billNumber: validate("billNumber", sanitized) || "",
+  }));
+};
+
+
+const handleReferenceNumberChange = (e) => {
+  const raw = e.target.value;
+  const sanitized = raw.replace(/[^a-zA-Z0-9-]/g, "");
+
+  setFormData((prev) => ({
+    ...prev,
+    referenceNumber: sanitized,
+  }));
+
+  // ❗ special char typed → no error
+  if (raw !== sanitized) {
+    setErrors((prev) => ({ ...prev, referenceNumber: "" }));
+    return;
+  }
+
+  setErrors((prev) => ({
+    ...prev,
+    referenceNumber: validate("referenceNumber", sanitized) || "",
+  }));
+};
+
+const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isSaving) return;
@@ -411,7 +455,7 @@ export default function CreditEntryForm() {
               <CustomTextField
                 name="billNumber"
                 value={formData.billNumber}
-                onChange={handleChange}
+                onChange={handleBillNumberChange}
                 label="Bill Number"
                 error={!!errors.billNumber}
                 helperText={errors.billNumber || ""}
@@ -436,16 +480,12 @@ export default function CreditEntryForm() {
               <CustomTextField
                 name="referenceNumber"
                 value={formData.referenceNumber}
-                onChange={handleChange}
-                onBeforeInput={(e) => {
-                  if (!/^[a-zA-Z0-9/-]$/.test(e.data)) {
-                    e.preventDefault();
-                  }
-                }}
+                onChange={handleReferenceNumberChange}
                 label="Reference Number"
                 error={!!errors.referenceNumber}
                 helperText={errors.referenceNumber || "Cheque / UPI / NEFT reference"}
               />
+
 
               {/* Reference Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>

@@ -36,20 +36,18 @@ export const updateBillApi = async (billNumber, updates) => {
 };
 
 export const searchBillHistory = async (data, page, rowsPerPage) => {
-  const { fromDate, toDate, supplierName, customerName } = data;
-  const size = rowsPerPage;
+  const { fromDate, toDate, supplierId, customerId } = data;
   try {
-    const response = await api.get(`/bill/entries/search`, {
-      params: {
-        fromDate,
-        toDate,
-        supplierName,
-        customerName,
-        page,
-        size,
-      },
-    });
-console.log("search data:", JSON.stringify(response.data));
+   const response = await api.get("/bill/entries/search", {
+    params: {
+      fromDate,
+      toDate,
+      supplierId,
+      customerId,
+      page,
+      size: rowsPerPage,
+    },
+  });
 const result = checkLogicalError(response.data);
 
     return result;

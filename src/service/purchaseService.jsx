@@ -12,25 +12,22 @@ export const addPurchaseEntry = async (formData) => {
 };
 
 export const searchPurchaseHistory = async (
-  data,
-  supplierId,
-  customerId,
+  filterObject,
   page,
   rowsPerPage
 ) => {
-  const { fromDate, toDate } = data;
-  const size = rowsPerPage;
+  const { fromDate, toDate, supplierId, customerId } = filterObject;
   try {
-    const response = await api.get(`/purchase/entries/search`, {
-      params: {
-        fromDate,
-        toDate,
-        supplierId,
-        customerId,
-        page,
-        size,
-      },
-    });
+     const response = await api.get("/purchase/entries/search", {
+    params: {
+      fromDate,
+      toDate,
+      supplierId: supplierId ?? null,
+      customerId: customerId ?? null,
+      page,
+      size: rowsPerPage,
+    },
+  });
     const result = checkLogicalError(response.data);
     return result;
   } catch (error) {
