@@ -15,8 +15,8 @@ public interface BillService {
     PagedResponseDto<SearchBillEntryResponse> searchBillHistory(
             LocalDate fromDate,
             LocalDate toDate,
-            String supplierName,
-            String customerName,
+            Integer supplierId,
+            Integer customerId,
             int page,
             int size);
 }

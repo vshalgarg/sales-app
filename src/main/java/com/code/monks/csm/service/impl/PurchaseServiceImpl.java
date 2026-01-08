@@ -56,7 +56,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 fromDate, toDate, supplierId, customerId, page, size);
 
         // ✅ Adjust page index (PageRequest is 0-based)
-        int pageIndex = Math.max(page - 1, 0);
+        int pageIndex = Math.max(page, 0);
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by("date").descending());
         Page<PurchaseEntity> purchaseRecords;
 
@@ -84,7 +84,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
 
             log.info("✅ Fetched {} purchase records (page {}/{})",
-                    purchaseRecords.getNumber() + 1,
+                    purchaseRecords.getNumber(),
                     purchaseRecords.getTotalPages(),
                     purchaseRecords.getTotalElements()
             );
@@ -99,7 +99,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             return new PagedResponseDto<>(
                     content,
-                    purchaseRecords.getNumber() + 1,
+                    purchaseRecords.getNumber(),
                     purchaseRecords.getSize(),
                     purchaseRecords.getTotalElements(),
                     purchaseRecords.getTotalPages(),

@@ -140,7 +140,7 @@ public class CreditServiceImpl implements CreditService {
         log.info("SearchCreditHistory called with fromDate={}, toDate={}, supplierId={}, customerId={}, page={}, size={}",
                 fromDate, toDate, supplierId, customerId, page, size);
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("date").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
         Page<CreditEntryEntity> creditRecords;
 
         // ✅ Use 0 as "no filter"
@@ -175,11 +175,11 @@ public class CreditServiceImpl implements CreditService {
 
         return new PagedResponseDto<>(
                 content,
-                creditRecords.getNumber() + 1,        // current page (1-based)
-                creditRecords.getSize(),              // page size
-                creditRecords.getTotalElements(),     // total records
-                creditRecords.getTotalPages(),        // total pages
-                creditRecords.isLast()                // last page?
+                creditRecords.getNumber(),
+                creditRecords.getSize(),
+                creditRecords.getTotalElements(),
+                creditRecords.getTotalPages(),
+                creditRecords.isLast()
         );
     }
 
