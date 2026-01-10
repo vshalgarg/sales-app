@@ -5,13 +5,14 @@ import CustomTextField from "./CustomTextField";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
-import { searchCreditHistory } from "../service/CreditService";
+import { deleteCreditApi, searchCreditHistory } from "../service/CreditService";
 import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import CreditHistory from "./CreditHistory";
 import CreditDetail from "../modals/CreditDetail";
+import EditCreditDetail from "../modals/EditCreditDetail";
 
 const Credit = () => {
   const { showSnackbar } = useSnackbar();
@@ -30,6 +31,10 @@ const Credit = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCreditDetail, setSelectedCreditDetail] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [creditToEdit, setCreditToEdit] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [creditToDelete, setCreditToDelete] = useState(null);
 
 
   const todayDayjs = dayjs();
@@ -54,15 +59,26 @@ const Credit = () => {
     loadData();
   }, []);
 
+  const confirmDelete = async () => {
+    if (!creditToDelete) return;
+
+    try {
+      await deleteCreditApi(creditToDelete.id);
+
+      showSnackbar("Credit deleted successfully", "success");
+
+      setIsDeleteOpen(false);
+      setCreditToDelete(null);
+
+      handleCreditHistory(currentPage); // refresh list
+    } catch (err) {
+      showSnackbar(err.message || "Failed to delete credit", "error");
+    }
+  };
+
+
   /* ================= API CALL ================= */
   const handleCreditHistory = async (page = 1) => {
-    const { fromDate } = filterObject;
-    const newErrors = {};
-
-    if (!fromDate) newErrors.fromDate = "Please select From Date";
-
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length) return;
 
     try {
       setLoading(true);
@@ -97,8 +113,8 @@ const Credit = () => {
     setFilterObject({
       supplierId: null,
       customerId: null,
-      fromDate: today,
-      toDate: today,
+      fromDate: null,
+      toDate: null,
     });
 
     setErrors({});
@@ -107,6 +123,13 @@ const Credit = () => {
     setTotalItems(0);
     setFiltersApplied(false);
   };
+
+  const isAnyFilterSelected =
+    !!filterObject.fromDate ||
+    !!filterObject.toDate ||
+    !!filterObject.supplierId ||
+    !!filterObject.customerId;
+
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -220,10 +243,16 @@ const Credit = () => {
 
             <button
               onClick={() => handleCreditHistory(1)}
-              className="px-6 py-2 text-sm rounded-lg bg-blue-600 text-white"
+              disabled={!isAnyFilterSelected}
+              className={`px-6 py-2 text-sm rounded-lg transition
+    ${isAnyFilterSelected
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
             >
               Apply Filters
             </button>
+
           </div>
         </div>
       </div>
@@ -245,6 +274,14 @@ const Credit = () => {
           setSelectedCreditDetail(row);
           setIsModalOpen(true);
         }}
+        onEdit={(row) => {
+          setCreditToEdit(row);
+          setIsEditOpen(true);
+        }}
+        onDelete={(row) => {
+          setCreditToDelete(row);
+          setIsDeleteOpen(true);
+        }}
       />
 
       {isModalOpen && selectedCreditDetail && (
@@ -254,6 +291,53 @@ const Credit = () => {
         />
       )}
 
+      {isEditOpen && creditToEdit && (
+        <EditCreditDetail
+          open={isEditOpen}
+          selectedCreditDetail={creditToEdit}
+          setOpen={setIsEditOpen}
+          onUpdateSuccess={() => {
+            setIsEditOpen(false);
+            setCreditToEdit(null);
+            handleCreditHistory(currentPage); //refresh table
+          }}
+        />
+      )}
+
+      {isDeleteOpen && creditToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-5">
+
+            <h3 className="text-lg font-semibold text-gray-800">
+              Delete Credit
+            </h3>
+
+            <p className="text-sm text-gray-600 mt-2">
+              Are you sure you want to delete credit
+              <span className="font-medium"> {creditToDelete.billNumber}</span> ?
+            </p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsDeleteOpen(false);
+                  setCreditToDelete(null);
+                }}
+                className="px-4 py-2 text-sm border rounded-lg"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

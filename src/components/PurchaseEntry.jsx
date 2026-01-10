@@ -112,14 +112,14 @@ const PurchaseEntry = () => {
     const newErrors = {};
 
     Object.keys(formData).forEach((field) => {
-      if (field === "customerId") return;
+      if (field === "supplierId" || field === "customerId") return;
+
       const error = validate(field, formData[field]);
       if (error) {
-        if (field === "supplierId") newErrors.supplierName = error;
-        //else if (field === "customerId") newErrors.customerName = error;
-        else newErrors[field] = error;
+        newErrors[field] = error;
       }
     });
+
 
     setErrors(newErrors);
 

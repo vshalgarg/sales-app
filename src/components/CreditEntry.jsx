@@ -16,7 +16,6 @@ import CustomerService from "../service/CustomerService";
 export default function CreditEntryForm() {
   const { showSnackbar } = useSnackbar();
   const {
-    setIsFilterObject,
     errors,
     setErrors,
     setFilterObject,
@@ -113,7 +112,6 @@ export default function CreditEntryForm() {
       remark: "",
     });
     setErrors({});
-    setIsFilterObject(false);
     setFilterObject({});
   };
 

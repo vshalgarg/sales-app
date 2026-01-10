@@ -18,19 +18,41 @@ export const searchPurchaseHistory = async (
 ) => {
   const { fromDate, toDate, supplierId, customerId } = filterObject;
   try {
-     const response = await api.get("/purchase/entries/search", {
-    params: {
-      fromDate,
-      toDate,
-      supplierId: supplierId ?? null,
-      customerId: customerId ?? null,
-      page,
-      size: rowsPerPage,
-    },
-  });
+    const response = await api.get("/purchase/entries/search", {
+      params: {
+        fromDate,
+        toDate,
+        supplierId: supplierId ?? null,
+        customerId: customerId ?? null,
+        page,
+        size: rowsPerPage,
+      },
+    });
     const result = checkLogicalError(response.data);
     return result;
   } catch (error) {
-     throw new Error(handleApiError(error));
+    throw new Error(handleApiError(error));
   }
 };
+
+export const updatePurchaseApi = async (id, payload) => {
+  try {
+    const response = await api.patch(`/purchase/entry/update/${id}`, payload);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+
+export const deletePurchaseApi = async (id) => {
+  try {
+    const response = await api.delete(`/purchase/entry/delete/${id}`);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+

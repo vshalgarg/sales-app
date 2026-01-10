@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import validate from "../validations/Validation";
-import dayjs from "dayjs";
-const today = dayjs().format("YYYY-MM-DD");
 
 export const useBillForm = () => {
 
@@ -19,8 +17,8 @@ export const useBillForm = () => {
   const [filterObject, setFilterObject] = useState({
     supplierId: null,
     customerId: null,
-    fromDate: today,
-    toDate: today,
+    fromDate:"" ,
+    toDate: "",
   });
 
   // useEffect(() => {
@@ -57,7 +55,7 @@ export const useBillForm = () => {
   const initialFormData = {
     customerId: "",
     supplierId: "",
-    date: dayjs().format("DD-MM-YYYY"),
+    date: "",
     receivedDate: "",
     order: "",
     supplierName: "",
@@ -213,15 +211,6 @@ export const useBillForm = () => {
   // Customer Input
   const handleCustomerInput = async (e) => {
     const value = e.target.value;
-
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        customerName: value,
-      }));
-      setIsFilterObject(false);
-    }
-
     setFormData((prev) => ({
       ...prev,
       customerName: value,
@@ -278,13 +267,6 @@ export const useBillForm = () => {
   };
 
   const handleCustomerSuggestionClick = (c) => {
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        customerName: c.customerName,
-      }));
-      setIsFilterObject(false);
-    }
     setFormData((prev) => ({
       ...prev,
       customerId: c.id || "",
@@ -310,14 +292,6 @@ export const useBillForm = () => {
   // 🔹 Supplier Input
   const handleSupplierInput = async (e) => {
     const value = e.target.value;
-
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        supplierName: value,
-      }));
-      setIsFilterObject(false);
-    }
 
     setFormData((prev) => ({
       ...prev,
@@ -354,14 +328,6 @@ export const useBillForm = () => {
   };
 
   const handleSupplierSuggestionClick = (s) => {
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        supplierName: s.supplierName,
-      }));
-      setIsFilterObject(false);
-    }
-
     setFormData((prev) => ({
       ...prev,
       supplierId: s.id || "",

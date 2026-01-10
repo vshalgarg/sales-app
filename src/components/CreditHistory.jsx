@@ -9,6 +9,8 @@ const CreditHistory = ({
   rowsPerPage,
   onPageChange,
   onView,
+  onEdit,
+  onDelete,
   emptyMessage,
 }) => {
   const columns = [
@@ -36,7 +38,9 @@ const CreditHistory = ({
       rowsPerPage={rowsPerPage}
       onPageChange={onPageChange}
       actions={true}
-      onView={onView}
+       onView={onView}
+       onEdit={onEdit}
+      onDelete={onDelete}
       emptyMessage={emptyMessage}
     />
   );
