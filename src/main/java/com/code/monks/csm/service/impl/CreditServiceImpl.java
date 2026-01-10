@@ -1,13 +1,17 @@
 package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.request.AddCreditEntryRequestDto;
+import com.code.monks.csm.dto.request.CreditUpdateRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.BillEntryEntity;
 import com.code.monks.csm.entity.CreditEntryEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.enums.CreditEntryEnum;
+import com.code.monks.csm.enums.DrawTypeEnum;
+import com.code.monks.csm.enums.ResponseErrorCode;
 import com.code.monks.csm.exception.CreditException;
+import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CreditEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
@@ -26,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
@@ -140,48 +145,116 @@ public class CreditServiceImpl implements CreditService {
         log.info("SearchCreditHistory called with fromDate={}, toDate={}, supplierId={}, customerId={}, page={}, size={}",
                 fromDate, toDate, supplierId, customerId, page, size);
 
+        LocalDate startDate =
+                (fromDate != null) ? fromDate : LocalDate.of(1970, 1, 1);
+
+        LocalDate endDate =
+                (toDate != null) ? toDate : LocalDate.now();
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        Page<CreditEntryEntity> creditRecords;
+        Page<CreditEntryEntity> records;
 
-        // ✅ Use 0 as "no filter"
-        if (supplierId !=null  && customerId != null) {
-            log.info("Fetching credit entries for Supplier ID={} and Customer ID={}", supplierId, customerId);
-            creditRecords = creditEntryRepo.findByDateBetweenAndSupplierIdEqualsAndCustomerIdEquals(
-                    fromDate, toDate, supplierId, customerId, pageable
-            );
-        } else if (supplierId != null) {
-            log.info("Fetching credit entries for Supplier ID={}", supplierId);
-            creditRecords = creditEntryRepo.findByDateBetweenAndSupplierIdEquals(
-                    fromDate, toDate, supplierId, pageable
-            );
-        } else if (customerId != null) {
-            log.info("Fetching credit entries for Customer ID={}", customerId);
-            creditRecords = creditEntryRepo.findByDateBetweenAndCustomerIdEquals(
-                    fromDate, toDate, customerId, pageable
-            );
-        } else {
-            log.info("Fetching credit entries for all suppliers and customers");
-            creditRecords = creditEntryRepo.findByDateBetween(
-                    fromDate, toDate, pageable
-            );
+        if (supplierId != null && customerId != null) {
+            records = creditEntryRepo
+                    .findByDateBetweenAndSupplierIdAndCustomerId(
+                            startDate, endDate, supplierId, customerId, pageable);
         }
+        else if (supplierId != null) {
+            records = creditEntryRepo
+                    .findByDateBetweenAndSupplierId(
+                            startDate, endDate, supplierId, pageable);
+        }
+        else if (customerId != null) {
+            records = creditEntryRepo
+                    .findByDateBetweenAndCustomerId(
+                            startDate, endDate, customerId, pageable);
+        }
+        else {
+            records = creditEntryRepo
+                    .findByDateBetween(startDate, endDate, pageable);
+        }
+        log.info("Fetched {} credit records", records.getTotalElements());
 
-        log.info("Fetched {} credit records", creditRecords.getTotalElements());
-
-        List<SearchCreditEntryResponse> content = creditRecords.getContent()
+        List<SearchCreditEntryResponse> content = records.getContent()
                 .stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
 
         return new PagedResponseDto<>(
                 content,
-                creditRecords.getNumber(),
-                creditRecords.getSize(),
-                creditRecords.getTotalElements(),
-                creditRecords.getTotalPages(),
-                creditRecords.isLast()
+                records.getNumber(),
+                records.getSize(),
+                records.getTotalElements(),
+                records.getTotalPages(),
+                records.isLast()
         );
     }
+
+    @Override
+    public Map<String, Object> deleteCreditEntry(int id ) {
+
+        CreditEntryEntity creditEntry = creditEntryRepo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                CREDIT_ENTRY_NOT_FOUND,
+                                " with id " + id
+                        )
+                );
+        creditEntryRepo.delete(creditEntry);
+
+        return Map.of(
+                "message", "credit Entry deleted successfully",
+                "id", id
+        );
+    }
+
+    @Override
+    public Map<String, Object> updateCreditEntry(
+            int id,
+            CreditUpdateRequest request) {
+
+        CreditEntryEntity credit = creditEntryRepo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                CREDIT_ENTRY_NOT_FOUND,
+                                " with id " + id
+                        )
+                );
+
+        // 🔹 Party updates
+        if (request.getSupplierId() != null) {
+            credit.setSupplierId(request.getSupplierId());
+        }
+
+        if (request.getCustomerId() != null) {
+            credit.setCustomerId(request.getCustomerId());
+        }
+
+        // 🔹 Transaction details
+        if (request.getPaymentType() != null) {
+            credit.setPaymentType(
+                    CreditEntryEnum.valueOf(request.getPaymentType())
+            );
+        }
+        credit.setReferenceNumber(request.getReferenceNumber());
+        credit.setReferenceDate(request.getReferenceDate());
+        credit.setSlipNumber(request.getSlipNumber());
+        if (request.getDrawType() != null) {
+            credit.setDrawType(
+                    DrawTypeEnum.valueOf(request.getDrawType())
+            );
+        }
+        credit.setReceivedAmount(request.getReceivedAmount());
+        credit.setRemark(request.getRemark());
+
+        creditEntryRepo.save(credit);
+
+        return Map.of(
+                "message", "Credit updated successfully",
+                "id", id
+        );
+    }
+
 
     private SearchCreditEntryResponse convertToResponseDto(CreditEntryEntity entity) {
         CustomerEntity customerEntity = null;
@@ -197,6 +270,9 @@ public class CreditServiceImpl implements CreditService {
         }
 
         return SearchCreditEntryResponse.builder()
+                .id(entity.getId())
+                .supplierId(entity.getSupplierId())
+                .customerId(entity.getCustomerId())
                 .paymentType(entity.getPaymentType())
                 .billNumber(entity.getBillNumber())
                 .date(entity.getDate())

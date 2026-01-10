@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,15 +60,20 @@ public class BillEntryController {
 
     @GetMapping(SEARCH_BILL_ENTRY)
     public ResponseEntity<PagedResponseDto<SearchBillEntryResponse>> getBillHistory(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            LocalDate toDate,
+
             @RequestParam(required = false) Integer supplierId,
             @RequestParam(required = false) Integer customerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size) {
 
-        // Validate that both dates are present
-        if (fromDate == null || toDate == null) {
+        if (fromDate == null && toDate == null && supplierId == null && customerId == null) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -81,6 +87,13 @@ public class BillEntryController {
         );
 
         return ResponseEntity.ok(history);
+    }
+
+    @DeleteMapping(DELETE_BILL_ENTRY + "/{billNumber}")
+    public ResponseEntity<Map<String, Object>> deleteBillEntry( @PathVariable String billNumber){
+
+       Map<String, Object> response = billService.deleteBillEntry(billNumber);
+       return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

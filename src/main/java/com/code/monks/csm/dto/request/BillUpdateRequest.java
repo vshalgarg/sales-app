@@ -10,6 +10,10 @@ public class BillUpdateRequest {
     private String date;
     private String receivedDate;
     private String order;
+
+    private Integer supplierId;
+    private Integer customerId;
+
     private String transport;
     private String lrNumber;
     private String remarks;
