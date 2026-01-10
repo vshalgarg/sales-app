@@ -7,7 +7,7 @@ export const addCreditEntry = async (formData) => {
     const result = checkLogicalError(response.data);
     return result;
   } catch (error) {
-      throw new Error(handleApiError(error));
+    throw new Error(handleApiError(error));
   }
 };
 
@@ -20,17 +20,42 @@ export const searchCreditHistory = async (
   try {
     const response = await api.get(`/credit/entries/search`, {
       params: {
-      fromDate,
-      toDate,
-      supplierId: supplierId ?? null,
-      customerId: customerId ?? null,
-      page,
-      size: rowsPerPage,
-    },
+        fromDate,
+        toDate,
+        supplierId: supplierId ?? null,
+        customerId: customerId ?? null,
+        page,
+        size: rowsPerPage,
+      },
     });
     const result = checkLogicalError(response.data);
     return result;
   } catch (error) {
-      throw new Error(handleApiError(error));
+    throw new Error(handleApiError(error));
   }
 };
+
+export const updateCreditApi = async (id, updates) => {
+  try {
+    const response = await api.patch(
+      `/credit/entry/update/${id}`,
+      updates
+    );
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const deleteCreditApi = async (id) => {
+  try {
+    const response = api.delete(`/credit/entry/delete/${id}`);
+    const result = checkLogicalError(response.data);
+    return result;
+  }
+  catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+

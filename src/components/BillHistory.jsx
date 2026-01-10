@@ -10,6 +10,7 @@ const BillHistory = ({
   onPageChange,
   onView,
   onEdit,
+  onDelete,
   emptyMessage,
 }) => {
   const columns = [
@@ -44,6 +45,7 @@ const BillHistory = ({
       actions={true}
       onView={onView}
       onEdit={onEdit}
+      onDelete={onDelete}
       emptyMessage={emptyMessage}
     />
   );

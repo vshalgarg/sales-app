@@ -5,12 +5,13 @@ import CustomTextField from "./CustomTextField";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
-import { searchPurchaseHistory } from "../service/purchaseService";
+import { deletePurchaseApi, searchPurchaseHistory } from "../service/purchaseService";
 import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import PurchaseHistory from "./PurchaseHistory";
+import EditPurchaseDetail from "../modals/EditPurchaseDetail";
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
@@ -27,6 +28,11 @@ const Purchase = () => {
   const [allCustomers, setAllCustomers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [purchaseToEdit, setPurchaseToEdit] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [purchaseToDelete, setPurchaseToDelete] = useState(null);
+
 
   const today = dayjs().format("YYYY-MM-DD");
   const todayDayjs = dayjs();
@@ -50,13 +56,26 @@ const Purchase = () => {
     loadData();
   }, []);
 
+  const confirmDelete = async () => {
+    if (!purchaseToDelete) return;
+
+    try {
+      await deletePurchaseApi(purchaseToDelete.id);
+
+      showSnackbar("Purchase deleted successfully", "success");
+
+      setIsDeleteOpen(false);
+      setPurchaseToDelete(null);
+
+      handlePurchaseHistory(currentPage); // refresh
+    } catch (err) {
+      showSnackbar(err.message || "Failed to delete purchase", "error");
+    }
+  };
+
+
   /* ================= SEARCH ================= */
   const handlePurchaseHistory = async (page = 1) => {
-    if (!filterObject.fromDate) {
-      setErrors({ fromDate: "Please select From Date" });
-      return;
-    }
-
     try {
       setLoading(true);
       setFiltersApplied(true);
@@ -64,13 +83,12 @@ const Purchase = () => {
       const data = await searchPurchaseHistory(
         {
           ...filterObject,
-          supplierId: selectedSupplier ? selectedSupplier.id : null,
-          customerId: selectedCustomer ? selectedCustomer.id : null,
           toDate: filterObject.toDate || null,
         },
         page - 1,
         rowsPerPage
       );
+
 
       setPurchaseHistoryData(data?.content ?? []);
       setTotalItems(data?.totalElements ?? 0);
@@ -93,8 +111,8 @@ const Purchase = () => {
     setFilterObject({
       supplierId: null,
       customerId: null,
-      fromDate: today,
-      toDate: today,
+      fromDate: null,
+      toDate: null,
     });
 
     setErrors({});
@@ -103,6 +121,13 @@ const Purchase = () => {
     setTotalItems(0);
     setFiltersApplied(false);
   };
+
+  const isAnyFilterSelected =
+    !!filterObject.fromDate ||
+    !!filterObject.toDate ||
+    !!filterObject.supplierId ||
+    !!filterObject.customerId;
+
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -193,10 +218,16 @@ const Purchase = () => {
           </button>
           <button
             onClick={() => handlePurchaseHistory(1)}
-            className="px-6 py-2 bg-blue-600 text-white rounded"
+            disabled={!isAnyFilterSelected}
+            className={`px-6 py-2 rounded
+    ${isAnyFilterSelected
+                ? "bg-blue-600 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
           >
             Apply Filters
           </button>
+
         </div>
       </div>
 
@@ -213,7 +244,63 @@ const Purchase = () => {
             ? "No data found for selected filters"
             : "Apply filters to view purchase history"
         }
+        onEdit={(row) => {
+          setPurchaseToEdit(row);
+          setIsEditOpen(true);
+        }}
+        onDelete={(row) => {
+          setPurchaseToDelete(row);
+          setIsDeleteOpen(true);
+        }}
       />
+
+      {isEditOpen && purchaseToEdit && (
+        <EditPurchaseDetail
+          open={isEditOpen}
+          selectedPurchaseDetail={purchaseToEdit}
+          setOpen={setIsEditOpen}
+          onUpdateSuccess={() => {
+            setIsEditOpen(false);
+            setPurchaseToEdit(null);
+            handlePurchaseHistory(currentPage);
+          }}
+        />
+      )}
+      {isDeleteOpen && purchaseToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-5">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Delete Purchase
+            </h3>
+
+            <p className="text-sm text-gray-600 mt-2">
+              Are you sure you want to delete purchase
+              <span className="font-medium">
+                {" "}#{purchaseToDelete.id}
+              </span> ?
+            </p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsDeleteOpen(false);
+                  setPurchaseToDelete(null);
+                }}
+                className="px-4 py-2 text-sm border rounded-lg"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,6 +8,8 @@ const PurchaseHistory = ({
   totalItems,
   rowsPerPage,
   onPageChange,
+  onEdit,
+  onDelete,
   emptyMessage,
 }) => {
   const columns = [
@@ -32,7 +34,9 @@ const PurchaseHistory = ({
       totalCount={totalItems}
       rowsPerPage={rowsPerPage}
       onPageChange={onPageChange}
-      actions={false}
+      actions={true}
+      onEdit={onEdit}
+      onDelete={onDelete}
       emptyMessage={emptyMessage}
     />
   );

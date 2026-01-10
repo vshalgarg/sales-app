@@ -71,3 +71,17 @@ export const searchTransports = async (query) => {
     throw new Error(handleApiError(error));
   }
 };
+
+export const deleteBill = async (billNumber) => {
+  try {
+   const response = await api.delete(
+      `/bill/entry/delete/${billNumber}`
+    );
+  const result = checkLogicalError(response.data);
+  return result;
+  }
+  catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
