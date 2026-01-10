@@ -13,7 +13,6 @@ const PurchaseHistory = ({
   emptyMessage,
 }) => {
   const columns = [
-    { key: "id", label: "Purchase ID" },
     {
       key: "date",
       label: "Date",

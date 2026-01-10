@@ -44,18 +44,12 @@ export default function CustomerDashboard() {
   });
 
   const columns = [
-    {
-      key: "code",
-      label: "Code",
-      width: "10%",
-      render: (row) => row.code || `C00${row.id || ""}` || "-",
-    },
-    { key: "customerName", label: "Name", width: "15%" },
-    { key: "customerGstNo", label: "GST", width: "12%" },
+    { key: "customerName", label: "Name", width: "18%" },
+    { key: "customerGstNo", label: "GST", width: "14%" },
     {
       key: "address",
       label: "Address",
-      width: "20%",
+      width: "26%",
       render: (row) => (
         <div className="truncate max-w-[200px]" title={row.address}>
           {row.address || "-"}
@@ -66,13 +60,13 @@ export default function CustomerDashboard() {
     {
       key: "contactPerson",
       label: "Contact Person",
-      width: "12%",
+      width: "16%",
       render: (row) => row.contacts?.[0]?.contactPerson || "-",
     },
     {
       key: "mobile",
       label: "Mobile",
-      width: "11%",
+      width: "16%",
       render: (row) => row.contacts?.[0]?.mobileNumber || "-",
     },
   ];

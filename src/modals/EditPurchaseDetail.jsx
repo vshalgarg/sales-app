@@ -135,7 +135,7 @@ const EditPurchaseDetail = ({
                     <CustomTextField
                         label="Purchase ID"
                         value={selectedPurchaseDetail.id}
-                        InputProps={{ readOnly: true }}
+                        disabled
                     />
 
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
