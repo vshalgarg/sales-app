@@ -14,4 +14,8 @@ public class SearchPurchaseEntryResponse {
     private String supplierName;
     private String customerName;
     private double purchaseAmount;
+    private Integer supplierId;
+    private Integer customerId;
+    private Integer staffId;
+
 }

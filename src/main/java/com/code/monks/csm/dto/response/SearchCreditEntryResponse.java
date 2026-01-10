@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Builder
 public class SearchCreditEntryResponse {
 
+    private int id;
     private CreditEntryEnum paymentType;
 
     private String billNumber;
@@ -35,5 +36,9 @@ public class SearchCreditEntryResponse {
     private DrawTypeEnum drawType;
 
     private String remark;
+
+    private int supplierId;
+    private int customerId;
+
 
 }

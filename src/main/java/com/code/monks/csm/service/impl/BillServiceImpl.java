@@ -5,6 +5,7 @@ import com.code.monks.csm.dto.request.BillUpdateRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.*;
 import com.code.monks.csm.exception.BillException;
+import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
@@ -25,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
@@ -35,11 +38,8 @@ import static com.code.monks.csm.enums.ResponseErrorCode.*;
 public class BillServiceImpl implements BillService {
 
     private final BillEntryRepo billRepo;
-
     private final ValidatorUtil validatorUtil;
-
     private final CustomerRepo customerRepo;
-
     private final SupplierRepo supplierRepo;
     private final TransportService transportService;
 
@@ -189,7 +189,7 @@ public class BillServiceImpl implements BillService {
     public EditBillEntryResponse updateBill(String billNumber, BillUpdateRequest request) {
 
         BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
-                .orElseThrow(() -> new RuntimeException("Bill not found: " + billNumber));
+                .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, ": "+billNumber));
 
         if (request.getDate() != null) {
             bill.setDate(LocalDate.parse(request.getDate()));
@@ -200,6 +200,19 @@ public class BillServiceImpl implements BillService {
         if (request.getOrder() != null) {
             bill.setOrders(request.getOrder());
         }
+
+        if (request.getSupplierId() != null) {
+            bill.setSupplierId(request.getSupplierId());
+        } else {
+            bill.setSupplierId(null);
+        }
+
+        if (request.getCustomerId() != null) {
+            bill.setCustomerId(request.getCustomerId());
+        } else {
+            bill.setCustomerId(null);
+        }
+
         if (request.getTransport() != null) {
             String newName = request.getTransport().trim();
 
@@ -271,35 +284,43 @@ public class BillServiceImpl implements BillService {
                 fromDate, toDate, supplierId, customerId, page, size
         );
 
+        //STEP-1: Normalize dates
+        LocalDate startDate =
+                (fromDate != null) ? fromDate : LocalDate.of(1970, 1, 1);
+
+        LocalDate endDate =
+                (toDate != null) ? toDate : LocalDate.now();
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("date", "id").descending()); // sorting by date desc
         Page<BillEntryEntity> billRecords;
 
+        //Dynamic filter logic
         if (supplierId != null && customerId != null) {
 
             billRecords =
                     billRepo.findByDateBetweenAndSupplierIdAndCustomerId(
-                            fromDate, toDate, supplierId, customerId, pageable
+                            startDate, endDate, supplierId, customerId, pageable
                     );
 
         } else if (supplierId != null) {
 
             billRecords =
                     billRepo.findByDateBetweenAndSupplierId(
-                            fromDate, toDate, supplierId, pageable
+                            startDate, endDate, supplierId, pageable
                     );
 
         } else if (customerId != null) {
 
             billRecords =
                     billRepo.findByDateBetweenAndCustomerId(
-                            fromDate, toDate, customerId, pageable
+                            startDate, endDate, customerId, pageable
                     );
 
         } else {
 
             billRecords =
                     billRepo.findByDateBetween(
-                            fromDate, toDate, pageable
+                            startDate, endDate, pageable
                     );
         }
 
@@ -316,6 +337,20 @@ public class BillServiceImpl implements BillService {
                 billRecords.getTotalElements(),
                 billRecords.getTotalPages(),
                 billRecords.isLast()
+        );
+    }
+
+    @Override
+    public Map<String, Object> deleteBillEntry(String billNumber) {
+
+        BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, ": "+billNumber));
+
+        billRepo.delete(bill);
+
+        return Map.of(
+                "message", "Bill deleted successfully",
+                "billNumber", billNumber
         );
     }
 

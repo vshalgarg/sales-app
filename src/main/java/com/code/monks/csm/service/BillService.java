@@ -7,6 +7,7 @@ import com.code.monks.csm.dto.response.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public interface BillService {
     BillEntryResponseDto addBill(BillEntryRequestDto requestDto);
@@ -19,4 +20,6 @@ public interface BillService {
             Integer customerId,
             int page,
             int size);
+
+    Map<String, Object> deleteBillEntry(String billNumber);
 }

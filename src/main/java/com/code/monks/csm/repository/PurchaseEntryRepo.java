@@ -41,4 +41,16 @@ public interface PurchaseEntryRepo extends JpaRepository<PurchaseEntity, Integer
             LocalDate toDate,
             Pageable pageable
     );
+
+    Page<PurchaseEntity> findByDateBetweenAndSupplierIdAndCustomerId(LocalDate fromDate, LocalDate toDate, Integer supplierId, Integer customerId, Pageable pageable);
+
+    Page<PurchaseEntity> findByDateBetweenAndSupplierId(LocalDate fromDate, LocalDate toDate, Integer supplierId, Pageable pageable);
+
+    Page<PurchaseEntity> findByDateBetweenAndCustomerId(LocalDate fromDate, LocalDate toDate, Integer customerId, Pageable pageable);
+
+    Page<PurchaseEntity> findBySupplierIdAndCustomerId(Integer supplierId, Integer customerId, Pageable pageable);
+
+    Page<PurchaseEntity> findBySupplierId(Integer supplierId, Pageable pageable);
+
+    Page<PurchaseEntity> findByCustomerId(Integer customerId, Pageable pageable);
 }

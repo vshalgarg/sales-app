@@ -17,7 +17,10 @@ public enum ResponseErrorCode {
     DATA_ACCESS_ERROR(1007, "Data access error occurred."),
     TRANSPORT_NOT_FOUND(1008,"Transport not found"),
     PREFERRED_TRANSPORT_NOT_FOUND(1008,"One or more preferred transport IDs are invalid"),
-    INVALID_REQUEST(1009,"Invalid request");
+    BILL_NOT_FOUND(1010,"Bill Not Found"),
+    INVALID_REQUEST(1009,"Invalid request"),
+    CREDIT_ENTRY_NOT_FOUND(1011,"Credit entry not found for this bill number"),
+    PURCHASE_ENTRY_NOT_FOUND(1012,"Purchase entry not found");
 
     private final int code;
     private final String message;
