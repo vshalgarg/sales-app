@@ -235,7 +235,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             <CustomTextField
               name="billNumber"
               value={formData.billNumber}
-              readOnly
+              disabled
               label="Bill Number"
             />
             <LocalizationProvider dateAdapter={AdapterDayjs}>

@@ -177,7 +177,7 @@ const EditCreditDetail = ({
                     <CustomTextField
                         label="Bill Number"
                         value={selectedCreditDetail.billNumber}
-                        InputProps={{ readOnly: true }}
+                        disabled
                     />
                     <CustomTextField
                         label="Date"

@@ -26,13 +26,6 @@ export default function TransportDashboard() {
 
 const columns = [
   { 
-    key: "sno", 
-    label: "S.No.", 
-    width: "6%", 
-    render: (_, i) => i + 1 
-  },
-
-  { 
     key: "name", 
     label: "Transport Name", 
     width: "20%"

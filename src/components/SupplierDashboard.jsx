@@ -29,18 +29,12 @@ export default function SupplierDashboard() {
   const dropdownRef = useRef(null);
 
   const columns = [
-    {
-      key: "code",
-      label: "Code",
-      width: "10%",
-      render: (row) => row.supplierCode || row.code || "-",
-    },
-    { key: "supplierName", label: "Name", width: "15%" },
-    { key: "supplierGstNo", label: "GST", width: "12%" },
+    { key: "supplierName", label: "Name", width: "18%" },
+    { key: "supplierGstNo", label: "GST", width: "14%" },
     {
       key: "address",
       label: "Address",
-      width: "20%",
+      width: "26%",
       render: (row) => (
         <Typography
           variant="body2"
@@ -56,13 +50,13 @@ export default function SupplierDashboard() {
     {
       key: "contactPerson",
       label: "Contact Person",
-      width: "12%",
+      width: "16%",
       render: (row) => row.contacts?.[0]?.contactPerson || "-",
     },
     {
       key: "mobile",
       label: "Mobile",
-      width: "11%",
+      width: "16%",
       render: (row) => row.contacts?.[0]?.mobileNumber || "-",
     },
   ];
