@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class CreditServiceImpl implements CreditService {
         try {
             if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE) {
 
-                if (requestDto.getReferenceNumber() == null || requestDto.getReferenceNumber().isBlank()) {
+                if (!StringUtils.hasText(requestDto.getReferenceNumber())) {
                     throw new CreditException(
                             INVALID_REQUEST,
                             "Cheque number is required for CHEQUE payment"
