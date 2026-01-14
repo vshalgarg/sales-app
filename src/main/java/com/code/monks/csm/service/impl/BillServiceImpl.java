@@ -189,36 +189,19 @@ public class BillServiceImpl implements BillService {
     public EditBillEntryResponse updateBill(String billNumber, BillUpdateRequest request) {
 
         BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
-                .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, ": "+billNumber));
+                .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, billNumber));
 
-        if (request.getDate() != null) {
             bill.setDate(LocalDate.parse(request.getDate()));
-        }
-        if (request.getReceivedDate() != null) {
             bill.setReceivedDate(LocalDate.parse(request.getReceivedDate()));
-        }
-        if (request.getOrder() != null) {
             bill.setOrders(request.getOrder());
-        }
+        bill.setSupplierId(request.getSupplierId());
+        bill.setCustomerId(request.getCustomerId());
 
-        if (request.getSupplierId() != null) {
-            bill.setSupplierId(request.getSupplierId());
-        } else {
-            bill.setSupplierId(null);
-        }
 
-        if (request.getCustomerId() != null) {
-            bill.setCustomerId(request.getCustomerId());
-        } else {
-            bill.setCustomerId(null);
-        }
-
-        if (request.getTransport() != null) {
-            String newName = request.getTransport().trim();
-
-            if (newName.isEmpty()) {
+            if (request.getTransport() == null || request.getTransport().trim().isEmpty()) {
                 bill.setTransportEntity(null);
             } else {
+                String newName = request.getTransport().trim();
                 TransportEntity transport = transportService
                         .findByNameIgnoreCase(newName)
                         .orElseThrow(() ->
@@ -230,13 +213,9 @@ public class BillServiceImpl implements BillService {
 
                 bill.setTransportEntity(transport);
             }
-        }
-        if (request.getLrNumber() != null) {
+
             bill.setLrNumber(request.getLrNumber());
-        }
-        if (request.getRemarks() != null) {
             bill.setRemarks(request.getRemarks());
-        }
 
         bill.getBillDetails().forEach(d -> d.setBillEntry(null));
         bill.getBillDetails().clear();
@@ -344,7 +323,7 @@ public class BillServiceImpl implements BillService {
     public Map<String, Object> deleteBillEntry(String billNumber) {
 
         BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
-                .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, ": "+billNumber));
+                .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, billNumber));
 
         billRepo.delete(bill);
 
