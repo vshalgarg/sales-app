@@ -29,7 +29,6 @@ const Login = () => {
     userId:data.userId,
     username:data.username,
   })
-  console.log("auth",auth)
      
       showSnackbar("Login successful!", "success");
       navigate("/suppliers", { replace: true });
