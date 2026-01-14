@@ -47,13 +47,13 @@ public class UserController {
     }
 
     @PostMapping(DELETE_USER)
-    public ResponseEntity<DeleteUserResponseDto> deleteUser(@Valid @RequestBody DeleteUserRequestDto requestDto) {
-        log.info("DELETE_USER API called for userId: {}, username: {}", requestDto.getUserId(), requestDto.getUsername());
+    public ResponseEntity<DeleteUserResponseDto> deleteUser(@PathVariable Long userId) {
+        log.info("DELETE_USER API called for userId: {}", userId);
 
-        DeleteUserResponseDto responseDto = userService.deleteUser(requestDto);
+        DeleteUserResponseDto responseDto = userService.deleteUser(userId);
 
         log.info("DELETE_USER API completed for userId: {}",
-                requestDto.getUserId());
+                userId);
 
         return ResponseEntity.ok(responseDto);
     }

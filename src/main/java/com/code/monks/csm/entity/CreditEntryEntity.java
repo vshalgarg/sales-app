@@ -26,11 +26,11 @@ public class CreditEntryEntity extends BaseEntity{
     @Column(name = "date")
     private LocalDate date;
 
-    @Column(name = "cheque_number")
-    private String chequeNumber;
+    @Column(name = "reference_number")
+    private String referenceNumber;
 
-    @Column(name = "cheque_date")
-    private LocalDate chequeDate;
+    @Column(name = "reference_date")
+    private LocalDate referenceDate;
 
     @Column(name = "received_amount")
     private long receivedAmount;
@@ -47,10 +47,10 @@ public class CreditEntryEntity extends BaseEntity{
     @Column(name = "remark")
     private String remark;
 
-    @Column(name = "slip_number")
-    private int slipNumber;
+    @Column(name = "slip_number", length = 30)
+    private String slipNumber;
 
-    @Column(name = "supplierId")
+    @Column(name = "supplier_id")
     private int supplierId;
 
     @Column(name = "customer_id")

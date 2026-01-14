@@ -53,17 +53,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public DeleteUserResponseDto deleteUser(DeleteUserRequestDto requestDto) {
-        log.info("deleteUser() called for username: {}", requestDto.getUsername());
+    public DeleteUserResponseDto deleteUser(Long userId) {
+        log.info("deleteUser() called for userId: {}", userId);
 
-        AuthDeleteUserRequestDto authRequestDto = new AuthDeleteUserRequestDto(requestDto.getUsername());
-        log.debug("Calling authRestClient.callDeleteUser() with AuthDeleteUserRequestDto: {}", authRequestDto);
-
-        AuthDeleteUserResponseDto authDeleteUserResponseDto = authRestClient.callDeleteUser(authRequestDto);
-        log.info("Received response from auth service: {}", authDeleteUserResponseDto.getMessage());
+        AuthDeleteUserResponseDto authResponse =
+                authRestClient.callDeleteUser(userId);
+        log.info("Received response from auth service: {}",
+                authResponse.getMessage());
 
         return DeleteUserResponseDto.builder()
-                .message(authDeleteUserResponseDto.getMessage())
+                .message(authResponse.getMessage())
                 .build();
     }
 

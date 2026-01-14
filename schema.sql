@@ -250,3 +250,24 @@ CREATE TABLE IF NOT EXISTS credit (
         FOREIGN KEY (customer_id) REFERENCES customer(id)
         ON DELETE SET NULL
 );
+
+ALTER TABLE credit
+CHANGE cheque_number reference_number VARCHAR(100);
+
+ALTER TABLE credit
+CHANGE cheque_date reference_date DATE;
+
+ALTER TABLE credit
+MODIFY slip_number VARCHAR(30);
+
+
+ALTER TABLE bill
+ADD INDEX idx_bill_date (date),
+ADD INDEX idx_bill_supplier (supplier_id),
+ADD INDEX idx_bill_customer (customer_id);
+
+ALTER TABLE bill
+MODIFY remarks VARCHAR(255);
+
+
+

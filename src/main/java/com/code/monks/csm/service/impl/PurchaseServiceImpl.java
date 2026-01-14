@@ -1,11 +1,15 @@
 package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
+import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.SearchCreditEntryResponse;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
-import com.code.monks.csm.entity.*;
+import com.code.monks.csm.entity.CustomerEntity;
+import com.code.monks.csm.entity.PurchaseEntity;
+import com.code.monks.csm.entity.StaffEntity;
+import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.PurchaseEntryRepo;
 import com.code.monks.csm.repository.StaffRepo;
@@ -20,8 +24,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+
+import static com.code.monks.csm.enums.ResponseErrorCode.PURCHASE_ENTRY_NOT_FOUND;
 
 @Service
 @AllArgsConstructor
@@ -50,162 +57,161 @@ public class PurchaseServiceImpl implements PurchaseService {
             Integer supplierId,
             Integer customerId,
             int page,
-            int size) {
+            int size)   {
 
-        log.info("➡️ searchPurchaseHistory() called with: fromDate={}, toDate={}, supplierId={}, customerId={}, page={}, size={}",
-                fromDate, toDate, supplierId, customerId, page, size);
-
-        // ✅ Adjust page index (PageRequest is 0-based)
-        int pageIndex = Math.max(page - 1, 0);
+        int pageIndex = Math.max(page, 0);
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by("date").descending());
         Page<PurchaseEntity> purchaseRecords;
+        log.info("Purchase search called: fromDate={}, toDate={}, supplierId={}, customerId={}",
+                fromDate, toDate, supplierId, customerId);
 
-        try {
-            // ✅ Filtering logic with logs
+        if (fromDate != null && toDate != null) {
+
             if (supplierId != null && customerId != null) {
-                log.info("📦 Fetching purchase entries for Supplier ID={} and Customer ID={}", supplierId, customerId);
-                purchaseRecords = purchaseEntryRepo.findByDateBetweenAndSupplierIdEqualsAndCustomerIdEquals(
-                        fromDate, toDate, supplierId, customerId, pageable
-                );
+                purchaseRecords =
+                        purchaseEntryRepo.findByDateBetweenAndSupplierIdAndCustomerId(
+                                fromDate, toDate, supplierId, customerId, pageable
+                        );
+
             } else if (supplierId != null) {
-                log.info("📦 Fetching purchase entries for Supplier ID={}", supplierId);
-                purchaseRecords = purchaseEntryRepo.findByDateBetweenAndSupplierIdEquals(
-                        fromDate, toDate, supplierId, pageable
-                );
+                purchaseRecords =
+                        purchaseEntryRepo.findByDateBetweenAndSupplierId(
+                                fromDate, toDate, supplierId, pageable
+                        );
+
             } else if (customerId != null) {
-                log.info("📦 Fetching purchase entries for Customer ID={}", customerId);
-                purchaseRecords = purchaseEntryRepo.findByDateBetweenAndCustomerIdEquals(
-                        fromDate, toDate, customerId, pageable
-                );
+                purchaseRecords =
+                        purchaseEntryRepo.findByDateBetweenAndCustomerId(
+                                fromDate, toDate, customerId, pageable
+                        );
+
             } else {
-                log.info("📦 Fetching all purchase entries (no supplier or customer filter)");
-                purchaseRecords = purchaseEntryRepo.findByDateBetween(fromDate, toDate, pageable);
-                System.out.println("This is record : "+purchaseRecords.getContent());
+                purchaseRecords =
+                        purchaseEntryRepo.findByDateBetween(fromDate, toDate, pageable);
             }
 
-            log.info("✅ Fetched {} purchase records (page {}/{})",
-                    purchaseRecords.getNumber() + 1,
-                    purchaseRecords.getTotalPages(),
-                    purchaseRecords.getTotalElements()
-            );
+        } else {
+            // NO DATE FILTER
+            if (supplierId != null && customerId != null) {
+                purchaseRecords =
+                        purchaseEntryRepo.findBySupplierIdAndCustomerId(
+                                supplierId, customerId, pageable
+                        );
 
-            // ✅ Map entities to response DTOs
-            List<SearchPurchaseEntryResponse> content = purchaseRecords.getContent()
-                    .stream()
-                    .map(this::convertToResponseDto)
-                    .collect(Collectors.toList());
+            } else if (supplierId != null) {
+                purchaseRecords =
+                        purchaseEntryRepo.findBySupplierId(supplierId, pageable);
 
-            log.info("✅ Successfully converted {} purchase records into response DTOs", content.size());
+            } else if (customerId != null) {
+                purchaseRecords =
+                        purchaseEntryRepo.findByCustomerId(customerId, pageable);
 
-            return new PagedResponseDto<>(
-                    content,
-                    purchaseRecords.getNumber() + 1,
-                    purchaseRecords.getSize(),
-                    purchaseRecords.getTotalElements(),
-                    purchaseRecords.getTotalPages(),
-                    purchaseRecords.isLast()
-            );
-
-        } catch (Exception e) {
-            log.error("❌ Exception in searchPurchaseHistory(): {}", e.getMessage(), e);
-            throw e; // rethrow for controller advice or global handler
+            } else {
+                purchaseRecords =
+                        purchaseEntryRepo.findAll(pageable);
+            }
         }
+
+        List<SearchPurchaseEntryResponse> content =
+                purchaseRecords.getContent()
+                        .stream()
+                        .map(this::convertToResponseDto)
+                        .toList();
+
+        return new PagedResponseDto<>(
+                content,
+                purchaseRecords.getNumber(),
+                purchaseRecords.getSize(),
+                purchaseRecords.getTotalElements(),
+                purchaseRecords.getTotalPages(),
+                purchaseRecords.isLast()
+        );
+    }
+
+        @Override
+        public Map<String, Object> updatePurchaseEntry(int id, UpdatePurchaseEntryReq req) {
+            log.info(" Update Purchase Entry called for ID={}", id);
+            PurchaseEntity entity = purchaseEntryRepo.findById(id)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(PURCHASE_ENTRY_NOT_FOUND,": "+ id)
+                    );
+
+            if (req.getDate() != null) {
+                entity.setDate(req.getDate());
+            }
+
+            if (req.getStaffId() != null) {
+                entity.setStaffId(req.getStaffId());
+            }
+
+            if (req.getSupplierId() != null) {
+                entity.setSupplierId(req.getSupplierId());
+            }
+
+            if (req.getCustomerId() != null) {
+                entity.setCustomerId(req.getCustomerId());
+            }
+            entity.setPurchaseAmount(req.getPurchaseAmount());
+            PurchaseEntity updated = purchaseEntryRepo.save(entity);
+            log.info("Purchase Entry updated successfully. ID={}", updated.getId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Purchase entry updated successfully");
+            response.put("id", updated.getId());
+            return response;
+        }
+
+    @Override
+    public Map<String, Object> deletePurchaseEntry(int id) {
+
+        log.info(" Delete Purchase Entry called for ID={}", id);
+        PurchaseEntity entity = purchaseEntryRepo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(PURCHASE_ENTRY_NOT_FOUND,": "+ id)
+                );
+        purchaseEntryRepo.delete(entity);
+        log.info("Purchase Entry deleted successfully. ID={}", id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Purchase entry deleted successfully");
+        response.put("id", id);
+        return response;
     }
 
     private SearchPurchaseEntryResponse convertToResponseDto(PurchaseEntity entity) {
-        log.info("🔄 Starting conversion for PurchaseEntity ID={}", entity.getId());
 
-        CustomerEntity customerEntity = null;
-        SupplierEntity supplierEntity = null;
-        StaffEntity staffEntity = null;
+        log.info("Converting PurchaseEntity ID={}", entity.getId());
 
-        try {
-            // Fetch Customer
-            if (entity.getCustomerId() > 0) {
-                log.debug("Fetching CustomerEntity for ID={}", entity.getCustomerId());
-                customerEntity = customerRepo.findById(entity.getCustomerId()).orElse(null);
-                log.info("✅ Customer lookup result for ID={}: {}",
-                        entity.getCustomerId(),
-                        customerEntity != null ? customerEntity.getCustomerName() : "NOT FOUND");
-            } else {
-                log.debug("No Customer ID found for PurchaseEntity ID={}", entity.getId());
-            }
+        CustomerEntity customer = null;
+        SupplierEntity supplier = null;
+        StaffEntity staff = null;
 
-            // Fetch Supplier
-            if (entity.getSupplierId() > 0) {
-                log.debug("Fetching SupplierEntity for ID={}", entity.getSupplierId());
-                supplierEntity = supplierRepo.findById(entity.getSupplierId()).orElse(null);
-                log.info("✅ Supplier lookup result for ID={}: {}",
-                        entity.getSupplierId(),
-                        supplierEntity != null ? supplierEntity.getSupplierName() : "NOT FOUND");
-            } else {
-                log.debug("No Supplier ID found for PurchaseEntity ID={}", entity.getId());
-            }
-
-
-            if (entity.getStaffId() > 0) {
-                log.debug("Fetching StaffEntity for ID={}", entity.getStaffId());
-                log.info("Fetching StaffEntity for ID={}", entity.getStaffId());
-                staffEntity = staffRepo.findById(entity.getStaffId()).orElse(null);
-                log.info("✅ Staff lookup result for ID={}: {}",
-                        entity.getStaffId(),
-                        staffEntity != null ? staffEntity.getStaffName() : "NOT FOUND");
-            } else {
-                log.debug("No Staff ID found for PurchaseEntity ID={}", entity.getId());
-            }
-//            if (entity.getStaffId() > 0) {
-//                log.info("🧩 Fetching StaffEntity for staffId={}", entity.getStaffId());
-//                try {
-//                    staffEntity = staffRepo.findById(entity.getStaffId()).orElse(null);
-//
-//                    if (staffEntity != null) {
-//                        log.info("✅ Found StaffEntity: ID={} | Name={}",
-//                                staffEntity.getId(), staffEntity.getStaffName());
-//                    } else {
-//                        log.warn("⚠️ No StaffEntity found for ID={}", entity.getStaffId());
-//                    }
-//                } catch (Exception ex) {
-//                    log.error("❌ Error fetching StaffEntity for ID={} : {}",
-//                            entity.getStaffId(), ex.getMessage(), ex);
-//                }
-//            } else {
-//                log.warn("⚠️ PurchaseEntity ID={} has invalid staffId={}",
-//                        entity.getId(), entity.getStaffId());
-//            }
-
-//            if (entity.getStaffId() > 0) {
-//                log.info("🧩 Fetching StaffEntity for staffId={}", entity.getStaffId());
-//
-//                if (staffRepo.existsById(entity.getStaffId())) {
-//                    staffEntity = staffRepo.findById(entity.getStaffId()).orElse(null);
-//                    log.info("✅ Found StaffEntity: {}", staffEntity.getStaffName());
-//                } else {
-//                    log.warn("⚠️ No StaffEntity exists for ID={}", entity.getStaffId());
-//                }
-//            } else {
-//                log.debug("No Staff ID found for PurchaseEntity ID={}", entity.getId());
-//            }
-
-            // Build Response DTO
-            SearchPurchaseEntryResponse response = SearchPurchaseEntryResponse.builder()
-                    .id(entity.getId())
-                    .date(entity.getDate())
-                    .staffName(staffEntity != null ? staffEntity.getStaffName() : "N/A")
-                    .supplierName(supplierEntity != null ? supplierEntity.getSupplierName() : "N/A")
-                    .customerName(customerEntity != null ? customerEntity.getCustomerName() : "N/A")
-                    .purchaseAmount(entity.getPurchaseAmount())
-                    .build();
-
-            log.info("✅ Successfully converted PurchaseEntity ID={} -> Response DTO", entity.getId());
-            log.debug("Response DTO details: {}", response);
-
-            return response;
-
-        } catch (Exception e) {
-            log.error("❌ Error while converting PurchaseEntity ID={} : {}", entity.getId(), e.getMessage(), e);
-            throw e;
+        if (entity.getCustomerId() > 0) {
+            customer = customerRepo.findById(entity.getCustomerId()).orElse(null);
         }
-    }
 
+        if (entity.getSupplierId() > 0) {
+            supplier = supplierRepo.findById(entity.getSupplierId()).orElse(null);
+        }
+
+        if (entity.getStaffId() > 0) {
+            staff = staffRepo.findById(entity.getStaffId()).orElse(null);
+        }
+
+        return SearchPurchaseEntryResponse.builder()
+                .id(entity.getId())
+                .date(entity.getDate())
+
+                .staffId(entity.getStaffId())
+                .supplierId(entity.getSupplierId())
+                .customerId(entity.getCustomerId())
+
+                .staffName(staff != null ? staff.getStaffName() : null)
+                .supplierName(supplier != null ? supplier.getSupplierName() : null)
+                .customerName(customer != null ? customer.getCustomerName() : null)
+
+                .purchaseAmount(entity.getPurchaseAmount())
+                .build();
+    }
 
 }

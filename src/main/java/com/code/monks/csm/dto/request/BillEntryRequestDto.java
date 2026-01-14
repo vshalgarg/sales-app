@@ -24,7 +24,8 @@ public class BillEntryRequestDto {
     private int supplierId;
     private int customerId;
 
-    private String transport;
+    private Integer transportId;
+    private String transportName;
     private String lrNumber;
     private String remarks;
 

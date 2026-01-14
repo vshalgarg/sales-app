@@ -12,7 +12,7 @@ public class ApiPaths {
 
     public static final String GET_ENCRYPTED_USER_DETAIL = "/get/user/detail/{userId}";
 
-    public static final String DELETE_USER = "/user/delete";
+    public static final String DELETE_USER = "/user/delete/{userId}";
 
     public static final String LOGIN = "/login";
 
@@ -45,12 +45,15 @@ public class ApiPaths {
     public static final String UPDATE_BILL_ENTRY = "/bill/entry/update/{billNumber}";
 
     public static final String SEARCH_BILL_ENTRY = "bill/entries/search";
+    public static final String DELETE_BILL_ENTRY = "bill/entry/delete";
 
     public static final String ADD_CREDIT_ENTRY = "/credit/entry/add";
 
     public static final String GET_CREDIT_ENTRIES = "/credit/entries/get";
 
     public static final String SEARCH_CREDIT_ENTRIES = "/credit/entries/search";
+    public static final String UPDATE_CREDIT_ENTRY = "/credit/entry/update/{id}";
+    public static final String DELETE_CREDIT_ENTRY ="/credit/entry/delete/{id}";
 
     public static final String SEARCH_USER = "/users/search";
 
@@ -62,6 +65,8 @@ public class ApiPaths {
     public static final String ADD_PURCHASE_ENTRY = "/purchase/entry/add";
 
     public static final String SEARCH_PURCHASE_ENTRIES = "/purchase/entries/search";
+    public static final String UPDATE_PURCHASE_ENTRY="purchase/entry/update/{id}";
+    public static final String DELETE_PURCHASE_ENTRY = "/purchase/entry/delete/{id}";
 
     public static final String TRANSPORT_SEARCH ="/transports/search";
     public static final String GET_ALL = "/transports/getAll";

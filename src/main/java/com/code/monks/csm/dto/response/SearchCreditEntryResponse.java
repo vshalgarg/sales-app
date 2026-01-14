@@ -10,15 +10,16 @@ import java.time.LocalDate;
 @Builder
 public class SearchCreditEntryResponse {
 
+    private int id;
     private CreditEntryEnum paymentType;
 
     private String billNumber;
 
     private LocalDate date;
 
-    private String chequeNumber;
+    private String referenceNumber;
 
-    private LocalDate chequeDate;
+    private LocalDate referenceDate;
 
     private long receivedAmount;
 
@@ -30,10 +31,14 @@ public class SearchCreditEntryResponse {
 
     private long customerCurrentBalance;
 
-    private int slipNumber;
+    private String slipNumber;
 
     private DrawTypeEnum drawType;
 
     private String remark;
+
+    private int supplierId;
+    private int customerId;
+
 
 }

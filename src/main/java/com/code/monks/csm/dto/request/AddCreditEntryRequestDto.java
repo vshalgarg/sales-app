@@ -19,8 +19,8 @@ public class AddCreditEntryRequestDto {
     @NotNull(message = "Date is required")
     private LocalDate date;
 
-    private String chequeNumber;
-    private LocalDate chequeDate;
+    private String referenceNumber;
+    private LocalDate referenceDate;
 
     @NotNull(message = "Received amount is required")
     private Double receivedAmount;
@@ -30,4 +30,5 @@ public class AddCreditEntryRequestDto {
 
     private Integer supplierId;
     private Integer customerId;
+    private String slipNumber;
 }
