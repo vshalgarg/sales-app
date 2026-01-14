@@ -172,51 +172,51 @@ export default function CreditEntryForm() {
     }));
   };
 
-const handleBillNumberChange = (e) => {
-  const raw = e.target.value;
-  const sanitized = raw.replace(/[^a-zA-Z0-9]/g, "");
+  const handleBillNumberChange = (e) => {
+    const raw = e.target.value;
+    const sanitized = raw.replace(/[^a-zA-Z0-9]/g, "");
 
-  setFormData((prev) => ({
-    ...prev,
-    billNumber: sanitized,
-  }));
+    setFormData((prev) => ({
+      ...prev,
+      billNumber: sanitized,
+    }));
 
-  // ❗ special char case → validation skip
-  if (raw !== sanitized) {
-    setErrors((prev) => ({ ...prev, billNumber: "" }));
-    return;
-  }
+    // ❗ special char case → validation skip
+    if (raw !== sanitized) {
+      setErrors((prev) => ({ ...prev, billNumber: "" }));
+      return;
+    }
 
-  // normal typing → validate
-  setErrors((prev) => ({
-    ...prev,
-    billNumber: validate("billNumber", sanitized) || "",
-  }));
-};
+    // normal typing → validate
+    setErrors((prev) => ({
+      ...prev,
+      billNumber: validate("billNumber", sanitized) || "",
+    }));
+  };
 
 
-const handleReferenceNumberChange = (e) => {
-  const raw = e.target.value;
-  const sanitized = raw.replace(/[^a-zA-Z0-9-]/g, "");
+  const handleReferenceNumberChange = (e) => {
+    const raw = e.target.value;
+    const sanitized = raw.replace(/[^a-zA-Z0-9-]/g, "");
 
-  setFormData((prev) => ({
-    ...prev,
-    referenceNumber: sanitized,
-  }));
+    setFormData((prev) => ({
+      ...prev,
+      referenceNumber: sanitized,
+    }));
 
-  // ❗ special char typed → no error
-  if (raw !== sanitized) {
-    setErrors((prev) => ({ ...prev, referenceNumber: "" }));
-    return;
-  }
+    // ❗ special char typed → no error
+    if (raw !== sanitized) {
+      setErrors((prev) => ({ ...prev, referenceNumber: "" }));
+      return;
+    }
 
-  setErrors((prev) => ({
-    ...prev,
-    referenceNumber: validate("referenceNumber", sanitized) || "",
-  }));
-};
+    setErrors((prev) => ({
+      ...prev,
+      referenceNumber: validate("referenceNumber", sanitized) || "",
+    }));
+  };
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isSaving) return;
@@ -490,7 +490,11 @@ const handleSubmit = async (e) => {
                 <DatePicker
                   label="Reference Date"
                   format="DD-MM-YYYY"
-                  value={formData.referenceDate ? dayjs(formData.referenceDate) : null}
+                  value={
+                    formData.referenceDate
+                      ? dayjs(formData.referenceDate, "DD-MM-YYYY")
+                      : null
+                  }
                   onChange={(newValue) =>
                     handleDateChange("referenceDate", newValue)
                   }
