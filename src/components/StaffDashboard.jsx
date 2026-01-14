@@ -5,6 +5,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import AddNewStaff from "../modals/AddNewStaff";
 import DataTable from "./DataTable";
 import UniversalSearch from "./UniversalSearch";
+import dayjs from "dayjs";
 
 export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
@@ -26,25 +27,21 @@ export default function StaffDashboard() {
 
 
   const columns = [
-    {
-      key: "staffId",
-      label: "Staff ID",
-      width: "15%",
-    },
+
     {
       key: "staffName",
       label: "Staff Name",
-      width: "30%",
+      width: "40%",
     },
     {
       key: "phone",
       label: "Phone",
-      width: "20%",
+      width: "30%",
     },
     {
       key: "joiningDate",
       label: "Joining Date",
-      width: "20%",
+      width: "30%",
     },
   ];
 
@@ -55,27 +52,37 @@ export default function StaffDashboard() {
     joiningDate: "",
   });
 
-  const fetchStaffs = useCallback(async (uiPage = 1) => {
-    const backendPage = uiPage - 1;
-    setLoading(true);
-    try {
-      const data = await getStaffs(backendPage, rowsPerPage);
-      setStaffs(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalItems(data.totalElements || 0);
-      setCurrentPage(uiPage);
-      setIsSearchActive(false);
-      setSearchResults([]);
-    } catch (error) {
-      console.error("Error fetching staffs:", error);
-      setStaffs([]);
-      setTotalPages(1);
-      setTotalItems(0);
-      showSnackbar("Error loading staffs", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [rowsPerPage]);
+ const fetchStaffs = useCallback(async (uiPage = 1) => {
+  const backendPage = uiPage - 1;
+  setLoading(true);
+  try {
+    const data = await getStaffs(backendPage, rowsPerPage);
+
+    const formatted = (data.content || []).map((s) => ({
+      ...s,
+      joiningDate: s.joiningDate
+        ? dayjs(s.joiningDate).isValid()
+          ? dayjs(s.joiningDate).format("DD-MM-YYYY")
+          : "-"
+        : "-",
+    }));
+
+    setStaffs(formatted);
+    setTotalPages(data.totalPages || 1);
+    setTotalItems(data.totalElements || 0);
+    setCurrentPage(uiPage);
+    setIsSearchActive(false);
+    setSearchResults([]);
+  } catch (error) {
+    setStaffs([]);
+    setTotalPages(1);
+    setTotalItems(0);
+    showSnackbar(error.message, "error");
+  } finally {
+    setLoading(false);
+  }
+}, [rowsPerPage]);
+
 
   useEffect(() => {
     fetchStaffs(1);
@@ -97,7 +104,7 @@ export default function StaffDashboard() {
         handleSearchResult(response, query);
       } catch (error) {
         console.error("Error fetching search page:", error);
-        showSnackbar("Error loading search results", "error");
+        showSnackbar(error.message, "error");
       }
     } else {
       fetchStaffs(newPage);
@@ -127,38 +134,7 @@ export default function StaffDashboard() {
         fetchStaffs(currentPage);
       }
     } catch (error) {
-      console.error("Error deleting staff:", error);
-      showSnackbar("Failed to delete staff", "error");
-    }
-  };
-
-  const handleInputChange = async (e) => {
-    const value = e.target.value;
-    setQuery(value);
-
-    if (!value.trim()) {
-      handleClearSearch();
-      return;
-    }
-
-    if (value.length > 1) {
-      try {
-        const result = await searchStaffs(value);
-        if (result && result.length) {
-          const names = result.map((staff) => staff.staffName);
-          setSuggestions(names);
-          setIsDropdownOpen(true);
-        } else {
-          setSuggestions([]);
-          setIsDropdownOpen(false);
-        }
-      } catch (err) {
-        console.error(err);
-        setSuggestions([]);
-      }
-    } else {
-      setSuggestions([]);
-      setIsDropdownOpen(false);
+      showSnackbar(error.message, "error");
     }
   };
 

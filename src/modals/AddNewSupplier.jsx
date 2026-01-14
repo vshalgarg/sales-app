@@ -10,6 +10,7 @@ import SupplierService from "../service/SupplierService";
 import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
 import { sanitizePayload } from "../utils/sanitizePayload";
+import Chip from "@mui/material/Chip";
 
 
 
@@ -22,13 +23,9 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const { showSnackbar } = useSnackbar();
 
   const [selectedTransports, setSelectedTransports] = useState([]);
-  const [transportSearch, setTransportSearch] = useState("");
-  const [transportResults, setTransportResults] = useState([]);
-
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedTransport, setSelectedTransport] = useState(null);
 
 
   useEffect(() => {
@@ -45,53 +42,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     };
     fetchTransports();
   }, []);
-
-  const handleTransportSearch = async (value) => {
-    setTransportSearch(value);
-
-    if (value.trim().length < 2) {
-      setTransportResults([]);
-      return;
-    }
-
-    try {
-      const results = await TransportService.searchTransports(value.trim());
-      // Remove already selected ones from results
-      const filtered = results.filter(
-        (t) => !selectedTransports.some((s) => s.id === t.id)
-      );
-      setTransportResults(filtered || []);
-    } catch (err) {
-      console.error("Transport search error:", err);
-      setTransportResults([]);
-    }
-  };
-
-  const addTransport = (transport) => {
-    if (selectedTransports.find((t) => t.id === transport.id)) return;
-
-    const newSelected = [...selectedTransports, transport];
-    setSelectedTransports(newSelected);
-
-    // Update form with IDs
-    setForm((prev) => ({
-      ...prev,
-      preferredTransportIds: newSelected.map((t) => t.id),
-    }));
-
-    // Clear input but keep dropdown open for next search
-    setTransportSearch("");
-    setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
-  };
-
-  const removeTransport = (idToRemove) => {
-    const newSelected = selectedTransports.filter((t) => t.id !== idToRemove);
-    setSelectedTransports(newSelected);
-    setForm((prev) => ({
-      ...prev,
-      preferredTransportIds: newSelected.map((t) => t.id),
-    }));
-  };
 
   // Add new empty contact
   const addContact = () => {
@@ -262,39 +212,15 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       if (closeAfterSave) {
         setOpen(false);
       }
-    } catch (err) {
-      console.error(err);
-      showSnackbar("Failed to save supplier", "error");
+    } catch (error) {
+      showSnackbar(error.message, "error");
     } finally {
       setIsSaving(false);
     }
   };
 
 
-
-  // Handle typing (suggestions only)
-  // const handleChange = async (e) => {
-  //   const value = e.target.value;
-  //   setQuery(value);
-
-  //   if (value.length > 1) {
-  //     try {
-  //       const result = await searchSuppliers(value); // result is array of supplier objects
-  //       if (result && result.length) {
-  //         // Extract names for suggestions
-  //         const names = result.map((supplier) => supplier.name);
-  //         setSuggestions(names);
-  //       }
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   } else {
-  //     setSuggestions([]);
-  //   }
-  // };
-
   const resetForm = () => {
-
     setForm({
       ...Object.fromEntries(
         Object.keys(form).map((key) => [
@@ -305,22 +231,11 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
       preferredTransportIds: [],
     });
+
     setErrors({ contacts: [{}] });
     setSelectedTransports([]);
-    setTransportSearch("");
-    setTransportResults([]);
-
   };
 
-  const resetTransport = () => {
-    setSelectedTransport(null);
-    setFormData(prev => ({
-      ...prev,
-      transportId: null,
-      transportName: "",
-      transportCity: "",
-    }));
-  };
 
   return (
     <>
@@ -535,38 +450,55 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 <h3 className="text-lg font-medium mb-2">Preferred Transports</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <Autocomplete
+                    multiple
                     options={allTransports}
-                    value={selectedTransport}
-                    isOptionEqualToValue={(o, v) => o.id === v?.id}
-                    getOptionLabel={(o) =>
-                      o?.name ? `${o.name} - ${o.city || ""}` : ""
-                    }
-                    onChange={(e, value) => {
-                      if (!value) {
-                        resetTransport();
-                        return;
-                      }
+                    value={selectedTransports}
+                    loading={transportLoading}
+                    filterSelectedOptions
+                    isOptionEqualToValue={(o, v) => o.id === v.id}
 
-                      setSelectedTransport(value);
-                      setFormData(prev => ({
+                    getOptionLabel={(o) => o.name}
+
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.id}>
+                        {option.name} – {option.city}
+                      </li>
+                    )}
+
+                    onChange={(e, values) => {
+                      setSelectedTransports(values);
+                      setForm((prev) => ({
                         ...prev,
-                        transportId: value.id,
-                        transportName: value.name,
-                        transportCity: value.city,
+                        preferredTransportIds: values.map((v) => v.id),
                       }));
-
-                      setErrors(prev => ({ ...prev, transport: "" }));
+                      setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
                     }}
+
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+
+                        return (
+                          <Chip
+                            key={key}
+                            label={option.name}
+                            size="small"
+                            {...tagProps}
+                          />
+                        );
+                      })
+                    }
+
                     renderInput={(params) => (
                       <CustomTextField
                         {...params}
-                        label="Transport"
-                      // error={!!errors.transport}
-                      // helperText={errors.transport || "Search transport"}
+                        label="Preferred Transports"
+                        placeholder="Type transport name"
+                        error={!!errors.preferredTransportIds}
+                        helperText={errors.preferredTransportIds}
                       />
                     )}
                   />
-
                   <CustomTextField
                     name="remark"
                     value={form.remark}

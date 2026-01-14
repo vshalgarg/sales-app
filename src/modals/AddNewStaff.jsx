@@ -74,9 +74,8 @@ export default function AddNewStaff({
       if (closeAfterSave) {
         setOpen(false);
       }
-    } catch (err) {
-      console.error("🔥 Error while saving staff:", err);
-      showSnackbar("Network or server error.", "error");
+    } catch (error) {
+      showSnackbar(error.message, "error");
     } finally {
       setIsSaving(false);
     }
@@ -126,11 +125,17 @@ export default function AddNewStaff({
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="Joining Date *"
-              value={form.joiningDate ? dayjs(form.joiningDate) : null}
+              format="DD-MM-YYYY"
+              value={
+                form.joiningDate
+                  ? dayjs(form.joiningDate, "YYYY-MM-DD")
+                  : null
+              }
               onChange={(newValue) => {
                 const formatted = newValue
                   ? dayjs(newValue).format("YYYY-MM-DD")
                   : "";
+
                 handleFormChange("joiningDate", formatted);
               }}
               slotProps={{
@@ -143,6 +148,7 @@ export default function AddNewStaff({
               }}
             />
           </LocalizationProvider>
+
         </div>
 
         {/* Footer */}

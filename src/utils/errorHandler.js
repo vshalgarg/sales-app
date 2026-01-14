@@ -3,7 +3,7 @@ export const handleApiError = (error) => {
     // API responded with a status code != 2xx
     const { data, status } = error.response;
     if (status === 401) {
-      return ' ';
+      return "";
     }
     return data?.message || `Server error (${status})`;
     

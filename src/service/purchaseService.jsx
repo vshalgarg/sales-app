@@ -1,36 +1,58 @@
 import api from "../api/api";
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export const addPurchaseEntry = async (formData) => {
   try {
     const response = await api.post(`/purchase/entry/add`, formData);
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (err) {
-    throw err.response?.data || err;
+    throw new Error(handleApiError(err));
   }
 };
 
 export const searchPurchaseHistory = async (
-  data,
-  supplierId,
-  customerId,
+  filterObject,
   page,
   rowsPerPage
 ) => {
-  const { fromDate, toDate } = data;
-  const size = rowsPerPage;
+  const { fromDate, toDate, supplierId, customerId } = filterObject;
   try {
-    const response = await api.get(`/purchase/entries/search`, {
+    const response = await api.get("/purchase/entries/search", {
       params: {
         fromDate,
         toDate,
-        supplierId,
-        customerId,
+        supplierId: supplierId ?? null,
+        customerId: customerId ?? null,
         page,
-        size,
+        size: rowsPerPage,
       },
     });
-    return response.data;
+    const result = checkLogicalError(response.data);
+    return result;
   } catch (error) {
-    throw error.response?.data || error;
+    throw new Error(handleApiError(error));
   }
 };
+
+export const updatePurchaseApi = async (id, payload) => {
+  try {
+    const response = await api.patch(`/purchase/entry/update/${id}`, payload);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+
+export const deletePurchaseApi = async (id) => {
+  try {
+    const response = await api.delete(`/purchase/entry/delete/${id}`);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+

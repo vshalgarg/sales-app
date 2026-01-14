@@ -16,7 +16,6 @@ import CustomerService from "../service/CustomerService";
 export default function CreditEntryForm() {
   const { showSnackbar } = useSnackbar();
   const {
-    setIsFilterObject,
     errors,
     setErrors,
     setFilterObject,
@@ -25,13 +24,13 @@ export default function CreditEntryForm() {
   const [formData, setFormData] = useState({
     paymentType: "",
     billNumber: "",
-    date: dayjs().format("YYYY-MM-DD"),
-    chequeNumber: "",
-    chequeDate: "",
+    date: dayjs().format("DD-MM-YYYY"),
+    referenceNumber: "",
+    referenceDate: "",
     receivedAmount: "",
     supplierId: "",
     customerId: "",
-    //slipNumber: "",
+    slipNumber: "",
     drawType: "",
     remark: "",
   });
@@ -69,61 +68,152 @@ export default function CreditEntryForm() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (formData.paymentType !== "CHEQUE") {
-      setFormData(prev => ({
-        ...prev,
-        chequeNumber: "",
-        chequeDate: ""
-      }));
-
-      setErrors(prev => ({
-        ...prev,
-        chequeNumber: "",
-        chequeDate: ""
-      }));
-    }
-  }, [formData.paymentType]);
-
-
-  const handleSupplierSelect = (event, value) => {
-    if (value) {
-      setFormData(prev => ({
-        ...prev,
-        supplierId: value.id
-      }));
-      setErrors(prev => ({ ...prev, supplierName: "" }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        supplierId: "",
-        supplierName: "",
-      }));
-    }
-  };
-
-  const handleCustomerSelect = (event, value) => {
-    if (value) {
-      setFormData(prev => ({
-        ...prev,
-        customerId: value.id,
-      }));
-      setErrors(prev => ({ ...prev, customerName: "" }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        customerId: "",
-        customerName: "",
-      }));
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (name !== "drawType" && name !== "remark") {
       setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
     }
+  };
+
+  const handleSlipNumberChange = (e) => {
+    const { value } = e.target;
+
+    // allow only alphanumeric
+    if (/^[a-zA-Z0-9]*$/.test(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        slipNumber: value,
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        slipNumber: "",
+      }));
+    }
+  };
+
+
+  const handleReset = () => {
+    resetSupplier();
+    resetCustomer();
+
+    setFormData({
+      paymentType: "",
+      billNumber: "",
+      referenceNumber: "",
+      date: dayjs().format("YYYY-MM-DD"),
+      referenceDate: "",
+      receivedAmount: "",
+      supplierId: "",
+      customerId: "",
+      slipNumber: "",
+      drawType: "",
+      remark: "",
+    });
+    setErrors({});
+    setFilterObject({});
+  };
+
+  const resetSupplier = () => {
+    setSelectedSupplier(null);
+    setFormData(prev => ({
+      ...prev,
+      supplierId: "",
+    }));
+  };
+
+  const resetCustomer = () => {
+    setSelectedCustomer(null);
+    setFormData(prev => ({
+      ...prev,
+      customerId: "",
+    }));
+  };
+
+
+  const formatAmount = (val) => {
+    if (val === "" || isNaN(val)) return "0.00";
+    const num = parseFloat(val);
+    return Number.isInteger(num) ? num.toFixed(2) : String(num);
+  };
+
+  const handleDateChange = (name, newValue) => {
+    const formatted = newValue
+      ? dayjs(newValue).format("DD-MM-YYYY")
+      : "";
+
+    setFormData(prev => ({ ...prev, [name]: formatted }));
+    setErrors(prev => ({ ...prev, [name]: validate(name, formatted) || "" }));
+  };
+
+
+  const handleAmountChange = (e) => {
+    const { name, value } = e.target;
+
+    //allow only numbers + decimal with max 2 digits
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validate(name, value) || "",
+      }));
+    }
+  };
+
+  const handleAmountBlur = (name) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: formatAmount(prev[name]),
+    }));
+  };
+
+  const handleBillNumberChange = (e) => {
+    const raw = e.target.value;
+    const sanitized = raw.replace(/[^a-zA-Z0-9]/g, "");
+
+    setFormData((prev) => ({
+      ...prev,
+      billNumber: sanitized,
+    }));
+
+    // ❗ special char case → validation skip
+    if (raw !== sanitized) {
+      setErrors((prev) => ({ ...prev, billNumber: "" }));
+      return;
+    }
+
+    // normal typing → validate
+    setErrors((prev) => ({
+      ...prev,
+      billNumber: validate("billNumber", sanitized) || "",
+    }));
+  };
+
+
+  const handleReferenceNumberChange = (e) => {
+    const raw = e.target.value;
+    const sanitized = raw.replace(/[^a-zA-Z0-9-]/g, "");
+
+    setFormData((prev) => ({
+      ...prev,
+      referenceNumber: sanitized,
+    }));
+
+    // ❗ special char typed → no error
+    if (raw !== sanitized) {
+      setErrors((prev) => ({ ...prev, referenceNumber: "" }));
+      return;
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      referenceNumber: validate("referenceNumber", sanitized) || "",
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -177,6 +267,13 @@ export default function CreditEntryForm() {
     try {
       const payload = {
         ...formData,
+        date: formData.date
+          ? dayjs(formData.date, "DD-MM-YYYY").format("YYYY-MM-DD")
+          : null,
+
+        referenceDate: formData.referenceDate
+          ? dayjs(formData.referenceDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+          : null,
         drawType: formData.drawType || null
       };
 
@@ -197,87 +294,19 @@ export default function CreditEntryForm() {
       setFilterObject({});
 
     } catch (error) {
-      showSnackbar("Error while saving bill entry", "error");
-      console.error(error);
+      showSnackbar(error.message, "error");
     } finally {
       setIsSaving(false);
     }
   };
 
 
-  const handleReset = () => {
-    resetSupplier();
-    resetCustomer();
 
-    setFormData({
-      paymentType: "",
-      billNumber: "",
-      chequeNumber: "",
-      date: dayjs().format("YYYY-MM-DD"),
-      chequeDate: "",
-      receivedAmount: "",
-      supplierId: "",
-      customerId: "",
-      slipNumber: "",
-      drawType: "",
-      remark: "",
-    });
-    setErrors({});
-    setIsFilterObject(false);
-    setFilterObject({});
-  };
-
-  const resetSupplier = () => {
-    setSelectedSupplier(null);
-    setFormData(prev => ({
-      ...prev,
-      supplierId: "",
-    }));
-  };
-
-  const resetCustomer = () => {
-    setSelectedCustomer(null);
-    setFormData(prev => ({
-      ...prev,
-      customerId: "",
-    }));
-  };
-
-
-  const formatAmount = (val) => {
-    if (val === "" || isNaN(val)) return "0.00";
-    const num = parseFloat(val);
-    return Number.isInteger(num) ? num.toFixed(2) : String(num);
-  };
-
-  const handleDateChange = (name, newValue) => {
-    const formatted = newValue ? dayjs(newValue).format("YYYY-MM-DD") : "";
-    setFormData((prev) => ({ ...prev, [name]: formatted }));
-    setErrors((prev) => ({ ...prev, [name]: validate(name, formatted) || "" }));
-  };
-
-  const handleAmountChange = (e) => {
-    const { name, value } = e.target;
-    if (/^\d*\.?\d*$/.test(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-      setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
-    }
-  };
-
-  const handleAmountBlur = (name) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: formatAmount(prev[name]),
-    }));
-  };
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
-      <div className="bg-gray-50 w-full h-[87vh] flex flex-col">
+      <div className="bg-gray-50 w-full h-[91vh] flex flex-col">
         {/* Header */}
         <div className="px-6 py-3 border-b border-gray-200 shrink-0
                 bg-gray-50">
@@ -391,7 +420,6 @@ export default function CreditEntryForm() {
           {/* Transaction Details Card */}
           <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
             <div className="flex items-start mb-5">
-              {/* Vertical Gradient Line */}
               <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
 
               <div>
@@ -404,7 +432,7 @@ export default function CreditEntryForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Payment Mode */}
               <BasicSelect
                 name="paymentType"
@@ -425,7 +453,7 @@ export default function CreditEntryForm() {
               <CustomTextField
                 name="billNumber"
                 value={formData.billNumber}
-                onChange={handleChange}
+                onChange={handleBillNumberChange}
                 label="Bill Number"
                 error={!!errors.billNumber}
                 helperText={errors.billNumber || ""}
@@ -446,11 +474,51 @@ export default function CreditEntryForm() {
                 }}
               />
 
+              {/* Reference Number (Cheque / UPI / NEFT) */}
+              <CustomTextField
+                name="referenceNumber"
+                value={formData.referenceNumber}
+                onChange={handleReferenceNumberChange}
+                label="Reference Number"
+                error={!!errors.referenceNumber}
+                helperText={errors.referenceNumber || "Cheque / UPI / NEFT reference"}
+              />
+
+
+              {/* Reference Date */}
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Reference Date"
+                  format="DD-MM-YYYY"
+                  value={
+                    formData.referenceDate
+                      ? dayjs(formData.referenceDate, "DD-MM-YYYY")
+                      : null
+                  }
+                  onChange={(newValue) =>
+                    handleDateChange("referenceDate", newValue)
+                  }
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      error: !!errors.referenceDate,
+                      helperText: errors.referenceDate || "",
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+
               {/* Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Transaction Date"
-                  value={formData.date ? dayjs(formData.date) : null}
+                  format="DD-MM-YYYY"
+                  value={
+                    formData.date
+                      ? dayjs(formData.date, "DD-MM-YYYY")
+                      : null
+                  }
                   onChange={(newValue) => handleDateChange("date", newValue)}
                   slotProps={{
                     textField: {
@@ -462,49 +530,19 @@ export default function CreditEntryForm() {
                   }}
                 />
               </LocalizationProvider>
+              {/* Slip Number (Optional) */}
+              <CustomTextField
+                name="slipNumber"
+                value={formData.slipNumber}
+                onChange={handleSlipNumberChange}
+                label="Slip Number (Optional)"
+                inputProps={{
+                  maxLength: 30,
+                }}
+              />
+
             </div>
           </div>
-
-          {/* Cheque Details Card */}
-          {formData.paymentType === "CHEQUE" && (
-            <div className="border border-purple-300 bg-purple-50 p-6 rounded-xl">
-              <div className="flex items-start mb-4">
-                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full mr-3"></div>
-                <h4 className="font-semibold text-purple-700">
-                  Cheque Details
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <CustomTextField
-                  name="chequeNumber"
-                  label="Cheque Number"
-                  value={formData.chequeNumber}
-                  onChange={handleChange}
-                  error={!!errors.chequeNumber}
-                  helperText={errors.chequeNumber || ""}
-                />
-
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="Cheque Date"
-                    value={formData.chequeDate ? dayjs(formData.chequeDate) : null}
-                    onChange={(newValue) =>
-                      handleDateChange("chequeDate", newValue)
-                    }
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        size: "small",
-                        error: !!errors.chequeDate,
-                        helperText: errors.chequeDate || "",
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-              </div>
-            </div>
-          )}
 
           {/* Additional Information */}
           <div className="border border-gray-200 p-6 rounded-xl bg-white">

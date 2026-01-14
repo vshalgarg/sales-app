@@ -29,18 +29,12 @@ export default function SupplierDashboard() {
   const dropdownRef = useRef(null);
 
   const columns = [
-    {
-      key: "code",
-      label: "Code",
-      width: "10%",
-      render: (row) => row.supplierCode || row.code || "-",
-    },
-    { key: "supplierName", label: "Name", width: "15%" },
-    { key: "supplierGstNo", label: "GST", width: "12%" },
+    { key: "supplierName", label: "Name", width: "18%" },
+    { key: "supplierGstNo", label: "GST", width: "14%" },
     {
       key: "address",
       label: "Address",
-      width: "20%",
+      width: "26%",
       render: (row) => (
         <Typography
           variant="body2"
@@ -56,13 +50,13 @@ export default function SupplierDashboard() {
     {
       key: "contactPerson",
       label: "Contact Person",
-      width: "12%",
+      width: "16%",
       render: (row) => row.contacts?.[0]?.contactPerson || "-",
     },
     {
       key: "mobile",
       label: "Mobile",
-      width: "11%",
+      width: "16%",
       render: (row) => row.contacts?.[0]?.mobileNumber || "-",
     },
   ];
@@ -109,7 +103,7 @@ export default function SupplierDashboard() {
       setSuppliers([]);
       setTotalPages(0);
       setTotalItems(0);
-      showSnackbar("Error loading suppliers", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -141,7 +135,7 @@ export default function SupplierDashboard() {
         handleSearchResult(response, query);
       } catch (error) {
         console.error("Error fetching search page:", error);
-        showSnackbar("Error loading search results", "error");
+        showSnackbar(error.message, "error");
       }
     } else {
       fetchSuppliers(newPage);
@@ -180,7 +174,7 @@ export default function SupplierDashboard() {
       fetchSuppliers(currentPage);
     } catch (error) {
       console.error("Error deleting supplier:", error);
-      showSnackbar("Failed to delete supplier.", "error");
+      showSnackbar(error.message, "error");
     } finally {
       setDeleteModalOpen(false);
       setSupplierToDelete(null);

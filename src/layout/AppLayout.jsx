@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import {ErrorBoundary} from "react-error-boundary"
+import PageErrorFallback from "../components/PageErrorFallback";
 
 const AppLayout = () => {
   const navigate = useNavigate();
@@ -74,7 +76,8 @@ const AppLayout = () => {
       <div className="flex flex-1 min-h-0">
         <Sidebar className="w-64" activeSection={activeSection} />
         <main className=" flex-1 min-h-0 px-4 overflow-hidden ">
-          <Outlet />
+          <Outlet/>
+          
         </main>
       </div>
     </div>

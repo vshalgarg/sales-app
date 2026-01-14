@@ -2,16 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import validate from "../validations/Validation";
-import dayjs from "dayjs";
 
 export const useBillForm = () => {
-  const searchSupplierRef = useRef(null);
-  const searchCustomerRef = useRef(null);
-
-  // 🔹 Refs
-  const searchRef = useRef(null);
-  const custSearchRef = useRef(null);
-  const transportSearchRef = useRef(null);
 
   // 🔹 States
   const [supplierTransports, setSupplierTransports] = useState([]);
@@ -21,49 +13,49 @@ export const useBillForm = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCustDropdownOpen, setIsCustDropdownOpen] = useState(false);
   const [isTransportDropdownOpen, setIsTransportDropdownOpen] = useState(false);
-  const [isFilterObject, setIsFilterObject] = useState(false);
+
   const [filterObject, setFilterObject] = useState({
-    supplierName: "",
-    customerName: "",
-    fromDate: "",
+    supplierId: null,
+    customerId: null,
+    fromDate:"" ,
     toDate: "",
   });
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        searchSupplierRef.current &&
-        !searchSupplierRef.current.contains(e.target)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (e) => {
+  //     if (
+  //       searchSupplierRef.current &&
+  //       !searchSupplierRef.current.contains(e.target)
+  //     ) {
+  //       setIsDropdownOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        searchCustomerRef.current &&
-        !searchCustomerRef.current.contains(e.target)
-      ) {
-        setIsCustDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (e) => {
+  //     if (
+  //       searchCustomerRef.current &&
+  //       !searchCustomerRef.current.contains(e.target)
+  //     ) {
+  //       setIsCustDropdownOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
   // 🔹 Form data
   const initialFormData = {
     customerId: "",
     supplierId: "",
-    date: dayjs().format("YYYY-MM-DD"),
+    date: "",
     receivedDate: "",
     order: "",
     supplierName: "",
@@ -155,32 +147,54 @@ export const useBillForm = () => {
   // }, [errors]);
 
   // 🔹 Handle clicks outside dropdowns
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsDropdownOpen(false);
-      }
-      if (custSearchRef.current && !custSearchRef.current.contains(e.target)) {
-        setIsCustDropdownOpen(false);
-      }
-      if (
-        transportSearchRef.current &&
-        !transportSearchRef.current.contains(e.target)
-      ) {
-        setIsTransportDropdownOpen(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (e) => {
+  //     if (searchRef.current && !searchRef.current.contains(e.target)) {
+  //       setIsDropdownOpen(false);
+  //     }
+  //     if (custSearchRef.current && !custSearchRef.current.contains(e.target)) {
+  //       setIsCustDropdownOpen(false);
+  //     }
+  //     if (
+  //       transportSearchRef.current &&
+  //       !transportSearchRef.current.contains(e.target)
+  //     ) {
+  //       setIsTransportDropdownOpen(false);
+  //     }
+  //   };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
 
   // 🔹 Handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
+
+    let finalValue = value;
+
+    // 🔹 Order & LR Number: only alphanumeric
+    if (name === "order" || name === "lrNumber") {
+      finalValue = value.replace(/[^a-zA-Z0-9]/g, "");
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: finalValue,
+    }));
+
+    if (
+      name === "order" ||
+      name === "lrNumber"
+    ) {
+      return;
+    }
+    setErrors(prev => ({
+      ...prev,
+      [name]: validate(name, finalValue) || "",
+    }));
   };
+
 
   const handleReset = () => {
     setFormData(initialFormData);
@@ -197,15 +211,6 @@ export const useBillForm = () => {
   // Customer Input
   const handleCustomerInput = async (e) => {
     const value = e.target.value;
-
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        customerName: value,
-      }));
-      setIsFilterObject(false);
-    }
-
     setFormData((prev) => ({
       ...prev,
       customerName: value,
@@ -262,13 +267,6 @@ export const useBillForm = () => {
   };
 
   const handleCustomerSuggestionClick = (c) => {
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        customerName: c.customerName,
-      }));
-      setIsFilterObject(false);
-    }
     setFormData((prev) => ({
       ...prev,
       customerId: c.id || "",
@@ -294,14 +292,6 @@ export const useBillForm = () => {
   // 🔹 Supplier Input
   const handleSupplierInput = async (e) => {
     const value = e.target.value;
-
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        supplierName: value,
-      }));
-      setIsFilterObject(false);
-    }
 
     setFormData((prev) => ({
       ...prev,
@@ -338,14 +328,6 @@ export const useBillForm = () => {
   };
 
   const handleSupplierSuggestionClick = (s) => {
-    if (isFilterObject) {
-      setFilterObject((prev) => ({
-        ...prev,
-        supplierName: s.supplierName,
-      }));
-      setIsFilterObject(false);
-    }
-
     setFormData((prev) => ({
       ...prev,
       supplierId: s.id || "",
@@ -378,7 +360,7 @@ export const useBillForm = () => {
     return [];
   };
 
-   useEffect(() => {
+  useEffect(() => {
     const gross = parseFloat(formData.grossAmount) || 0;
     const discPercent = parseFloat(formData.discountPercent) || 0;
     const addOn = parseFloat(formData.addOnAmount) || 0;
@@ -387,13 +369,13 @@ export const useBillForm = () => {
 
     const discountAmount =
       gross && discPercent ? (gross * discPercent) / 100 : "";
-      
-      const taxableValue =
+
+    const taxableValue =
       gross || discPercent || addOn || ecr
         ? gross - (gross * discPercent) / 100 + addOn + ecr
         : "";
 
-      const gstAmount =
+    const gstAmount =
       taxableValue && gstPercent
         ? (parseFloat(taxableValue) * gstPercent) / 100
         : "";
@@ -420,12 +402,8 @@ export const useBillForm = () => {
   ]);
 
   return {
-    searchCustomerRef,
-    searchSupplierRef,
     filterObject,
     setFilterObject,
-    isFilterObject,
-    setIsFilterObject,
     formData,
     setFormData,
     errors,
@@ -449,8 +427,5 @@ export const useBillForm = () => {
     handleSupplierSuggestionClick,
     handleCustomerInput,
     handleCustomerSuggestionClick,
-    searchRef,
-    custSearchRef,
-    transportSearchRef,
   };
 };

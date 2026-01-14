@@ -12,5 +12,28 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => {
+    console.log(
+      ' [Axios Response]',
+      response.status,
+      `${response.config.baseURL}${response.config.url}`
+    );
+    return response;
+  },
+  async (error) => {
+    const status = error.response.status;
+    if (status === 401) {
+      console.warn(' Token expired or unauthorized. Logging out...');
+      window.dispatchEvent(
+        new CustomEvent('app:logout', {
+          detail: { reason: 'unauthorized', status: 401, message: 'Session expired' },
+        })
+      );
+    }
+    return Promise.reject(error);
+  }
+);
    
 export default api;

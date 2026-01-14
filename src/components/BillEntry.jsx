@@ -14,17 +14,17 @@ import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import TransportService from "../service/TransportService";
-import { Box, Paper, Grid, Stack, Divider, Typography, Button } from "@mui/material";
+
 
 
 const BillEntry = () => {
+
   const {
     formData,
     setFormData,
     errors,
     setErrors,
     handleChange,
-    handleReset,
   } = useBillForm();
 
   const { showSnackbar } = useSnackbar();
@@ -34,7 +34,6 @@ const BillEntry = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [transportLoading, setTransportLoading] = useState(false);
-
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
   const [supplierLoading, setSupplierLoading] = useState(true)
@@ -46,7 +45,7 @@ const BillEntry = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTransport, setSelectedTransport] = useState(null);
-
+  const [savedItems, setSavedItems] = useState([]);
 
 
   useEffect(() => {
@@ -77,7 +76,6 @@ const BillEntry = () => {
     fetchData();
   }, []);
 
-  const [savedItems, setSavedItems] = useState([]);
   const handleResetBillDetail = () => {
     setFormData((prev) => ({
       ...prev,
@@ -93,168 +91,6 @@ const BillEntry = () => {
     }));
     setErrors({});
   }
-
-  const handleResetForm = () => {
-    resetSupplier();
-    resetCustomer();
-    resetTransport();
-
-    setFormData(prev => ({
-      ...prev,
-      date: dayjs().format("YYYY-MM-DD"),
-      receivedDate: "",
-      order: "",
-      transport: "",
-      lrNumber: "",
-      remarks: "",
-      pieces: "",
-      grossAmount: "",
-      discountPercent: "",
-      discountAmount: "",
-      gstPercent: "",
-      gstAmount: "",
-      billAmount: "",
-      addOnAmount: "",
-      ecrAmount: "",
-      taxableValue: "",
-    }));
-
-    setSavedItems([]);
-    setTaxableValue(null);
-    setBillEntry(null);
-    setErrors({});
-  };
-
-
-  const handleSaveItem = () => {
-    if (!formData.grossAmount || Number(formData.grossAmount) <= 0) {
-      showSnackbar("Gross Amount is required and must be greater than zero", "error");
-      return;
-    }
-    if (!formData.pieces || Number(formData.pieces) <= 0) {
-      showSnackbar("Please enter at least 1 piece", "error");
-      return;
-    }
-
-    const newItem = {
-      pieces: formData.pieces,
-      grossAmount: formData.grossAmount,
-      discountPercent: formData.discountPercent,
-      discountAmount: formData.discountAmount,
-      addOnAmount: formData.addOnAmount,
-      ecrAmount: formData.ecrAmount,
-      gstPercent: formData.gstPercent,
-      gstAmount: formData.gstAmount,
-      taxableValue: formData.taxableValue,
-      billAmount: formData.billAmount,
-    };
-
-    let successMessage = "";
-    if (isEditing && currentEditIndex !== null) {
-      // Edit mode: update existing item
-      const updatedItems = [...savedItems];
-      updatedItems[currentEditIndex] = newItem;
-      setSavedItems(updatedItems);
-      setIsEditing(false);
-      setCurrentEditIndex(null);
-      successMessage = "Item updated successfully";
-    } else {
-      // Add mode: add new item
-      setSavedItems([...savedItems, newItem]);
-      successMessage = "Item added successfully";
-    }
-
-    // Reset bill detail fields
-    setFormData(prev => ({
-      ...prev,
-      pieces: "",
-      grossAmount: "",
-      discountPercent: "",
-      discountAmount: "",
-      addOnAmount: "",
-      ecrAmount: "",
-      gstPercent: "",
-      gstAmount: "",
-      taxableValue: "",
-      billAmount: "",
-    }));
-    showSnackbar(successMessage, "success");
-    setIsAddItemModalOpen(false);
-  };
-
-  const handleSubmit = async () => {
-    if (savedItems.length === 0) {
-      showSnackbar("Please add and save at least one item before submitting the bill", "error");
-      return;
-    }
-    await saveBillEntry();
-  };
-
-  const validateBillForm = () => {
-    const newErrors = {};
-
-    // Required fields check
-    if (!formData.date) newErrors.date = "Date is required";
-    if (!formData.receivedDate) newErrors.receivedDate = "Received Date is required";
-    if (!formData.order?.trim()) newErrors.order = "Order is required";
-
-    if (!formData.supplierId) newErrors.supplierName = "Supplier is required";
-    if (!formData.customerId) newErrors.customerName = "Customer is required";
-    // console.log("formData.transport",formData.transport.trim())
-    // if (formData.transport?.trim()==='') newErrors.transport = "Transport is required";
-    if (savedItems.length === 0) newErrors.items = "At least one item is required";
-
-    setErrors((prev) => ({ ...prev, ...newErrors }));
-
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const saveBillEntry = async () => {
-
-    if (!validateBillForm()) {
-      showSnackbar("Please fill all required fields", "error");
-      return;
-    }
-
-    const payload = {
-      ...formData,
-      date: formData.date || null,
-      receivedDate: formData.receivedDate || null,
-      supplierId: formData.supplierId ? parseInt(formData.supplierId) : null,
-      customerId: formData.customerId ? parseInt(formData.customerId) : null,
-      transport: formData.transport?.trim() || null,
-      taxableValue: parseFloat(taxableValue) || 0,
-      billAmount: parseFloat(billEntry) || 0,
-      billItems: savedItems.map(item => ({
-        pieces: parseInt(item.pieces) || 0,
-        grossAmount: parseFloat(item.grossAmount) || 0,
-        discountPercent: parseFloat(item.discountPercent) || 0,
-        discountAmount: parseFloat(item.discountAmount) || 0,
-        addOnAmount: parseFloat(item.addOnAmount) || 0,
-        ecrAmount: parseFloat(item.ecrAmount) || 0,
-        gstPercent: parseFloat(item.gstPercent) || 0,
-        gstAmount: parseFloat(item.gstAmount) || 0,
-      }))
-    };
-
-    try {
-      setIsSaving(true);
-      const response = await addBill(payload);
-      if (response?.message) {
-        showSnackbar(response.message, "success");
-        handleResetForm();
-      } else {
-        showSnackbar("Unexpected response", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showSnackbar("Error saving bill entry", "error");
-    }
-    finally {
-      setIsSaving(false);
-      setIsConfirmOpen(false);
-    }
-  };
 
   useEffect(() => {
     let totalTaxable = 0;
@@ -341,20 +177,194 @@ const BillEntry = () => {
   };
 
   const resetTransport = () => {
-  setSelectedTransport(null);
-  setFormData(prev => ({
-    ...prev,
-    transportId: null,
-    transportName: "",
-    transportCity: "",
-  }));
-};
+    setSelectedTransport(null);
+    setFormData(prev => ({
+      ...prev,
+      transportId: null,
+      transportName: "",
+      transportCity: "",
+    }));
+  };
+
+  const handleResetForm = () => {
+    resetSupplier();
+    resetCustomer();
+    resetTransport();
+
+    setFormData(prev => ({
+      ...prev,
+      date: dayjs().format("YYYY-MM-DD"),
+      receivedDate: "",
+      order: "",
+      transport: "",
+      lrNumber: "",
+      remarks: "",
+      pieces: "",
+      grossAmount: "",
+      discountPercent: "",
+      discountAmount: "",
+      gstPercent: "",
+      gstAmount: "",
+      billAmount: "",
+      addOnAmount: "",
+      ecrAmount: "",
+      taxableValue: "",
+    }));
+
+    setSavedItems([]);
+    setTaxableValue(null);
+    setBillEntry(null);
+    setErrors({});
+  };
+
+  const handleSaveItem = () => {
+    if (!formData.grossAmount || Number(formData.grossAmount) <= 0) {
+      showSnackbar("Gross Amount is required and must be greater than zero", "error");
+      return;
+    }
+    if (!formData.pieces || Number(formData.pieces) <= 0) {
+      showSnackbar("Please enter at least 1 piece", "error");
+      return;
+    }
+
+    const newItem = {
+      pieces: formData.pieces,
+      grossAmount: formData.grossAmount,
+      discountPercent: formData.discountPercent,
+      discountAmount: formData.discountAmount,
+      addOnAmount: formData.addOnAmount,
+      ecrAmount: formData.ecrAmount,
+      gstPercent: formData.gstPercent,
+      gstAmount: formData.gstAmount,
+      taxableValue: formData.taxableValue,
+      billAmount: formData.billAmount,
+    };
+
+    let successMessage = "";
+    if (isEditing && currentEditIndex !== null) {
+      // Edit mode: update existing item
+      const updatedItems = [...savedItems];
+      updatedItems[currentEditIndex] = newItem;
+      setSavedItems(updatedItems);
+      setIsEditing(false);
+      setCurrentEditIndex(null);
+      successMessage = "Item updated successfully";
+    } else {
+      // Add mode: add new item
+      setSavedItems([...savedItems, newItem]);
+      successMessage = "Item added successfully";
+    }
+
+    // Reset bill detail fields
+    setFormData(prev => ({
+      ...prev,
+      pieces: "",
+      grossAmount: "",
+      discountPercent: "",
+      discountAmount: "",
+      addOnAmount: "",
+      ecrAmount: "",
+      gstPercent: "",
+      gstAmount: "",
+      taxableValue: "",
+      billAmount: "",
+    }));
+    showSnackbar(successMessage, "success");
+    setIsAddItemModalOpen(false);
+  };
+
+  const validateBillForm = () => {
+    const newErrors = {};
+
+    // Required fields check
+    if (!formData.date) newErrors.date = "Date is required";
+    if (!formData.receivedDate) newErrors.receivedDate = "Received Date is required";
+    if (!formData.order?.trim()) newErrors.order = "Order is required";
+
+    if (!formData.supplierId) newErrors.supplierName = "Supplier is required";
+    if (!formData.customerId) newErrors.customerName = "Customer is required";
+    // console.log("formData.transport",formData.transport.trim())
+    // if (formData.transport?.trim()==='') newErrors.transport = "Transport is required";
+    if (savedItems.length === 0) newErrors.items = "At least one item is required";
+
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (savedItems.length === 0) {
+      showSnackbar("Please add and save at least one item before submitting the bill", "error");
+      return;
+    }
+    await saveBillEntry();
+  };
+
+  const saveBillEntry = async () => {
+
+    if (!validateBillForm()) {
+      showSnackbar("Please fill all required fields", "error");
+      return;
+    }
+
+    const payload = {
+      date: formData.date
+        ? dayjs(formData.date, "DD-MM-YYYY").format("YYYY-MM-DD")
+        : null,
+
+      receivedDate: formData.receivedDate
+        ? dayjs(formData.receivedDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+        : null,
+
+      order: formData.order || null,
+
+      supplierId: formData.supplierId ? Number(formData.supplierId) : null,
+      customerId: formData.customerId ? Number(formData.customerId) : null,
+
+      transportId: formData.transportId || null,
+      transportName: formData.transportName || null,
+      transportCity: formData.transportCity || null,
+
+      lrNumber: formData.lrNumber || null,
+      remarks: formData.remarks || null,
+
+      taxableValue: Number(taxableValue) || 0,
+      billAmount: Number(billEntry) || 0,
+
+      billItems: savedItems.map(item => ({
+        pieces: Number(item.pieces) || 0,
+        grossAmount: Number(item.grossAmount) || 0,
+        discountPercent: Number(item.discountPercent) || 0,
+        discountAmount: Number(item.discountAmount) || 0,
+        addOnAmount: Number(item.addOnAmount) || 0,
+        ecrAmount: Number(item.ecrAmount) || 0,
+        gstPercent: Number(item.gstPercent) || 0,
+        gstAmount: Number(item.gstAmount) || 0,
+      }))
+    };
+    try {
+      setIsSaving(true);
+      const response = await addBill(payload);
+      if (response?.message) {
+        showSnackbar(response.message, "success");
+        handleResetForm();
+      } else {
+        showSnackbar("Unexpected response", "error");
+      }
+    } catch (err) {
+      showSnackbar(err.message, "error");
+    }
+    finally {
+      setIsSaving(false);
+      setIsConfirmOpen(false);
+    }
+  };
 
 
   return (
-   <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
-      <div className="bg-gray-50 w-full h-[87vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
+      <div className="bg-gray-50 w-full h-[91vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
 
         {/* Header */}
         <div className="px-6 py-3 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
@@ -374,16 +384,15 @@ const BillEntry = () => {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Date"
-                  value={formData.date ? dayjs(formData.date, "YYYY-MM-DD") : null}
+                  format="DD-MM-YYYY"
+                  value={formData.date ? dayjs(formData.date, "DD-MM-YYYY") : null}
                   onChange={(newValue) => {
                     const formatted = newValue
-                      ? dayjs(newValue).format("YYYY-MM-DD")
+                      ? dayjs(newValue).format("DD-MM-YYYY")
                       : "";
-                    setFormData((prev) => ({ ...prev, date: formatted }));
-                    setErrors((prev) => ({
-                      ...prev,
-                      date: validate("date", formatted),
-                    }));
+
+                    setFormData(prev => ({ ...prev, date: formatted }));
+                    setErrors(prev => ({ ...prev, date: "" }));
                   }}
                   slotProps={{
                     textField: {
@@ -391,28 +400,21 @@ const BillEntry = () => {
                       fullWidth: true,
                       error: !!errors.date,
                       helperText: errors.date || "",
-                      onClick: (e) => {
-                        const iconButton =
-                          e.currentTarget.parentElement.querySelector(
-                            "button[aria-label]"
-                          );
-                        iconButton?.click();
-                      },
                     },
                   }}
                 />
               </LocalizationProvider>
 
+
               {/* Received Date Field */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Received Date"
-                  value={
-                    formData.receivedDate ? dayjs(formData.receivedDate) : null
-                  }
+                  format="DD-MM-YYYY"
+                  value={formData.receivedDate ? dayjs(formData.receivedDate, "DD-MM-YYYY") : null}
                   onChange={(newValue) => {
                     const formatted = newValue
-                      ? dayjs(newValue).format("YYYY-MM-DD")
+                      ? dayjs(newValue).format("DD-MM-YYYY")
                       : "";
                     setFormData((prev) => ({
                       ...prev,
@@ -459,7 +461,7 @@ const BillEntry = () => {
               <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
               <h3 className="text-lg font-semibold text-gray-800">Supplier Information</h3>
             </div>
-            <div className="grid grid-cols-4 gap-5 relative">
+            <div className="grid grid-cols-3 gap-5 relative">
               <div>
                 <Autocomplete
                   options={allSuppliers}
@@ -504,12 +506,6 @@ const BillEntry = () => {
               />
 
               <CustomTextField
-                value={formData.supplierMsme}
-                label="MSME"
-                InputProps={{ readOnly: true }}
-              />
-
-              <CustomTextField
                 value={formData.supplierGstNo}
                 label="GSTIN"
                 InputProps={{ readOnly: true }}
@@ -524,7 +520,7 @@ const BillEntry = () => {
               <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
               <h3 className="text-lg font-semibold text-gray-800">Customer Information</h3>
             </div>
-            <div className="grid grid-cols-4 gap-5 relative">
+            <div className="grid grid-cols-3 gap-5 relative">
               <div>
                 <Autocomplete
                   options={allCustomers}
@@ -565,12 +561,6 @@ const BillEntry = () => {
               <CustomTextField
                 value={formData.customerGroup}
                 label="Customer Group"
-                InputProps={{ readOnly: true }}
-              />
-
-              <CustomTextField
-                value={formData.customerMsme}
-                label="MSME"
                 InputProps={{ readOnly: true }}
               />
 
@@ -724,7 +714,7 @@ const BillEntry = () => {
                     renderInput={(params) => (
                       <CustomTextField
                         {...params}
-                        label="Transport *"
+                      //label="Transport"
                       // error={!!errors.transport}
                       // helperText={errors.transport || "Search transport"}
                       />
@@ -880,7 +870,15 @@ const BillEntry = () => {
                       <CustomTextField
                         name="discountPercent"
                         value={formData.discountPercent}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          //only numbers + decimal (max 2 digits)
+                          if (/^\d*\.?\d{0,2}$/.test(val)) {
+                            handleChange({
+                              target: { name: "discountPercent", value: val },
+                            });
+                          }
+                        }}
                         label="Discount %"
                         error={!!errors.discountPercent}
                         helperText={errors.discountPercent || ""}
@@ -937,7 +935,15 @@ const BillEntry = () => {
                       <CustomTextField
                         name="gstPercent"
                         value={formData.gstPercent}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          //only numbers + decimal (max 2 decimal places)
+                          if (/^\d*\.?\d{0,2}$/.test(val)) {
+                            handleChange({
+                              target: { name: "gstPercent", value: val },
+                            });
+                          }
+                        }}
                         label="GST %"
                         error={!!errors.gstPercent}
                         helperText={errors.gstPercent || ""}

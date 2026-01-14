@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../service/LoginService";
 import { useSnackbar } from "../context/SnackbarContext";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ const Login = () => {
 
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
+  const {login,auth,setAuth}=useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,10 +22,15 @@ const Login = () => {
 
     try {
       const data = await loginUser(email, password);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.username);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
+      console.log("auth",auth)
+      login({
+    token:data.token,
+    role:data.roles,
+    userId:data.userId,
+    username:data.username,
+  })
+  console.log("auth",auth)
+     
       showSnackbar("Login successful!", "success");
       navigate("/suppliers", { replace: true });
     } catch (err) {
@@ -86,13 +93,13 @@ const Login = () => {
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                Username
               </label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="Enter your username"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-[#6c63ff]/40 
                          focus:border-[#6c63ff] transition-colors"

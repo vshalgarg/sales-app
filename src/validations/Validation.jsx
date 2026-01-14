@@ -70,7 +70,7 @@ const validate = (field, value) => {
         error = "Invalid GST Number format.";
       }
       break;
-      
+
     case "supplierGstNo":
       if (!value || value.trim() === "") {
         error = "";
@@ -95,14 +95,14 @@ const validate = (field, value) => {
       }
       break;
 
-      case "pinCode":
-  if (!value || value.trim() === "") {
-    return "Pin Code is required";
-  }
-  if (!/^\d{6}$/.test(value)) {
-    return "Pin Code must be exactly 6 digits";
-  }
-  return "";
+    case "pinCode":
+      if (!value || value.trim() === "") {
+        return "Pin Code is required";
+      }
+      if (!/^\d{6}$/.test(value)) {
+        return "Pin Code must be exactly 6 digits";
+      }
+      return "";
 
 
     case "addressLine1":
@@ -170,11 +170,9 @@ const validate = (field, value) => {
         error = "Received Date is required";
       }
       break;
-    case "order":
-      if (!value.trim() || !value || value.length === 0) {
-        error = "Order is required";
-      }
-      break;
+   case "order":
+  if (!value?.trim()) return "Order is required";
+  return "";
 
     case "grossAmount":
       if (!value || value.length === 0) {
@@ -223,6 +221,21 @@ const validate = (field, value) => {
         error = "Purchase Amount is required";
       }
       break;
+
+
+    case "referenceNumber":
+      if (!value || !value.trim()) {
+        error = "Reference Number is required";
+        break;
+      }    
+      break;
+
+    case "referenceDate":
+      if (!value || !value.trim()) {
+        error = "Reference Date is required";
+      }
+      break;
+
 
     default:
       break;

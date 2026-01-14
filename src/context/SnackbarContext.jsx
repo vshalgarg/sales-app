@@ -20,6 +20,7 @@ export const SnackbarProvider = ({ children }) => {
     duration = 3000,
     anchorOrigin
   ) => {
+    if (!message || !message.trim()) return;
     setSnackbar({ open: true, message, severity, duration, anchorOrigin });
   };
    
