@@ -50,7 +50,7 @@ pipeline {
           docker run -d \
             --name $CONTAINER_NAME \
             --restart unless-stopped \
-            -p $PORT:$PORT \
+            -p $PORT:80 \
             $IMAGE_NAME
         '''
       }
