@@ -48,6 +48,9 @@ public class AuthRestClient {
     @Value("${auth.client.secret}")
     private String authClientSecret;
 
+    @Value("${auth.change_password.url}")
+    private String changePasswordUrl;
+
     private final GenericRestClient genericRestClient;
 
     public AuthLoginResponseDto callLogin(AuthLoginRequestDto authRequestDto) {
@@ -181,6 +184,32 @@ public class AuthRestClient {
         user.setRoles(response.getRoles());
         return user;
     }
+
+    public AuthChangePasswordResponseDTO changePassword(AuthChangePasswordReqDTO authRequestDto) {
+
+        String url = authHost + changePasswordUrl;
+
+        log.info("Calling external auth service at URL: {}", url);
+
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+
+        log.debug("Request headers prepared: {}", headers.keySet());  // Avoid logging secrets
+        log.debug("Sending chnage password request for userId: {}", authRequestDto.getUserId());
+
+        AuthChangePasswordResponseDTO responseDto = genericRestClient.exchange(
+                url,
+                HttpMethod.PUT,
+                authRequestDto,
+                headers,
+                AuthChangePasswordResponseDTO.class
+        );
+
+        log.info("Received response from auth service for userId : {}", authRequestDto.getUserId());
+
+        return responseDto;
+    }
+
 
     private void updateHeadersForClientNameAndSecret(Map<String,String> headers){
         headers.put("clientName", authClientName);
