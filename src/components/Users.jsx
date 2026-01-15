@@ -14,7 +14,6 @@ import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import { useAuth } from "../context/AuthContext";
 
-
 const Users = () => {
   const { showSnackbar } = useSnackbar();
   const [users, setUsers] = useState([]);
@@ -243,6 +242,7 @@ const Users = () => {
                   <td className="px-6 py-2">
                     {u.username}
                   </td>
+
                   {/* Actions */}
                   <td className="px-6 py-2">
                     {isAdmin && (
@@ -253,7 +253,7 @@ const Users = () => {
                             setChangePwdModalOpen(true);
                           }}
                           title="Change Password"
-                          className="p-2 text-blue-600 hover:bg-blue-100"
+                          className="p-2 rounded border text-blue-600 hover:bg-blue-100"
                         >
                           <Pencil className="w-5 h-5" />
                         </button>
@@ -395,16 +395,24 @@ const Users = () => {
             <div className="px-6 py-4 space-y-3">
               <CustomTextField
                 label="New Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={passwordForm.password}
                 onChange={(e) =>
                   setPasswordForm({ ...passwordForm, password: e.target.value })
                 }
+                InputProps={{
+                  endAdornment: (
+                    <IconButton onClick={togglePassword} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  ),
+                }}
               />
+
 
               <CustomTextField
                 label="Confirm Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={passwordForm.confirmPassword}
                 onChange={(e) =>
                   setPasswordForm({
@@ -412,7 +420,15 @@ const Users = () => {
                     confirmPassword: e.target.value,
                   })
                 }
+                InputProps={{
+                  endAdornment: (
+                    <IconButton onClick={togglePassword} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  ),
+                }}
               />
+
             </div>
 
             <div className="px-6 py-3 border-t flex justify-end gap-2">
