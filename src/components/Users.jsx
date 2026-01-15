@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
 import {
   createUser,
   getUsers,
   deleteUser,
   searchUsers,
 } from "../service/UserService";
+import AdminService from "../service/AdminService";
 import CustomTextField from "./CustomTextField";
 import { IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
+import { useAuth } from "../context/AuthContext";
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
@@ -23,14 +25,23 @@ const Users = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [changePwdModalOpen, setChangePwdModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const { auth } = useAuth();
+  const isAdmin = auth?.role?.includes("ADMIN");
+
   const [form, setForm] = useState({
     username: "",
     password: "",
     roles: roles,
   });
-  // 🔹 Delete modal states
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+
+  const [passwordForm, setPasswordForm] = useState({
+    password: "",
+    confirmPassword: "",
+  });
 
   const togglePassword = () => setShowPassword((prev) => !prev);
 
@@ -95,24 +106,24 @@ const Users = () => {
   };
 
   const handleDelete = async () => {
-  if (!userToDelete?.id) return;
+    if (!userToDelete?.id) return;
 
-  try {
-    const response = await deleteUser(userToDelete.id);
+    try {
+      const response = await deleteUser(userToDelete.id);
 
-    showSnackbar(
-      response?.message || "User deactivated successfully",
-      "success"
-    );
+      showSnackbar(
+        response?.message || "User deactivated successfully",
+        "success"
+      );
 
-    fetchUsers();
-  } catch (error) {
-    showSnackbar(error.message || "Error deleting user", "error");
-  } finally {
-    setDeleteModalOpen(false);
-    setUserToDelete(null);
-  }
-};
+      fetchUsers();
+    } catch (error) {
+      showSnackbar(error.message || "Error deleting user", "error");
+    } finally {
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
 
 
   const handleAddUser = async (e) => {
@@ -130,15 +141,15 @@ const Users = () => {
     try {
       const response = await createUser(form);
 
-     showSnackbar(response.message, "success");
-        setForm({ username: "", password: "", roles: roles });
-        fetchUsers();
+      showSnackbar(response.message, "success");
+      setForm({ username: "", password: "", roles: roles });
+      fetchUsers();
     } catch (error) {
       console.error("Error creating user:", error);
       showSnackbar(error.message, "error");
-    }finally {
-    setIsModalOpen(false);
-  }
+    } finally {
+      setIsModalOpen(false);
+    }
   };
 
   const handleFormChange = (e) => {
@@ -147,22 +158,48 @@ const Users = () => {
     setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
   };
 
+  const handleChangePassword = async () => {
+    if (!passwordForm.password || !passwordForm.confirmPassword) {
+      showSnackbar("All fields are required", "error");
+      return;
+    }
+
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      showSnackbar("Passwords do not match", "error");
+      return;
+    }
+
+    try {
+      await AdminService.changeUserPassword({
+        userId: selectedUser.id,
+        newPassword: passwordForm.password,
+      });
+
+      showSnackbar("Password updated successfully", "success");
+      setChangePwdModalOpen(false);
+      setPasswordForm({ password: "", confirmPassword: "" });
+    } catch (error) {
+      showSnackbar(error.message || "Failed to update password", "error");
+    }
+  };
+
+
   return (
     <div className="text-gray-900 dark:text-gray-100">
       {/* Header */}
-       <div className="pt-4">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-bold">Users</h1>
-        <button
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus size={18} className="mr-2" />
-          Add New User
-        </button>
+      <div className="pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold">Users</h1>
+          <button
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Plus size={18} className="mr-2" />
+            Add New User
+          </button>
+        </div>
       </div>
-      </div>
-       
+
       {/* Search input */}
       <div ref={searchRef} className="relative w-1/2">
         <input
@@ -187,13 +224,13 @@ const Users = () => {
           </ul>
         )}
       </div>
-              
+
       {/* Table */}
       <div className="relative mt-6 rounded-lg shadow bg-white">
         <table className="min-w-full table-auto text-sm text-left">
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
             <tr>
-              
+
               <th className="px-6 py-3">Username</th>
               <th className="px-6 py-3">Action</th>
             </tr>
@@ -201,27 +238,46 @@ const Users = () => {
           <tbody>
             {users.length > 0 ? (
               users.map((u, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50 relative">
-                  
-                  <td className="px-6 py-2">{u.username}</td>
-                  <td>
-                    <button
-                      onClick={() => confirmDelete(u)}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                    >
-                      <Trash2 className="w-5 h-5 text-red-600" />
-                    </button>
+                <tr key={i} className="border-t hover:bg-gray-50">
+                  <td className="px-6 py-2">
+                    {u.username}
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-6 py-2">
+                    {isAdmin && (
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(u);
+                            setChangePwdModalOpen(true);
+                          }}
+                          title="Change Password"
+                          className="p-2 rounded border text-blue-600 hover:bg-blue-100"
+                        >
+                          <Pencil className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => confirmDelete(u)}
+                          title="Delete User"
+                          className="p-2 rounded text-red-600 hover:bg-gray-100"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="text-center text-gray-500 py-4">
+                <td colSpan="2" className="text-center text-gray-500 py-4">
                   No User found
                 </td>
               </tr>
             )}
           </tbody>
+
         </table>
       </div>
 
@@ -325,6 +381,78 @@ const Users = () => {
           </div>
         </div>
       )}
+
+      {changePwdModalOpen && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white w-full max-w-md rounded-lg shadow-lg">
+
+            <div className="px-6 py-4 border-b">
+              <h2 className="text-lg font-bold">
+                Change Password – {selectedUser.username}
+              </h2>
+            </div>
+
+            <div className="px-6 py-4 space-y-3">
+              <CustomTextField
+                label="New Password"
+                type={showPassword ? "text" : "password"}
+                value={passwordForm.password}
+                onChange={(e) =>
+                  setPasswordForm({ ...passwordForm, password: e.target.value })
+                }
+                InputProps={{
+                  endAdornment: (
+                    <IconButton onClick={togglePassword} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  ),
+                }}
+              />
+
+
+              <CustomTextField
+                label="Confirm Password"
+                type={showPassword ? "text" : "password"}
+                value={passwordForm.confirmPassword}
+                onChange={(e) =>
+                  setPasswordForm({
+                    ...passwordForm,
+                    confirmPassword: e.target.value,
+                  })
+                }
+                InputProps={{
+                  endAdornment: (
+                    <IconButton onClick={togglePassword} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  ),
+                }}
+              />
+
+            </div>
+
+            <div className="px-6 py-3 border-t flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setChangePwdModalOpen(false);
+                  setPasswordForm({ password: "", confirmPassword: "" });
+                }}
+                className="px-3 py-2 border rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleChangePassword}
+                className="px-3 py-2 bg-blue-600 text-white rounded"
+              >
+                Update Password
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
