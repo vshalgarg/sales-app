@@ -43,7 +43,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-[100svh] md:min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col md:flex-row">
       {/* Left decorative side */}
       <div className="hidden md:flex md:flex-1 bg-[#6c63ff] items-center justify-center">
         <svg
@@ -63,7 +63,7 @@ const Login = () => {
       </div>
 
       {/* Right - Form */}
-      <div className="flex-1 flex overflow-y-auto justify-start md:items-center md:justify-center bg-gray-50 px-6 py-8 md:p-6">
+      <div className="flex-1 flex overflow-y-auto items-center justify-center bg-gray-50 px-6 py-8 md:p-6">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
