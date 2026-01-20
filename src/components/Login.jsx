@@ -127,7 +127,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 min-h-[44px] top-[42px] text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 top-[42px] text-gray-500 hover:text-gray-700 focus:outline-none"
               >
                 {showPassword ? (
                   // Eye off icon

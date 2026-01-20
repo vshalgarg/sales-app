@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-const Sidebar = ({ activeSection }) => {
+const Sidebar = ({ activeSection,isOpen,navbarHeight }) => {
   let menuItems = [];
 
   if (activeSection === "master") {
@@ -27,7 +27,15 @@ const Sidebar = ({ activeSection }) => {
   }
 
   return (
-    <aside className="w-64 bg-gray-100 dark:bg-zinc-800 p-4 border-r border-gray-300 dark:border-gray-700 transition-colors">
+    <aside className={`
+    w-64 bg-gray-100 dark:bg-zinc-800 p-4 border-r
+     border-gray-300 dark:border-gray-700 
+     transition-transform duration-300
+      fixed bottom-0 left-0 z-40
+    transform ${isOpen ? "translate-x-0" : "-translate-x-full"}
+    md:relative md:translate-x-0
+     `}
+     style={ {top: isOpen ?navbarHeight:0 }}>
       <ul>
         {menuItems.map((item) => (
           <li key={item.name}>
@@ -41,6 +49,7 @@ const Sidebar = ({ activeSection }) => {
                    isActive ? "bg-blue-200 dark:bg-blue-700 font-semibold" : ""
                  }`
               }
+              
             >
               {item.name}
             </NavLink>

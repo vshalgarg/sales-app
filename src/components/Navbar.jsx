@@ -1,8 +1,14 @@
 import { Settings, MoonStar, SunMedium, LogOut, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Navbar({activeSection, onSectionChange }) {
+export default function Navbar({
+  activeSection,
+  onSectionChange,
+  onMenuClick,
+  setNavbarHeight,
+}) {
+  const navRef = useRef(null);
   const [name, setName] = useState("");
   const [userId, setUserId] = useState("");
   const [mainActiveSection, setMainActiveSection] = useState(activeSection);
@@ -12,7 +18,7 @@ export default function Navbar({activeSection, onSectionChange }) {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     if (theme === "dark") document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -20,8 +26,21 @@ export default function Navbar({activeSection, onSectionChange }) {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (!navRef.current) return;
+
+    const updateHeight = () => {
+      setNavbarHeight(navRef.current.offsetHeight);
+    };
+
+    updateHeight();
+
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, [setNavbarHeight]);
+
   const toggleTheme = () =>
-    setTheme((prev) => (prev === "light" ? "dark" : "light")) ;
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   useEffect(() => {
     const storedName = localStorage.getItem("username");
@@ -51,9 +70,20 @@ export default function Navbar({activeSection, onSectionChange }) {
   return (
     <>
       {/*Top Navbar */}
-      <nav className="flex justify-between items-center px-6 py-3 w-full bg-white dark:bg-zinc-900 shadow border-b border-gray-300 dark:border-gray-700 transition-colors">
+      <nav
+        ref={navRef}
+        className="flex justify-between items-center
+       px-6 py-3 w-full bg-white dark:bg-zinc-900 
+       shadow border-b border-gray-300 dark:border-gray-700 
+        transition-colors
+    relative z-50
+"
+      >
         {/* Left: App Title + Section Buttons */}
         <div className="flex items-center">
+          <button className="md:hidden mr-3" onClick={onMenuClick}>
+            ☰
+          </button>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             Textile Management
           </h1>
@@ -88,7 +118,11 @@ export default function Navbar({activeSection, onSectionChange }) {
 
           {/* Dropdown */}
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-lg border border-gray-200 dark:border-zinc-700 py-2 z-50">
+            <div
+              className="absolute right-0 mt-2 w-48
+             bg-white dark:bg-zinc-800 shadow-lg rounded-lg border
+              border-gray-200 dark:border-zinc-700 py-2 z-50"
+            >
               {/*Theme Toggle */}
               <button
                 onClick={toggleTheme}
@@ -139,7 +173,6 @@ export default function Navbar({activeSection, onSectionChange }) {
             </h2>
 
             <div className="space-y-2 text-gray-800 dark:text-gray-100">
-              
               <p>
                 <strong>Username:</strong> {name || "Not available"}
               </p>
