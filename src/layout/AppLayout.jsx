@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
-import {ErrorBoundary} from "react-error-boundary"
+import { ErrorBoundary } from "react-error-boundary";
 import PageErrorFallback from "../components/PageErrorFallback";
 
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [navbarHeight, setNavbarHeight] = useState(0);
+
   const [activeSection, setActiveSection] = useState(() => {
     if (
       location.pathname.startsWith("/suppliers") ||
@@ -67,17 +70,36 @@ const AppLayout = () => {
     }
   };
 
+  const closeSidebar = () => setIsSidebarOpen(false);
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <Navbar
         onSectionChange={handleSectionChange}
         activeSection={activeSection}
+        onMenuClick={toggleSidebar}
+        setNavbarHeight={setNavbarHeight}
       />
       <div className="flex flex-1 min-h-0">
-        <Sidebar className="w-64" activeSection={activeSection} />
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-x-0 bottom-0 bg-black/40 z-30 md:hidden"
+            style={{ top: navbarHeight }}
+            onClick={closeSidebar}
+          />
+        )}
+        <Sidebar
+          className="w-64"
+          activeSection={activeSection}
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+          navbarHeight={navbarHeight}
+        />
         <main className=" flex-1 min-h-0 px-4 overflow-hidden ">
-          <Outlet/>
-          
+          <Outlet />
         </main>
       </div>
     </div>
