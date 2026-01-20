@@ -13,7 +13,7 @@ const Login = () => {
 
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
-  const {login,auth,setAuth}=useAuth();
+  const { login, auth, setAuth } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,14 +22,14 @@ const Login = () => {
 
     try {
       const data = await loginUser(email, password);
-      console.log("auth",auth)
+      console.log("auth", auth);
       login({
-    token:data.token,
-    role:data.roles,
-    userId:data.userId,
-    username:data.username,
-  })
-     
+        token: data.token,
+        role: data.roles,
+        userId: data.userId,
+        username: data.username,
+      });
+
       showSnackbar("Login successful!", "success");
       navigate("/suppliers", { replace: true });
     } catch (err) {
@@ -43,9 +43,9 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-[100svh] md:min-h-screen flex-col md:flex-row">
       {/* Left decorative side */}
-      <div className="flex flex-1 bg-[#6c63ff] items-center justify-center">
+      <div className="hidden md:flex md:flex-1 bg-[#6c63ff] items-center justify-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -63,7 +63,7 @@ const Login = () => {
       </div>
 
       {/* Right - Form */}
-      <div className="flex-1 flex items-center justify-center bg-gray-50 p-6">
+      <div className="flex-1 flex overflow-y-auto justify-start md:items-center md:justify-center bg-gray-50 px-6 py-8 md:p-6">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
@@ -82,7 +82,9 @@ const Login = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-gray-800">Management Portal</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Management Portal
+            </h2>
             <p className="mt-2 text-gray-600">
               Simplified Billing, Streamlined Business
             </p>
@@ -125,7 +127,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[42px] text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 min-h-[44px] top-[42px] text-gray-500 hover:text-gray-700 focus:outline-none"
               >
                 {showPassword ? (
                   // Eye off icon
@@ -179,10 +181,11 @@ const Login = () => {
               disabled={isLoading}
               className={`w-full py-3 px-4 bg-[#6c63ff] text-white font-medium 
                        rounded-lg shadow-sm transition-all duration-200
-                       ${isLoading
-                  ? "opacity-70 cursor-not-allowed"
-                  : "hover:bg-[#5a53d6] active:scale-[0.98]"
-                }`}
+                       ${
+                         isLoading
+                           ? "opacity-70 cursor-not-allowed"
+                           : "hover:bg-[#5a53d6] active:scale-[0.98]"
+                       }`}
             >
               {isLoading ? "Signing in..." : "Login →"}
             </button>
