@@ -4,13 +4,13 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { ErrorBoundary } from "react-error-boundary";
 import PageErrorFallback from "../components/PageErrorFallback";
+import { useMediaQuery } from "@mui/material";
 
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [navbarHeight, setNavbarHeight] = useState(0);
-
   const [activeSection, setActiveSection] = useState(() => {
     if (
       location.pathname.startsWith("/suppliers") ||
@@ -36,6 +36,7 @@ const AppLayout = () => {
     }
     return "master";
   });
+  const isMobile = useMediaQuery("(max-width:768px)");
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -81,6 +82,7 @@ const AppLayout = () => {
         onSectionChange={handleSectionChange}
         activeSection={activeSection}
         onMenuClick={toggleSidebar}
+        isMobile={isMobile}
         setNavbarHeight={setNavbarHeight}
       />
       <div className="flex flex-1 min-h-0">
@@ -92,9 +94,9 @@ const AppLayout = () => {
           />
         )}
         <Sidebar
-          className="w-64"
           activeSection={activeSection}
           isOpen={isSidebarOpen}
+          isMobile={isMobile}
           onClose={closeSidebar}
           navbarHeight={navbarHeight}
         />

@@ -153,7 +153,7 @@ export default function UniversalSearch({
           {/* Search Icon (left) */}
           <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
             <svg
-              className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200"
+              className="w-5 h-4 md:h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -179,7 +179,8 @@ export default function UniversalSearch({
             className={`
             w-full 
             pl-11 pr-28 
-            py-2.5
+            py-2
+            md:py-2.5
             bg-white dark:bg-gray-900
             border border-gray-300 dark:border-gray-600
             rounded-full

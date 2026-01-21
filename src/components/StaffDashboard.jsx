@@ -6,6 +6,7 @@ import AddNewStaff from "../modals/AddNewStaff";
 import DataTable from "./DataTable";
 import UniversalSearch from "./UniversalSearch";
 import dayjs from "dayjs";
+import { useMediaQuery } from "@mui/material";
 
 export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
@@ -24,9 +25,11 @@ export default function StaffDashboard() {
   const searchRef = useRef(null);
   const { showSnackbar } = useSnackbar();
   const [totalItems, setTotalItems] = useState(0);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
 
-  const columns = [
+  const columns ={
+    desktop:[
 
     {
       key: "staffName",
@@ -43,9 +46,21 @@ export default function StaffDashboard() {
       label: "Joining Date",
       width: "30%",
     },
-  ];
-
-
+  ],
+  mobile:[
+    {
+      key: "staffName",
+      label: "Staff Name",
+      width: "40%",
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      width: "30%",
+    }
+  ]
+  }
+   
   const [form, setForm] = useState({
     staffName: "",
     phone: "",
@@ -201,7 +216,7 @@ export default function StaffDashboard() {
       {/* Staff Table */}
       <div className="flex-1 min-h-0 border mb-2 rounded-lg bg-white dark:bg-zinc-900">
         <DataTable
-          columns={columns}
+          columns={isMobile?columns.mobile:columns.desktop}
           data={staffs}
           loading={loading}
           emptyMessage="No staff found"

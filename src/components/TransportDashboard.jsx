@@ -4,6 +4,7 @@ import AddNewTransport from "./AddNewTransport";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
+import { useMediaQuery } from "@mui/material";
 
 export default function TransportDashboard() {
   // throw new Error("error in transport page");
@@ -20,63 +21,96 @@ export default function TransportDashboard() {
   const [totalItems, setTotalItems] = useState(0);
   const dropdownRef = useRef(null);
   const { showSnackbar } = useSnackbar();
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [transportToDelete, setTransportToDelete] = useState(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-const columns = [
-  { 
-    key: "name", 
-    label: "Transport Name", 
-    width: "20%"
-  },
-
-  { 
-    key: "gstNo", 
-    label: "GST No.", 
-    width: "14%" 
-  },
-
-  { 
-    key: "contactNumber", 
-    label: "Contact", 
-    width: "14%" 
-  },
-
-  { 
-    key: "city", 
-    label: "City", 
-    width: "12%",
-    render: (row) => row.city || "-"
-  },
-
-  { 
-    key: "address", 
-    label: "Address", 
-    width: "22%"
-  },
-
-  {
-    key: "status",
-    label: "Status",
-    width: "10%",
-    render: (row) => {
-      const isActive = row.status === "ACTIVE";
-      return (
-        <span
-          className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${
-            isActive
-              ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
-              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-          }`}
-        >
-          {isActive ? "Active" : "Inactive"}
-        </span>
-      );
-    },
-  },
-];
-
+  const columns = {
+    desktop: [
+      {
+        key: "name",
+        label: "Transport Name",
+        width: "20%",
+      },
+      {
+        key: "gstNo",
+        label: "GST No.",
+        width: "14%",
+      },
+      {
+        key: "contactNumber",
+        label: "Contact",
+        width: "14%",
+      },
+      {
+        key: "city",
+        label: "City",
+        width: "12%",
+        render: (row) => row.city || "-",
+      },
+      {
+        key: "address",
+        label: "Address",
+        width: "22%",
+      },
+      {
+        key: "status",
+        label: "Status",
+        width: "10%",
+        render: (row) => {
+          const isActive = row.status === "ACTIVE";
+          return (
+            <span
+              className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${
+                isActive
+                  ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
+                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+              }`}
+            >
+              {isActive ? "Active" : "Inactive"}
+            </span>
+          );
+        },
+      },
+    ],
+    mobile: [
+      {
+        key: "name",
+        label: "Transport Name",
+        width: "20%",
+      },
+      {
+        key: "contactNumber",
+        label: "Contact",
+        width: "14%",
+      },
+      {
+        key: "city",
+        label: "City",
+        width: "12%",
+        render: (row) => row.city || "-",
+      },
+      {
+        key: "status",
+        label: "Status",
+        width: "10%",
+        render: (row) => {
+          const isActive = row.status === "ACTIVE";
+          return (
+            <span
+              className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${
+                isActive
+                  ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
+                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+              }`}
+            >
+              {isActive ? "Active" : "Inactive"}
+            </span>
+          );
+        },
+      },
+    ],
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -88,25 +122,31 @@ const columns = [
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchTransports = useCallback(async (uiPage = 1) => {
-    const backendPage = uiPage - 1;
-    setLoading(true);
-    try {
-      const data = await TransportService.getTransports(backendPage, rowsPerPage);
-      setTransports(data.content || []);
-      setTotalPages(data.totalPages || 0);
-      setTotalItems(data.totalElements || 0);
-      setCurrentPage(uiPage);
-    } catch (error) {
-      console.error("Error fetching transports:", error);
-      setTransports([]);
-      setTotalPages(0);
-      setTotalItems(0);
-      showSnackbar(error.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [rowsPerPage]);
+  const fetchTransports = useCallback(
+    async (uiPage = 1) => {
+      const backendPage = uiPage - 1;
+      setLoading(true);
+      try {
+        const data = await TransportService.getTransports(
+          backendPage,
+          rowsPerPage,
+        );
+        setTransports(data.content || []);
+        setTotalPages(data.totalPages || 0);
+        setTotalItems(data.totalElements || 0);
+        setCurrentPage(uiPage);
+      } catch (error) {
+        console.error("Error fetching transports:", error);
+        setTransports([]);
+        setTotalPages(0);
+        setTotalItems(0);
+        showSnackbar(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [rowsPerPage],
+  );
 
   const handleSearchResult = (response, searchQuery) => {
     if (!searchQuery.trim()) {
@@ -133,7 +173,7 @@ const columns = [
         const response = await TransportService.searchTransports(
           query,
           backendPage,
-          rowsPerPage
+          rowsPerPage,
         );
 
         handleSearchResult(response, query);
@@ -171,15 +211,20 @@ const columns = [
   const handleDelete = async () => {
     if (!transportToDelete) return;
     try {
-      const result = await TransportService.deleteTransport(transportToDelete.id);
-      showSnackbar(result.message || "Transport deleted successfully", "success");
+      const result = await TransportService.deleteTransport(
+        transportToDelete.id,
+      );
+      showSnackbar(
+        result.message || "Transport deleted successfully",
+        "success",
+      );
 
       if (isSearchActive && query.trim()) {
         const backendPage = currentPage - 1;
         const response = await TransportService.searchTransports(
           query,
           backendPage,
-          rowsPerPage
+          rowsPerPage,
         );
 
         handleSearchResult(response, query);
@@ -247,7 +292,7 @@ const columns = [
       {/* Table Section */}
       <div className="flex-1 min-h-0 border mb-2 rounded-lg bg-white dark:bg-zinc-900">
         <DataTable
-          columns={columns}
+          columns={isMobile ? columns.mobile : columns.desktop}
           data={transports}
           loading={loading}
           onEdit={(transport) => handleEdit(transport)}
@@ -262,7 +307,6 @@ const columns = [
           onPageChange={handleChangePage}
         />
       </div>
-
 
       {/* Add / Edit Transport Modal */}
       {open && (

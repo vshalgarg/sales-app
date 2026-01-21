@@ -3,14 +3,18 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
         <div className="bg-white dark:bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
-          <div className="p-6 border-b border-gray-300">
-            <h2 className="text-xl font-semibold">Supplier Details</h2>
+          <div className="px-3 py-2  md:p-6 border-b border-gray-300">
+            <h2 className="text-lg md:text-xl font-semibold">
+              Supplier Details
+            </h2>
           </div>
 
-          <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
+          <div className="px-6 py-2 md:py-4 overflow-y-auto flex-1 space-y-4 md:space-y-6">
             {/* Section: Basic Information */}
-            <h3 className="text-lg font-semibold mb-3">Basic Information</h3>
-            <div className="sup-info grid grid-cols-2 gap-4 mb-6">
+            <h3 className="md:text-lg font-semibold md:mb-3">
+              Basic Information
+            </h3>
+            <div className="sup-info grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Supplier Name
@@ -54,8 +58,8 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
             </div>
 
             {/* Section: Address Details */}
-            <h3 className="text-lg font-semibold mb-3">Address Details</h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <h3 className="md:text-lg font-semibold mb-3">Address Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Address
@@ -87,9 +91,11 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
             </div>
 
             {/* Section: Contact Information */}
-            <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+            <h3 className="md:text-lg font-semibold mb-3">
+              Contact Information
+            </h3>
             {selectedSupplier.contacts.map((c, idx) => (
-              <div className="grid grid-cols-3 gap-4 mb-4" key={idx}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2" key={idx}>
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Contact Person
@@ -118,8 +124,8 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
             ))}
 
             {/* Section: Other Information */}
-            <h3 className="text-lg font-semibold mb-3">Other Information</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Preferred Transport
@@ -127,16 +133,20 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
                   {selectedSupplier.preferredTransports ? (
                     selectedSupplier.preferredTransports.length > 0 ? (
-                      selectedSupplier.preferredTransports.map((transport, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
-                        >
-                          {transport.name || "Unknown"}
-                        </span>
-                      ))
+                      selectedSupplier.preferredTransports.map(
+                        (transport, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+                          >
+                            {transport.name || "Unknown"}
+                          </span>
+                        ),
+                      )
                     ) : (
-                      <span className="text-gray-500 text-sm">No transports</span>
+                      <span className="text-gray-500 text-sm">
+                        No transports
+                      </span>
                     )
                   ) : (
                     <span className="text-gray-500 text-sm">-</span>
@@ -154,10 +164,10 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
 
             {/* Footer Button */}
           </div>
-          <div className="p-4 border-t border-gray-300 flex justify-end space-x-3">
+          <div className="p-2 md:p-4 border-t border-gray-300 flex justify-end">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 text-sm md:text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Cancel
             </button>

@@ -5,7 +5,7 @@ import SupplierDetail from "../modals/SupplierDetail";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
-import { Typography } from "@mui/material";
+import { Typography, useMediaQuery } from "@mui/material";
 
 export default function SupplierDashboard() {
   const [loading, setLoading] = useState(false);
@@ -22,45 +22,52 @@ export default function SupplierDashboard() {
   const searchRef = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const dropdownRef = useRef(null);
 
-  const columns = [
-    { key: "supplierName", label: "Name", width: "18%" },
-    { key: "supplierGstNo", label: "GST", width: "14%" },
-    {
-      key: "address",
-      label: "Address",
-      width: "26%",
-      render: (row) => (
-        <Typography
-          variant="body2"
-          noWrap
-          title={row.address}
-          sx={{ maxWidth: 200 }}
-        >
-          {row.address || "-"}
-        </Typography>
-      ),
-    },
-    { key: "city", label: "City", width: "10%" },
-    {
-      key: "contactPerson",
-      label: "Contact Person",
-      width: "16%",
-      render: (row) => row.contacts?.[0]?.contactPerson || "-",
-    },
-    {
-      key: "mobile",
-      label: "Mobile",
-      width: "16%",
-      render: (row) => row.contacts?.[0]?.mobileNumber || "-",
-    },
-  ];
-
+  const columns = {
+    desktop: [
+      { key: "supplierName", label: "Name", width: "18%" },
+      { key: "supplierGstNo", label: "GST", width: "14%" },
+      {
+        key: "address",
+        label: "Address",
+        width: "26%",
+        render: (row) => (
+          <Typography
+            variant="body2"
+            noWrap
+            title={row.address}
+            sx={{ maxWidth: 200 }}
+          >
+            {row.address || "-"}
+          </Typography>
+        ),
+      },
+      { key: "city", label: "City", width: "10%" },
+      {
+        key: "contactPerson",
+        label: "Contact Person",
+        width: "16%",
+        render: (row) => row.contacts?.[0]?.contactPerson || "-",
+      },
+      {
+        key: "mobile",
+        label: "Mobile",
+        width: "16%",
+        render: (row) => row.contacts?.[0]?.mobileNumber || "-",
+      },
+    ],
+    mobile: [
+      { key: "supplierName", label: "Name", width: "18%" },
+      { key: "city", label: "City", width: "10%" },
+    ],
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -89,25 +96,31 @@ export default function SupplierDashboard() {
     remark: "",
   });
 
-  const fetchSuppliers = useCallback(async (uiPage = 1) => {
-    const backendPage = uiPage - 1;
-    setLoading(true);
-    try {
-      const data = await SupplierService.getSuppliers(backendPage, rowsPerPage);
-      setSuppliers(data.content || []);
-      setTotalPages(data.totalPages || 0);
-      setTotalItems(data.totalElements || 0);
-      setCurrentPage(uiPage);
-    } catch (error) {
-      console.error("Error fetching suppliers:", error);
-      setSuppliers([]);
-      setTotalPages(0);
-      setTotalItems(0);
-      showSnackbar(error.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [rowsPerPage]);
+  const fetchSuppliers = useCallback(
+    async (uiPage = 1) => {
+      const backendPage = uiPage - 1;
+      setLoading(true);
+      try {
+        const data = await SupplierService.getSuppliers(
+          backendPage,
+          rowsPerPage,
+        );
+        setSuppliers(data.content || []);
+        setTotalPages(data.totalPages || 0);
+        setTotalItems(data.totalElements || 0);
+        setCurrentPage(uiPage);
+      } catch (error) {
+        console.error("Error fetching suppliers:", error);
+        setSuppliers([]);
+        setTotalPages(0);
+        setTotalItems(0);
+        showSnackbar(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [rowsPerPage],
+  );
 
   const handleSearchResult = (response, searchQuery) => {
     const results = response.content || [];
@@ -129,7 +142,7 @@ export default function SupplierDashboard() {
         const response = await SupplierService.searchSuppliers(
           query,
           backendPage,
-          rowsPerPage
+          rowsPerPage,
         );
 
         handleSearchResult(response, query);
@@ -169,7 +182,9 @@ export default function SupplierDashboard() {
   const handleDelete = async () => {
     if (!supplierToDelete) return;
     try {
-      const response = await SupplierService.deleteSupplier(supplierToDelete.code);
+      const response = await SupplierService.deleteSupplier(
+        supplierToDelete.code,
+      );
       showSnackbar(response.message, "success");
       fetchSuppliers(currentPage);
     } catch (error) {
@@ -188,19 +203,19 @@ export default function SupplierDashboard() {
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       {/* Header Section */}
-      <div className="py-4 flex-shrink-0">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold">Supplier Overview</h2>
+      <div>
+        <div className="flex justify-between items-center my-2">
+          <h2 className=" text-lg md:text-2xl font-bold">{isMobile?"Supplier":"Supplier Overview"}</h2>
           <button
             onClick={() => setOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Add New Supplier
+            Add Supplier
           </button>
         </div>
 
         {/* Search Section */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center mb-2">
           <UniversalSearch
             placeholder="Search suppliers ..."
             query={query}
@@ -218,7 +233,7 @@ export default function SupplierDashboard() {
       {/* Table Section*/}
       <div className="flex-1 min-h-0  border rounded-lg mb-2 bg-white dark:bg-zinc-900">
         <DataTable
-          columns={columns}
+          columns={isMobile?columns.mobile:columns.desktop}
           data={suppliers}
           loading={loading}
           onView={(supplier) => {
@@ -235,10 +250,7 @@ export default function SupplierDashboard() {
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
         />
-
-
       </div>
-
 
       {/* Modals */}
       {isModalOpen && selectedSupplier && (
