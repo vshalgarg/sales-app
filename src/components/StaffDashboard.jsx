@@ -189,12 +189,12 @@ export default function StaffDashboard() {
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       <div className="pt-4">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-2xl font-bold">Staff Overview</h2>
+        <h2 className="text-lg md:text-2xl font-bold">{isMobile?"Staff":"Staff Overview"}</h2>
         <button
           onClick={() => setOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+          className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
         >
-          Add New Staff
+          Add Staff
         </button>
       </div>
      </div>

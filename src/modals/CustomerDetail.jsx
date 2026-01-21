@@ -3,14 +3,14 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
-          <div className="p-6 border-b boder-gray-300">
-            <h2 className="text-xl font-semibold">Customer Details</h2>
+          <div className="px-3 py-2  md:p-6 border-b boder-gray-300">
+            <h2 className="text-lg md:text-xl font-semibold">Customer Details</h2>
           </div>
 
-          <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
+          <div className="px-6 py-2 md:py-4 overflow-y-auto flex-1 space-y-4 md:space-y-6">
             {/* Section: Basic Information */}
-            <h3 className="text-lg font-semibold mb-3">Basic Information</h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <h3 className="md:text-lg font-semibold mb-3">Basic Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 ">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Customer Name
@@ -52,8 +52,8 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
             </div>
 
             {/* Section: Address Details */}
-            <h3 className="text-lg font-semibold mb-3">Address Details</h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <h3 className="md:text-lg font-semibold mb-3">Address Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 ">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Address
@@ -85,10 +85,10 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
             </div>
 
             {/* Section: Contact Information */}
-            <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+            <h3 className="md:text-lg font-semibold mb-3">Contact Information</h3>
             {Array.isArray(selectedCustomer.contacts) && selectedCustomer.contacts.length > 0 ? (
             selectedCustomer.contacts.map((c, idx) => (
-              <div className="grid grid-cols-3 gap-4 mb-4" key={idx}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4" key={idx}>
                 <div>
                   <label className="block text-sm font-medium mb-1">Contact Person</label>
                   <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
@@ -116,8 +116,8 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
           )}
 
             {/* ------------------ Other Information ------------------ */}
-          <h3 className="text-lg font-semibold mb-3">Other Information</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
+          <div className="grid  grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Preferred Transport</label>
               <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
@@ -147,10 +147,10 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
         </div>
 
             {/* Footer Button */}
-          <div className="p-4 border-t boder-gray-300 flex justify-end space-x-3">
+          <div className="p-2 md:p-4 border-t boder-gray-300 flex justify-end space-x-3">
             <button
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="p-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Cancel
             </button>

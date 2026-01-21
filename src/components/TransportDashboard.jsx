@@ -80,35 +80,11 @@ export default function TransportDashboard() {
         width: "20%",
       },
       {
-        key: "contactNumber",
-        label: "Contact",
-        width: "14%",
-      },
-      {
         key: "city",
         label: "City",
         width: "12%",
         render: (row) => row.city || "-",
-      },
-      {
-        key: "status",
-        label: "Status",
-        width: "10%",
-        render: (row) => {
-          const isActive = row.status === "ACTIVE";
-          return (
-            <span
-              className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${
-                isActive
-                  ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-              }`}
-            >
-              {isActive ? "Active" : "Inactive"}
-            </span>
-          );
-        },
-      },
+      }
     ],
   };
 
@@ -264,12 +240,12 @@ export default function TransportDashboard() {
       {/* Header Section*/}
       <div className="pt-4">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold">Transport Overview</h2>
+          <h2 className="text-lg md:text-2xl font-bold">{isMobile?"Transport":"Transport Overview"}</h2>
           <button
             onClick={handleAddNew}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Add New Transport
+            Add Transport
           </button>
         </div>
       </div>

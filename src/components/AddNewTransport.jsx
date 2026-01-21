@@ -96,7 +96,7 @@ export default function AddNewTransport({
     if (
       formData.gstNo &&
       !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
-        formData.gstNo.toUpperCase()
+        formData.gstNo.toUpperCase(),
       )
     ) {
       newErrors.gstNo = "Enter valid GST number (15 characters)";
@@ -105,7 +105,6 @@ export default function AddNewTransport({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
 
   // ---------- handleChange ----------
   const handleChange = (e) => {
@@ -140,9 +139,9 @@ export default function AddNewTransport({
 
       const response = editingTransport
         ? await TransportService.updateTransport({
-          id: editingTransport.id,
-          ...payload,
-        })
+            id: editingTransport.id,
+            ...payload,
+          })
         : await TransportService.createTransport(payload);
 
       if (!response?.success) {
@@ -151,8 +150,10 @@ export default function AddNewTransport({
       }
 
       showSnackbar(
-        editingTransport ? "Transport updated successfully" : "Transport added successfully",
-        "success"
+        editingTransport
+          ? "Transport updated successfully"
+          : "Transport added successfully",
+        "success",
       );
 
       onSuccess();
@@ -183,28 +184,24 @@ export default function AddNewTransport({
       }}
     >
       {/* ================= HEADER ================= */}
-      <DialogTitle sx={{ px: 3, py: 2, borderBottom: "1px solid #eee", backgroundColor: "#fafafa", borderBottom: "1px solid #e5e7eb", }}>
+      <DialogTitle
+        sx={{
+          px: 3,
+          py: 2,
+          borderBottom: "1px solid #eee",
+          backgroundColor: "#fafafa",
+        }}
+      >
         <div className="flex justify-between items-center">
-          <div>
-            <Typography fontWeight={600}>
-              {editingTransport ? "Edit Transport" : "Add Transport"}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Transport basic and contact details
-            </Typography>
-          </div>
-
-          <CloseIcon
-            onClick={() => !isSaving && setOpen(false)}
-            className="cursor-pointer text-gray-500 hover:text-black"
-          />
+          <Typography fontWeight={600}>
+            {editingTransport ? "Edit Transport" : "Add Transport"}
+          </Typography>
         </div>
       </DialogTitle>
 
       {/* ================= CONTENT ================= */}
       <DialogContent sx={{ px: 3, py: 3 }}>
         <Stack spacing={3}>
-
           {/* -------- BASIC INFO -------- */}
           <div>
             <Typography fontSize={14} fontWeight={600} mb={1} mt={1}>
@@ -229,7 +226,7 @@ export default function AddNewTransport({
               Contact Details
             </Typography>
 
-            <Stack direction="row" spacing={2}>
+            <Stack spacing={2}>
               <TextField
                 label="GST Number"
                 name="gstNo"
@@ -260,7 +257,6 @@ export default function AddNewTransport({
                   inputMode: "numeric",
                 }}
               />
-
             </Stack>
           </div>
 
@@ -271,7 +267,6 @@ export default function AddNewTransport({
             </Typography>
 
             <Stack spacing={1.5}>
-
               <TextField
                 label="City*"
                 name="city"
@@ -293,7 +288,6 @@ export default function AddNewTransport({
                 fullWidth
                 size="small"
               />
-
 
               <TextField
                 label="Address Line 2"
@@ -329,7 +323,6 @@ export default function AddNewTransport({
               />
             </RadioGroup>
           </div>
-
         </Stack>
       </DialogContent>
 
@@ -342,11 +335,7 @@ export default function AddNewTransport({
           background: "#fafafa",
         }}
       >
-        <Button
-          disabled={isSaving}
-          onClick={() => setOpen(false)}
-          size="small"
-        >
+        <Button disabled={isSaving} onClick={() => setOpen(false)} size="small">
           Cancel
         </Button>
 
@@ -376,5 +365,4 @@ export default function AddNewTransport({
       </DialogActions>
     </Dialog>
   );
-
 }
