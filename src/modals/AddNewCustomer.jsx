@@ -232,7 +232,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="customerName"
                     value={form.customerName}
@@ -276,7 +276,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               {/* Address Details */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Address Details</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="addressLine1"
                     value={form.addressLine1}
@@ -331,9 +331,9 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 {form.contacts.map((contact, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-12 gap-4 mb-4 items-start"
+                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
                   >
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="contactPerson"
                         value={contact.contactPerson}
@@ -343,7 +343,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         helperText={errors.contacts?.[index]?.contactPerson}
                       />
                     </div>
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="mobileNumber"
                         value={contact.mobileNumber}
@@ -360,7 +360,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         helperText={errors.contacts?.[index]?.mobileNumber}
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="md:col-span-3">
                       <CustomTextField
                         name="phone"
                         value={contact.phone}

@@ -12,8 +12,6 @@ import Autocomplete from "@mui/material/Autocomplete";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import Chip from "@mui/material/Chip";
 
-
-
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
     contacts: [{}],
@@ -21,7 +19,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [states, setStates] = useState([]);
   const [touched, setTouched] = useState({});
   const { showSnackbar } = useSnackbar();
-
   const [selectedTransports, setSelectedTransports] = useState([]);
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
@@ -252,7 +249,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="supplierName"
                     value={form.supplierName}
@@ -312,7 +309,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
               {/* Address Details */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Address Details</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="addressLine1"
                     value={form.addressLine1}
@@ -370,9 +367,9 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 {form.contacts.map((contact, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-12 gap-4 mb-4 items-start"
+                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
                   >
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="contactPerson"
                         value={contact.contactPerson}
@@ -383,7 +380,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         helperText={errors.contacts?.[index]?.contactPerson}
                       />
                     </div>
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="mobileNumber"
                         value={contact.mobileNumber}
@@ -401,7 +398,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         inputProps={{ maxLength: 10 }}
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="md:col-span-3">
                       <CustomTextField
                         name="phone"
                         value={contact.phone}
@@ -421,7 +418,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     </div>
 
                     {/* Delete icon button - hidden for first contact */}
-                    <div className="col-span-1 flex justify-center">
+                    <div className="md:col-span-1 flex justify-center">
                       {index > 0 && (
                         <IconButton
                           size="small"
@@ -448,7 +445,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
               {/* Transport Section */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Preferred Transports</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Autocomplete
                     multiple
                     options={allTransports}
