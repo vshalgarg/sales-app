@@ -487,7 +487,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="px-4 py-2 border rounded-lg text-sm
+                className="p-2 md:px-4 md:py-2 border rounded-lg text-sm
       hover:bg-gray-100
       disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -498,7 +498,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               <button
                 disabled={isSaving}
                 onClick={() => handleAddCustomer({ closeAfterSave: false })}
-                className="px-4 py-2 border border-blue-600 text-blue-600
+                className="p-2 md:px-4 md:py-2 border border-blue-600 text-blue-600
       rounded-lg text-sm hover:bg-blue-50
       flex items-center gap-2
       disabled:opacity-60 disabled:cursor-not-allowed"
@@ -520,7 +520,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               <button
                 disabled={isSaving}
                 onClick={() => handleAddCustomer({ closeAfterSave: true })}
-                className="px-4 py-2 bg-blue-600 text-white
+                className="p-2 md:px-4 md:py-2 bg-blue-600 text-white
       rounded-lg text-sm hover:bg-blue-700
       flex items-center gap-2
       disabled:opacity-60 disabled:cursor-not-allowed"

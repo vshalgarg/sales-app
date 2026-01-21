@@ -59,7 +59,7 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
 
             {/* Section: Address Details */}
             <h3 className="md:text-lg font-semibold mb-3">Address Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Address
@@ -95,7 +95,7 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
               Contact Information
             </h3>
             {selectedSupplier.contacts.map((c, idx) => (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2" key={idx}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4" key={idx}>
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Contact Person
@@ -125,7 +125,7 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
 
             {/* Section: Other Information */}
             <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Preferred Transport
@@ -167,7 +167,7 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
           <div className="p-2 md:p-4 border-t border-gray-300 flex justify-end">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-sm md:text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="p-2 md:px-4 md:py-2 text-sm md:text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Cancel
             </button>
