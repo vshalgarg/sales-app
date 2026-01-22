@@ -147,7 +147,5 @@ public class GenericRestClient {
             throw new ExternalServiceException(EXTERNAL_API_CALL_FAILED, ex);
         }
     }
-
-
 }
 

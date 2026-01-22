@@ -26,6 +26,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
     }
 
+    @ExceptionHandler(FileUploadException.class)
+    public ResponseEntity<ErrorResponse> handleFileUploadException(FileUploadException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getErrorCode().getCode(), ex.getMessage(),LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFileException(InvalidFileException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getErrorCode().getCode(), ex.getMessage(),LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
     @ExceptionHandler(StaffException.class)
     public ResponseEntity<ErrorResponse> handleStaffException(StaffException ex) {
         ErrorResponse errorResponse = new ErrorResponse(ex.getCode(),ex.getMessage(),LocalDateTime.now());
