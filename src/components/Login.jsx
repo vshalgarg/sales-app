@@ -43,7 +43,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-dvh flex-col md:flex-row">
       {/* Left decorative side */}
       <div className="hidden md:flex md:flex-1 bg-[#6c63ff] items-center justify-center">
         <svg
