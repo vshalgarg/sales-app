@@ -31,6 +31,7 @@ export default function CustomerDashboard() {
 
   const [form, setForm] = useState({
     customerName: "",
+    email: "",
     customerGroup: "",
     customerGstNo: "",
     customerMsme: "",
@@ -40,7 +41,7 @@ export default function CustomerDashboard() {
     state: "",
     city: "",
     pinCode: "",
-    contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+    contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
     preferredTransportIds: [],
     remark: "",
   });
