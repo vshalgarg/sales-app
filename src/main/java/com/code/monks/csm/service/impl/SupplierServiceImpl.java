@@ -172,10 +172,10 @@ public class SupplierServiceImpl implements SupplierService {
                     records.getNumberOfElements(), page, records.getTotalPages());
         } catch (DataAccessException dae) {
             log.error("Database error while fetching suppliers", dae);
-            throw new SupplierException(DATA_ACCESS_ERROR, dae.getMessage());
+            throw new SupplierException(DATA_ACCESS_ERROR, "while fetching suppliers");
         } catch (Exception e) {
             log.error("Unexpected error while fetching suppliers", e);
-            throw new SupplierException(UNEXPECTED_EXCEPTION, e.getMessage());
+            throw new SupplierException(UNEXPECTED_EXCEPTION, "while fetching suppliers");
         }
 
         // ✅ Map entities to DTOs
