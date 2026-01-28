@@ -9,7 +9,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class UpdateTransportRequest {
+public class CreateAndUpdateTransportRequest {
 
     @NotBlank(message = "Transport name is required")
     private String name;

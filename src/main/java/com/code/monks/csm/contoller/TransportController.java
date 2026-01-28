@@ -1,7 +1,6 @@
 package com.code.monks.csm.contoller;
 
-import com.code.monks.csm.dto.request.CreateTransportRequest;
-import com.code.monks.csm.dto.request.UpdateTransportRequest;
+import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
 import com.code.monks.csm.dto.response.CommonTransportResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.TransportResponseDto;
@@ -63,7 +62,7 @@ public class TransportController {
 
     @PostMapping(ADD_TRANSPORT)
     public ResponseEntity<CommonTransportResponseDto> add(
-            @RequestBody @Valid CreateTransportRequest request) {
+            @RequestBody @Valid CreateAndUpdateTransportRequest request) {
 
         CommonTransportResponseDto response = transportService.add(request);
         return ResponseEntity.ok(response);
@@ -72,7 +71,7 @@ public class TransportController {
     @PutMapping(UPDATE_TRANSPORT)
     public ResponseEntity<CommonTransportResponseDto> update(
             @PathVariable Integer id,
-            @RequestBody @Valid UpdateTransportRequest request) {
+            @RequestBody @Valid CreateAndUpdateTransportRequest request) {
 
         CommonTransportResponseDto response = transportService.update(id, request);
         return ResponseEntity.ok(response);
