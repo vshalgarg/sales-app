@@ -103,14 +103,6 @@ public class SupplierServiceImpl implements SupplierService {
                         "mobile number (" + contact.getMobileNumber() + ")",
                         () -> contactRepo.existsByMobileNumber(contact.getMobileNumber())
                 ));
-
-                String phone = contact.getPhone();
-                if (StringUtils.isNotBlank(phone)) {
-                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                            "phone (" + phone + ")",
-                            () -> contactRepo.existsByPhone(phone)
-                    ));
-                }
             }
         }
 
@@ -200,7 +192,7 @@ public class SupplierServiceImpl implements SupplierService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
@@ -340,7 +332,7 @@ public class SupplierServiceImpl implements SupplierService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
