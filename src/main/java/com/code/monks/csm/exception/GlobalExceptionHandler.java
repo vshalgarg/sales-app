@@ -1,8 +1,6 @@
 package com.code.monks.csm.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.SQLGrammarException;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -125,25 +123,6 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
-    }
-
-    @ExceptionHandler({
-            SQLGrammarException.class,
-            InvalidDataAccessResourceUsageException.class
-    })
-    public ResponseEntity<ErrorResponse> handleSqlGrammar(Exception ex) {
-
-        log.error("SQL / Schema issue", ex);
-
-        ErrorResponse response = new ErrorResponse(
-                500,
-                "Internal server error",
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(response);
     }
 
 }
