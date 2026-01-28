@@ -36,11 +36,9 @@ public interface TransportRepository extends JpaRepository<TransportEntity, Inte
   // only ACTIVE + INACTIVE (DELETE exclude)
     Page<TransportEntity> findAllByStatusNot(StatusEnum statusEnum, Pageable pageable);
 
-    boolean existsByContactNumber(String trim);
 
   boolean existsByGstNoIgnoreCase(String gst);
 
-  boolean existsByContactNumberAndIdNot(String contact, Integer excludeId);
 
   boolean existsByNameIgnoreCaseAndIdNot(String name, Integer excludeId);
 

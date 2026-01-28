@@ -36,6 +36,13 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "name")
     private String supplierName;
 
+    @Column(
+            name = "email",
+            nullable = true,   //optional
+            unique = true
+    )
+    private String email;
+
     @Column(name = "group_name")
     private String groupName;
 
@@ -51,6 +58,9 @@ public class SupplierEntity extends BaseEntity{
 
     @Column(name = "commission_rate")
     private Double commissionRate;
+
+    @Column(name = "reference_by")
+    private String referenceBy;
 
     @Column(name = "address_line1")
     private String addressLine1;

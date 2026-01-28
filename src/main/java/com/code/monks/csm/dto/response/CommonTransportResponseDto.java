@@ -3,10 +3,9 @@ package com.code.monks.csm.dto.response;
 import lombok.Data;
 
 @Data
-public class UpdateTransportResponseDto {
+public class CommonTransportResponseDto {
 
-    private Integer id;
-    private String name;
     private boolean success;
     private String message;
+    private Integer id;
 }

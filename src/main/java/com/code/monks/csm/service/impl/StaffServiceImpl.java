@@ -64,7 +64,7 @@ public class StaffServiceImpl implements StaffService {
             throw ex;
         }catch (Exception e) {
             log.error("Error while adding staff '{}'", requestDto.getStaffName(), e);
-            throw new StaffException(UNEXPECTED_EXCEPTION,e.getMessage());
+            throw new StaffException(UNEXPECTED_EXCEPTION," adding staff");
         }
     }
 
@@ -107,7 +107,7 @@ public class StaffServiceImpl implements StaffService {
             throw new StaffException(DATA_ACCESS_ERROR, dae.getMessage());
         } catch (Exception ex) {
             log.error("Unexpected error occurred while fetching active staff members: {}", ex.getMessage(), ex);
-            throw new StaffException(UNEXPECTED_EXCEPTION, ex.getMessage());
+            throw new StaffException(UNEXPECTED_EXCEPTION,  " fetching active staff members.");
         }
     }
 
@@ -156,7 +156,7 @@ public class StaffServiceImpl implements StaffService {
 
         } catch (Exception ex) {
             log.error("Unexpected error occurred while deleting staff with ID {}: {}", staffId, ex.getMessage(), ex);
-            throw new StaffException(UNEXPECTED_EXCEPTION, ex.getMessage());
+            throw new StaffException(UNEXPECTED_EXCEPTION, "deleting staff");
         }
     }
 

@@ -33,8 +33,11 @@ public class BillEntryController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<BillEntryResponseDto> addBill(
-            @Valid @RequestBody BillEntryRequestDto requestDto,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
+            @Valid
+            @RequestPart("payload") BillEntryRequestDto requestDto,
+
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images
 
     ) {
         log.info("Received request to add bill: {}", requestDto);

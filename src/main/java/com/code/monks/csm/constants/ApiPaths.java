@@ -72,7 +72,7 @@ public class ApiPaths {
     public static final String GET_ALL = "/transports/getAll";
     public static final String GET_ALL_TRANSPORT = "/transports/get/all";
     public static final String ADD_TRANSPORT = "/transports/add";
-    public static final String UPDATE_TRANSPORT = "/transports/update";
+    public static final String UPDATE_TRANSPORT = "/transports/update/{id}";
     public static final String DELETE_TRANSPORT = "/transports/delete/{id}";
 
     public static final String CHANGE_PASSWORD = "/admin/change/password";

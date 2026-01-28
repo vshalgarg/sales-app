@@ -13,6 +13,10 @@ public class AddSupplierRequestDto {
     @NotBlank(message = "Supplier name is required")
     private String supplierName;
 
+    @Email(message = "Invalid email format")
+    private String email;
+
+    private String referenceBy;
 
     private String supplierGroup;
 

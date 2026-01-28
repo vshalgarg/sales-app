@@ -126,7 +126,7 @@ public class BillServiceImpl implements BillService {
             throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while adding bill '{}'", billNumber, ex);
-            throw new BillException(UNEXPECTED_EXCEPTION, "Failed to save bill: " + ex.getMessage());
+            throw new BillException(UNEXPECTED_EXCEPTION, "Failed to save bill");
         }
     }
 
@@ -204,7 +204,7 @@ public class BillServiceImpl implements BillService {
             throw new BillException(DATA_ACCESS_ERROR, dae.getMessage());
         } catch (Exception ex) {
             log.error("Unexpected error occurred while fetching bill entries", ex);
-            throw new BillException(UNEXPECTED_EXCEPTION, ex.getMessage());
+            throw new BillException(UNEXPECTED_EXCEPTION, " fetching bill entries");
         }
     }
 
