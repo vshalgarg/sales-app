@@ -14,10 +14,18 @@ import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import TransportService from "../service/TransportService";
+import ImageUploader from "./common/ImageUploader";
 
 const BillEntry = () => {
-  const { formData, setFormData, errors, setErrors, handleChange } =
+  const {
+    formData,
+    setFormData,
+    errors,
+    setErrors,
+    handleChange } =
     useBillForm();
+
+  const billForm = formData;
 
   const { showSnackbar } = useSnackbar();
   const [allTransports, setAllTransports] = useState([]);
@@ -38,6 +46,9 @@ const BillEntry = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTransport, setSelectedTransport] = useState(null);
   const [savedItems, setSavedItems] = useState([]);
+  const [billImages, setBillImages] = useState([]);
+  const fileInputRef = useRef(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,9 +74,16 @@ const BillEntry = () => {
         setCustomerLoading(false);
       }
     };
-
     fetchData();
   }, []);
+
+  useEffect(() => {
+  setFormData(prev => ({
+    ...prev,
+    date: dayjs().format("DD-MM-YYYY")
+  }));
+}, []);
+
 
   const handleResetBillDetail = () => {
     setFormData((prev) => ({
@@ -181,7 +199,6 @@ const BillEntry = () => {
 
     setFormData((prev) => ({
       ...prev,
-      date: dayjs().format("YYYY-MM-DD"),
       receivedDate: "",
       order: "",
       transport: "",
@@ -202,33 +219,37 @@ const BillEntry = () => {
     setSavedItems([]);
     setTaxableValue(null);
     setBillEntry(null);
+    setBillImages([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     setErrors({});
   };
 
   const handleSaveItem = () => {
-    if (!formData.grossAmount || Number(formData.grossAmount) <= 0) {
+    if (!billForm.grossAmount || Number(billForm.grossAmount) <= 0) {
       showSnackbar(
         "Gross Amount is required and must be greater than zero",
         "error",
       );
       return;
     }
-    if (!formData.pieces || Number(formData.pieces) <= 0) {
+    if (!billForm.pieces || Number(billForm.pieces) <= 0) {
       showSnackbar("Please enter at least 1 piece", "error");
       return;
     }
 
     const newItem = {
-      pieces: formData.pieces,
-      grossAmount: formData.grossAmount,
-      discountPercent: formData.discountPercent,
-      discountAmount: formData.discountAmount,
-      addOnAmount: formData.addOnAmount,
-      ecrAmount: formData.ecrAmount,
-      gstPercent: formData.gstPercent,
-      gstAmount: formData.gstAmount,
-      taxableValue: formData.taxableValue,
-      billAmount: formData.billAmount,
+      pieces: billForm.pieces,
+      grossAmount: billForm.grossAmount,
+      discountPercent: billForm.discountPercent,
+      discountAmount: billForm.discountAmount,
+      addOnAmount: billForm.addOnAmount,
+      ecrAmount: billForm.ecrAmount,
+      gstPercent: billForm.gstPercent,
+      gstAmount: billForm.gstAmount,
+      taxableValue: billForm.taxableValue,
+      billAmount: billForm.billAmount,
     };
 
     let successMessage = "";
@@ -268,15 +289,15 @@ const BillEntry = () => {
     const newErrors = {};
 
     // Required fields check
-    if (!formData.date) newErrors.date = "Date is required";
-    if (!formData.receivedDate)
+    if (!billForm.date) newErrors.date = "Date is required";
+    if (!billForm.receivedDate)
       newErrors.receivedDate = "Received Date is required";
-    if (!formData.order?.trim()) newErrors.order = "Order is required";
+    if (!billForm.order?.trim()) newErrors.order = "Order is required";
 
-    if (!formData.supplierId) newErrors.supplierName = "Supplier is required";
-    if (!formData.customerId) newErrors.customerName = "Customer is required";
-    // console.log("formData.transport",formData.transport.trim())
-    // if (formData.transport?.trim()==='') newErrors.transport = "Transport is required";
+    if (!billForm.supplierId) newErrors.supplierName = "Supplier is required";
+    if (!billForm.customerId) newErrors.customerName = "Customer is required";
+    // console.log("billForm.transport",billForm.transport.trim())
+    // if (billForm.transport?.trim()==='') newErrors.transport = "Transport is required";
     if (savedItems.length === 0)
       newErrors.items = "At least one item is required";
 
@@ -284,6 +305,23 @@ const BillEntry = () => {
 
     return Object.keys(newErrors).length === 0;
   };
+
+  const removeImage = (index) => {
+    setBillImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+
+    if (billImages.length + files.length > 2) {
+      showSnackbar("You can upload maximum 2 images only", "error");
+      return;
+    }
+
+    setBillImages((prev) => [...prev, ...files]);
+  };
+
 
   const handleSubmit = async () => {
     if (savedItems.length === 0) {
@@ -303,25 +341,25 @@ const BillEntry = () => {
     }
 
     const payload = {
-      date: formData.date
-        ? dayjs(formData.date, "DD-MM-YYYY").format("YYYY-MM-DD")
+      date: billForm.date
+        ? dayjs(billForm.date, "DD-MM-YYYY").format("YYYY-MM-DD")
         : null,
 
-      receivedDate: formData.receivedDate
-        ? dayjs(formData.receivedDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+      receivedDate: billForm.receivedDate
+        ? dayjs(billForm.receivedDate, "DD-MM-YYYY").format("YYYY-MM-DD")
         : null,
 
-      order: formData.order || null,
+      order: billForm.order || null,
 
-      supplierId: formData.supplierId ? Number(formData.supplierId) : null,
-      customerId: formData.customerId ? Number(formData.customerId) : null,
+      supplierId: billForm.supplierId ? Number(billForm.supplierId) : null,
+      customerId: billForm.customerId ? Number(billForm.customerId) : null,
 
-      transportId: formData.transportId || null,
-      transportName: formData.transportName || null,
-      transportCity: formData.transportCity || null,
+      transportId: billForm.transportId || null,
+      transportName: billForm.transportName || null,
+      transportCity: billForm.transportCity || null,
 
-      lrNumber: formData.lrNumber || null,
-      remarks: formData.remarks || null,
+      lrNumber: billForm.lrNumber || null,
+      remarks: billForm.remarks || null,
 
       taxableValue: Number(taxableValue) || 0,
       billAmount: Number(billEntry) || 0,
@@ -339,7 +377,20 @@ const BillEntry = () => {
     };
     try {
       setIsSaving(true);
-      const response = await addBill(payload);
+
+      const billFormObj = new FormData();
+      billFormObj.append(
+        "payload",
+        new Blob([JSON.stringify(payload)], {
+          type: "application/json",
+        })
+      );
+
+      billImages.forEach((file) => {
+        billFormObj.append("images", file);
+      });
+
+      const response = await addBill(billFormObj);
       if (response?.message) {
         showSnackbar(response.message, "success");
         handleResetForm();
@@ -379,10 +430,10 @@ const BillEntry = () => {
               {/* Bill Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Date"
+                  label="Date*"
                   format="DD-MM-YYYY"
                   value={
-                    formData.date ? dayjs(formData.date, "DD-MM-YYYY") : null
+                    billForm.date ? dayjs(billForm.date, "DD-MM-YYYY") : null
                   }
                   onChange={(newValue) => {
                     const formatted = newValue
@@ -406,11 +457,11 @@ const BillEntry = () => {
               {/* Received Date Field */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Received Date"
+                  label="Received Date*"
                   format="DD-MM-YYYY"
                   value={
-                    formData.receivedDate
-                      ? dayjs(formData.receivedDate, "DD-MM-YYYY")
+                    billForm.receivedDate
+                      ? dayjs(billForm.receivedDate, "DD-MM-YYYY")
                       : null
                   }
                   onChange={(newValue) => {
@@ -446,9 +497,9 @@ const BillEntry = () => {
 
               <CustomTextField
                 name="order"
-                value={formData.order}
+                value={billForm.order}
                 onChange={handleChange}
-                label="Order"
+                label="Order*"
                 className="w-full"
                 error={!!errors.order}
                 helperText={errors.order || ""}
@@ -494,7 +545,7 @@ const BillEntry = () => {
                   renderInput={(params) => (
                     <CustomTextField
                       {...params}
-                      label="Supplier"
+                      label="Supplier*"
                       error={!!errors.supplierName}
                       helperText={errors.supplierName || "Search supplier"}
                     />
@@ -503,13 +554,13 @@ const BillEntry = () => {
               </div>
 
               <CustomTextField
-                value={formData.supplierGroup}
+                value={billForm.supplierGroup}
                 label="Supplier Group"
                 InputProps={{ readOnly: true }}
               />
 
               <CustomTextField
-                value={formData.supplierGstNo}
+                value={billForm.supplierGstNo}
                 label="GSTIN"
                 InputProps={{ readOnly: true }}
               />
@@ -554,7 +605,7 @@ const BillEntry = () => {
                   renderInput={(params) => (
                     <CustomTextField
                       {...params}
-                      label="Customer"
+                      label="Customer*"
                       error={!!errors.customerName}
                       helperText={errors.customerName || "Search customer"}
                     />
@@ -563,13 +614,13 @@ const BillEntry = () => {
               </div>
 
               <CustomTextField
-                value={formData.customerGroup}
+                value={billForm.customerGroup}
                 label="Customer Group"
                 InputProps={{ readOnly: true }}
               />
 
               <CustomTextField
-                value={formData.customerGstNo}
+                value={billForm.customerGstNo}
                 label="GSTIN"
                 InputProps={{ readOnly: true }}
               />
@@ -744,6 +795,37 @@ const BillEntry = () => {
             </div>
           </div>
 
+          {/* Bill Images Card */}
+          <div className="
+  border border-gray-200
+  rounded-xl
+  bg-white
+  shadow-sm
+  hover:shadow-md
+  transition-shadow
+  p-3 sm:p-4 md:p-6
+">
+            <div className="flex items-center mb-4">
+              <div className="w-1 h-7 sm:h-8 bg-pink-600 rounded-full mr-3" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+                Bill Images
+              </h3>
+              <span className="ml-2 text-xs text-gray-400">(optional)</span>
+            </div>
+
+            <ImageUploader
+              value={billImages}
+              onChange={setBillImages}
+              maxImages={2}
+              label="Upload Bill Images"
+              onError={(msg) => showSnackbar(msg, "error")}
+            />
+
+            <p className="mt-2 text-xs text-gray-500">
+              You can upload up to 2 images only
+            </p>
+          </div>
+
           {/* Logistics & Notes */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center mb-5">
@@ -785,9 +867,9 @@ const BillEntry = () => {
                     renderInput={(params) => (
                       <CustomTextField
                         {...params}
-                        //label="Transport"
-                        // error={!!errors.transport}
-                        // helperText={errors.transport || "Search transport"}
+                      //label="Transport"
+                      // error={!!errors.transport}
+                      // helperText={errors.transport || "Search transport"}
                       />
                     )}
                   />
@@ -802,7 +884,7 @@ const BillEntry = () => {
                 <div className="flex items-start">
                   <CustomTextField
                     name="lrNumber"
-                    value={formData.lrNumber}
+                    value={billForm.lrNumber}
                     onChange={handleChange}
                     error={!!errors.lrNumber}
                     helperText={errors.lrNumber || ""}
@@ -819,7 +901,7 @@ const BillEntry = () => {
                 <div>
                   <CustomTextField
                     name="remarks"
-                    value={formData.remarks}
+                    value={billForm.remarks}
                     onChange={handleChange}
                     multiline
                     error={!!errors.remarks}
@@ -841,11 +923,10 @@ const BillEntry = () => {
             onClick={handleResetForm}
             disabled={isSaving}
             className={`px-3 py-2 rounded-lg border font-medium shadow-sm
-    ${
-      isSaving
-        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-        : "bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-    }`}
+    ${isSaving
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              }`}
           >
             Reset Form
           </button>
@@ -855,11 +936,10 @@ const BillEntry = () => {
             type="button"
             disabled={isSaving}
             className={`px-3 py-2 rounded-lg font-medium shadow-lg transition-all duration-200
-    ${
-      isSaving
-        ? "bg-gray-400 cursor-not-allowed text-white"
-        : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02]"
-    }`}
+    ${isSaving
+                ? "bg-gray-400 cursor-not-allowed text-white"
+                : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02]"
+              }`}
           >
             {isSaving ? "Saving..." : "Save Bill Entry"}
           </button>
@@ -901,7 +981,7 @@ const BillEntry = () => {
 
               {/* MODAL CONTENT*/}
               <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="border border-gray-100 p-4 rounded-lg bg-white">
                     <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
                       Bill Details
@@ -909,7 +989,7 @@ const BillEntry = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="pieces"
-                        value={formData.pieces}
+                        value={billForm.pieces}
                         onChange={(e) => {
                           const val = e.target.value;
                           //(no letters, no decimal)
@@ -925,7 +1005,7 @@ const BillEntry = () => {
                       />
                       <CustomTextField
                         name="grossAmount"
-                        value={formData.grossAmount}
+                        value={billForm.grossAmount}
                         onChange={(e) => {
                           const val = e.target.value;
                           // Allow positive number with max 2 decimal
@@ -949,7 +1029,7 @@ const BillEntry = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="discountPercent"
-                        value={formData.discountPercent}
+                        value={billForm.discountPercent}
                         onChange={(e) => {
                           const val = e.target.value;
                           //only numbers + decimal (max 2 digits)
@@ -965,7 +1045,7 @@ const BillEntry = () => {
                       />
                       <CustomTextField
                         name="discountAmount"
-                        value={formData.discountAmount}
+                        value={billForm.discountAmount}
                         onChange={handleChange}
                         label="Discount Amount"
                         InputProps={{ readOnly: true }}
@@ -980,7 +1060,7 @@ const BillEntry = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="addOnAmount"
-                        value={formData.addOnAmount}
+                        value={billForm.addOnAmount}
                         onChange={(e) => {
                           const val = e.target.value;
                           if (/^\d*\.?\d{0,2}$/.test(val)) {
@@ -995,7 +1075,7 @@ const BillEntry = () => {
                       />
                       <CustomTextField
                         name="ecrAmount"
-                        value={formData.ecrAmount}
+                        value={billForm.ecrAmount}
                         onChange={(e) => {
                           const val = e.target.value;
                           if (/^\d*\.?\d{0,2}$/.test(val)) {
@@ -1018,7 +1098,7 @@ const BillEntry = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="gstPercent"
-                        value={formData.gstPercent}
+                        value={billForm.gstPercent}
                         onChange={(e) => {
                           const val = e.target.value;
                           //only numbers + decimal (max 2 decimal places)
@@ -1034,7 +1114,7 @@ const BillEntry = () => {
                       />
                       <CustomTextField
                         name="gstAmount"
-                        value={formData.gstAmount}
+                        value={billForm.gstAmount}
                         onChange={handleChange}
                         label="GST Amount"
                         InputProps={{ readOnly: true }}
@@ -1047,19 +1127,19 @@ const BillEntry = () => {
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Taxable Value</p>
                     <p className="md:text-lg font-medium text-blue-600 mt-1">
-                      {formData.taxableValue || "0.00"}
+                      {billForm.taxableValue || "0.00"}
                     </p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500">GST Amount</p>
                     <p className="md:text-lg font-medium text-green-600 mt-1">
-                      {formData.gstAmount || "0.00"}
+                      {billForm.gstAmount || "0.00"}
                     </p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Bill Amount</p>
                     <p className="md:text-xl font-medium text-indigo-600 mt-1">
-                      {formData.billAmount || "0.00"}
+                      {billForm.billAmount || "0.00"}
                     </p>
                   </div>
                 </div>

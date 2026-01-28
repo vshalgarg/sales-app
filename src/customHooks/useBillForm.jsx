@@ -80,6 +80,7 @@ export const useBillForm = () => {
     transport: "",
     lrNumber: "",
     remarks: "",
+    referenceBy: "",
   };
 
   // Load formData and errors from localStorage
@@ -173,10 +174,10 @@ export const useBillForm = () => {
 
     let finalValue = value;
 
-    // 🔹 Order & LR Number: only alphanumeric
-    if (name === "order" || name === "lrNumber") {
-      finalValue = value.replace(/[^a-zA-Z0-9]/g, "");
-    }
+    // alphabets + special chars ONLY (NO numbers)
+     if (name === "order" || name === "lrNumber") {
+    finalValue = value.replace(/[^a-zA-Z\s\-_/\.@#&()]/g, "");
+  }
 
     setFormData(prev => ({
       ...prev,

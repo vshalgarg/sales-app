@@ -38,21 +38,27 @@ export default function TransportDashboard() {
         width: "14%",
       },
       {
-        key: "contactNumber",
-        label: "Contact",
-        width: "14%",
-      },
+      key: "contacts",
+      label: "Contact",
+      width: "14%",
+      render: (row) =>
+        row.contacts?.length > 0
+          ? row.contacts.map(c => c.contactNumber).join(", ")
+          : "-",
+    },
       {
         key: "city",
         label: "City",
         width: "12%",
         render: (row) => row.city || "-",
       },
-      {
-        key: "address",
-        label: "Address",
-        width: "22%",
-      },
+        {
+      key: "addressLine1",
+      label: "Address",
+      width: "22%",
+      render: (row) =>
+        `${row.addressLine1 || ""}${row.addressLine2 ? ", " + row.addressLine2 : ""}` || "-",
+    },
       {
         key: "status",
         label: "Status",

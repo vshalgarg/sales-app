@@ -102,7 +102,6 @@ export default function CreditEntryForm() {
       paymentType: "",
       billNumber: "",
       referenceNumber: "",
-      date: dayjs().format("YYYY-MM-DD"),
       referenceDate: "",
       receivedAmount: "",
       supplierId: "",
@@ -338,9 +337,6 @@ export default function CreditEntryForm() {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Party Information
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Select supplier and customer
-                </p>
               </div>
             </div>
 
@@ -374,7 +370,7 @@ export default function CreditEntryForm() {
                     {...params}
                     label="Supplier"
                     error={!!errors.supplierName}
-                    helperText={errors.supplierName || "Search supplier by name or city"}
+                    helperText={errors.supplierName || "Search supplier"}
                   />
                 )}
               />
@@ -426,9 +422,6 @@ export default function CreditEntryForm() {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Transaction Details
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Payment mode, bill and amount information
-                </p>
               </div>
             </div>
 
@@ -438,7 +431,7 @@ export default function CreditEntryForm() {
                 name="paymentType"
                 value={formData.paymentType}
                 onChange={handleChange}
-                label="Payment Mode"
+                label="Payment Mode*"
                 options={[
                   { value: "NEFT_RTGS", label: "NEFT / RTGS" },
                   { value: "UPI", label: "UPI" },
@@ -454,7 +447,7 @@ export default function CreditEntryForm() {
                 name="billNumber"
                 value={formData.billNumber}
                 onChange={handleBillNumberChange}
-                label="Bill Number"
+                label="Bill Number*"
                 error={!!errors.billNumber}
                 helperText={errors.billNumber || ""}
               />
@@ -466,7 +459,7 @@ export default function CreditEntryForm() {
                 value={formData.receivedAmount}
                 onChange={handleAmountChange}
                 onBlur={() => handleAmountBlur("receivedAmount")}
-                label="Received Amount"
+                label="Received Amount*"
                 error={!!errors.receivedAmount}
                 helperText={errors.receivedAmount || ""}
                 InputProps={{
@@ -479,7 +472,7 @@ export default function CreditEntryForm() {
                 name="referenceNumber"
                 value={formData.referenceNumber}
                 onChange={handleReferenceNumberChange}
-                label="Reference Number"
+                label="Reference Number*"
                 error={!!errors.referenceNumber}
                 helperText={errors.referenceNumber || "Cheque / UPI / NEFT reference"}
               />
@@ -488,7 +481,7 @@ export default function CreditEntryForm() {
               {/* Reference Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Reference Date"
+                  label="Reference Date*"
                   format="DD-MM-YYYY"
                   value={
                     formData.referenceDate
