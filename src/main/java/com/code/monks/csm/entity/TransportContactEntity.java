@@ -29,7 +29,7 @@ public class TransportContactEntity {
     @Column(name = "contact_person", length = 100)
     private String contactPerson;
 
-    @Column(name = "contact_number", nullable = false, length = 10)
+    @Column(name = "contact_number", nullable = false, length = 15)
     private String contactNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)

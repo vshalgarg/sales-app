@@ -14,6 +14,7 @@ public class AddCustomerResponseDto {
     public static CustomerEntity dtoToEntity(AddCustomerRequestDto requestDto){
         CustomerEntity entity = new CustomerEntity();
         entity.setCustomerName(requestDto.getCustomerName());
+        entity.setEmail(requestDto.getEmail());
         entity.setGroupName(requestDto.getCustomerGroup());
         entity.setGstNo(requestDto.getCustomerGstNo());
         entity.setMsme(requestDto.getCustomerMsme());

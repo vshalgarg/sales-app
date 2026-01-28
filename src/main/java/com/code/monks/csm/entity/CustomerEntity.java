@@ -32,6 +32,9 @@ public class CustomerEntity extends BaseEntity{
     @Column(name = "name")
     private String customerName;
 
+    @Column(name = "email")
+    private String email;
+
     @Column(name = "group_name")
     private String groupName;
 

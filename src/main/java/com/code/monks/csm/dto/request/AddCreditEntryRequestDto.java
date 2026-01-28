@@ -22,7 +22,6 @@ public class AddCreditEntryRequestDto {
     private String referenceNumber;
     private LocalDate referenceDate;
 
-    @NotNull(message = "Received amount is required")
     private Double receivedAmount;
 
     private DrawTypeEnum drawType;
