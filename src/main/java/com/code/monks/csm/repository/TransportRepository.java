@@ -43,4 +43,12 @@ public interface TransportRepository extends JpaRepository<TransportEntity, Inte
   boolean existsByNameIgnoreCaseAndIdNot(String name, Integer excludeId);
 
   boolean existsByGstNoIgnoreCaseAndIdNot(String gst, Integer excludeId);
+
+    boolean existsByEmail(String email);
+
+  boolean existsByEmailAndIdNot(String email, Integer excludeId);
+
+  boolean existsByGstNo(String gst);
+
+  boolean existsByGstNoAndIdNot(String gst, Integer excludeId);
 }

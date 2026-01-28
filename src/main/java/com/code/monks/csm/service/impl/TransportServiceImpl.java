@@ -1,30 +1,31 @@
 package com.code.monks.csm.service.impl;
 
-import com.code.monks.csm.dto.request.CreateTransportRequest;
-import com.code.monks.csm.dto.request.UpdateTransportRequest;
-import com.code.monks.csm.dto.response.*;
+import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
+import com.code.monks.csm.dto.response.CommonTransportResponseDto;
+import com.code.monks.csm.dto.response.PagedResponseDto;
+import com.code.monks.csm.dto.response.TransportContactResponseDto;
+import com.code.monks.csm.dto.response.TransportResponseDto;
 import com.code.monks.csm.entity.TransportContactEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
-import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
+import com.code.monks.csm.repository.TransportContactEntityRepository;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.TransportService;
-import com.code.monks.csm.utils.DuplicateConstraintResolver;
+import com.code.monks.csm.utils.ValidatorUtil;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static com.code.monks.csm.enums.ResponseErrorCode.DUPLICATE_ENTRY;
 import static com.code.monks.csm.enums.ResponseErrorCode.TRANSPORT_NOT_FOUND;
 
 @Service
@@ -33,12 +34,14 @@ import static com.code.monks.csm.enums.ResponseErrorCode.TRANSPORT_NOT_FOUND;
 public class TransportServiceImpl implements TransportService {
 
     private final TransportRepository transportRepository;
+    private final ValidatorUtil validatorUtil;
+    private final TransportContactEntityRepository transportContactRepository;
 
 
     @Override
-    public CommonTransportResponseDto add(CreateTransportRequest request) {
+    public CommonTransportResponseDto add(CreateAndUpdateTransportRequest request) {
 
-        try {
+        validateTransportDuplicates(request, null);
             String name  = request.getName().trim();
             String email = normalize(request.getEmail());
             String gst   = normalize(request.getGstNo());
@@ -74,20 +77,15 @@ public class TransportServiceImpl implements TransportService {
             response.setId(savedTransport.getId());
 
             return response;
-        }
-        catch (DataIntegrityViolationException ex) {
-            DuplicateConstraintResolver.handle(ex);
-            return null;
-        }
     }
 
 
     @Override
-    public CommonTransportResponseDto update(Integer id, UpdateTransportRequest request) {
+    public CommonTransportResponseDto update(Integer id, CreateAndUpdateTransportRequest request) {
 
-        try{
         TransportEntity transport = transportRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(TRANSPORT_NOT_FOUND,""));
+            validateTransportDuplicates(request, id);
         String name = request.getName().trim();
             String email = normalize(request.getEmail());
             String gst   = normalize(request.getGstNo());
@@ -124,13 +122,7 @@ public class TransportServiceImpl implements TransportService {
         response.setId(transport.getId());
 
         return response;
-    }
-        catch (DataIntegrityViolationException ex) {
-            DuplicateConstraintResolver.handle(ex);
-            return null;
-        }
-
-    }
+}
 
     public void deleteTransport(Integer id) {
         log.info("Attempting to soft delete transport with ID: {}", id);
@@ -286,40 +278,60 @@ public class TransportServiceImpl implements TransportService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    private void validateTransportDuplicates(
+            CreateAndUpdateTransportRequest request,
+            Integer excludeId // null for add, id for update
+    ) {
+        List<ValidatorUtil.DuplicateCheck> checks = new ArrayList<>();
 
-//    private Optional<String> validateDuplicate(
-//            String name,
-//            String contact,
-//            String gst,
-//            Integer excludeId // null for CREATE
-//    ) {
-//
-//        if (excludeId == null) {
-//            // CREATE
-//            if (transportRepository.existsByNameIgnoreCase(name)) {
-//                return Optional.of("Transport name already exists");
-//            }
-//            if (transportRepository.existsByContactNumber(contact)) {
-//                return Optional.of("Contact number already exists");
-//            }
-//            if (gst != null && !gst.isEmpty()
-//                    && transportRepository.existsByGstNoIgnoreCase(gst)) {
-//                return Optional.of("GST number already exists");
-//            }
-//        } else {
-//            // UPDATE
-//            if (transportRepository.existsByNameIgnoreCaseAndIdNot(name, excludeId)) {
-//                return Optional.of("Transport name already exists");
-//            }
-//            if (transportRepository.existsByContactNumberAndIdNot(contact, excludeId)) {
-//                return Optional.of("Contact number already exists");
-//            }
-//            if (gst != null && !gst.isEmpty()
-//                    && transportRepository.existsByGstNoIgnoreCaseAndIdNot(gst, excludeId)) {
-//                return Optional.of("GST number already exists");
-//            }
-//        }
-//
-//        return Optional.empty();
-//    }
+        String name = request.getName().trim();
+        String email = normalize(request.getEmail());
+        String gst = normalize(request.getGstNo());
+
+        // 🔸 Name
+        checks.add(new ValidatorUtil.DuplicateCheck(
+                "transport name",
+                () -> excludeId == null
+                        ? transportRepository.existsByNameIgnoreCase(name)
+                        : transportRepository.existsByNameIgnoreCaseAndIdNot(name, excludeId)
+        ));
+
+        // 🔸 Email
+        if (StringUtils.isNotBlank(email)) {
+            checks.add(new ValidatorUtil.DuplicateCheck(
+                    "email",
+                    () -> excludeId == null
+                            ? transportRepository.existsByEmail(email)
+                            : transportRepository.existsByEmailAndIdNot(email, excludeId)
+            ));
+        }
+
+        // 🔸 GST
+        if (StringUtils.isNotBlank(gst)) {
+            checks.add(new ValidatorUtil.DuplicateCheck(
+                    "GST number",
+                    () -> excludeId == null
+                            ? transportRepository.existsByGstNo(gst)
+                            : transportRepository.existsByGstNoAndIdNot(gst, excludeId)
+            ));
+        }
+
+        // 🔸 Contact numbers
+        if (request.getContacts() != null) {
+            for (var c : request.getContacts()) {
+                checks.add(new ValidatorUtil.DuplicateCheck(
+                        "contact number (" + c.getContactNumber() + ")",
+                        () -> excludeId == null
+                                ? transportContactRepository
+                                .existsByContactNumber(c.getContactNumber())
+                                : transportContactRepository
+                                .existsByContactNumberAndTransportIdNot(
+                                        c.getContactNumber(), excludeId)
+                ));
+            }
+        }
+
+        validatorUtil.validateUniqueFields(checks);
+    }
+
 }
