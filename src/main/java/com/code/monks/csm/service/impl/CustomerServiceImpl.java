@@ -113,15 +113,6 @@ public class CustomerServiceImpl implements CustomerService {
                             () -> contactRepo.existsByMobileNumber(mobile)
                     ));
                 }
-
-                // Phone
-                String phone = contact.getPhone();
-                if (StringUtils.isNotBlank(phone)) {
-                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                            "phone (" + phone + ")",
-                            () -> contactRepo.existsByPhone(phone)
-                    ));
-                }
             }
         }
         validatorUtil.validateUniqueFields(duplicateChecks);
@@ -137,7 +128,7 @@ public class CustomerServiceImpl implements CustomerService {
                     ContactEntity contactEntity = new ContactEntity();
                     contactEntity.setContactPerson(dto.getContactPerson());
                     contactEntity.setMobileNumber(dto.getMobileNumber());
-                    contactEntity.setPhone(dto.getPhone());
+                    contactEntity.setType(dto.getType());
                     contactEntity.setCustomer(entity); // Owning side
                     return contactEntity;
                 })
@@ -228,7 +219,7 @@ public class CustomerServiceImpl implements CustomerService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
@@ -245,6 +236,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .id(record.getId())
                 .code(record.getCode())
                 .customerName(record.getCustomerName())
+                .email(record.getEmail())
                 .customerGroup(record.getGroupName())
                 .customerGstNo(record.getGstNo())
                 .customerMsme(record.getMsme())
@@ -336,7 +328,7 @@ public class CustomerServiceImpl implements CustomerService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())

@@ -25,7 +25,7 @@ CREATE TABLE transport_contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     contact_person VARCHAR(100),
-    contact_number VARCHAR(10) NOT NULL,
+    contact_number VARCHAR(15) NOT NULL,
 
     transport_id INT NOT NULL,
 
@@ -331,6 +331,10 @@ ADD COLUMN reference_by VARCHAR(100) NULL;
 ALTER TABLE contact
 ADD COLUMN type VARCHAR(50) NULL;
 
+ALTER TABLE contact
+DROP COLUMN phone;
+
+
 ALTER TABLE supplier
 ADD COLUMN email VARCHAR(255) NULL
 AFTER name;
@@ -339,6 +343,10 @@ ALTER TABLE supplier
 ADD CONSTRAINT uk_supplier_email UNIQUE (email);
 
 CREATE INDEX idx_supplier_email ON supplier(email);
+
+ALTER TABLE customer
+ADD COLUMN email VARCHAR(255);
+
 
 
 

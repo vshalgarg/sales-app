@@ -12,6 +12,7 @@ public class GetCustomersDto {
     private int id;
     private String code;
     private String customerName;
+    private String email;
     private String customerGroup;
     private String customerGstNo;
     private String customerMsme;
