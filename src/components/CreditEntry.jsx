@@ -368,7 +368,7 @@ export default function CreditEntryForm() {
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Supplier"
+                    label="Supplier *"
                     error={!!errors.supplierName}
                     helperText={errors.supplierName || "Search supplier"}
                   />
@@ -402,7 +402,7 @@ export default function CreditEntryForm() {
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Customer"
+                    label="Customer *"
                     error={!!errors.customerName}
                     helperText={errors.customerName || "Search customer by name or city"}
                   />
@@ -459,7 +459,7 @@ export default function CreditEntryForm() {
                 value={formData.receivedAmount}
                 onChange={handleAmountChange}
                 onBlur={() => handleAmountBlur("receivedAmount")}
-                label="Received Amount*"
+                label="Received Amount"
                 error={!!errors.receivedAmount}
                 helperText={errors.receivedAmount || ""}
                 InputProps={{

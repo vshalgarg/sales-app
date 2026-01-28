@@ -71,7 +71,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       ...form,
       contacts: [
         ...form.contacts,
-        { contactPerson: "", mobileNumber: "", phone: "" },
+        { contactPerson: "", mobileNumber: "", type: "" },
       ],
     });
 
@@ -210,7 +210,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
           Array.isArray(form[key]) ? [] : "",
         ])
       ),
-      contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+      contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
       preferredTransportIds: [],
     });
     setErrors({ contacts: [{}] });
@@ -241,6 +241,16 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     error={!!errors.customerName}
                     helperText={errors.customerName}
                   />
+
+                  <CustomTextField
+                    name="email"
+                    value={form.email}
+                    onChange={handleFormChange}
+                    label="Email"
+                    error={!!errors.email}
+                    helperText={errors.email}
+                  />
+
                   <CustomTextField
                     name="customerGroup"
                     value={form.customerGroup}
@@ -349,30 +359,26 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         value={contact.mobileNumber}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
+                          if (/^\d*$/.test(value)) {
                             handleContactChange(index, e);
                           }
                         }}
                         label="MobileNo.*"
                         type="tel"
-                        inputProps={{ maxLength: 10 }}
                         error={!!errors.contacts?.[index]?.mobileNumber}
                         helperText={errors.contacts?.[index]?.mobileNumber}
                       />
                     </div>
                     <div className="md:col-span-3">
                       <CustomTextField
-                        name="phone"
-                        value={contact.phone}
+                        name="type"
+                        value={contact.type}
                         onChange={(e) => {
-                          const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
+                          if (/^[a-zA-Z _@#&()\-]*$/.test(e.target.value)) {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="Phone No."
-                        type="tel"
-                        inputProps={{ maxLength: 10 }}
+                        label="Type"
                       />
                     </div>
                     <div className="col-span-1 flex justify-center">

@@ -274,7 +274,7 @@ export default function AddNewTransport({
               >
                 <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                   <TextField
-                    label="Contact Person*"
+                    label="Contact Person"
                     value={c.contactPerson}
                     onChange={(e) =>
                       handleContactChange(
@@ -290,7 +290,7 @@ export default function AddNewTransport({
                     label="Contact Number *"
                     value={c.contactNumber}
                     onChange={(e) => {
-                      if (/^\d{0,10}$/.test(e.target.value)) {
+                      if (/^\d*$/.test(e.target.value)) {
                         handleContactChange(
                           index,
                           "contactNumber",
@@ -300,7 +300,6 @@ export default function AddNewTransport({
                     }}
                     error={!!errors[`contact_${index}`]}
                     helperText={errors[`contact_${index}`]}
-                    inputProps={{ maxLength: 10 }}
                     fullWidth
                   />
 

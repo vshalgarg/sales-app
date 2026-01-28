@@ -47,8 +47,10 @@ const validate = (field, value) => {
       if (!value.trim()) error = "Current Date is required";
       break;
     case "receivedAmount":
-      if (!value.trim()) error = "Received Amount is required";
+      if (value && !/^\d+(\.\d{1,2})?$/.test(value))
+        error = "Enter a valid amount";
       break;
+
     // case "slipNumber":
     //   if (!value.trim()) error = "Slip Number is required";
     //   break;
@@ -114,10 +116,12 @@ const validate = (field, value) => {
       break;
 
     case "mobileNumber":
-      if (!value) return "Mobile number is required";
+      if (!value) return "Contact number is required";
       if (!/^\d+$/.test(value)) return "Only digits allowed";
-      if (value.length < 10) return "Must be at least 10 digits";
+      // if (value.length < 6) return "Must be at least 6 digits";
+      // if (value.length > 13) return "Must be at most 13 digits";
       break;
+
 
     // case "phone":
     //   if (!value) return "Phone number is required";
@@ -143,11 +147,11 @@ const validate = (field, value) => {
       }
       break;
 
-    case "staffName":
-      if (!value || value.length === 0) {
-        error = "Staff Name is required";
-      }
-      break;
+    // case "staffName":
+    //   if (!value || value.length === 0) {
+    //     error = "Staff Name is required";
+    //   }
+    //   break;
 
     case "joiningDate":
       if (!value || value.length === 0) {
@@ -217,11 +221,9 @@ const validate = (field, value) => {
       }
       break;
     case "purchaseAmount":
-      if (!value.trim() || !value || value.length === 0) {
-        error = "Purchase Amount is required";
-      }
+      if (value && !/^\d+(\.\d{1,2})?$/.test(value))
+        return "Enter valid amount";
       break;
-
 
     case "referenceNumber":
       if (!value || !value.trim()) {

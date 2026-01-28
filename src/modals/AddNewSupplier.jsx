@@ -409,7 +409,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         value={contact.mobileNumber}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
+                          if (/^\d*$/.test(value)) {
                             handleContactChange(index, e);
                           }
                         }}
@@ -418,7 +418,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         error={!!errors.contacts?.[index]?.mobileNumber}
                         helperText={errors.contacts?.[index]?.mobileNumber}
                         type="tel"
-                        inputProps={{ maxLength: 10 }}
                       />
                     </div>
 
