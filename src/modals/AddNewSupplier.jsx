@@ -46,7 +46,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       ...form,
       contacts: [
         ...form.contacts,
-        { contactPerson: "", mobileNumber: "", phone: "" },
+        { contactPerson: "", mobileNumber: "", type: "" },
       ],
     });
 
@@ -225,7 +225,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
           Array.isArray(form[key]) ? [] : "",
         ])
       ),
-      contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+      contacts: [{ contactPerson: "", mobileNumber: "" }],
       preferredTransportIds: [],
     });
 
@@ -259,6 +259,18 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     error={!!errors.supplierName}
                     helperText={errors.supplierName}
                   />
+
+                  <CustomTextField
+                    name="email"
+                    value={form.email}
+                    onChange={handleFormChange}
+                    label="Email"
+                    className="border p-2 rounded"
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    type="email"
+                  />
+
                   <CustomTextField
                     name="supplierGroup"
                     value={form.supplierGroup}
@@ -303,6 +315,17 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     label="Commission % (Rate)"
                     className="border p-2 rounded"
                   />
+
+                  <CustomTextField
+                    name="referenceBy"
+                    value={form.referenceBy}
+                    onChange={handleFormChange}
+                    label="Reference By"
+                    className="border p-2 rounded"
+                    error={!!errors.referenceBy}
+                    helperText={errors.referenceBy}
+                  />
+
                 </div>
               </div>
 
@@ -398,25 +421,16 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         inputProps={{ maxLength: 10 }}
                       />
                     </div>
+
                     <div className="md:col-span-3">
                       <CustomTextField
-                        name="phone"
-                        value={contact.phone}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
-                            handleContactChange(index, e);
-                          }
-                        }}
-                        label="Phone No."
-                        className="w-full border p-2 rounded"
-                        error={!!errors.contacts?.[index]?.phone}
-                        helperText={errors.contacts?.[index]?.phone}
-                        type="tel"
-                        inputProps={{ maxLength: 10 }}
+                        name="type"
+                        value={contact.type}
+                        onChange={(e) => handleContactChange(index, e)}
+                        label="Type"
+                        error={!!errors.contacts?.[index]?.type}
                       />
                     </div>
-
                     {/* Delete icon button - hidden for first contact */}
                     <div className="md:col-span-1 flex justify-center">
                       {index > 0 && (

@@ -1,6 +1,6 @@
 import CustomTextField from "../components/CustomTextField";
 import validate from "../validations/Validation";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { saveStaff } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 
@@ -22,6 +22,16 @@ export default function AddNewStaff({
 
   if (!open) return null;
 
+  useEffect(() => {
+  if (open) {
+    setForm((prev) => ({
+      ...prev,
+      joiningDate: dayjs().format("YYYY-MM-DD"),
+    }));
+  }
+}, [open]);
+
+
   // ---------- HELPERS ----------
   const validatePhone = (value) => {
     if (!value) return "Phone number is required";
@@ -40,7 +50,7 @@ export default function AddNewStaff({
     setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
   };
 
-  // ---------- SUBMIT (REUSABLE) ----------
+  // ---------- SUBMIT----------
   const handleAddStaff = async ({ closeAfterSave }) => {
     if (isSaving) return;
 

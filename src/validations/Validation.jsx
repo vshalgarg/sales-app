@@ -170,9 +170,9 @@ const validate = (field, value) => {
         error = "Received Date is required";
       }
       break;
-   case "order":
-  if (!value?.trim()) return "Order is required";
-  return "";
+    case "order":
+      if (!value?.trim()) return "Order is required";
+      return "";
 
     case "grossAmount":
       if (!value || value.length === 0) {
@@ -227,7 +227,7 @@ const validate = (field, value) => {
       if (!value || !value.trim()) {
         error = "Reference Number is required";
         break;
-      }    
+      }
       break;
 
     case "referenceDate":
@@ -235,6 +235,11 @@ const validate = (field, value) => {
         error = "Reference Date is required";
       }
       break;
+
+    case "email":
+      if (!value) return ""; //optional
+      if (!/^\S+@\S+\.\S+$/.test(value)) return "Invalid email";
+      return "";
 
 
     default:

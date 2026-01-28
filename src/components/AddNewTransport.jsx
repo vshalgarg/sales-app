@@ -12,8 +12,12 @@ import {
   FormControlLabel,
   Radio,
   CircularProgress,
+  Divider,
+  IconButton,
+  Box,
 } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 
@@ -25,40 +29,53 @@ export default function AddNewTransport({
 }) {
   const { showSnackbar } = useSnackbar();
 
+  /* ================= STATE ================= */
   const [formData, setFormData] = useState({
     name: "",
+    email: "",
     gstNo: "",
-    contactNumber: "",
+    contacts: [{ contactPerson: "", contactNumber: "" }],
+    state: "",
     city: "",
-    address: "",
+    addressLine1: "",
+    addressLine2: "",
     status: "ACTIVE",
   });
 
-  const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
-  // ---------- RESET ----------
+  /* ================= RESET ================= */
   const resetForm = () => {
     setFormData({
       name: "",
+      email: "",
       gstNo: "",
-      contactNumber: "",
+      contacts: [{ contactPerson: "", contactNumber: "" }],
+      state: "",
       city: "",
-      address: "",
+      addressLine1: "",
+      addressLine2: "",
       status: "ACTIVE",
     });
     setErrors({});
   };
 
-  // ---------- EDIT MODE ----------
+  /* ================= EDIT MODE ================= */
   useEffect(() => {
     if (editingTransport) {
       setFormData({
         name: editingTransport.name || "",
+        email: editingTransport.email || "",
         gstNo: editingTransport.gstNo || "",
-        contactNumber: editingTransport.contactNumber || "",
+        contacts:
+          editingTransport.contacts?.length > 0
+            ? editingTransport.contacts
+            : [{ contactPerson: "", contactNumber: "" }],
+        state: editingTransport.state || "",
         city: editingTransport.city || "",
-        address: editingTransport.address || "",
+        addressLine1: editingTransport.addressLine1 || "",
+        addressLine2: editingTransport.addressLine2 || "",
         status: editingTransport.status || "ACTIVE",
       });
     } else {
@@ -66,58 +83,70 @@ export default function AddNewTransport({
     }
   }, [editingTransport, open]);
 
-  // ---------- VALIDATION ----------
+  /* ================= CONTACT HANDLERS ================= */
+  const addContact = () => {
+    setFormData((prev) => ({
+      ...prev,
+      contacts: [...prev.contacts, { contactPerson: "", contactNumber: "" }],
+    }));
+  };
+
+  const removeContact = (index) => {
+    if (index === 0) return;
+    setFormData((prev) => ({
+      ...prev,
+      contacts: prev.contacts.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleContactChange = (index, field, value) => {
+    const updated = [...formData.contacts];
+    updated[index][field] = value;
+    setFormData((prev) => ({ ...prev, contacts: updated }));
+  };
+
+  /* ================= BASIC CHANGE ================= */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  /* ================= VALIDATION ================= */
   const validateForm = () => {
     const newErrors = {};
 
-    // Transport Name
-    if (!formData.name.trim()) {
-      newErrors.name = "Transport name is required";
+    if (!formData.name.trim()) newErrors.name = "Transport name is required";
+
+    if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
     }
 
-    // Contact Number (REQUIRED + 10 DIGITS ONLY)
-    if (!formData.contactNumber.trim()) {
-      newErrors.contactNumber = "Contact number is required";
-    } else if (!/^\d{10}$/.test(formData.contactNumber)) {
-      newErrors.contactNumber = "Contact number must be exactly 10 digits";
-    }
+    formData.contacts.forEach((c, i) => {
+      if (!c.contactNumber || !/^\d{10}$/.test(c.contactNumber)) {
+        newErrors[`contact_${i}`] = "Valid 10 digit number required";
+      }
+    });
 
-    // City (REQUIRED)
-    if (!formData.city.trim()) {
-      newErrors.city = "City is required";
-    }
+    if (!formData.state.trim()) newErrors.state = "State is required";
+    if (!formData.city.trim()) newErrors.city = "City is required";
+    if (!formData.addressLine1.trim())
+      newErrors.addressLine1 = "Address is required";
 
-    // Address Line 1 (REQUIRED)
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required";
-    }
-
-    // GST (optional but validated if present)
     if (
       formData.gstNo &&
       !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
-        formData.gstNo.toUpperCase(),
+        formData.gstNo.toUpperCase()
       )
     ) {
-      newErrors.gstNo = "Enter valid GST number (15 characters)";
+      newErrors.gstNo = "Invalid GST number";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // ---------- handleChange ----------
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  // ---------- SUBMIT (REUSABLE) ----------
-  const handleSubmit = async ({ closeAfterSave }) => {
+  /* ================= SUBMIT ================= */
+  const handleSubmit = async () => {
     if (isSaving) return;
 
     if (!validateForm()) {
@@ -130,18 +159,21 @@ export default function AddNewTransport({
 
       const payload = {
         name: formData.name.trim(),
-        gstNo: formData.gstNo.trim(),
-        contactNumber: formData.contactNumber.trim(),
-        city: formData.city.trim(),
-        address: formData.address.trim(),
+        email: formData.email || null,
+        gstNo: formData.gstNo || null,
+        contacts: formData.contacts,
+        state: formData.state,
+        city: formData.city,
+        addressLine1: formData.addressLine1,
+        addressLine2: formData.addressLine2,
         status: formData.status,
       };
 
       const response = editingTransport
-        ? await TransportService.updateTransport({
-            id: editingTransport.id,
-            ...payload,
-          })
+        ? await TransportService.updateTransport(
+          editingTransport.id,
+          payload
+        )
         : await TransportService.createTransport(payload);
 
       if (!response?.success) {
@@ -153,158 +185,200 @@ export default function AddNewTransport({
         editingTransport
           ? "Transport updated successfully"
           : "Transport added successfully",
-        "success",
+        "success"
       );
 
       onSuccess();
       resetForm();
-
-      if (closeAfterSave) {
-        setOpen(false);
-      }
-    } catch (err) {
-      console.error(err);
-      showSnackbar("Failed to save transport", "error");
+      setOpen(false);
+    } catch (e) {
+      console.error(e);
+      showSnackbar(e.message || "Failed to save transport", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
+  /* ================= UI ================= */
   return (
-    <Dialog
-      open={open}
-      onClose={() => !isSaving && setOpen(false)}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
-        },
-      }}
-    >
-      {/* ================= HEADER ================= */}
-      <DialogTitle
-        sx={{
-          px: 3,
-          py: 2,
-          borderBottom: "1px solid #eee",
-          backgroundColor: "#fafafa",
-        }}
-      >
-        <div className="flex justify-between items-center">
-          <Typography fontWeight={600}>
-            {editingTransport ? "Edit Transport" : "Add Transport"}
-          </Typography>
-        </div>
+    <Dialog open={open} maxWidth="md" fullWidth>
+      <DialogTitle fontWeight={600}>
+        {editingTransport ? "Edit Transport" : "Add Transport"}
       </DialogTitle>
 
-      {/* ================= CONTENT ================= */}
-      <DialogContent sx={{ px: 3, py: 3 }}>
-        <Stack spacing={3}>
-          {/* -------- BASIC INFO -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={1} mt={1}>
+      <DialogContent>
+        <Stack spacing={4}>
+          {/* ===== BASIC INFO ===== */}
+          <section>
+            <Typography fontWeight={600} mb={1}>
               Basic Information
             </Typography>
 
-            <TextField
-              label="Transport Name *"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              error={!!errors.name}
-              helperText={errors.name}
-              fullWidth
-              size="small"
-            />
-          </div>
-
-          {/* -------- CONTACT INFO -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={1}>
-              Contact Details
-            </Typography>
-
-            <Stack spacing={2}>
+            {/* Row 1 */}
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
               <TextField
-                label="GST Number"
-                name="gstNo"
-                value={formData.gstNo}
+                label="Transport Name *"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
+                error={!!errors.name}
+                helperText={errors.name}
                 fullWidth
-                size="small"
-                error={!!errors.gstNo}
-                helperText={errors.gstNo}
               />
-
               <TextField
-                label="Contact Number*"
-                name="contactNumber"
-                value={formData.contactNumber}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d{0,10}$/.test(value)) {
-                    handleChange(e);
-                  }
-                }}
-                error={!!errors.contactNumber}
-                helperText={errors.contactNumber}
+                label="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
                 fullWidth
-                size="small"
-                inputProps={{
-                  maxLength: 10,
-                  inputMode: "numeric",
-                }}
               />
             </Stack>
-          </div>
 
-          {/* -------- ADDRESS -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={1}>
+            {/* Row 2 */}
+            <TextField
+              label="GST Number"
+              name="gstNo"
+              value={formData.gstNo}
+              onChange={handleChange}
+              error={!!errors.gstNo}
+              helperText={errors.gstNo}
+              fullWidth
+              sx={{ mt: 2 }}
+            />
+          </section>
+
+          <Divider />
+
+          {/* ===== CONTACT INFO ===== */}
+          <section>
+            <Typography fontWeight={600} mb={1}>
+              Contact Information
+            </Typography>
+
+            {formData.contacts.map((c, index) => (
+              <Box
+                key={index}
+                sx={{
+                  p: 2,
+                  mb: 1.5,
+                  borderRadius: 2,
+                  backgroundColor:
+                    index === 0 ? "transparent" : "#f9fafb",
+                  border:
+                    index === 0
+                      ? "none"
+                      : "1px dashed #d1d5db",
+                }}
+              >
+                <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                  <TextField
+                    label="Contact Person*"
+                    value={c.contactPerson}
+                    onChange={(e) =>
+                      handleContactChange(
+                        index,
+                        "contactPerson",
+                        e.target.value
+                      )
+                    }
+                    fullWidth
+                  />
+
+                  <TextField
+                    label="Contact Number *"
+                    value={c.contactNumber}
+                    onChange={(e) => {
+                      if (/^\d{0,10}$/.test(e.target.value)) {
+                        handleContactChange(
+                          index,
+                          "contactNumber",
+                          e.target.value
+                        );
+                      }
+                    }}
+                    error={!!errors[`contact_${index}`]}
+                    helperText={errors[`contact_${index}`]}
+                    inputProps={{ maxLength: 10 }}
+                    fullWidth
+                  />
+
+                  {index > 0 && (
+                    <IconButton
+                      color="error"
+                      onClick={() => removeContact(index)}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  )}
+                </Stack>
+              </Box>
+            ))}
+
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addContact}
+              size="small"
+            >
+              Add Another Contact
+            </Button>
+          </section>
+
+          <Divider />
+
+          {/* ===== ADDRESS ===== */}
+          <section>
+            <Typography fontWeight={600} mb={1}>
               Address
             </Typography>
 
-            <Stack spacing={1.5}>
+            {/* Row 1 */}
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
               <TextField
-                label="City*"
+                label="State *"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                error={!!errors.state}
+                helperText={errors.state}
+                fullWidth
+              />
+              <TextField
+                label="City *"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
                 error={!!errors.city}
                 helperText={errors.city}
                 fullWidth
-                size="small"
               />
+            </Stack>
 
+            {/* Row 2 */}
+            <Stack spacing={2} mt={2}>
               <TextField
-                label="Address Line 1*"
-                name="address"
-                value={formData.address}
+                label="Address Line 1 *"
+                name="addressLine1"
+                value={formData.addressLine1}
                 onChange={handleChange}
-                error={!!errors.address}
-                helperText={errors.address}
+                error={!!errors.addressLine1}
+                helperText={errors.addressLine1}
                 fullWidth
-                size="small"
               />
-
               <TextField
                 label="Address Line 2"
                 name="addressLine2"
-                placeholder="Landmark / Area (optional)"
+                value={formData.addressLine2}
+                onChange={handleChange}
                 fullWidth
-                size="small"
               />
             </Stack>
-          </div>
+          </section>
 
-          {/* -------- STATUS -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={0.5}>
-              Status
-            </Typography>
-
+          {/* ===== STATUS ===== */}
+          <section>
+            <Typography fontWeight={600}>Status</Typography>
             <RadioGroup
               row
               name="status"
@@ -313,52 +387,26 @@ export default function AddNewTransport({
             >
               <FormControlLabel
                 value="ACTIVE"
-                control={<Radio size="small" />}
+                control={<Radio />}
                 label="Active"
               />
               <FormControlLabel
                 value="INACTIVE"
-                control={<Radio size="small" />}
+                control={<Radio />}
                 label="Inactive"
               />
             </RadioGroup>
-          </div>
+          </section>
         </Stack>
       </DialogContent>
 
-      {/* ================= FOOTER ================= */}
-      <DialogActions
-        sx={{
-          px: 3,
-          py: 2,
-          borderTop: "1px solid #eee",
-          background: "#fafafa",
-        }}
-      >
-        <Button disabled={isSaving} onClick={() => setOpen(false)} size="small">
-          Cancel
-        </Button>
-
-        {/* ONLY IN ADD MODE */}
-        {!editingTransport && (
-          <Button
-            disabled={isSaving}
-            variant="outlined"
-            size="small"
-            onClick={() => handleSubmit({ closeAfterSave: false })}
-            startIcon={isSaving && <CircularProgress size={14} />}
-          >
-            Save & Add New
-          </Button>
-        )}
-
-        {/* SAVE / UPDATE */}
+      <DialogActions>
+        <Button onClick={() => setOpen(false)}>Cancel</Button>
         <Button
-          disabled={isSaving}
           variant="contained"
-          size="small"
-          onClick={() => handleSubmit({ closeAfterSave: true })}
-          startIcon={isSaving && <CircularProgress size={14} />}
+          onClick={handleSubmit}
+          disabled={isSaving}
+          startIcon={isSaving && <CircularProgress size={16} />}
         >
           {editingTransport ? "Update Transport" : "Save Transport"}
         </Button>

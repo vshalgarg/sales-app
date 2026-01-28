@@ -3,7 +3,11 @@ import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export const addBill = async (billData) => {
   try {
-    const response = await api.post("/bill/entry/add", billData);
+    const response = await api.post("/bill/entry/add", billData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     const result = checkLogicalError(response.data);
     return result;
   } catch (error) {
