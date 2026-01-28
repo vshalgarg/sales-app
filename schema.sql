@@ -20,6 +20,25 @@ CREATE TABLE transports (
         INDEX idx_transports_created_at (created_at)
 );
 
+
+CREATE TABLE transport_contacts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    contact_person VARCHAR(100),
+    contact_number VARCHAR(10) NOT NULL,
+
+    transport_id INT NOT NULL,
+
+    CONSTRAINT fk_transport_contacts_transport
+        FOREIGN KEY (transport_id)
+        REFERENCES transports(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT uk_tc_transport_contact
+        UNIQUE (transport_id, contact_number)
+);
+
+
 CREATE TABLE IF NOT EXISTS supplier (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -216,6 +235,22 @@ CREATE TABLE IF NOT EXISTS bill_detail (
         ON DELETE CASCADE
 );
 
+CREATE TABLE bill_images (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    bill_id INT NOT NULL,
+
+    image_url VARCHAR(500) NOT NULL,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_bill_images_bill
+        FOREIGN KEY (bill_id)
+        REFERENCES bill(id)
+        ON DELETE CASCADE
+);
+
 
 CREATE TABLE IF NOT EXISTS credit (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -268,6 +303,46 @@ ADD INDEX idx_bill_customer (customer_id);
 
 ALTER TABLE bill
 MODIFY remarks VARCHAR(255);
+
+
+ALTER TABLE transports
+DROP COLUMN contact_number;
+
+ALTER TABLE transports
+DROP COLUMN address;
+
+
+ALTER TABLE transports
+ADD COLUMN email VARCHAR(255) NULL,
+ADD COLUMN state VARCHAR(50),
+ADD COLUMN address_line1 VARCHAR(255),
+ADD COLUMN address_line2 VARCHAR(255);
+
+ALTER TABLE transports
+ADD CONSTRAINT uk_transports_email UNIQUE (email);
+
+CREATE INDEX idx_tc_contact_number
+ON transport_contacts(contact_number);
+
+
+ALTER TABLE supplier
+ADD COLUMN reference_by VARCHAR(100) NULL;
+
+ALTER TABLE contact
+ADD COLUMN type VARCHAR(50) NULL;
+
+ALTER TABLE supplier
+ADD COLUMN email VARCHAR(255) NULL
+AFTER name;
+
+ALTER TABLE supplier
+ADD CONSTRAINT uk_supplier_email UNIQUE (email);
+
+CREATE INDEX idx_supplier_email ON supplier(email);
+
+
+
+
 
 
 

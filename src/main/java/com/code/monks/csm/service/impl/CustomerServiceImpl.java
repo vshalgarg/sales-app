@@ -85,7 +85,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw ex;
         }catch (Exception e) {
             log.error("Error while adding customer '{}'", requestDto.getCustomerName(), e);
-            throw new CustomerException(UNEXPECTED_EXCEPTION,e.getMessage());
+            throw new CustomerException(UNEXPECTED_EXCEPTION," adding customer");
         }
     }
 
@@ -180,7 +180,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerException(DATA_ACCESS_ERROR, dae.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error while fetching customers", e);
-            throw new CustomerException(UNEXPECTED_EXCEPTION, e.getMessage());
+            throw new CustomerException(UNEXPECTED_EXCEPTION, " fetching customers");
         }
 
         List<GetCustomersDto> dtoList = records.getContent()
@@ -283,7 +283,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerException(DATA_ACCESS_ERROR, dae.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error occurred while deleting customer with code={}", code, e);
-            throw new CustomerException(UNEXPECTED_EXCEPTION, e.getMessage());
+            throw new CustomerException(UNEXPECTED_EXCEPTION, "deleting customer");
         }
     }
 

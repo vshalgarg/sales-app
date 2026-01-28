@@ -17,4 +17,6 @@ public class ContactRequestDto {
 
     @Convert(converter = EmptyStringToNullConverter.class)
     private String phone;
+
+    private String type;
 }

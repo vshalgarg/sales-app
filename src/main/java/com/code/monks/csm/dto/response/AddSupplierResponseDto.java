@@ -16,6 +16,8 @@ public class AddSupplierResponseDto {
     public static SupplierEntity dtoToEntity(AddSupplierRequestDto requestDto){
         SupplierEntity entity = new SupplierEntity();
         entity.setSupplierName(requestDto.getSupplierName());
+        entity.setReferenceBy(requestDto.getReferenceBy());
+        entity.setEmail(requestDto.getEmail());
         entity.setGroupName(requestDto.getSupplierGroup());
         entity.setGstNo(requestDto.getSupplierGstNo());
         entity.setCommissionScheme(requestDto.getCommissionScheme());

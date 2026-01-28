@@ -2,15 +2,13 @@ package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.request.CreateTransportRequest;
 import com.code.monks.csm.dto.request.UpdateTransportRequest;
-import com.code.monks.csm.dto.response.CreateTransportResponseDto;
+import com.code.monks.csm.dto.response.CommonTransportResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.TransportDto;
-import com.code.monks.csm.dto.response.UpdateTransportResponseDto;
+import com.code.monks.csm.dto.response.TransportResponseDto;
 import com.code.monks.csm.service.TransportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +30,7 @@ public class TransportController {
     private final TransportService transportService;
 
     @GetMapping(TRANSPORT_SEARCH)
-    public ResponseEntity<PagedResponseDto<TransportDto>> searchTransports(
+    public ResponseEntity<PagedResponseDto<TransportResponseDto>> searchTransports(
             @RequestParam(value = "keyword",required = false) String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -41,7 +39,7 @@ public class TransportController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
 
-        PagedResponseDto<TransportDto> response = transportService.searchTransports(query, pageable);
+        PagedResponseDto<TransportResponseDto> response = transportService.searchTransports(query, pageable);
 
         log.info("Search completed - returned {} transports (page {}/{})",
                 response.getContent().size(), response.getPage(), response.getTotalPages());
@@ -50,28 +48,33 @@ public class TransportController {
     }
 
     @GetMapping(GET_ALL)
-    public ResponseEntity<List<TransportDto>> getAll(){
+    public ResponseEntity<List<TransportResponseDto>> getAll(){
         return ResponseEntity.ok(transportService.getAll());
     }
 
     @GetMapping(GET_ALL_TRANSPORT)
-    public ResponseEntity<Page<TransportDto>> getAllTransports(
+    public ResponseEntity<Page<TransportResponseDto>> getAllTransports(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        Page<TransportDto> transportPage = transportService.getAllTransports(page, size);
+        Page<TransportResponseDto> transportPage = transportService.getAllTransports(page, size);
         return ResponseEntity.ok(transportPage);
     }
 
     @PostMapping(ADD_TRANSPORT)
-    public ResponseEntity<CreateTransportResponseDto> add(@RequestBody @Valid CreateTransportRequest request) {
-        CreateTransportResponseDto response = transportService.add(request);
+    public ResponseEntity<CommonTransportResponseDto> add(
+            @RequestBody @Valid CreateTransportRequest request) {
+
+        CommonTransportResponseDto response = transportService.add(request);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping(UPDATE_TRANSPORT)
-    public ResponseEntity<UpdateTransportResponseDto> update(@RequestBody UpdateTransportRequest request) {
-        UpdateTransportResponseDto response = transportService.update(request);
+    public ResponseEntity<CommonTransportResponseDto> update(
+            @PathVariable Integer id,
+            @RequestBody @Valid UpdateTransportRequest request) {
+
+        CommonTransportResponseDto response = transportService.update(id, request);
         return ResponseEntity.ok(response);
     }
 

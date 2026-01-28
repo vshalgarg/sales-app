@@ -127,7 +127,7 @@ public class SupplierServiceImpl implements SupplierService {
                     ContactEntity contactEntity = new ContactEntity();
                     contactEntity.setContactPerson(dto.getContactPerson());
                     contactEntity.setMobileNumber(dto.getMobileNumber());
-                    contactEntity.setPhone(dto.getPhone());
+                    contactEntity.setType(dto.getType());
                     contactEntity.setSupplier(entity); // owning side
                     return contactEntity;
                 })
