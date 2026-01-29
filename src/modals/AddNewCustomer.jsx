@@ -305,7 +305,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="state"
                     value={form.state}
                     onChange={handleFormChange}
-                    label="State*"
+                    label="State"
                     error={!!errors.state}
                     helperText={errors.state}
                     options={states.map((s) => ({ value: s.name, label: s.name }))}
@@ -314,7 +314,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
-                    label="City*"
+                    label="City"
                     error={!!errors.city}
                     helperText={errors.city}
                   />
@@ -323,7 +323,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="pinCode"
                     value={form.pinCode}
                     onChange={handleFormChange}
-                    label="Pin Code*"
+                    label="Pin Code"
                     error={!!errors.pinCode}
                     helperText={errors.pinCode}
                     inputProps={{

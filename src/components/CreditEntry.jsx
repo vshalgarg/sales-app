@@ -320,19 +320,14 @@ export default function CreditEntryForm() {
                 Record and manage all credit transactions and payments
               </p>
             </div>
-
-            {/* Right-side */}
-            <div className="text-sm text-gray-400">
-              Accounting
-            </div>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
 
           {/* Party Information Card */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white">
+          <div className="border border-gray-200 p-4 rounded-xl bg-white">
             <div className="flex items-start mb-5">
-              <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
+              <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
                   Party Information
@@ -370,7 +365,7 @@ export default function CreditEntryForm() {
                     {...params}
                     label="Supplier *"
                     error={!!errors.supplierName}
-                    helperText={errors.supplierName || "Search supplier"}
+                    helperText={errors.supplierName || "Search/select supplier"}
                   />
                 )}
               />
@@ -404,7 +399,7 @@ export default function CreditEntryForm() {
                     {...params}
                     label="Customer *"
                     error={!!errors.customerName}
-                    helperText={errors.customerName || "Search customer by name or city"}
+                    helperText={errors.customerName || "Search/select customer"}
                   />
                 )}
               />

@@ -499,7 +499,7 @@ const BillEntry = () => {
                 name="order"
                 value={billForm.order}
                 onChange={handleChange}
-                label="Order*"
+                label="Invoice *"
                 className="w-full"
                 error={!!errors.order}
                 helperText={errors.order || ""}
@@ -545,9 +545,9 @@ const BillEntry = () => {
                   renderInput={(params) => (
                     <CustomTextField
                       {...params}
-                      label="Supplier*"
+                      label="Supplier *"
                       error={!!errors.supplierName}
-                      helperText={errors.supplierName || "Search supplier"}
+                      helperText={errors.supplierName || "Search/select supplier"}
                     />
                   )}
                 />
@@ -605,9 +605,9 @@ const BillEntry = () => {
                   renderInput={(params) => (
                     <CustomTextField
                       {...params}
-                      label="Customer*"
+                      label="Customer *"
                       error={!!errors.customerName}
-                      helperText={errors.customerName || "Search customer"}
+                      helperText={errors.customerName || "Search/select customer"}
                     />
                   )}
                 />
