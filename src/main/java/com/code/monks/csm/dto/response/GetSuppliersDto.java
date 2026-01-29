@@ -18,6 +18,7 @@ public class GetSuppliersDto {
     private String commissionScheme;
     private Double commissionRate;
     private String address;
+    private String state;
     private String city;
     private String pinCode;
     private List<ContactRequestDto> contacts;

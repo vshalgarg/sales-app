@@ -32,6 +32,9 @@ public class TransportContactEntity {
     @Column(name = "contact_number", nullable = false, length = 15)
     private String contactNumber;
 
+    @Column(name = "type", length = 50)
+    private String type;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transport_id", nullable = false)
     private TransportEntity transport;

@@ -1,6 +1,7 @@
 package com.code.monks.csm.dto.request;
 
 import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
+import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -23,7 +24,6 @@ public class AddCustomerRequestDto {
     @Convert(converter = EmptyStringToNullConverter.class)
     private String customerGstNo;
 
-
     private String customerMsme;
 
     @Convert(converter = EmptyStringToNullConverter.class)
@@ -35,10 +35,8 @@ public class AddCustomerRequestDto {
     @Convert(converter = EmptyStringToNullConverter.class)
     private String addressLine2;
 
-    @NotBlank(message = "City is required")
+    private String state;
     private String city;
-
-    @NotBlank(message = "PIN code is required")
     private String pinCode;
 
     private List<Integer> preferredTransportIds;

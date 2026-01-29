@@ -54,6 +54,7 @@ public class TransportServiceImpl implements TransportService {
             transport.setGstNo(gst);
             transport.setState(request.getState());
             transport.setCity(request.getCity());
+            transport.setPinCode(request.getPincode());
             transport.setAddressLine1(request.getAddressLine1());
             transport.setAddressLine2(request.getAddressLine2());
             transport.setStatus(StatusEnum.ACTIVE);
@@ -107,6 +108,7 @@ public class TransportServiceImpl implements TransportService {
         transport.setGstNo(gst);
         transport.setState(request.getState());
         transport.setCity(request.getCity());
+        transport.setPinCode(request.getPincode());
         transport.setAddressLine1(request.getAddressLine1());
         transport.setAddressLine2(request.getAddressLine2());
         transport.setStatus(request.getStatus());
