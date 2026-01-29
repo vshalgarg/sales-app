@@ -233,6 +233,9 @@ export default function AddNewTransport({
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+               <CustomTextField label="Address Line 1*" name="addressLine1" value={formData.addressLine1} onChange={handleChange} error={!!errors.addressLine1} helperText={errors.addressLine1} />
+              <CustomTextField label="Address Line 2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} />
               <BasicSelect
                 name="state"
                 value={formData.state}
@@ -255,9 +258,6 @@ export default function AddNewTransport({
               value={formData.pincode} 
               onChange={handleChange} 
               />
-
-              <CustomTextField label="Address Line 1*" name="addressLine1" value={formData.addressLine1} onChange={handleChange} error={!!errors.addressLine1} helperText={errors.addressLine1} />
-              <CustomTextField label="Address Line 2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} />
             </div>
           </section>
 

@@ -409,9 +409,9 @@ export default function CreditEntryForm() {
 
 
           {/* Transaction Details Card */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
+          <div className="border border-gray-200 p-4 rounded-xl bg-white shadow-sm">
             <div className="flex items-start mb-5">
-              <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
+              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
 
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
