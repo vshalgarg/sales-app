@@ -8,6 +8,7 @@ import com.code.monks.csm.dto.response.TransportResponseDto;
 import com.code.monks.csm.entity.TransportContactEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
+import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.TransportContactEntityRepository;
 import com.code.monks.csm.repository.TransportRepository;
@@ -22,10 +23,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import static com.code.monks.csm.enums.ResponseErrorCode.DUPLICATE_ENTRY;
 import static com.code.monks.csm.enums.ResponseErrorCode.TRANSPORT_NOT_FOUND;
 
 @Service
@@ -113,6 +113,8 @@ public class TransportServiceImpl implements TransportService {
 
         log.debug("Clearing existing contacts for transport id={}", id);
         transport.getContacts().clear();
+
+        transportRepository.saveAndFlush(transport);
 
         log.debug("Adding updated contacts, count={}", request.getContacts().size());
         List<TransportContactEntity> contacts =
@@ -299,13 +301,29 @@ public class TransportServiceImpl implements TransportService {
             CreateAndUpdateTransportRequest request,
             Integer excludeId // null for add, id for update
     ) {
+
+        if (request.getContacts() != null) {
+            Set<String> seenNumbers = new HashSet<>();
+
+            for (var c : request.getContacts()) {
+                String number = c.getContactNumber();
+
+                if (!seenNumbers.add(number)) {
+                    throw new DuplicateEntryException(
+                            DUPLICATE_ENTRY,
+                            "Duplicate contact number in request: " + number
+                    );
+                }
+            }
+        }
+
         List<ValidatorUtil.DuplicateCheck> checks = new ArrayList<>();
 
         String name = request.getName().trim();
         String email = normalize(request.getEmail());
         String gst = normalize(request.getGstNo());
 
-        // 🔸 Name
+        //  Name
         checks.add(new ValidatorUtil.DuplicateCheck(
                 "transport name",
                 () -> excludeId == null
@@ -313,7 +331,7 @@ public class TransportServiceImpl implements TransportService {
                         : transportRepository.existsByNameIgnoreCaseAndIdNot(name, excludeId)
         ));
 
-        // 🔸 Email
+        //  Email
         if (StringUtils.isNotBlank(email)) {
             checks.add(new ValidatorUtil.DuplicateCheck(
                     "email",
@@ -323,7 +341,7 @@ public class TransportServiceImpl implements TransportService {
             ));
         }
 
-        // 🔸 GST
+        //  GST
         if (StringUtils.isNotBlank(gst)) {
             checks.add(new ValidatorUtil.DuplicateCheck(
                     "GST number",
@@ -333,7 +351,7 @@ public class TransportServiceImpl implements TransportService {
             ));
         }
 
-        // 🔸 Contact numbers
+        //  Contact numbers
         if (request.getContacts() != null) {
             for (var c : request.getContacts()) {
                 checks.add(new ValidatorUtil.DuplicateCheck(
