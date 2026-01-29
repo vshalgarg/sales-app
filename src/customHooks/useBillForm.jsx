@@ -17,7 +17,7 @@ export const useBillForm = () => {
   const [filterObject, setFilterObject] = useState({
     supplierId: null,
     customerId: null,
-    fromDate:"" ,
+    fromDate: "",
     toDate: "",
   });
 
@@ -174,10 +174,10 @@ export const useBillForm = () => {
 
     let finalValue = value;
 
-    // alphabets + special chars ONLY (NO numbers)
-     if (name === "order" || name === "lrNumber") {
-    finalValue = value.replace(/[^a-zA-Z\s\-_/\.@#&()]/g, "");
-  }
+    // alphabets + numbers + limited special chars  
+    if (name === "order" || name === "lrNumber") {
+      finalValue = value.replace(/[^a-zA-Z0-9\s\-_/\.@#&()]/g, "");
+    }
 
     setFormData(prev => ({
       ...prev,
