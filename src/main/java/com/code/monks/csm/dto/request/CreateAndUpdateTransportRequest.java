@@ -22,11 +22,9 @@ public class CreateAndUpdateTransportRequest {
     @Valid
     private List<TransportContactRequestDto> contacts;
 
-    @NotBlank(message = "State is required")
     private String state;
-
-    @NotBlank(message = "City is required")
     private String city;
+    private String pincode;
 
     @NotBlank(message = "Address Line 1 is required")
     private String addressLine1;

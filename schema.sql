@@ -26,7 +26,7 @@ CREATE TABLE transport_contacts (
 
     contact_person VARCHAR(100),
     contact_number VARCHAR(15) NOT NULL,
-
+    type VARCHAR(50) NULL,
     transport_id INT NOT NULL,
 
     CONSTRAINT fk_transport_contacts_transport
@@ -333,6 +333,7 @@ DROP COLUMN address;
 ALTER TABLE transports
 ADD COLUMN email VARCHAR(255) NULL,
 ADD COLUMN state VARCHAR(50),
+ADD COLUMN pin_code VARCHAR(50),
 ADD COLUMN address_line1 VARCHAR(255),
 ADD COLUMN address_line2 VARCHAR(255);
 
@@ -372,6 +373,12 @@ ALTER TABLE purchase
 MODIFY staff_id INT NULL,
 MODIFY supplier_id INT NULL,
 MODIFY purchase_amount BIGINT NULL;
+
+ALTER TABLE supplier
+ADD COLUMN state VARCHAR(255);
+
+ALTER TABLE customer
+ADD COLUMN state VARCHAR(255);
 
 
 

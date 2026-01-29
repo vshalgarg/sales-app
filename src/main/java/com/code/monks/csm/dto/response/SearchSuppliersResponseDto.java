@@ -17,6 +17,7 @@ public class SearchSuppliersResponseDto {
     private String commissionScheme;
     private double commissionRate;
     private String address;
+    private String state;
     private String city;
     private String pinCode;
     private List<ContactRequestDto> contacts;

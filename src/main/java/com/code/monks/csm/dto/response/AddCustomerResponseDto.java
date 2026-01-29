@@ -21,6 +21,7 @@ public class AddCustomerResponseDto {
         entity.setReferencedBy(requestDto.getReferencedBy());
         entity.setAddressLine1(requestDto.getAddressLine1());
         entity.setAddressLine2(requestDto.getAddressLine2());
+        entity.setState(requestDto.getState());
         entity.setCity(requestDto.getCity());
         entity.setPinCode(requestDto.getPinCode());
         entity.setRemark(requestDto.getRemark());

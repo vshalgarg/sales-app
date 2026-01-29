@@ -43,6 +43,9 @@ public class TransportEntity extends BaseEntity{
     @Column(name = "city")
     private String city;
 
+    @Column(name = "pin_code")
+    private String pinCode;
+
     @Column(name = "address_line1", nullable = false)
     private String addressLine1;
 

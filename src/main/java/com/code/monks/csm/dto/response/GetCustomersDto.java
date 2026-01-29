@@ -18,6 +18,7 @@ public class GetCustomersDto {
     private String customerMsme;
     private String referencedBy;
     private String address;
+    private String state;
     private String city;
     private String pinCode;
     private List<ContactRequestDto> contacts;

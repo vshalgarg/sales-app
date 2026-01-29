@@ -10,4 +10,6 @@ public class TransportContactRequestDto {
 
     @NotBlank(message = "Contact number is required")
     private String contactNumber;
+
+    private String type;
 }
