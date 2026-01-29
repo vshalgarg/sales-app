@@ -23,7 +23,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const status = error.response.status;
+    const status = error?.response?.status;
     if (status === 401) {
       console.warn(' Token expired or unauthorized. Logging out...');
       window.dispatchEvent(

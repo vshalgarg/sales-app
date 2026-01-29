@@ -122,10 +122,13 @@ export default function AddNewTransport({
     }
 
     formData.contacts.forEach((c, i) => {
-      if (!c.contactNumber || !/^\d{10}$/.test(c.contactNumber)) {
-        newErrors[`contact_${i}`] = "Valid 10 digit number required";
+      if (!c.contactNumber) {
+        newErrors[`contact_${i}`] = "Contact number is required";
+      } else if (!/^\d+$/.test(c.contactNumber)) {
+        newErrors[`contact_${i}`] = "Only digits allowed";
       }
     });
+
 
     if (!formData.state.trim()) newErrors.state = "State is required";
     if (!formData.city.trim()) newErrors.city = "City is required";
@@ -146,7 +149,7 @@ export default function AddNewTransport({
   };
 
   /* ================= SUBMIT ================= */
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldClose = true) => {
     if (isSaving) return;
 
     if (!validateForm()) {
@@ -190,7 +193,11 @@ export default function AddNewTransport({
 
       onSuccess();
       resetForm();
-      setOpen(false);
+
+      if (shouldClose) {
+        setOpen(false);
+      }
+
     } catch (e) {
       console.error(e);
       showSnackbar(e.message || "Failed to save transport", "error");
@@ -401,15 +408,29 @@ export default function AddNewTransport({
 
       <DialogActions>
         <Button onClick={() => setOpen(false)}>Cancel</Button>
+
+        {/* NEW BUTTON */}
+        {!editingTransport && (
+          <Button
+            variant="outlined"
+            onClick={() => handleSubmit(false)}
+            disabled={isSaving}
+          >
+            Save & Add New
+          </Button>
+        )}
+
+        {/* EXISTING SAVE */}
         <Button
           variant="contained"
-          onClick={handleSubmit}
+          onClick={() => handleSubmit(true)}
           disabled={isSaving}
           startIcon={isSaving && <CircularProgress size={16} />}
         >
           {editingTransport ? "Update Transport" : "Save Transport"}
         </Button>
       </DialogActions>
+
     </Dialog>
   );
 }

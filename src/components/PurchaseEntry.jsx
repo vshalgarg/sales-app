@@ -24,15 +24,14 @@ const PurchaseEntry = () => {
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
 
 
   const [formData, setFormData] = useState({
     date: dayjs().format("YYYY-MM-DD"),
     staffId: "",
     supplierId: "",
-    customerId: "",
+    customerIds: [],
     staff: "",
     purchaseAmount: "",
   });
@@ -86,7 +85,6 @@ const PurchaseEntry = () => {
     }
   };
 
-
   const handleAmountChange = (e) => {
     const { name, value } = e.target;
     if (/^\d*\.?\d{0,2}$/.test(value)) {
@@ -109,24 +107,24 @@ const PurchaseEntry = () => {
 
     if (isSaving) return;
 
-    const newErrors = {};
-
-    Object.keys(formData).forEach((field) => {
-      if (field === "supplierId" || field === "customerId") return;
-
-      const error = validate(field, formData[field]);
-      if (error) {
-        newErrors[field] = error;
-      }
-    });
-
-
-    setErrors(newErrors);
-
-    if (Object.values(newErrors).some((err) => err)) {
-      showSnackbar("Please fill required fields", "error");
+    const dateError = validate("date", formData.date);
+    if (dateError) {
+      setErrors({ date: dateError });
+      showSnackbar(dateError, "error");
       return;
     }
+
+    if (
+      !formData.supplierId &&
+      (!formData.customerIds || formData.customerIds.length === 0)
+    ) {
+      showSnackbar(
+        "Please select either Supplier or at least one Customer",
+        "error"
+      );
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -146,10 +144,10 @@ const PurchaseEntry = () => {
     resetSupplier();
     resetCustomer();
     setFormData({
-      date: "",
+      date: dayjs().format("YYYY-MM-DD"),
       staffId: "",
       supplierId: "",
-      customerId: "",
+      customerIds: [],
       staff: "",
       purchaseAmount: "",
     });
@@ -165,7 +163,7 @@ const PurchaseEntry = () => {
   };
 
   const resetCustomer = () => {
-    setSelectedCustomer(null);
+    setSelectedCustomers([]);
     setFormData(prev => ({
       ...prev,
       customerId: "",
@@ -202,9 +200,6 @@ const PurchaseEntry = () => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Party Information
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Select supplier and customer
-                </p>
               </div>
             </div>
 
@@ -236,40 +231,33 @@ const PurchaseEntry = () => {
                     {...params}
                     label="Supplier"
                     error={!!errors.supplierName}
-                    helperText={errors.supplierName || "Search supplier by name or city"}
                   />
                 )}
               />
 
               <Autocomplete
+                multiple
                 options={allCustomers}
-                value={selectedCustomer}
+                value={selectedCustomers}
                 loading={customerLoading}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                isOptionEqualToValue={(o, v) => o.id === v.id}
                 getOptionLabel={(o) =>
                   o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
                 }
-                onChange={(e, value) => {
-                  if (!value) {
-                    resetCustomer();
-                    return;
-                  }
-
-                  setSelectedCustomer(value);
+                onChange={(e, values) => {
+                  setSelectedCustomers(values);
                   setFormData(prev => ({
                     ...prev,
-                    customerId: value.id,
+                    customerIds: values.map(v => v.id),
                   }));
                 }}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Customer"
-                    helperText="Search customer by name or city"
+                    label="Customer(s)"
                   />
                 )}
               />
-
             </div>
           </div>
 
@@ -281,16 +269,13 @@ const PurchaseEntry = () => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Transaction Details
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Date, staff and purchase amount
-                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Transaction Date"
+                  label="Transaction Date *"
                   format="DD-MM-YYYY"
                   value={
                     formData.date
