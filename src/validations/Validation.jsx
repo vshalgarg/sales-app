@@ -8,12 +8,17 @@ const validate = (field, value) => {
     case "password":
       if (!value) return "Password is required";
       break;
-    case "state":
-      if (!value) return "State is required";
+    // case "state":
+    //   if (!value) return "State is required";
+    //   break;
+    // case "city":
+    //   if (!value) return "City is required";
+    //   break;
+    case "contactNumber":
+      if (!value) return "Contact number is required";
+      if (!/^\d+$/.test(value)) return "Only digits allowed";
       break;
-    case "city":
-      if (!value) return "City is required";
-      break;
+
     case "fromDate":
       if (!value.trim()) error = "From date is required";
       break;
@@ -98,11 +103,8 @@ const validate = (field, value) => {
       break;
 
     case "pinCode":
-      if (!value || value.trim() === "") {
-        return "Pin Code is required";
-      }
       if (!/^\d{6}$/.test(value)) {
-        return "Pin Code must be exactly 6 digits";
+        return "";
       }
       return "";
 
@@ -135,17 +137,17 @@ const validate = (field, value) => {
     //   }
     //   break;
 
-    case "state":
-      if (!value || value.length === 0) {
-        error = "State is required";
-      }
-      break;
+    // case "state":
+    //   if (!value || value.length === 0) {
+    //     error = "State is required";
+    //   }
+    //   break;
 
-    case "city":
-      if (!value || value.length === 0) {
-        error = "City is required";
-      }
-      break;
+    // case "city":
+    //   if (!value || value.length === 0) {
+    //     error = "City is required";
+    //   }
+    //   break;
 
     // case "staffName":
     //   if (!value || value.length === 0) {

@@ -185,7 +185,6 @@ const PurchaseEntry = () => {
                 Record purchase transactions and manage inventory
               </p>
             </div>
-            <div className="text-sm text-gray-400">Inventory</div>
           </div>
         </div>
 

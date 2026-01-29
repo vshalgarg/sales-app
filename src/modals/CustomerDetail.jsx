@@ -1,4 +1,10 @@
+import { useEffect } from "react";
+
 const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
+
+   useEffect(() => {
+    console.log("🔍 Selected Customer Data:", selectedCustomer);
+  }, [selectedCustomer]);
   return (
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -65,7 +71,7 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
               <div>
                 <label className="block text-sm font-medium mb-1">State</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  Haryana
+                  {selectedCustomer.state}
                 </div>
               </div>
               <div>

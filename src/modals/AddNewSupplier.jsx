@@ -353,7 +353,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="state"
                     value={form.state}
                     onChange={handleFormChange}
-                    label="State*"
+                    label="State"
                     error={!!errors.state}
                     helperText={errors.state || ""}
                     options={states.map((s) => ({
@@ -365,7 +365,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
-                    label="City*"
+                    label="City"
                     className="border p-2 rounded"
                     error={!!errors.city}
                     helperText={errors.city}
@@ -375,7 +375,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="pinCode"
                     value={form.pinCode}
                     onChange={handleFormChange}
-                    label="Pin Code*"
+                    label="Pin Code"
                     error={!!errors.pinCode}
                     helperText={errors.pinCode}
                   />
