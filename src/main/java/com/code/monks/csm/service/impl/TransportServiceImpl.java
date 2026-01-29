@@ -41,6 +41,8 @@ public class TransportServiceImpl implements TransportService {
     @Override
     public CommonTransportResponseDto add(CreateAndUpdateTransportRequest request) {
 
+        log.info("Add Transport request received: name={}, email={}, gst={}",
+                request.getName(), request.getEmail(), request.getGstNo());
         validateTransportDuplicates(request, null);
             String name  = request.getName().trim();
             String email = normalize(request.getEmail());
@@ -56,9 +58,12 @@ public class TransportServiceImpl implements TransportService {
             transport.setAddressLine2(request.getAddressLine2());
             transport.setStatus(StatusEnum.ACTIVE);
 
+        log.debug("Creating transport contacts, count={}", request.getContacts().size());
             List<TransportContactEntity> contacts =
                     request.getContacts().stream()
                             .map(c -> {
+                                log.debug("Adding contact: person={}, number={}",
+                                        c.getContactPerson(), c.getContactNumber());
                                 TransportContactEntity contact = new TransportContactEntity();
                                 contact.setContactPerson(c.getContactPerson());
                                 contact.setContactNumber(c.getContactNumber());
@@ -70,6 +75,7 @@ public class TransportServiceImpl implements TransportService {
 
 
             TransportEntity savedTransport = transportRepository.save(transport);
+        log.info("Transport added successfully with id={}", savedTransport.getId());
 
             CommonTransportResponseDto response = new CommonTransportResponseDto();
             response.setSuccess(true);
@@ -83,9 +89,15 @@ public class TransportServiceImpl implements TransportService {
     @Override
     public CommonTransportResponseDto update(Integer id, CreateAndUpdateTransportRequest request) {
 
+        log.info("Update Transport request received: id={}", id);
         TransportEntity transport = transportRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(TRANSPORT_NOT_FOUND,""));
+                .orElseThrow(() -> {
+                    log.error("Transport not found for id={}", id);
+                    return new ResourceNotFoundException(TRANSPORT_NOT_FOUND, "");
+                });
+
             validateTransportDuplicates(request, id);
+
         String name = request.getName().trim();
             String email = normalize(request.getEmail());
             String gst   = normalize(request.getGstNo());
@@ -99,11 +111,15 @@ public class TransportServiceImpl implements TransportService {
         transport.setAddressLine2(request.getAddressLine2());
         transport.setStatus(request.getStatus());
 
+        log.debug("Clearing existing contacts for transport id={}", id);
         transport.getContacts().clear();
 
+        log.debug("Adding updated contacts, count={}", request.getContacts().size());
         List<TransportContactEntity> contacts =
                 request.getContacts().stream()
                         .map(c -> {
+                            log.debug("Updating contact: person={}, number={}",
+                                    c.getContactPerson(), c.getContactNumber());
                             TransportContactEntity contact = new TransportContactEntity();
                             contact.setContactPerson(c.getContactPerson());
                             contact.setContactNumber(c.getContactNumber());
@@ -116,6 +132,7 @@ public class TransportServiceImpl implements TransportService {
 
         transportRepository.save(transport);
 
+        log.info("Transport updated successfully with id={}", transport.getId());
         CommonTransportResponseDto response = new CommonTransportResponseDto();
         response.setSuccess(true);
         response.setMessage("Transport updated successfully");
