@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -12,10 +13,10 @@ public class SearchPurchaseEntryResponse {
     private LocalDate date;
     private String staffName;
     private String supplierName;
-    private String customerName;
-    private double purchaseAmount;
     private Integer supplierId;
-    private Integer customerId;
+    private List<Integer> customerIds;
+    private List<String> customerNames;
     private Integer staffId;
+    private double purchaseAmount;
 
 }

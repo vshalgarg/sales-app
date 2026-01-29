@@ -7,5 +7,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ContactRepo extends JpaRepository<ContactEntity,Integer> {
     boolean existsByMobileNumber(String mobileNumber);
-    boolean existsByPhone(String phone);
 }
