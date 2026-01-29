@@ -160,6 +160,24 @@ CREATE TABLE purchase (
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE purchase_customers (
+    purchase_id INT NOT NULL,
+    customer_id INT NOT NULL,
+
+    PRIMARY KEY (purchase_id, customer_id),
+
+    CONSTRAINT fk_pc_purchase
+        FOREIGN KEY (purchase_id)
+        REFERENCES purchase(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_pc_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customer(id)
+        ON DELETE CASCADE
+);
+
+
 CREATE TABLE IF NOT EXISTS staff (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -346,6 +364,15 @@ CREATE INDEX idx_supplier_email ON supplier(email);
 
 ALTER TABLE customer
 ADD COLUMN email VARCHAR(255);
+
+ALTER TABLE purchase
+DROP COLUMN customer_id;
+
+ALTER TABLE purchase
+MODIFY staff_id INT NULL,
+MODIFY supplier_id INT NULL,
+MODIFY purchase_amount BIGINT NULL;
+
 
 
 
