@@ -3,6 +3,8 @@ package com.code.monks.csm.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
+
 @Entity
 @Table(name = "bill_detail")
 @Data
@@ -24,4 +26,5 @@ public class BillDetailEntity {
     @ManyToOne
     @JoinColumn(name = "bill_Entry_id")
     private BillEntryEntity billEntry;
+
 }

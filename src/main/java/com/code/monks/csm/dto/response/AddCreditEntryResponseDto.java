@@ -17,7 +17,12 @@ public class AddCreditEntryResponseDto {
         entity.setDate(dto.getDate());
         entity.setReferenceNumber(dto.getReferenceNumber());
         entity.setReferenceDate(dto.getReferenceDate());
-        entity.setReceivedAmount(Math.round(dto.getReceivedAmount() * 100));
+
+        long amount = dto.getReceivedAmount() == null
+                ? 0L
+                : Math.round(dto.getReceivedAmount() * 100);
+        entity.setReceivedAmount(amount);
+
         entity.setDrawType(dto.getDrawType());
         entity.setRemark(dto.getRemark());
         entity.setSupplierId(dto.getSupplierId());

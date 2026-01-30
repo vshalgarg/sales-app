@@ -13,6 +13,10 @@ public class AddSupplierRequestDto {
     @NotBlank(message = "Supplier name is required")
     private String supplierName;
 
+    @Email(message = "Invalid email format")
+    private String email;
+
+    private String referenceBy;
 
     private String supplierGroup;
 
@@ -35,13 +39,8 @@ public class AddSupplierRequestDto {
     @Convert(converter = EmptyStringToNullConverter.class)
     private String addressLine2;
 
-    @NotBlank(message = "State is required")
     private String state;
-
-    @NotBlank(message = "City is required")
     private String city;
-
-    @NotBlank(message = "PIN code is required")
     private String pinCode;
 
     @NotNull(message = "Preferred transport is required")

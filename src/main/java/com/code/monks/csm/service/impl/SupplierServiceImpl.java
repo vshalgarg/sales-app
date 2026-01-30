@@ -103,14 +103,6 @@ public class SupplierServiceImpl implements SupplierService {
                         "mobile number (" + contact.getMobileNumber() + ")",
                         () -> contactRepo.existsByMobileNumber(contact.getMobileNumber())
                 ));
-
-                String phone = contact.getPhone();
-                if (StringUtils.isNotBlank(phone)) {
-                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                            "phone (" + phone + ")",
-                            () -> contactRepo.existsByPhone(phone)
-                    ));
-                }
             }
         }
 
@@ -127,7 +119,7 @@ public class SupplierServiceImpl implements SupplierService {
                     ContactEntity contactEntity = new ContactEntity();
                     contactEntity.setContactPerson(dto.getContactPerson());
                     contactEntity.setMobileNumber(dto.getMobileNumber());
-                    contactEntity.setPhone(dto.getPhone());
+                    contactEntity.setType(dto.getType());
                     contactEntity.setSupplier(entity); // owning side
                     return contactEntity;
                 })
@@ -172,10 +164,10 @@ public class SupplierServiceImpl implements SupplierService {
                     records.getNumberOfElements(), page, records.getTotalPages());
         } catch (DataAccessException dae) {
             log.error("Database error while fetching suppliers", dae);
-            throw new SupplierException(DATA_ACCESS_ERROR, dae.getMessage());
+            throw new SupplierException(DATA_ACCESS_ERROR, "while fetching suppliers");
         } catch (Exception e) {
             log.error("Unexpected error while fetching suppliers", e);
-            throw new SupplierException(UNEXPECTED_EXCEPTION, e.getMessage());
+            throw new SupplierException(UNEXPECTED_EXCEPTION, "while fetching suppliers");
         }
 
         // ✅ Map entities to DTOs
@@ -200,7 +192,7 @@ public class SupplierServiceImpl implements SupplierService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
@@ -222,6 +214,7 @@ public class SupplierServiceImpl implements SupplierService {
                 .commissionScheme(record.getCommissionScheme())
                 .commissionRate(record.getCommissionRate())
                 .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
+                .state(record.getState())
                 .city(record.getCity())
                 .pinCode(record.getPinCode())
                 .contacts(contacts)
@@ -340,7 +333,7 @@ public class SupplierServiceImpl implements SupplierService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
@@ -362,6 +355,7 @@ public class SupplierServiceImpl implements SupplierService {
                 .commissionScheme(record.getCommissionScheme())
                 .commissionRate(record.getCommissionRate())
                 .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
+                .state(record.getState())
                 .city(record.getCity())
                 .pinCode(record.getPinCode())
                 .contacts(contacts)

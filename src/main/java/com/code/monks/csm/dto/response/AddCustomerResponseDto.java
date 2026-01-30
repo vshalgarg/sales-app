@@ -14,12 +14,14 @@ public class AddCustomerResponseDto {
     public static CustomerEntity dtoToEntity(AddCustomerRequestDto requestDto){
         CustomerEntity entity = new CustomerEntity();
         entity.setCustomerName(requestDto.getCustomerName());
+        entity.setEmail(requestDto.getEmail());
         entity.setGroupName(requestDto.getCustomerGroup());
         entity.setGstNo(requestDto.getCustomerGstNo());
         entity.setMsme(requestDto.getCustomerMsme());
         entity.setReferencedBy(requestDto.getReferencedBy());
         entity.setAddressLine1(requestDto.getAddressLine1());
         entity.setAddressLine2(requestDto.getAddressLine2());
+        entity.setState(requestDto.getState());
         entity.setCity(requestDto.getCity());
         entity.setPinCode(requestDto.getPinCode());
         entity.setRemark(requestDto.getRemark());

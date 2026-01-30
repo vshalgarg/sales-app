@@ -9,13 +9,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter@Setter
 @Entity
 @Table(
         name = "transports",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = "contact_number"),
+                @UniqueConstraint(columnNames = "email"),
                 @UniqueConstraint(columnNames = "gst_no")
         }
 )
@@ -29,18 +30,36 @@ public class TransportEntity extends BaseEntity{
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(name = "gst_no")
+    // OPTIONAL + UNIQUE
+    @Column(name = "email", nullable = true, unique = true)
+    private String email;
+
+    @Column(name = "gst_no", nullable = true)
     private String gstNo;
 
-    @Column(name = "contact_number", nullable = false)
-    private String contactNumber;
+    @Column(name = "state", length = 50)
+    private String state;
 
     @Column(name = "city")
     private String city;
 
-    @Column(name = "address", nullable = false)
-    private String address;
+    @Column(name = "pin_code")
+    private String pinCode;
+
+    @Column(name = "address_line1", nullable = false)
+    private String addressLine1;
+
+    @Column(name = "address_line2")
+    private String addressLine2;
 
     @Column(name = "status")
     private StatusEnum status;
+
+    @OneToMany(
+            mappedBy = "transport",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private List<TransportContactEntity> contacts;
 }

@@ -9,8 +9,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,11 +28,21 @@ public class BillEntryController {
 
     private final BillService billService;
 
-    @PostMapping(ADD_BILL)
-    public ResponseEntity<BillEntryResponseDto> addBill(@Valid @RequestBody BillEntryRequestDto requestDto) {
+    @PostMapping(
+            value = ADD_BILL,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<BillEntryResponseDto> addBill(
+            @Valid
+            @RequestPart("payload") BillEntryRequestDto requestDto,
+
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images
+
+    ) {
         log.info("Received request to add bill: {}", requestDto);
 
-        BillEntryResponseDto response = billService.addBill(requestDto);
+        BillEntryResponseDto response = billService.addBill(requestDto, images);
 
         log.info("Bill added successfully. Response: {}", response);
 

@@ -20,7 +20,10 @@ public enum ResponseErrorCode {
     INVALID_REQUEST(1009,"Invalid request"),
     BILL_NOT_FOUND(1010,"Bill Not Found : "),
     CREDIT_ENTRY_NOT_FOUND(1011,"Credit entry not found for this bill number"),
-    PURCHASE_ENTRY_NOT_FOUND(1012,"Purchase entry not found");
+    PURCHASE_ENTRY_NOT_FOUND(1012,"Purchase entry not found"),
+    INVALID_FILE_FOUND(1013,"Maximum 2 images allowed"),
+    FILE_UPLOAD_EXCEPTION(1014,"Failed to upload bill image"),
+    FILE_STORAGE_FAILED(1015,"File storage failed");
 
     private final int code;
     private final String message;

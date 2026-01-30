@@ -28,7 +28,6 @@ public class ContactUtil {
                 .map(contact -> ContactRequestDto.builder()
                         .contactPerson(contactPersonGetter.apply(contact))
                         .mobileNumber(mobileGetter.apply(contact))
-                        .phone(phoneGetter.apply(contact))
                         .build())
                 .collect(Collectors.toList());
     }

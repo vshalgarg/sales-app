@@ -1,5 +1,6 @@
 package com.code.monks.csm.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateEntryException.class)
@@ -22,6 +24,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getErrorCode().getCode(), ex.getMessage(),LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
+    @ExceptionHandler(FileUploadException.class)
+    public ResponseEntity<ErrorResponse> handleFileUploadException(FileUploadException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getErrorCode().getCode(), ex.getMessage(),LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFileException(InvalidFileException ex) {
         ErrorResponse errorResponse = new ErrorResponse(ex.getErrorCode().getCode(), ex.getMessage(),LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
     }
@@ -81,7 +95,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse(500,ex.getMessage(),LocalDateTime.now());
+
+        log.error("Unhandled exception occurred", ex);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                500,
+                "Something went wrong. Please try again later.",
+                LocalDateTime.now()
+        );
         return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
     }
 

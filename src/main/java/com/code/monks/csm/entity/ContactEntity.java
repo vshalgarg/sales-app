@@ -26,8 +26,8 @@ public class ContactEntity {
     @Column(name = "mobile_number")
     private String mobileNumber;
 
-    @Column(name = "phone")
-    private String phone;
+    @Column(name = "type", length = 50)
+    private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id",nullable = true)

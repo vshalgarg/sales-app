@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -36,16 +37,30 @@ import static com.code.monks.csm.enums.ResponseErrorCode.PURCHASE_ENTRY_NOT_FOUN
 public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseEntryRepo purchaseEntryRepo;
-
     private final CustomerRepo customerRepo;
-
     private final SupplierRepo supplierRepo;
-
     private final StaffRepo staffRepo;
 
     public AddPurchaseEntryResponseDto addPurchaseEntry(AddPurchaseEntryRequestDto requestDto){
-        PurchaseEntity entity = AddPurchaseEntryResponseDto.dtoToEntity(requestDto);
+
+        log.info("Add Purchase Entry called with payload: {}", requestDto);
+        PurchaseEntity entity = new PurchaseEntity();
+        entity.setDate(requestDto.getDate());
+        entity.setStaffId(requestDto.getStaffId());
+        entity.setSupplierId(requestDto.getSupplierId());
+        entity.setPurchaseAmount(
+                requestDto.getPurchaseAmount() != null
+                        ? Math.round(requestDto.getPurchaseAmount() * 100)
+                        : null
+        );
+
+        if (requestDto.getCustomerIds() != null && !requestDto.getCustomerIds().isEmpty()) {
+            entity.setCustomers(
+                    new HashSet<>(customerRepo.findAllById(requestDto.getCustomerIds()))
+            );
+        }
         purchaseEntryRepo.save(entity);
+        log.info("Purchase Entry saved successfully, id={}", entity.getId());
         return AddPurchaseEntryResponseDto.builder()
                 .message("Purchase entry saved successfully")
                 .build();
@@ -69,7 +84,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             if (supplierId != null && customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndSupplierIdAndCustomerId(
+                        purchaseEntryRepo.findByDateBetweenAndSupplierIdAndCustomers_Id(
                                 fromDate, toDate, supplierId, customerId, pageable
                         );
 
@@ -81,7 +96,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             } else if (customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndCustomerId(
+                        purchaseEntryRepo.findByDateBetweenAndCustomers_Id(
                                 fromDate, toDate, customerId, pageable
                         );
 
@@ -94,7 +109,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             // NO DATE FILTER
             if (supplierId != null && customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findBySupplierIdAndCustomerId(
+                        purchaseEntryRepo.findBySupplierIdAndCustomers_Id(
                                 supplierId, customerId, pageable
                         );
 
@@ -104,7 +119,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             } else if (customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findByCustomerId(customerId, pageable);
+                        purchaseEntryRepo.findByCustomers_Id(customerId, pageable);
 
             } else {
                 purchaseRecords =
@@ -148,8 +163,10 @@ public class PurchaseServiceImpl implements PurchaseService {
                 entity.setSupplierId(req.getSupplierId());
             }
 
-            if (req.getCustomerId() != null) {
-                entity.setCustomerId(req.getCustomerId());
+            if (req.getCustomerIds() != null) {
+                entity.setCustomers(
+                        new HashSet<>(customerRepo.findAllById(req.getCustomerIds()))
+                );
             }
             entity.setPurchaseAmount(req.getPurchaseAmount());
             PurchaseEntity updated = purchaseEntryRepo.save(entity);
@@ -182,34 +199,33 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         log.info("Converting PurchaseEntity ID={}", entity.getId());
 
-        CustomerEntity customer = null;
-        SupplierEntity supplier = null;
-        StaffEntity staff = null;
+        SupplierEntity supplier =
+                entity.getSupplierId() != null
+                        ? supplierRepo.findById(entity.getSupplierId()).orElse(null)
+                        : null;
 
-        if (entity.getCustomerId() > 0) {
-            customer = customerRepo.findById(entity.getCustomerId()).orElse(null);
-        }
-
-        if (entity.getSupplierId() > 0) {
-            supplier = supplierRepo.findById(entity.getSupplierId()).orElse(null);
-        }
-
-        if (entity.getStaffId() > 0) {
-            staff = staffRepo.findById(entity.getStaffId()).orElse(null);
-        }
+        StaffEntity staff =
+                entity.getStaffId() != null
+                        ? staffRepo.findById(entity.getStaffId()).orElse(null)
+                        : null;
 
         return SearchPurchaseEntryResponse.builder()
                 .id(entity.getId())
                 .date(entity.getDate())
-
                 .staffId(entity.getStaffId())
                 .supplierId(entity.getSupplierId())
-                .customerId(entity.getCustomerId())
-
                 .staffName(staff != null ? staff.getStaffName() : null)
                 .supplierName(supplier != null ? supplier.getSupplierName() : null)
-                .customerName(customer != null ? customer.getCustomerName() : null)
-
+                .customerIds(
+                        entity.getCustomers().stream()
+                                .map(CustomerEntity::getId)
+                                .toList()
+                )
+                .customerNames(
+                        entity.getCustomers().stream()
+                                .map(CustomerEntity::getCustomerName)
+                                .toList()
+                )
                 .purchaseAmount(entity.getPurchaseAmount())
                 .build();
     }

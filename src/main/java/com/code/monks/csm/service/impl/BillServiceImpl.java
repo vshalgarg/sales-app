@@ -11,6 +11,7 @@ import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.BillService;
 import com.code.monks.csm.service.TransportService;
+import com.code.monks.csm.service.file.FileUploadService;
 import com.code.monks.csm.utils.ValidatorUtil;
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
@@ -22,12 +23,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
@@ -42,36 +43,40 @@ public class BillServiceImpl implements BillService {
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final TransportService transportService;
+    private final FileUploadService fileUploadService;
 
     @Transactional
-    public BillEntryResponseDto addBill(BillEntryRequestDto requestDto) {
+    public BillEntryResponseDto addBill(BillEntryRequestDto requestDto, List<MultipartFile> images) {
         log.info("addBill() called with items: {}", requestDto);
 
         checkLrNumberDuplicate(requestDto.getLrNumber());
 
         String billNumber = generateBillNumber();
+        log.debug("Generated bill number: {}", billNumber);
         String transportName = requestDto.getTransportName();
         try {
-            BillEntryEntity header = new BillEntryEntity();
+            BillEntryEntity billEntry = new BillEntryEntity();
             if (transportName != null && !transportName.trim().isEmpty()) {
                 TransportEntity transport =
                         transportService.getOrCreateTransport(transportName.trim());
-                header.setTransportEntity(transport);
+                billEntry.setTransportEntity(transport);
+                log.debug("Transport set: {}", transportName);
             } else {
-                header.setTransportEntity(null);
+                billEntry.setTransportEntity(null);
+                log.debug("No transport provided");
             }
-            header.setBillNumber(billNumber);
-            header.setDate(requestDto.getDate());
-            header.setReceivedDate(requestDto.getReceivedDate());
-            header.setOrders(requestDto.getOrder());
-            header.setSupplierId(requestDto.getSupplierId());
-            header.setCustomerId(requestDto.getCustomerId());
-            header.setLrNumber(requestDto.getLrNumber());
-            header.setRemarks(requestDto.getRemarks());
-            header.setTaxableValue(requestDto.getTaxableValue()*100);
-            header.setBillAmount(requestDto.getBillAmount()*100);
+            billEntry.setBillNumber(billNumber);
+            billEntry.setDate(requestDto.getDate());
+            billEntry.setReceivedDate(requestDto.getReceivedDate());
+            billEntry.setOrders(requestDto.getOrder());
+            billEntry.setSupplierId(requestDto.getSupplierId());
+            billEntry.setCustomerId(requestDto.getCustomerId());
+            billEntry.setLrNumber(requestDto.getLrNumber());
+            billEntry.setRemarks(requestDto.getRemarks());
+            billEntry.setTaxableValue(requestDto.getTaxableValue()*100);
+            billEntry.setBillAmount(requestDto.getBillAmount()*100);
 
-            List<BillDetailEntity> detailEntities = requestDto.getBillItems().stream()
+            List<BillDetailEntity> billItems = requestDto.getBillItems().stream()
                     .map(itemDto -> {
                         BillDetailEntity detail = new BillDetailEntity();
                         detail.setPieces(itemDto.getPieces());
@@ -82,16 +87,35 @@ public class BillServiceImpl implements BillService {
                         detail.setEcrAmount(itemDto.getEcrAmount() * 100);
                         detail.setGstPercent((int) itemDto.getGstPercent() * 100);
                         detail.setGstAmount((long) (itemDto.getGstAmount() * 100));
-                        detail.setBillEntry(header); // relation set
+                        detail.setBillEntry(billEntry); // relation set
                         return detail;
                     })
                     .collect(Collectors.toList());
+            billEntry.setBillDetails(billItems);
 
-            header.setBillDetails(detailEntities);
+            //img upload
+            if (images != null && !images.isEmpty()) {
+                log.info("Uploading {} bill image(s)", images.size());
+                List<String> imageUrls =
+                        fileUploadService.uploadFiles(images);
+                List<BillImageEntity> imageEntities = imageUrls.stream()
+                        .map(url -> {
+                            BillImageEntity image = new BillImageEntity();
+                            image.setImageUrl(url);
+                            image.setBillEntry(billEntry);
+                            return image;
+                        })
+                        .collect(Collectors.toList());
+                billEntry.setImages(imageEntities);
+                log.info("Successfully uploaded {} image(s) for bill {}",
+                        imageEntities.size(), billNumber);
+            } else {
+                log.info("No images provided for bill {}", billNumber);
+            }
 
-            billRepo.save(header);
 
-            log.info("Bill '{}' saved successfully with {} items", billNumber, detailEntities.size());
+            billRepo.save(billEntry);
+            log.info("Bill '{}' saved successfully with {} items", billNumber, billItems.size());
 
             return BillEntryResponseDto.builder()
                     .message("Bill added successfully: " + billNumber)
@@ -102,7 +126,7 @@ public class BillServiceImpl implements BillService {
             throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while adding bill '{}'", billNumber, ex);
-            throw new BillException(UNEXPECTED_EXCEPTION, "Failed to save bill: " + ex.getMessage());
+            throw new BillException(UNEXPECTED_EXCEPTION, "Failed to save bill");
         }
     }
 
@@ -180,7 +204,7 @@ public class BillServiceImpl implements BillService {
             throw new BillException(DATA_ACCESS_ERROR, dae.getMessage());
         } catch (Exception ex) {
             log.error("Unexpected error occurred while fetching bill entries", ex);
-            throw new BillException(UNEXPECTED_EXCEPTION, ex.getMessage());
+            throw new BillException(UNEXPECTED_EXCEPTION, " fetching bill entries");
         }
     }
 

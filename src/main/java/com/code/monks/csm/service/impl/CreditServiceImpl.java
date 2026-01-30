@@ -106,7 +106,7 @@ public class CreditServiceImpl implements CreditService {
             throw ce;
         } catch (Exception ex) {
             log.error("Failed to add credit entry. Request data: {}", requestDto, ex);
-            throw new CreditException(UNEXPECTED_EXCEPTION, ex.getMessage());
+            throw new CreditException(UNEXPECTED_EXCEPTION, "Unable to add credit");
         }
     }
 
@@ -131,7 +131,7 @@ public class CreditServiceImpl implements CreditService {
 
         } catch (Exception ex) {
             log.error("Unexpected error while fetching credit entries.", ex);
-            throw new CreditException(UNEXPECTED_EXCEPTION, ex.getMessage());
+            throw new CreditException(UNEXPECTED_EXCEPTION, " fetching credit entries.");
         }
     }
 

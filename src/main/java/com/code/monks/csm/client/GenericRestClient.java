@@ -76,7 +76,7 @@ public class GenericRestClient {
             throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, "Failed to parse response");
         } catch (RestClientException ex) {
             log.error("Error calling external API: {} - {}", url, ex.getMessage(), ex);
-            throw new ExternalServiceException(EXTERNAL_API_CALL_FAILED, ex);
+            throw new ExternalServiceException(EXTERNAL_API_CALL_FAILED, "RestClientException");
         }
     }
 
@@ -142,12 +142,12 @@ public class GenericRestClient {
             return mapper.readValue(responseBody, responseType);
 
         } catch (JsonProcessingException e) {
+            log.error("Failed to parse response from {}: {}", url, e.getMessage());
             throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, "Failed to parse response");
         } catch (RestClientException ex) {
-            throw new ExternalServiceException(EXTERNAL_API_CALL_FAILED, ex);
+            log.error("Error calling external API: {} - {}", url, ex.getMessage(), ex);
+            throw new ExternalServiceException(EXTERNAL_API_CALL_FAILED, "RestClientException");
         }
     }
-
-
 }
 

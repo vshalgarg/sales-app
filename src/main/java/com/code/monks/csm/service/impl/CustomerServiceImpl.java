@@ -85,7 +85,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw ex;
         }catch (Exception e) {
             log.error("Error while adding customer '{}'", requestDto.getCustomerName(), e);
-            throw new CustomerException(UNEXPECTED_EXCEPTION,e.getMessage());
+            throw new CustomerException(UNEXPECTED_EXCEPTION," adding customer");
         }
     }
 
@@ -113,15 +113,6 @@ public class CustomerServiceImpl implements CustomerService {
                             () -> contactRepo.existsByMobileNumber(mobile)
                     ));
                 }
-
-                // Phone
-                String phone = contact.getPhone();
-                if (StringUtils.isNotBlank(phone)) {
-                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                            "phone (" + phone + ")",
-                            () -> contactRepo.existsByPhone(phone)
-                    ));
-                }
             }
         }
         validatorUtil.validateUniqueFields(duplicateChecks);
@@ -137,7 +128,7 @@ public class CustomerServiceImpl implements CustomerService {
                     ContactEntity contactEntity = new ContactEntity();
                     contactEntity.setContactPerson(dto.getContactPerson());
                     contactEntity.setMobileNumber(dto.getMobileNumber());
-                    contactEntity.setPhone(dto.getPhone());
+                    contactEntity.setType(dto.getType());
                     contactEntity.setCustomer(entity); // Owning side
                     return contactEntity;
                 })
@@ -180,7 +171,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerException(DATA_ACCESS_ERROR, dae.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error while fetching customers", e);
-            throw new CustomerException(UNEXPECTED_EXCEPTION, e.getMessage());
+            throw new CustomerException(UNEXPECTED_EXCEPTION, " fetching customers");
         }
 
         List<GetCustomersDto> dtoList = records.getContent()
@@ -228,7 +219,7 @@ public class CustomerServiceImpl implements CustomerService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
@@ -245,11 +236,13 @@ public class CustomerServiceImpl implements CustomerService {
                 .id(record.getId())
                 .code(record.getCode())
                 .customerName(record.getCustomerName())
+                .email(record.getEmail())
                 .customerGroup(record.getGroupName())
                 .customerGstNo(record.getGstNo())
                 .customerMsme(record.getMsme())
                 .referencedBy(record.getReferencedBy())
                 .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
+                .state(record.getState())
                 .city(record.getCity())
                 .pinCode(record.getPinCode())
                 .contacts(contacts)
@@ -283,7 +276,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerException(DATA_ACCESS_ERROR, dae.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error occurred while deleting customer with code={}", code, e);
-            throw new CustomerException(UNEXPECTED_EXCEPTION, e.getMessage());
+            throw new CustomerException(UNEXPECTED_EXCEPTION, "deleting customer");
         }
     }
 
@@ -336,7 +329,7 @@ public class CustomerServiceImpl implements CustomerService {
                 record.getContactList(),
                 ContactEntity::getContactPerson,
                 ContactEntity::getMobileNumber,
-                ContactEntity::getPhone
+                ContactEntity::getType
         );
 
         List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
@@ -356,6 +349,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .customerGstNo((record.getGstNo()))
                 .referencedBy(record.getReferencedBy())
                 .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
+                .state(record.getState())
                 .city(record.getCity())
                 .pinCode(record.getPinCode())
                 .customerMsme(record.getMsme())

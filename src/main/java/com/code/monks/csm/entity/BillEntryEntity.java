@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static jakarta.persistence.CascadeType.ALL;
+
 @Getter@Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -45,6 +47,9 @@ public class BillEntryEntity extends BaseEntity{
     private Integer customerId;
 
     // One bill header has many items
-    @OneToMany(mappedBy = "billEntry", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "billEntry", cascade = ALL, orphanRemoval = true)
     private List<BillDetailEntity> billDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "billEntry", cascade = ALL, orphanRemoval = true)
+    List<BillImageEntity> images;
 }

@@ -16,6 +16,7 @@ public class SearchCustomersResponseDto {
     private String customerGstNo;
     private String referencedBy;
     private String address;
+    private String state;
     private String city;
     private String pinCode;
     private String customerMsme;
