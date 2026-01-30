@@ -1,8 +1,15 @@
-import { Settings, MoonStar, SunMedium, LogOut, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Settings, MoonStar, SunMedium, LogOut, User ,Menu } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Navbar({activeSection, onSectionChange }) {
+export default function Navbar({
+  activeSection,
+  onSectionChange,
+  onMenuClick,
+  isMobile,
+  setNavbarHeight,
+}) {
+  const navRef = useRef(null);
   const [name, setName] = useState("");
   const [userId, setUserId] = useState("");
   const [mainActiveSection, setMainActiveSection] = useState(activeSection);
@@ -12,7 +19,7 @@ export default function Navbar({activeSection, onSectionChange }) {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     if (theme === "dark") document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -20,8 +27,21 @@ export default function Navbar({activeSection, onSectionChange }) {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (!navRef.current) return;
+
+    const updateHeight = () => {
+      setNavbarHeight(navRef.current.offsetHeight);
+    };
+
+    updateHeight();
+
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, [setNavbarHeight]);
+
   const toggleTheme = () =>
-    setTheme((prev) => (prev === "light" ? "dark" : "light")) ;
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   useEffect(() => {
     const storedName = localStorage.getItem("username");
@@ -51,15 +71,43 @@ export default function Navbar({activeSection, onSectionChange }) {
   return (
     <>
       {/*Top Navbar */}
-      <nav className="flex justify-between items-center px-6 py-3 w-full bg-white dark:bg-zinc-900 shadow border-b border-gray-300 dark:border-gray-700 transition-colors">
+      <nav
+        ref={navRef}
+        className="flex justify-between items-center
+       p-3 w-full bg-white dark:bg-zinc-900 
+       shadow border-b border-gray-300 dark:border-gray-700 
+        transition-colors
+    relative z-50
+"
+      >
         {/* Left: App Title + Section Buttons */}
         <div className="flex items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+        <Menu  onClick={onMenuClick} className="w-5 h-5 md:w-8 md:h-8 md:hidden mr-3 text-gray-700 dark:text-white" />
+          
+          {
+            isMobile?<div className="flex justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="#6c63ff"
+                className="w-7 h-7"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4l6 8H6l6-8zM6 20h12"
+                />
+              </svg>
+            </div>:<h1 className="text-xl font-bold text-gray-900 dark:text-white">
             Textile Management
           </h1>
+          }
+          
 
           {/* Section Buttons */}
-          <div className="flex space-x-3 ml-[200px]">
+          <div className="hidden md:flex space-x-3 md:ml-[200px]">
             {["master", "entries", "reporting"].map((section) => (
               <button
                 key={section}
@@ -75,34 +123,48 @@ export default function Navbar({activeSection, onSectionChange }) {
               </button>
             ))}
           </div>
+          {/* Mobile section dropdown */}
+          <div className="relative md:hidden ml-3">
+            <select
+              value={mainActiveSection}
+              onChange={(e) => handleSectionClick(e.target.value)}
+              className="px-3 py-1 rounded-md border
+      bg-white dark:bg-zinc-800
+      text-gray-800 dark:text-white
+      border-gray-300 dark:border-zinc-700"
+            >
+              <option value="master">Master</option>
+              <option value="entries">Entries</option>
+              <option value="reporting">Reporting</option>
+            </select>
+          </div>
         </div>
 
         {/* Right: Profile Menu */}
-        <div className="relative profile-dropdown">
-          <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-700"
-          >
-            <Settings className="w-8 h-8 text-gray-700 dark:text-white" />
-          </button>
+        <div className="relative profile-dropdown"> 
+            <Settings onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-5 h-5 md:w-8 md:h-8 text-gray-700 dark:text-white" />
 
           {/* Dropdown */}
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-lg border border-gray-200 dark:border-zinc-700 py-2 z-50">
+            <div
+              className="absolute right-0 mt-2 w-40 md:w-48
+             bg-white dark:bg-zinc-800 shadow-lg rounded-lg border
+              border-gray-200 dark:border-zinc-700 py-2 z-50"
+            >
               {/*Theme Toggle */}
-              <button
+              {/* <button
                 onClick={toggleTheme}
                 className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-800 dark:text-white"
               >
-                {/* {theme === "light" ? (
+                {theme === "light" ? (
                   <MoonStar className="w-4 h-4" />
                 ) : (
                   <SunMedium className="w-4 h-4 text-yellow-400" />
                 )} */}
                 {/* <span className="ml-2">
                   {theme === "light" ? "Dark Mode" : "Light Mode"}
-                </span> */}
-              </button>
+                </span>
+              </button> */}
 
               {/*Profile */}
               <button
@@ -139,7 +201,6 @@ export default function Navbar({activeSection, onSectionChange }) {
             </h2>
 
             <div className="space-y-2 text-gray-800 dark:text-gray-100">
-              
               <p>
                 <strong>Username:</strong> {name || "Not available"}
               </p>

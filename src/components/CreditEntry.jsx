@@ -102,7 +102,6 @@ export default function CreditEntryForm() {
       paymentType: "",
       billNumber: "",
       referenceNumber: "",
-      date: dayjs().format("YYYY-MM-DD"),
       referenceDate: "",
       receivedAmount: "",
       supplierId: "",
@@ -321,26 +320,18 @@ export default function CreditEntryForm() {
                 Record and manage all credit transactions and payments
               </p>
             </div>
-
-            {/* Right-side */}
-            <div className="text-sm text-gray-400">
-              Accounting
-            </div>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
 
           {/* Party Information Card */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white">
+          <div className="border border-gray-200 p-4 rounded-xl bg-white">
             <div className="flex items-start mb-5">
-              <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
+              <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
                   Party Information
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Select supplier and customer
-                </p>
               </div>
             </div>
 
@@ -372,9 +363,9 @@ export default function CreditEntryForm() {
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Supplier"
+                    label="Supplier *"
                     error={!!errors.supplierName}
-                    helperText={errors.supplierName || "Search supplier by name or city"}
+                    helperText={errors.supplierName || "Search/select supplier"}
                   />
                 )}
               />
@@ -406,9 +397,9 @@ export default function CreditEntryForm() {
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Customer"
+                    label="Customer *"
                     error={!!errors.customerName}
-                    helperText={errors.customerName || "Search customer by name or city"}
+                    helperText={errors.customerName || "Search/select customer"}
                   />
                 )}
               />
@@ -418,17 +409,14 @@ export default function CreditEntryForm() {
 
 
           {/* Transaction Details Card */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
+          <div className="border border-gray-200 p-4 rounded-xl bg-white shadow-sm">
             <div className="flex items-start mb-5">
-              <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
+              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
 
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
                   Transaction Details
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Payment mode, bill and amount information
-                </p>
               </div>
             </div>
 
@@ -438,7 +426,7 @@ export default function CreditEntryForm() {
                 name="paymentType"
                 value={formData.paymentType}
                 onChange={handleChange}
-                label="Payment Mode"
+                label="Payment Mode*"
                 options={[
                   { value: "NEFT_RTGS", label: "NEFT / RTGS" },
                   { value: "UPI", label: "UPI" },
@@ -454,7 +442,7 @@ export default function CreditEntryForm() {
                 name="billNumber"
                 value={formData.billNumber}
                 onChange={handleBillNumberChange}
-                label="Bill Number"
+                label="Bill Number*"
                 error={!!errors.billNumber}
                 helperText={errors.billNumber || ""}
               />
@@ -479,7 +467,7 @@ export default function CreditEntryForm() {
                 name="referenceNumber"
                 value={formData.referenceNumber}
                 onChange={handleReferenceNumberChange}
-                label="Reference Number"
+                label="Reference Number*"
                 error={!!errors.referenceNumber}
                 helperText={errors.referenceNumber || "Cheque / UPI / NEFT reference"}
               />
@@ -488,7 +476,7 @@ export default function CreditEntryForm() {
               {/* Reference Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Reference Date"
+                  label="Reference Date*"
                   format="DD-MM-YYYY"
                   value={
                     formData.referenceDate

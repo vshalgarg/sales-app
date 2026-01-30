@@ -17,7 +17,7 @@ export const useBillForm = () => {
   const [filterObject, setFilterObject] = useState({
     supplierId: null,
     customerId: null,
-    fromDate:"" ,
+    fromDate: "",
     toDate: "",
   });
 
@@ -80,6 +80,7 @@ export const useBillForm = () => {
     transport: "",
     lrNumber: "",
     remarks: "",
+    referenceBy: "",
   };
 
   // Load formData and errors from localStorage
@@ -173,9 +174,9 @@ export const useBillForm = () => {
 
     let finalValue = value;
 
-    // 🔹 Order & LR Number: only alphanumeric
+    // alphabets + numbers + limited special chars  
     if (name === "order" || name === "lrNumber") {
-      finalValue = value.replace(/[^a-zA-Z0-9]/g, "");
+      finalValue = value.replace(/[^a-zA-Z0-9\s\-_/\.@#&()]/g, "");
     }
 
     setFormData(prev => ({

@@ -5,6 +5,7 @@ import AddNewCustomer from "../modals/AddNewCustomer";
 import CustomerDetail from "../modals/CustomerDetail";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
+import { useMediaQuery } from "@mui/material";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -26,9 +27,11 @@ export default function CustomerDashboard() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const [form, setForm] = useState({
     customerName: "",
+    email: "",
     customerGroup: "",
     customerGstNo: "",
     customerMsme: "",
@@ -38,64 +41,76 @@ export default function CustomerDashboard() {
     state: "",
     city: "",
     pinCode: "",
-    contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+    contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
     preferredTransportIds: [],
     remark: "",
   });
 
-  const columns = [
-    { key: "customerName", label: "Name", width: "18%" },
-    { key: "customerGstNo", label: "GST", width: "14%" },
-    {
-      key: "address",
-      label: "Address",
-      width: "26%",
-      render: (row) => (
-        <div className="truncate max-w-[200px]" title={row.address}>
-          {row.address || "-"}
-        </div>
-      ),
-    },
-    { key: "city", label: "City", width: "10%" },
-    {
-      key: "contactPerson",
-      label: "Contact Person",
-      width: "16%",
-      render: (row) => row.contacts?.[0]?.contactPerson || "-",
-    },
-    {
-      key: "mobile",
-      label: "Mobile",
-      width: "16%",
-      render: (row) => row.contacts?.[0]?.mobileNumber || "-",
-    },
-  ];
+  const columns = {
+    desktop: [
+      { key: "customerName", label: "Name", width: "18%" },
+      { key: "customerGstNo", label: "GST", width: "14%" },
+      {
+        key: "address",
+        label: "Address",
+        width: "26%",
+        render: (row) => (
+          <div className="truncate max-w-[200px]" title={row.address}>
+            {row.address || "-"}
+          </div>
+        ),
+      },
+      { key: "city", label: "City", width: "10%" },
+      {
+        key: "contactPerson",
+        label: "Contact Person",
+        width: "16%",
+        render: (row) => row.contacts?.[0]?.contactPerson || "-",
+      },
+      {
+        key: "mobile",
+        label: "Mobile",
+        width: "16%",
+        render: (row) => row.contacts?.[0]?.mobileNumber || "-",
+      },
+    ],
+    mobile: [
+      { key: "customerName", label: "Name", width: "18%" },
+      { key: "city", label: "City", width: "10%" },
+    ],
+  };
 
-  const fetchCustomers = useCallback(async (uiPage = 1) => {
-    const backendPage = uiPage - 1;
-    setLoading(true);
-    try {
-      const data = await CustomerService.getCustomers(backendPage, rowsPerPage);
-      setCustomers(data.content || []);
-      setTotalPages(data.totalPages || 0);
-      setTotalItems(data.totalElements || 0);
-      setCurrentPage(uiPage);
-      setIsSearchActive(false);
-    } catch (error) {
-      setCustomers([]);
-      setTotalPages(0);
-      setTotalItems(0);
-      showSnackbar(error.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [rowsPerPage]);
+  const fetchCustomers = useCallback(
+    async (uiPage = 1) => {
+      const backendPage = uiPage - 1;
+      setLoading(true);
+      try {
+        const data = await CustomerService.getCustomers(
+          backendPage,
+          rowsPerPage,
+        );
+        setCustomers(data.content || []);
+        setTotalPages(data.totalPages || 0);
+        setTotalItems(data.totalElements || 0);
+        setCurrentPage(uiPage);
+        setIsSearchActive(false);
+      } catch (error) {
+        setCustomers([]);
+        setTotalPages(0);
+        setTotalItems(0);
+        showSnackbar(error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [rowsPerPage],
+  );
 
   const handleSearchResult = (response, searchQuery) => {
     const results = response.content || [];
     setCustomers(results);
     setTotalPages(response.totalPages || 0);
-    
+
     setTotalItems(response.totalElements || 0);
     setIsSearchActive(searchQuery.trim() !== "");
     setCurrentPage(1);
@@ -112,7 +127,7 @@ export default function CustomerDashboard() {
         const response = await CustomerService.searchCustomers(
           query,
           backendPage,
-          rowsPerPage
+          rowsPerPage,
         );
         handleSearchResult(response, query);
       } catch (error) {
@@ -161,11 +176,12 @@ export default function CustomerDashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
   const handleDelete = async () => {
     if (!customerToDelete) return;
     try {
-      const response = await CustomerService.deleteCustomer(customerToDelete.code);
+      const response = await CustomerService.deleteCustomer(
+        customerToDelete.code,
+      );
       showSnackbar(response.message, "success");
       fetchCustomers(currentPage);
     } catch (error) {
@@ -182,17 +198,19 @@ export default function CustomerDashboard() {
       {/* Header Section*/}
       <div className="pt-4">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold">Customer Overview</h2>
+          <h2 className="text-lg md:text-2xl font-bold">
+            {isMobile ? "Customer" : "Customer Overview"}
+          </h2>
           <button
             onClick={() => setOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Add New Customer
+            Add Customer
           </button>
         </div>
 
         {/* Search Section */}
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-2 md:mb-6">
           <UniversalSearch
             placeholder="Search customers..."
             query={query}
@@ -210,11 +228,10 @@ export default function CustomerDashboard() {
       {/* Table Section */}
       <div className="flex-1 min-h-0 border rounded-lg mb-2 bg-white dark:bg-zinc-900">
         <DataTable
-          columns={columns}
+          columns={isMobile ? columns.mobile : columns.desktop}
           data={customers}
           loading={loading}
           onView={(customer) => {
-            
             setSelectedCustomer(customer);
             setModalOpen(true);
           }}
@@ -229,7 +246,6 @@ export default function CustomerDashboard() {
           onPageChange={handleChangePage}
         />
       </div>
-
 
       {/* Modals*/}
       {modalOpen && selectedCustomer && (

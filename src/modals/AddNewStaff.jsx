@@ -1,6 +1,6 @@
 import CustomTextField from "../components/CustomTextField";
 import validate from "../validations/Validation";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { saveStaff } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 
@@ -22,6 +22,16 @@ export default function AddNewStaff({
 
   if (!open) return null;
 
+  useEffect(() => {
+  if (open) {
+    setForm((prev) => ({
+      ...prev,
+      joiningDate: dayjs().format("YYYY-MM-DD"),
+    }));
+  }
+}, [open]);
+
+
   // ---------- HELPERS ----------
   const validatePhone = (value) => {
     if (!value) return "Phone number is required";
@@ -40,7 +50,7 @@ export default function AddNewStaff({
     setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
   };
 
-  // ---------- SUBMIT (REUSABLE) ----------
+  // ---------- SUBMIT----------
   const handleAddStaff = async ({ closeAfterSave }) => {
     if (isSaving) return;
 
@@ -86,13 +96,10 @@ export default function AddNewStaff({
       <div className="bg-white w-full max-w-md rounded-lg shadow-lg flex flex-col">
 
         {/* Header */}
-        <div className="px-6 py-4 border-b">
+        <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
             Add New Staff
           </h2>
-          <p className="text-sm text-gray-500">
-            Enter staff basic details
-          </p>
         </div>
 
         {/* Body */}
@@ -152,7 +159,7 @@ export default function AddNewStaff({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t flex justify-end gap-3 bg-gray-50">
+        <div className="p-4 border-t flex justify-end gap-3 bg-gray-50">
 
           {/* Cancel */}
           <button
@@ -161,7 +168,7 @@ export default function AddNewStaff({
               resetForm();
               setOpen(false);
             }}
-            className="px-4 py-2 border rounded-lg text-sm
+            className="px-2 py-1 md:px-4 md:py-2 border rounded-lg text-sm
               hover:bg-gray-100
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -172,7 +179,7 @@ export default function AddNewStaff({
           <button
             disabled={isSaving}
             onClick={() => handleAddStaff({ closeAfterSave: false })}
-            className="px-4 py-2 border border-blue-600 text-blue-600
+            className="px-2 py-1 md:px-4 md:py-2 border border-blue-600 text-blue-600
               rounded-lg text-sm hover:bg-blue-50
               flex items-center gap-2
               disabled:opacity-60 disabled:cursor-not-allowed"
@@ -194,7 +201,7 @@ export default function AddNewStaff({
           <button
             disabled={isSaving}
             onClick={() => handleAddStaff({ closeAfterSave: true })}
-            className="px-4 py-2 bg-blue-600 text-white
+            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white
               rounded-lg text-sm hover:bg-blue-700
               flex items-center gap-2
               disabled:opacity-60 disabled:cursor-not-allowed"

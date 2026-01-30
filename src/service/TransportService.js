@@ -31,9 +31,12 @@ class TransportService {
     }
   }
 
-  static async updateTransport(updateRequest) {
+  static async updateTransport(id, updateRequest) {
   try {
-    const response = await api.put("/transports/update", updateRequest);
+      const response = await api.put(
+      `/transports/update/${id}`,
+      updateRequest
+    );
     const result = checkLogicalError(response.data);
     return result;
   } catch (error) {

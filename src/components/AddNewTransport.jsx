@@ -1,21 +1,12 @@
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Stack,
-  Typography,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  CircularProgress,
-} from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import { Button, IconButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
+import validate from "../validations/Validation";
+import CustomTextField from "../components/CustomTextField";
+import BasicSelect from "./BasicSelect";
 
 export default function AddNewTransport({
   open,
@@ -23,42 +14,62 @@ export default function AddNewTransport({
   editingTransport = null,
   onSuccess,
 }) {
-  const { showSnackbar } = useSnackbar();
 
-  const [formData, setFormData] = useState({
+  /* ================= STATE ================= */
+  const initialState = {
     name: "",
+    email: "",
     gstNo: "",
-    contactNumber: "",
+    contacts: [{ contactPerson: "", contactNumber: "", type: "" }],
+    state: "",
     city: "",
-    address: "",
+    pincode: "",
+    addressLine1: "",
+    addressLine2: "",
     status: "ACTIVE",
-  });
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  // ---------- RESET ----------
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      gstNo: "",
-      contactNumber: "",
-      city: "",
-      address: "",
-      status: "ACTIVE",
-    });
-    setErrors({});
   };
 
-  // ---------- EDIT MODE ----------
+  const { showSnackbar } = useSnackbar();
+  const [formData, setFormData] = useState(initialState);
+  const [errors, setErrors] = useState({ contacts: [] });
+  const [isSaving, setIsSaving] = useState(false);
+   const [states, setStates] = useState([]);
+
+   
+  /* ================= RESET ================= */
+  const resetForm = () => {
+    setFormData(initialState);
+    setErrors({ contacts: [] });
+  };
+
+  useEffect(() => {
+    fetch("https://countriesnow.space/api/v0.1/countries/states", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ country: "India" }),
+    })
+      .then(res => res.json())
+      .then(data => setStates(data.data.states || []))
+      .catch(() => showSnackbar("Failed to load states", "error"));
+  }, []);
+
+
+  /* ================= EDIT MODE ================= */
   useEffect(() => {
     if (editingTransport) {
       setFormData({
         name: editingTransport.name || "",
+        email: editingTransport.email || "",
         gstNo: editingTransport.gstNo || "",
-        contactNumber: editingTransport.contactNumber || "",
+        contacts:
+          editingTransport.contacts?.length > 0
+            ? editingTransport.contacts
+            : [{ contactPerson: "", contactNumber: "", type: "" }],
+        state: editingTransport.state || "",
         city: editingTransport.city || "",
-        address: editingTransport.address || "",
+        pincode: editingTransport.pincode || "",
+        addressLine1: editingTransport.addressLine1 || "",
+        addressLine2: editingTransport.addressLine2 || "",
         status: editingTransport.status || "ACTIVE",
       });
     } else {
@@ -66,62 +77,77 @@ export default function AddNewTransport({
     }
   }, [editingTransport, open]);
 
-  // ---------- VALIDATION ----------
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Transport Name
-    if (!formData.name.trim()) {
-      newErrors.name = "Transport name is required";
-    }
-
-    // Contact Number (REQUIRED + 10 DIGITS ONLY)
-    if (!formData.contactNumber.trim()) {
-      newErrors.contactNumber = "Contact number is required";
-    } else if (!/^\d{10}$/.test(formData.contactNumber)) {
-      newErrors.contactNumber = "Contact number must be exactly 10 digits";
-    }
-
-    // City (REQUIRED)
-    if (!formData.city.trim()) {
-      newErrors.city = "City is required";
-    }
-
-    // Address Line 1 (REQUIRED)
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required";
-    }
-
-    // GST (optional but validated if present)
-    if (
-      formData.gstNo &&
-      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
-        formData.gstNo.toUpperCase()
-      )
-    ) {
-      newErrors.gstNo = "Enter valid GST number (15 characters)";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  /* ================= CONTACT HANDLERS ================= */
+  const addContact = () => {
+    setFormData((prev) => ({
+      ...prev,
+      contacts: [
+        ...prev.contacts,
+        { contactPerson: "", contactNumber: "", type: "" },
+      ],
+    }));
   };
 
+  const removeContact = (index) => {
+    if (index === 0) return;
+    setFormData((prev) => ({
+      ...prev,
+      contacts: prev.contacts.filter((_, i) => i !== index),
+    }));
+  };
 
-  // ---------- handleChange ----------
+  const handleContactChange = (index, field, value) => {
+    const updated = [...formData.contacts];
+    updated[index][field] = value;
+    setFormData((prev) => ({ ...prev, contacts: updated }));
+  };
+
+  /* ================= BASIC CHANGE ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (name === "pincode" && !/^\d{0,6}$/.test(value)) return;
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
   };
 
-  // ---------- SUBMIT (REUSABLE) ----------
+  /* ================= SUBMIT ================= */
   const handleSubmit = async ({ closeAfterSave }) => {
     if (isSaving) return;
 
-    if (!validateForm()) {
+    const newErrors = {};
+    const contactErrors = [];
+
+    Object.keys(formData).forEach((field) => {
+      if (field !== "contacts") {
+        const error = validate(field, formData[field]);
+        if (error) newErrors[field] = error;
+      }
+    });
+
+    formData.contacts.forEach((c, i) => {
+      const err = {};
+      ["contactPerson", "contactNumber"].forEach((f) => {
+        const e = validate(f, c[f]);
+        if (e) err[f] = e;
+      });
+      contactErrors[i] = err;
+    });
+
+    newErrors.contacts = contactErrors;
+    setErrors(newErrors);
+
+    const hasTopErrors = Object.entries(newErrors)
+      .some(([key, value]) => key !== "contacts" && Boolean(value));
+
+    const hasContactErrors = contactErrors
+      .some((e) => Object.values(e).some(Boolean));
+
+    const hasErrors = hasTopErrors || hasContactErrors;
+
+
+    if (hasErrors) {
       showSnackbar("Please fix validation errors", "error");
       return;
     }
@@ -130,19 +156,14 @@ export default function AddNewTransport({
       setIsSaving(true);
 
       const payload = {
-        name: formData.name.trim(),
-        gstNo: formData.gstNo.trim(),
-        contactNumber: formData.contactNumber.trim(),
-        city: formData.city.trim(),
-        address: formData.address.trim(),
-        status: formData.status,
+        ...formData,
+        email: formData.email || null,
+        gstNo: formData.gstNo || null,
+        pincode: formData.pincode || null,
       };
 
       const response = editingTransport
-        ? await TransportService.updateTransport({
-          id: editingTransport.id,
-          ...payload,
-        })
+        ? await TransportService.updateTransport(editingTransport.id, payload)
         : await TransportService.createTransport(payload);
 
       if (!response?.success) {
@@ -151,230 +172,145 @@ export default function AddNewTransport({
       }
 
       showSnackbar(
-        editingTransport ? "Transport updated successfully" : "Transport added successfully",
+        editingTransport
+          ? "Transport updated successfully"
+          : "Transport added successfully",
         "success"
       );
 
       onSuccess();
       resetForm();
+      if (closeAfterSave) setOpen(false);
+    }
 
-      if (closeAfterSave) {
-        setOpen(false);
-      }
-    } catch (err) {
-      console.error(err);
-      showSnackbar("Failed to save transport", "error");
-    } finally {
+    catch (e) {
+
+      showSnackbar(
+        e.message || "Something went wrong while saving transport",
+        "error"
+      );
+    }
+
+    finally {
       setIsSaving(false);
     }
   };
 
+  /* ================= UI ================= */
+  if (!open) return null;
+
   return (
-    <Dialog
-      open={open}
-      onClose={() => !isSaving && setOpen(false)}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
-        },
-      }}
-    >
-      {/* ================= HEADER ================= */}
-      <DialogTitle sx={{ px: 3, py: 2, borderBottom: "1px solid #eee", backgroundColor: "#fafafa", borderBottom: "1px solid #e5e7eb", }}>
-        <div className="flex justify-between items-center">
-          <div>
-            <Typography fontWeight={600}>
-              {editingTransport ? "Edit Transport" : "Add Transport"}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Transport basic and contact details
-            </Typography>
-          </div>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
+      <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
 
-          <CloseIcon
-            onClick={() => !isSaving && setOpen(false)}
-            className="cursor-pointer text-gray-500 hover:text-black"
-          />
+        {/* HEADER */}
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-semibold">
+            {editingTransport ? "Edit Transport" : "Add New Transport"}
+          </h2>
         </div>
-      </DialogTitle>
 
-      {/* ================= CONTENT ================= */}
-      <DialogContent sx={{ px: 3, py: 3 }}>
-        <Stack spacing={3}>
+        {/* BODY */}
+        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-8">
 
-          {/* -------- BASIC INFO -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={1} mt={1}>
+          {/* ===== BASIC INFORMATION ===== */}
+          <section>
+            <h3 className="text-lg font-semibold mb-3">
               Basic Information
-            </Typography>
+            </h3>
 
-            <TextField
-              label="Transport Name *"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              error={!!errors.name}
-              helperText={errors.name}
-              fullWidth
-              size="small"
-            />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CustomTextField label="Transport Name*" name="name" value={formData.name} onChange={handleChange} error={!!errors.name} helperText={errors.name} />
+              <CustomTextField label="Email" name="email" value={formData.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} />
+              <CustomTextField label="GST Number" name="gstNo" value={formData.gstNo} onChange={handleChange} error={!!errors.gstNo} helperText={errors.gstNo} />
+            </div>
+          </section>
 
-          {/* -------- CONTACT INFO -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={1}>
-              Contact Details
-            </Typography>
+          {/* ===== ADDRESS DETAILS ===== */}
+          <section>
+            <h3 className="text-lg font-semibold mb-3">
+              Address Details
+            </h3>
 
-            <Stack direction="row" spacing={2}>
-              <TextField
-                label="GST Number"
-                name="gstNo"
-                value={formData.gstNo}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+               <CustomTextField label="Address Line 1*" name="addressLine1" value={formData.addressLine1} onChange={handleChange} error={!!errors.addressLine1} helperText={errors.addressLine1} />
+              <CustomTextField label="Address Line 2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} />
+              <BasicSelect
+                name="state"
+                value={formData.state}
                 onChange={handleChange}
-                fullWidth
-                size="small"
-                error={!!errors.gstNo}
-                helperText={errors.gstNo}
+                label="State"
+                options={states.map(s => ({ value: s.name, label: s.name }))}
+                error={!!errors.state}
+                helperText={errors.state}
               />
 
-              <TextField
-                label="Contact Number*"
-                name="contactNumber"
-                value={formData.contactNumber}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d{0,10}$/.test(value)) {
-                    handleChange(e);
-                  }
-                }}
-                error={!!errors.contactNumber}
-                helperText={errors.contactNumber}
-                fullWidth
-                size="small"
-                inputProps={{
-                  maxLength: 10,
-                  inputMode: "numeric",
-                }}
+              <CustomTextField label="City" 
+              name="city" 
+              value={formData.city} 
+              onChange={handleChange} 
               />
 
-            </Stack>
-          </div>
-
-          {/* -------- ADDRESS -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={1}>
-              Address
-            </Typography>
-
-            <Stack spacing={1.5}>
-
-              <TextField
-                label="City*"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                error={!!errors.city}
-                helperText={errors.city}
-                fullWidth
-                size="small"
+              <CustomTextField 
+              label="Pin Code" 
+              name="pincode" 
+              value={formData.pincode} 
+              onChange={handleChange} 
               />
+            </div>
+          </section>
 
-              <TextField
-                label="Address Line 1*"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                error={!!errors.address}
-                helperText={errors.address}
-                fullWidth
-                size="small"
-              />
+          {/* ===== CONTACT INFORMATION ===== */}
+          <section>
+            <h3 className="text-lg font-semibold mb-3">
+              Contact Information
+            </h3>
 
+            {formData.contacts.map((c, index) => (
+              <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                <div className="md:col-span-4">
+                  <CustomTextField label="Contact Person" value={c.contactPerson} onChange={(e) => handleContactChange(index, "contactPerson", e.target.value)} error={!!errors.contacts?.[index]?.contactPerson} helperText={errors.contacts?.[index]?.contactPerson} />
+                </div>
+                <div className="md:col-span-4">
+                  <CustomTextField label="Contact Number*" value={c.contactNumber} onChange={(e) => /^\d*$/.test(e.target.value) && handleContactChange(index, "contactNumber", e.target.value)} error={!!errors.contacts?.[index]?.contactNumber} helperText={errors.contacts?.[index]?.contactNumber} />
+                </div>
+                <div className="md:col-span-3">
+                  <CustomTextField label="Type" value={c.type} onChange={(e) => handleContactChange(index, "type", e.target.value)} />
+                </div>
+                <div className="md:col-span-1 flex justify-center">
+                  {index > 0 && (
+                    <IconButton color="error" onClick={() => removeContact(index)}>
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  )}
+                </div>
+              </div>
+            ))}
 
-              <TextField
-                label="Address Line 2"
-                name="addressLine2"
-                placeholder="Landmark / Area (optional)"
-                fullWidth
-                size="small"
-              />
-            </Stack>
-          </div>
+            <Button startIcon={<AddIcon />} onClick={addContact} variant="outlined">
+              Add Contact
+            </Button>
+          </section>
+        </div>
 
-          {/* -------- STATUS -------- */}
-          <div>
-            <Typography fontSize={14} fontWeight={600} mb={0.5}>
-              Status
-            </Typography>
+        {/* FOOTER */}
+        <div className="p-4 border-t flex justify-end gap-3">
+          <button onClick={() => setOpen(false)} className="p-2 px-4 border rounded-lg text-sm">
+            Cancel
+          </button>
 
-            <RadioGroup
-              row
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-            >
-              <FormControlLabel
-                value="ACTIVE"
-                control={<Radio size="small" />}
-                label="Active"
-              />
-              <FormControlLabel
-                value="INACTIVE"
-                control={<Radio size="small" />}
-                label="Inactive"
-              />
-            </RadioGroup>
-          </div>
+          {!editingTransport && (
+            <button onClick={() => handleSubmit({ closeAfterSave: false })} className="p-2 px-4 border border-blue-600 text-blue-600 rounded-lg text-sm">
+              Save & Add New
+            </button>
+          )}
 
-        </Stack>
-      </DialogContent>
-
-      {/* ================= FOOTER ================= */}
-      <DialogActions
-        sx={{
-          px: 3,
-          py: 2,
-          borderTop: "1px solid #eee",
-          background: "#fafafa",
-        }}
-      >
-        <Button
-          disabled={isSaving}
-          onClick={() => setOpen(false)}
-          size="small"
-        >
-          Cancel
-        </Button>
-
-        {/* ONLY IN ADD MODE */}
-        {!editingTransport && (
-          <Button
-            disabled={isSaving}
-            variant="outlined"
-            size="small"
-            onClick={() => handleSubmit({ closeAfterSave: false })}
-            startIcon={isSaving && <CircularProgress size={14} />}
-          >
-            Save & Add New
-          </Button>
-        )}
-
-        {/* SAVE / UPDATE */}
-        <Button
-          disabled={isSaving}
-          variant="contained"
-          size="small"
-          onClick={() => handleSubmit({ closeAfterSave: true })}
-          startIcon={isSaving && <CircularProgress size={14} />}
-        >
-          {editingTransport ? "Update Transport" : "Save Transport"}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          <button onClick={() => handleSubmit({ closeAfterSave: true })} className="p-2 px-4 bg-blue-600 text-white rounded-lg text-sm">
+            {editingTransport ? "Update Transport" : "Save Transport"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
-
 }

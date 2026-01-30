@@ -12,8 +12,6 @@ import Autocomplete from "@mui/material/Autocomplete";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import Chip from "@mui/material/Chip";
 
-
-
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
     contacts: [{}],
@@ -21,7 +19,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [states, setStates] = useState([]);
   const [touched, setTouched] = useState({});
   const { showSnackbar } = useSnackbar();
-
   const [selectedTransports, setSelectedTransports] = useState([]);
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
@@ -49,7 +46,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       ...form,
       contacts: [
         ...form.contacts,
-        { contactPerson: "", mobileNumber: "", phone: "" },
+        { contactPerson: "", mobileNumber: "", type: "" },
       ],
     });
 
@@ -228,7 +225,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
           Array.isArray(form[key]) ? [] : "",
         ])
       ),
-      contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+      contacts: [{ contactPerson: "", mobileNumber: "" }],
       preferredTransportIds: [],
     });
 
@@ -252,7 +249,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="supplierName"
                     value={form.supplierName}
@@ -262,6 +259,18 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     error={!!errors.supplierName}
                     helperText={errors.supplierName}
                   />
+
+                  <CustomTextField
+                    name="email"
+                    value={form.email}
+                    onChange={handleFormChange}
+                    label="Email"
+                    className="border p-2 rounded"
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    type="email"
+                  />
+
                   <CustomTextField
                     name="supplierGroup"
                     value={form.supplierGroup}
@@ -306,13 +315,24 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     label="Commission % (Rate)"
                     className="border p-2 rounded"
                   />
+
+                  <CustomTextField
+                    name="referenceBy"
+                    value={form.referenceBy}
+                    onChange={handleFormChange}
+                    label="Reference By"
+                    className="border p-2 rounded"
+                    error={!!errors.referenceBy}
+                    helperText={errors.referenceBy}
+                  />
+
                 </div>
               </div>
 
               {/* Address Details */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Address Details</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="addressLine1"
                     value={form.addressLine1}
@@ -333,7 +353,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="state"
                     value={form.state}
                     onChange={handleFormChange}
-                    label="State*"
+                    label="State"
                     error={!!errors.state}
                     helperText={errors.state || ""}
                     options={states.map((s) => ({
@@ -345,7 +365,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
-                    label="City*"
+                    label="City"
                     className="border p-2 rounded"
                     error={!!errors.city}
                     helperText={errors.city}
@@ -355,7 +375,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="pinCode"
                     value={form.pinCode}
                     onChange={handleFormChange}
-                    label="Pin Code*"
+                    label="Pin Code"
                     error={!!errors.pinCode}
                     helperText={errors.pinCode}
                   />
@@ -370,9 +390,9 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 {form.contacts.map((contact, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-12 gap-4 mb-4 items-start"
+                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
                   >
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="contactPerson"
                         value={contact.contactPerson}
@@ -383,13 +403,13 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         helperText={errors.contacts?.[index]?.contactPerson}
                       />
                     </div>
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="mobileNumber"
                         value={contact.mobileNumber}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
+                          if (/^\d*$/.test(value)) {
                             handleContactChange(index, e);
                           }
                         }}
@@ -398,30 +418,20 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         error={!!errors.contacts?.[index]?.mobileNumber}
                         helperText={errors.contacts?.[index]?.mobileNumber}
                         type="tel"
-                        inputProps={{ maxLength: 10 }}
-                      />
-                    </div>
-                    <div className="col-span-3">
-                      <CustomTextField
-                        name="phone"
-                        value={contact.phone}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
-                            handleContactChange(index, e);
-                          }
-                        }}
-                        label="Phone No."
-                        className="w-full border p-2 rounded"
-                        error={!!errors.contacts?.[index]?.phone}
-                        helperText={errors.contacts?.[index]?.phone}
-                        type="tel"
-                        inputProps={{ maxLength: 10 }}
                       />
                     </div>
 
+                    <div className="md:col-span-3">
+                      <CustomTextField
+                        name="type"
+                        value={contact.type}
+                        onChange={(e) => handleContactChange(index, e)}
+                        label="Type"
+                        error={!!errors.contacts?.[index]?.type}
+                      />
+                    </div>
                     {/* Delete icon button - hidden for first contact */}
-                    <div className="col-span-1 flex justify-center">
+                    <div className="md:col-span-1 flex justify-center">
                       {index > 0 && (
                         <IconButton
                           size="small"
@@ -448,7 +458,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
               {/* Transport Section */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Preferred Transports</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Autocomplete
                     multiple
                     options={allTransports}
@@ -522,7 +532,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="px-4 py-2 border rounded-lg text-sm
+                className="p-2 md:px-4 md:py-2 border rounded-lg text-sm
                text-gray-700 hover:bg-gray-100
                disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -533,7 +543,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
               <button
                 disabled={isSaving}
                 onClick={() => handleAddSupplier({ closeAfterSave: false })}
-                className="px-4 py-2 border border-blue-600 text-blue-600
+                className="p-2 md:px-4 md:py-2 border border-blue-600 text-blue-600
                rounded-lg text-sm hover:bg-blue-50
                flex items-center gap-2
                disabled:opacity-60 disabled:cursor-not-allowed"
@@ -567,7 +577,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
               <button
                 disabled={isSaving}
                 onClick={() => handleAddSupplier({ closeAfterSave: true })}
-                className="px-4 py-2 bg-blue-600 text-white
+                className="p-2 md:px-4 md:py-2 bg-blue-600 text-white
                rounded-lg text-sm hover:bg-blue-700
                flex items-center gap-2
                disabled:opacity-60 disabled:cursor-not-allowed"

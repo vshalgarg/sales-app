@@ -71,7 +71,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       ...form,
       contacts: [
         ...form.contacts,
-        { contactPerson: "", mobileNumber: "", phone: "" },
+        { contactPerson: "", mobileNumber: "", type: "" },
       ],
     });
 
@@ -210,7 +210,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
           Array.isArray(form[key]) ? [] : "",
         ])
       ),
-      contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
+      contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
       preferredTransportIds: [],
     });
     setErrors({ contacts: [{}] });
@@ -232,7 +232,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="customerName"
                     value={form.customerName}
@@ -241,6 +241,16 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     error={!!errors.customerName}
                     helperText={errors.customerName}
                   />
+
+                  <CustomTextField
+                    name="email"
+                    value={form.email}
+                    onChange={handleFormChange}
+                    label="Email"
+                    error={!!errors.email}
+                    helperText={errors.email}
+                  />
+
                   <CustomTextField
                     name="customerGroup"
                     value={form.customerGroup}
@@ -276,7 +286,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               {/* Address Details */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Address Details</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="addressLine1"
                     value={form.addressLine1}
@@ -295,7 +305,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="state"
                     value={form.state}
                     onChange={handleFormChange}
-                    label="State*"
+                    label="State"
                     error={!!errors.state}
                     helperText={errors.state}
                     options={states.map((s) => ({ value: s.name, label: s.name }))}
@@ -304,7 +314,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="city"
                     value={form.city}
                     onChange={handleFormChange}
-                    label="City*"
+                    label="City"
                     error={!!errors.city}
                     helperText={errors.city}
                   />
@@ -313,7 +323,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="pinCode"
                     value={form.pinCode}
                     onChange={handleFormChange}
-                    label="Pin Code*"
+                    label="Pin Code"
                     error={!!errors.pinCode}
                     helperText={errors.pinCode}
                     inputProps={{
@@ -331,9 +341,9 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 {form.contacts.map((contact, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-12 gap-4 mb-4 items-start"
+                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
                   >
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="contactPerson"
                         value={contact.contactPerson}
@@ -343,36 +353,32 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         helperText={errors.contacts?.[index]?.contactPerson}
                       />
                     </div>
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                       <CustomTextField
                         name="mobileNumber"
                         value={contact.mobileNumber}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
+                          if (/^\d*$/.test(value)) {
                             handleContactChange(index, e);
                           }
                         }}
                         label="MobileNo.*"
                         type="tel"
-                        inputProps={{ maxLength: 10 }}
                         error={!!errors.contacts?.[index]?.mobileNumber}
                         helperText={errors.contacts?.[index]?.mobileNumber}
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="md:col-span-3">
                       <CustomTextField
-                        name="phone"
-                        value={contact.phone}
+                        name="type"
+                        value={contact.type}
                         onChange={(e) => {
-                          const value = e.target.value;
-                          if (/^\d{0,10}$/.test(value)) {
+                          if (/^[a-zA-Z _@#&()\-]*$/.test(e.target.value)) {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="Phone No."
-                        type="tel"
-                        inputProps={{ maxLength: 10 }}
+                        label="Type"
                       />
                     </div>
                     <div className="col-span-1 flex justify-center">
@@ -487,7 +493,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="px-4 py-2 border rounded-lg text-sm
+                className="p-2 md:px-4 md:py-2 border rounded-lg text-sm
       hover:bg-gray-100
       disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -498,7 +504,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               <button
                 disabled={isSaving}
                 onClick={() => handleAddCustomer({ closeAfterSave: false })}
-                className="px-4 py-2 border border-blue-600 text-blue-600
+                className="p-2 md:px-4 md:py-2 border border-blue-600 text-blue-600
       rounded-lg text-sm hover:bg-blue-50
       flex items-center gap-2
       disabled:opacity-60 disabled:cursor-not-allowed"
@@ -520,7 +526,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               <button
                 disabled={isSaving}
                 onClick={() => handleAddCustomer({ closeAfterSave: true })}
-                className="px-4 py-2 bg-blue-600 text-white
+                className="p-2 md:px-4 md:py-2 bg-blue-600 text-white
       rounded-lg text-sm hover:bg-blue-700
       flex items-center gap-2
       disabled:opacity-60 disabled:cursor-not-allowed"

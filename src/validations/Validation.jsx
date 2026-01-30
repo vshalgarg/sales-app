@@ -8,12 +8,17 @@ const validate = (field, value) => {
     case "password":
       if (!value) return "Password is required";
       break;
-    case "state":
-      if (!value) return "State is required";
+    // case "state":
+    //   if (!value) return "State is required";
+    //   break;
+    // case "city":
+    //   if (!value) return "City is required";
+    //   break;
+    case "contactNumber":
+      if (!value) return "Contact number is required";
+      if (!/^\d+$/.test(value)) return "Only digits allowed";
       break;
-    case "city":
-      if (!value) return "City is required";
-      break;
+
     case "fromDate":
       if (!value.trim()) error = "From date is required";
       break;
@@ -47,8 +52,10 @@ const validate = (field, value) => {
       if (!value.trim()) error = "Current Date is required";
       break;
     case "receivedAmount":
-      if (!value.trim()) error = "Received Amount is required";
+      if (value && !/^\d+(\.\d{1,2})?$/.test(value))
+        error = "Enter a valid amount";
       break;
+
     // case "slipNumber":
     //   if (!value.trim()) error = "Slip Number is required";
     //   break;
@@ -96,11 +103,8 @@ const validate = (field, value) => {
       break;
 
     case "pinCode":
-      if (!value || value.trim() === "") {
-        return "Pin Code is required";
-      }
       if (!/^\d{6}$/.test(value)) {
-        return "Pin Code must be exactly 6 digits";
+        return "";
       }
       return "";
 
@@ -114,10 +118,12 @@ const validate = (field, value) => {
       break;
 
     case "mobileNumber":
-      if (!value) return "Mobile number is required";
+      if (!value) return "Contact number is required";
       if (!/^\d+$/.test(value)) return "Only digits allowed";
-      if (value.length < 10) return "Must be at least 10 digits";
+      // if (value.length < 6) return "Must be at least 6 digits";
+      // if (value.length > 13) return "Must be at most 13 digits";
       break;
+
 
     // case "phone":
     //   if (!value) return "Phone number is required";
@@ -131,23 +137,23 @@ const validate = (field, value) => {
     //   }
     //   break;
 
-    case "state":
-      if (!value || value.length === 0) {
-        error = "State is required";
-      }
-      break;
+    // case "state":
+    //   if (!value || value.length === 0) {
+    //     error = "State is required";
+    //   }
+    //   break;
 
-    case "city":
-      if (!value || value.length === 0) {
-        error = "City is required";
-      }
-      break;
+    // case "city":
+    //   if (!value || value.length === 0) {
+    //     error = "City is required";
+    //   }
+    //   break;
 
-    case "staffName":
-      if (!value || value.length === 0) {
-        error = "Staff Name is required";
-      }
-      break;
+    // case "staffName":
+    //   if (!value || value.length === 0) {
+    //     error = "Staff Name is required";
+    //   }
+    //   break;
 
     case "joiningDate":
       if (!value || value.length === 0) {
@@ -170,9 +176,9 @@ const validate = (field, value) => {
         error = "Received Date is required";
       }
       break;
-   case "order":
-  if (!value?.trim()) return "Order is required";
-  return "";
+    case "order":
+      if (!value?.trim()) return "Order is required";
+      return "";
 
     case "grossAmount":
       if (!value || value.length === 0) {
@@ -217,17 +223,15 @@ const validate = (field, value) => {
       }
       break;
     case "purchaseAmount":
-      if (!value.trim() || !value || value.length === 0) {
-        error = "Purchase Amount is required";
-      }
+      if (value && !/^\d+(\.\d{1,2})?$/.test(value))
+        return "Enter valid amount";
       break;
-
 
     case "referenceNumber":
       if (!value || !value.trim()) {
         error = "Reference Number is required";
         break;
-      }    
+      }
       break;
 
     case "referenceDate":
@@ -235,6 +239,11 @@ const validate = (field, value) => {
         error = "Reference Date is required";
       }
       break;
+
+    case "email":
+      if (!value) return ""; //optional
+      if (!/^\S+@\S+\.\S+$/.test(value)) return "Invalid email";
+      return "";
 
 
     default:
