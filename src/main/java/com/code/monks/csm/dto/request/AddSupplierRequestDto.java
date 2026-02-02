@@ -33,7 +33,6 @@ public class AddSupplierRequestDto {
     @DecimalMin(value = "0.0", inclusive = true, message = "Commission rate must be positive")
     private Double commissionRate;
 
-    @NotBlank(message = "Address line 1 is required")
     private String addressLine1;
 
     @Convert(converter = EmptyStringToNullConverter.class)
@@ -49,8 +48,6 @@ public class AddSupplierRequestDto {
     @Convert(converter = EmptyStringToNullConverter.class)
     private String remark;
 
-    @Valid
-    @NotNull(message = "Contacts are required")
     private List<ContactRequestDto> contacts;
 
 }

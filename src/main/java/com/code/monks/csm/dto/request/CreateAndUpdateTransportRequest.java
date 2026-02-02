@@ -19,17 +19,13 @@ public class CreateAndUpdateTransportRequest {
 
     private String gstNo;
 
-    @Valid
     private List<TransportContactRequestDto> contacts;
 
     private String state;
     private String city;
     private String pincode;
 
-    @NotBlank(message = "Address Line 1 is required")
     private String addressLine1;
-
     private String addressLine2;
-
     private StatusEnum status;
 }
