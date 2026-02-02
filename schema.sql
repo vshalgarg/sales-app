@@ -25,7 +25,7 @@ CREATE TABLE transport_contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     contact_person VARCHAR(100),
-    contact_number VARCHAR(15) NOT NULL,
+    contact_number VARCHAR(15),
     type VARCHAR(50) NULL,
     transport_id INT NOT NULL,
 
@@ -395,13 +395,6 @@ DROP INDEX idx_customer_gst;
 ALTER TABLE customer
 MODIFY COLUMN gst_no TEXT NULL;
 
-
-
-
-
-
-
-
-
-
+ALTER TABLE transport_contacts
+MODIFY COLUMN contact_number VARCHAR(15) NULL;
 
