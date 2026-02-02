@@ -24,7 +24,7 @@ const EditPurchaseDetail = ({
     const [allStaffs, setAllStaffs] = useState([]);
 
     const [selectedSupplier, setSelectedSupplier] = useState(null);
-    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [selectedCustomers, setSelectedCustomers] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState(null);
 
     const [formData, setFormData] = useState({
@@ -68,12 +68,12 @@ const EditPurchaseDetail = ({
         }
 
         if (allCustomers.length > 0) {
-            setSelectedCustomer(
-                allCustomers.find(
-                    c => c.id === Number(selectedPurchaseDetail.customerId)
-                ) || null
+            const selected = allCustomers.filter(c =>
+                selectedPurchaseDetail.customerIds?.includes(c.id)
             );
+            setSelectedCustomers(selected);
         }
+
 
         if (allStaffs.length > 0) {
             setSelectedStaff(
@@ -109,7 +109,7 @@ const EditPurchaseDetail = ({
                 date: formData.date || null,
                 staffId: selectedStaff?.staffId || null,
                 supplierId: selectedSupplier?.id || null,
-                customerId: selectedCustomer?.id || null,
+                customerIds: selectedCustomers.map(c => c.id),
                 purchaseAmount: Number(formData.purchaseAmount),
             };
 
@@ -192,17 +192,18 @@ const EditPurchaseDetail = ({
                             <CustomTextField {...p} label="Supplier" />
                         )}
                     />
-
                     <Autocomplete
+                        multiple
                         options={allCustomers}
-                        value={selectedCustomer}
-                        isOptionEqualToValue={(o, v) => o.id === v?.id}
+                        value={selectedCustomers}
+                        isOptionEqualToValue={(o, v) => o.id === v.id}
                         getOptionLabel={(o) => o?.customerName || ""}
-                        onChange={(e, v) => setSelectedCustomer(v)}
+                        onChange={(e, values) => setSelectedCustomers(values)}
                         renderInput={(p) => (
-                            <CustomTextField {...p} label="Customer" />
+                            <CustomTextField {...p} label="Customer(s)" />
                         )}
                     />
+
                 </div>
 
                 {/* ACTIONS */}

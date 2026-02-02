@@ -33,9 +33,9 @@ export default function AddNewTransport({
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({ contacts: [] });
   const [isSaving, setIsSaving] = useState(false);
-   const [states, setStates] = useState([]);
+  const [states, setStates] = useState([]);
 
-   
+
   /* ================= RESET ================= */
   const resetForm = () => {
     setFormData(initialState);
@@ -116,41 +116,13 @@ export default function AddNewTransport({
   const handleSubmit = async ({ closeAfterSave }) => {
     if (isSaving) return;
 
-    const newErrors = {};
-    const contactErrors = [];
+ const nameError = validate("supplierName", formData.name);
 
-    Object.keys(formData).forEach((field) => {
-      if (field !== "contacts") {
-        const error = validate(field, formData[field]);
-        if (error) newErrors[field] = error;
-      }
-    });
-
-    formData.contacts.forEach((c, i) => {
-      const err = {};
-      ["contactPerson", "contactNumber"].forEach((f) => {
-        const e = validate(f, c[f]);
-        if (e) err[f] = e;
-      });
-      contactErrors[i] = err;
-    });
-
-    newErrors.contacts = contactErrors;
-    setErrors(newErrors);
-
-    const hasTopErrors = Object.entries(newErrors)
-      .some(([key, value]) => key !== "contacts" && Boolean(value));
-
-    const hasContactErrors = contactErrors
-      .some((e) => Object.values(e).some(Boolean));
-
-    const hasErrors = hasTopErrors || hasContactErrors;
-
-
-    if (hasErrors) {
-      showSnackbar("Please fix validation errors", "error");
-      return;
-    }
+    if (nameError) {
+    setErrors({ name: nameError });
+    showSnackbar(nameError, "error");
+    return;
+  }
 
     try {
       setIsSaving(true);
@@ -220,7 +192,7 @@ export default function AddNewTransport({
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <CustomTextField label="Transport Name*" name="name" value={formData.name} onChange={handleChange} error={!!errors.name} helperText={errors.name} />
+              <CustomTextField label="Transport Name *" name="name" value={formData.name} onChange={handleChange} error={!!errors.name} helperText={errors.name} />
               <CustomTextField label="Email" name="email" value={formData.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} />
               <CustomTextField label="GST Number" name="gstNo" value={formData.gstNo} onChange={handleChange} error={!!errors.gstNo} helperText={errors.gstNo} />
             </div>
@@ -234,29 +206,37 @@ export default function AddNewTransport({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-               <CustomTextField label="Address Line 1*" name="addressLine1" value={formData.addressLine1} onChange={handleChange} error={!!errors.addressLine1} helperText={errors.addressLine1} />
-              <CustomTextField label="Address Line 2" name="addressLine2" value={formData.addressLine2} onChange={handleChange} />
+              <CustomTextField label="Address Line 1"
+                name="addressLine1"
+                value={formData.addressLine1}
+                onChange={handleChange}
+              />
+              <CustomTextField
+                label="Address Line 2"
+                name="addressLine2"
+                value={formData.addressLine2}
+                onChange={handleChange}
+              />
+
               <BasicSelect
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
                 label="State"
                 options={states.map(s => ({ value: s.name, label: s.name }))}
-                error={!!errors.state}
-                helperText={errors.state}
               />
 
-              <CustomTextField label="City" 
-              name="city" 
-              value={formData.city} 
-              onChange={handleChange} 
+              <CustomTextField label="City"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
               />
 
-              <CustomTextField 
-              label="Pin Code" 
-              name="pincode" 
-              value={formData.pincode} 
-              onChange={handleChange} 
+              <CustomTextField
+                label="Pin Code"
+                name="pincode"
+                value={formData.pincode}
+                onChange={handleChange}
               />
             </div>
           </section>
@@ -270,10 +250,19 @@ export default function AddNewTransport({
             {formData.contacts.map((c, index) => (
               <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
                 <div className="md:col-span-4">
-                  <CustomTextField label="Contact Person" value={c.contactPerson} onChange={(e) => handleContactChange(index, "contactPerson", e.target.value)} error={!!errors.contacts?.[index]?.contactPerson} helperText={errors.contacts?.[index]?.contactPerson} />
+                  <CustomTextField
+                    label="Contact Person"
+                    value={c.contactPerson}
+                    onChange={(e) => handleContactChange(index, "contactPerson", e.target.value)}
+                  />
                 </div>
+
                 <div className="md:col-span-4">
-                  <CustomTextField label="Contact Number*" value={c.contactNumber} onChange={(e) => /^\d*$/.test(e.target.value) && handleContactChange(index, "contactNumber", e.target.value)} error={!!errors.contacts?.[index]?.contactNumber} helperText={errors.contacts?.[index]?.contactNumber} />
+                  <CustomTextField
+                    label="Contact Number"
+                    value={c.contactNumber}
+                    onChange={(e) => /^\d*$/.test(e.target.value) && handleContactChange(index, "contactNumber", e.target.value)}
+                  />
                 </div>
                 <div className="md:col-span-3">
                   <CustomTextField label="Type" value={c.type} onChange={(e) => handleContactChange(index, "type", e.target.value)} />
