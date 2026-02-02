@@ -40,7 +40,6 @@ public class CustomerEntity extends BaseEntity{
 
     @Column(
             name = "gst_no",
-            unique = true,
             nullable = true
     )
     private String gstNo;

@@ -24,10 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.PURCHASE_ENTRY_NOT_FOUND;
 
@@ -226,7 +223,9 @@ public class PurchaseServiceImpl implements PurchaseService {
                                 .map(CustomerEntity::getCustomerName)
                                 .toList()
                 )
-                .purchaseAmount(entity.getPurchaseAmount())
+                .purchaseAmount(
+                        Optional.ofNullable(entity.getPurchaseAmount()).orElse(0L)
+                )
                 .build();
     }
 

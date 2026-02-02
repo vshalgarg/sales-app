@@ -46,7 +46,7 @@ public class StaffServiceImpl implements StaffService {
 
         try {
             // Step 1: Validate request
-            validateStaff(requestDto);
+           // validateStaff(requestDto);
 
             // Step 2: Map DTO to entity
             StaffEntity entity = AddStaffResponseDto.dtoToEntity(requestDto);

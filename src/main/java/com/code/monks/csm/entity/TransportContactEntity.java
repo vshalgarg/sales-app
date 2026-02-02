@@ -29,7 +29,7 @@ public class TransportContactEntity {
     @Column(name = "contact_person", length = 100)
     private String contactPerson;
 
-    @Column(name = "contact_number", nullable = false, length = 15)
+    @Column(name = "contact_number")
     private String contactNumber;
 
     @Column(name = "type", length = 50)

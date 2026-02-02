@@ -8,13 +8,11 @@ import com.code.monks.csm.dto.response.TransportResponseDto;
 import com.code.monks.csm.entity.TransportContactEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
-import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.TransportContactEntityRepository;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.TransportService;
 import com.code.monks.csm.utils.ValidatorUtil;
-import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,9 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-import static com.code.monks.csm.enums.ResponseErrorCode.DUPLICATE_ENTRY;
 import static com.code.monks.csm.enums.ResponseErrorCode.TRANSPORT_NOT_FOUND;
 
 @Service
@@ -304,69 +303,16 @@ public class TransportServiceImpl implements TransportService {
             Integer excludeId // null for add, id for update
     ) {
 
-        if (request.getContacts() != null) {
-            Set<String> seenNumbers = new HashSet<>();
-
-            for (var c : request.getContacts()) {
-                String number = c.getContactNumber();
-
-                if (!seenNumbers.add(number)) {
-                    throw new DuplicateEntryException(
-                            DUPLICATE_ENTRY,
-                            "Duplicate contact number in request: " + number
-                    );
-                }
-            }
-        }
-
         List<ValidatorUtil.DuplicateCheck> checks = new ArrayList<>();
 
         String name = request.getName().trim();
-        String email = normalize(request.getEmail());
-        String gst = normalize(request.getGstNo());
 
-        //  Name
         checks.add(new ValidatorUtil.DuplicateCheck(
                 "transport name",
                 () -> excludeId == null
                         ? transportRepository.existsByNameIgnoreCase(name)
                         : transportRepository.existsByNameIgnoreCaseAndIdNot(name, excludeId)
         ));
-
-        //  Email
-        if (StringUtils.isNotBlank(email)) {
-            checks.add(new ValidatorUtil.DuplicateCheck(
-                    "email",
-                    () -> excludeId == null
-                            ? transportRepository.existsByEmail(email)
-                            : transportRepository.existsByEmailAndIdNot(email, excludeId)
-            ));
-        }
-
-        //  GST
-        if (StringUtils.isNotBlank(gst)) {
-            checks.add(new ValidatorUtil.DuplicateCheck(
-                    "GST number",
-                    () -> excludeId == null
-                            ? transportRepository.existsByGstNo(gst)
-                            : transportRepository.existsByGstNoAndIdNot(gst, excludeId)
-            ));
-        }
-
-        //  Contact numbers
-        if (request.getContacts() != null) {
-            for (var c : request.getContacts()) {
-                checks.add(new ValidatorUtil.DuplicateCheck(
-                        "contact number (" + c.getContactNumber() + ")",
-                        () -> excludeId == null
-                                ? transportContactRepository
-                                .existsByContactNumber(c.getContactNumber())
-                                : transportContactRepository
-                                .existsByContactNumberAndTransportIdNot(
-                                        c.getContactNumber(), excludeId)
-                ));
-            }
-        }
 
         validatorUtil.validateUniqueFields(checks);
     }
