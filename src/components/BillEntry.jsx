@@ -290,8 +290,6 @@ const BillEntry = () => {
 
     // Required fields check
     if (!billForm.date) newErrors.date = "Date is required";
-    if (!billForm.receivedDate)
-      newErrors.receivedDate = "Received Date is required";
     if (!billForm.order?.trim()) newErrors.order = "Order is required";
 
     if (!billForm.supplierId) newErrors.supplierName = "Supplier is required";
@@ -457,7 +455,7 @@ const BillEntry = () => {
               {/* Received Date Field */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Received Date*"
+                  label="Received Date"
                   format="DD-MM-YYYY"
                   value={
                     billForm.receivedDate
@@ -471,10 +469,6 @@ const BillEntry = () => {
                     setFormData((prev) => ({
                       ...prev,
                       receivedDate: formatted,
-                    }));
-                    setErrors((prev) => ({
-                      ...prev,
-                      receivedDate: validate("receivedDate", formatted),
                     }));
                   }}
                   slotProps={{
@@ -999,7 +993,7 @@ const BillEntry = () => {
                             });
                           }
                         }}
-                        label="Pieces"
+                        label="Pieces *"
                         error={!!errors.pieces}
                         helperText={errors.pieces}
                       />
@@ -1015,7 +1009,7 @@ const BillEntry = () => {
                             });
                           }
                         }}
-                        label="Gross Amount"
+                        label="Gross Amount *"
                         error={!!errors.grossAmount}
                         helperText={errors.grossAmount || ""}
                       />

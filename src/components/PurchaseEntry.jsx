@@ -114,14 +114,13 @@ const PurchaseEntry = () => {
       return;
     }
 
-    if (
-      !formData.supplierId &&
-      (!formData.customerIds || formData.customerIds.length === 0)
-    ) {
-      showSnackbar(
-        "Please select either Supplier or at least one Customer",
-        "error"
-      );
+    if (!formData.supplierId) {
+      showSnackbar("Please select a Supplier", "error");
+      return;
+    }
+
+    if (!formData.customerIds || formData.customerIds.length === 0) {
+      showSnackbar("Please select at least one Customer", "error");
       return;
     }
 
@@ -228,7 +227,7 @@ const PurchaseEntry = () => {
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Supplier"
+                    label="Supplier *"
                     error={!!errors.supplierName}
                   />
                 )}
@@ -253,7 +252,7 @@ const PurchaseEntry = () => {
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Customer(s)"
+                    label="Customer(s) *"
                   />
                 )}
               />

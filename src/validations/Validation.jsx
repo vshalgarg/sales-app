@@ -66,30 +66,6 @@ const validate = (field, value) => {
       if (!value.trim()) error = "Customer Name is required.";
       break;
 
-    case "customerGstNo":
-      if (!value || value.trim() === "") {
-        error = "";
-        break;
-      }
-      const gstRegx =
-        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-      if (!gstRegx.test(value)) {
-        error = "Invalid GST Number format.";
-      }
-      break;
-
-    case "supplierGstNo":
-      if (!value || value.trim() === "") {
-        error = "";
-        break;
-      }
-      const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-
-      if (!gstRegex.test(value)) {
-        error = "Invalid GST Number format.";
-      }
-      break;
-
     case "commissionRate":
       if (value !== undefined && value !== null && value !== "") {
         const rate = parseFloat(value);
