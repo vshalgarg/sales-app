@@ -12,7 +12,6 @@ public class AddStaffRequestDto {
     @NotBlank(message = "Staff name is required")
     private String staffName;
 
-    @NotBlank(message = "Phone number is required")
     private String phone;
 
     @NotNull(message = "Joining date is required")

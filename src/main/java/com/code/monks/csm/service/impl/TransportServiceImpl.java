@@ -8,13 +8,11 @@ import com.code.monks.csm.dto.response.TransportResponseDto;
 import com.code.monks.csm.entity.TransportContactEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
-import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.TransportContactEntityRepository;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.TransportService;
 import com.code.monks.csm.utils.ValidatorUtil;
-import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,9 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-import static com.code.monks.csm.enums.ResponseErrorCode.DUPLICATE_ENTRY;
 import static com.code.monks.csm.enums.ResponseErrorCode.TRANSPORT_NOT_FOUND;
 
 @Service

@@ -29,7 +29,6 @@ public class AddCustomerRequestDto {
     @Convert(converter = EmptyStringToNullConverter.class)
     private String referencedBy;
 
-    @NotBlank(message = "Address line 1 is required")
     private String addressLine1;
 
     @Convert(converter = EmptyStringToNullConverter.class)
@@ -43,8 +42,6 @@ public class AddCustomerRequestDto {
 
     private String remark;
 
-    @Valid
-    @NotNull(message = "Contacts are required")
     private List<ContactRequestDto> contacts;
 
 }
