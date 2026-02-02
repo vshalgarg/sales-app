@@ -38,8 +38,7 @@ public class SupplierEntity extends BaseEntity{
 
     @Column(
             name = "email",
-            nullable = true,   //optional
-            unique = true
+            nullable = true  //optional
     )
     private String email;
 
@@ -48,7 +47,6 @@ public class SupplierEntity extends BaseEntity{
 
     @Column(
             name = "gst_no",
-            unique = true,
             nullable = true
     )
     private String gstNo;
