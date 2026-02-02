@@ -20,7 +20,15 @@ const PurchaseHistory = ({
     },
     { key: "staffName", label: "Staff" },
     { key: "supplierName", label: "Supplier" },
-    { key: "customerName", label: "Customer" },
+    {
+      key: "customerNames",
+      label: "Customer(s)",
+      render: (r) =>
+        r.customerNames && r.customerNames.length > 0
+          ? r.customerNames.join(", ")
+          : "-"
+    },
+
     { key: "purchaseAmount", label: "Amount" },
   ];
 
