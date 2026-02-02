@@ -25,7 +25,7 @@ CREATE TABLE transport_contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     contact_person VARCHAR(100),
-    contact_number VARCHAR(15),
+    contact_number VARCHAR(15) NOT NULL,
     type VARCHAR(50) NULL,
     transport_id INT NOT NULL,
 
@@ -33,7 +33,9 @@ CREATE TABLE transport_contacts (
         FOREIGN KEY (transport_id)
         REFERENCES transports(id)
         ON DELETE CASCADE,
-    INDEX idx_tc_transport_id (transport_id)
+    CONSTRAINT uk_tc_transport_contact
+            UNIQUE (transport_id, contact_number)
+        INDEX idx_tc_transport_id (transport_id)
 );
 
 
@@ -397,4 +399,18 @@ MODIFY COLUMN gst_no TEXT NULL;
 
 ALTER TABLE transport_contacts
 MODIFY COLUMN contact_number VARCHAR(15) NULL;
+
+ALTER TABLE supplier
+DROP CONSTRAINT uk_supplier_email;
+
+ALTER TABLE transports
+DROP CONSTRAINT uk_transports_email;
+
+ALTER TABLE transport_contacts
+MODIFY COLUMN contact_number VARCHAR(15) NULL;
+
+ALTER TABLE transport_contacts
+DROP INDEX uk_tc_transport_contact;
+
+
 
