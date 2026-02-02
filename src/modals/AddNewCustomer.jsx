@@ -133,43 +133,15 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const handleAddCustomer = async ({ closeAfterSave }) => {
     if (isSaving) return;
 
-    const newErrors = {};
-    let contactErrors = [];
+    const nameError = validate("customerName", form.customerName);
 
-    // ---------- VALIDATION ----------
-    Object.keys(form).forEach((field) => {
-      if (field !== "contacts") {
-        const error = validate(field, form[field]);
-        if (error) newErrors[field] = error;
-      }
-    });
+    if (nameError) {
+      setErrors(prev => ({
+        ...prev,
+        customerName: nameError,
+      }));
 
-    contactErrors = form.contacts.map((contact) => {
-      const contactError = {};
-      ["contactPerson", "mobileNumber"].forEach((field) => {
-        const error = validate(field, contact[field]);
-        if (error) contactError[field] = error;
-      });
-      return contactError;
-    });
-
-    newErrors.contacts = contactErrors;
-    setErrors(newErrors);
-
-    const hasTopErrors = Object.keys(newErrors).some(
-      (k) => k !== "contacts" && newErrors[k]
-    );
-
-    const hasContactErrors = contactErrors.some((e) =>
-      Object.values(e).some(Boolean)
-    );
-
-    if (hasTopErrors || hasContactErrors) {
-      const msg =
-        Object.values(newErrors).find((v) => typeof v === "string") ||
-        contactErrors.flatMap((e) => Object.values(e)).find(Boolean);
-
-      showSnackbar(msg || "Validation error", "error");
+      showSnackbar(nameError, "error");
       return;
     }
 
@@ -237,7 +209,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="customerName"
                     value={form.customerName}
                     onChange={handleFormChange}
-                    label="Customer Name*"
+                    label="Customer Name *"
                     error={!!errors.customerName}
                     helperText={errors.customerName}
                   />
@@ -291,15 +263,13 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="addressLine1"
                     value={form.addressLine1}
                     onChange={handleFormChange}
-                    label="Address Line 1*"
-                    error={!!errors.addressLine1}
-                    helperText={errors.addressLine1}
+                    label="Address Line 1"
                   />
                   <CustomTextField
                     name="addressLine2"
                     value={form.addressLine2}
                     onChange={handleFormChange}
-                    label="Address Line 2 (Optional)"
+                    label="Address Line 2"
                   />
                   <BasicSelect
                     name="state"
@@ -315,8 +285,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     value={form.city}
                     onChange={handleFormChange}
                     label="City"
-                    error={!!errors.city}
-                    helperText={errors.city}
                   />
 
                   <CustomTextField
@@ -348,9 +316,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
-                        label="Contact Person*"
-                        error={!!errors.contacts?.[index]?.contactPerson}
-                        helperText={errors.contacts?.[index]?.contactPerson}
+                        label="Contact Person"
                       />
                     </div>
                     <div className="md:col-span-4">
@@ -363,10 +329,8 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="MobileNo.*"
+                        label="MobileNo."
                         type="tel"
-                        error={!!errors.contacts?.[index]?.mobileNumber}
-                        helperText={errors.contacts?.[index]?.mobileNumber}
                       />
                     </div>
                     <div className="md:col-span-3">

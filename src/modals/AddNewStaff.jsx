@@ -1,6 +1,6 @@
 import CustomTextField from "../components/CustomTextField";
 import validate from "../validations/Validation";
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { saveStaff } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 
@@ -23,21 +23,15 @@ export default function AddNewStaff({
   if (!open) return null;
 
   useEffect(() => {
-  if (open) {
-    setForm((prev) => ({
-      ...prev,
-      joiningDate: dayjs().format("YYYY-MM-DD"),
-    }));
-  }
-}, [open]);
+    if (open) {
+      setForm((prev) => ({
+        ...prev,
+        joiningDate: dayjs().format("YYYY-MM-DD"),
+      }));
+    }
+  }, [open]);
 
 
-  // ---------- HELPERS ----------
-  const validatePhone = (value) => {
-    if (!value) return "Phone number is required";
-    if (!/^\d{10}$/.test(value)) return "Phone number must be 10 digits";
-    return "";
-  };
 
   const resetForm = () => {
     setForm({ staffName: "", phone: "", joiningDate: "" });
@@ -56,7 +50,6 @@ export default function AddNewStaff({
 
     const newErrors = {
       staffName: validate("staffName", form.staffName),
-      phone: validatePhone(form.phone),
       joiningDate: validate("joiningDate", form.joiningDate),
     };
 
@@ -118,11 +111,12 @@ export default function AddNewStaff({
             value={form.phone}
             onChange={(e) => {
               const value = e.target.value;
-              if (/^\d{0,10}$/.test(value)) {
+              if (/^\d*$/.test(value)) {
                 handleFormChange("phone", value);
               }
+
             }}
-            label="Phone Number *"
+            label="Phone Number"
             error={!!errors.phone}
             helperText={errors.phone || ""}
             type="tel"

@@ -143,50 +143,14 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const handleAddSupplier = async ({ closeAfterSave }) => {
     if (isSaving) return;
 
-    const newErrors = {};
-    let contactErrors = [];
+    const nameError = validate("supplierName", form.supplierName);
 
-    // ---- validate top-level ----
-    Object.keys(form).forEach((field) => {
-      if (field !== "contacts") {
-        const error = validate(field, form[field]);
-        if (error) newErrors[field] = error;
-      }
-    });
-
-    // ---- validate contacts ----
-    contactErrors = form.contacts.map((contact) => {
-      const contactError = {};
-      ["contactPerson", "mobileNumber"].forEach((field) => {
-        const error = validate(field, contact[field]);
-        if (error) contactError[field] = error;
-      });
-      return contactError;
-    });
-
-    newErrors.contacts = contactErrors;
-    setErrors(newErrors);
-
-    const hasTopLevelErrors = Object.keys(newErrors).some(
-      (key) => key !== "contacts" && newErrors[key]
-    );
-
-    const hasContactErrors = contactErrors.some((err) =>
-      Object.values(err).some(Boolean)
-    );
-
-    if (hasTopLevelErrors) {
-      const msg = Object.values(newErrors).find((v) => typeof v === "string");
-      showSnackbar(msg, "error");
+    if (nameError) {
+      setErrors({ supplierName: nameError });
+      showSnackbar(nameError, "error");
       return;
     }
-
-    if (hasContactErrors) {
-      const msg = contactErrors.flatMap((e) => Object.values(e)).find(Boolean);
-      showSnackbar(msg, "error");
-      return;
-    }
-
+    
     const payload = sanitizePayload({
       ...form,
       preferredTransportIds: selectedTransports.map((t) => t.id),
@@ -254,7 +218,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="supplierName"
                     value={form.supplierName}
                     onChange={handleFormChange}
-                    label="Supplier Name*"
+                    label="Supplier Name *"
                     className="border p-2 rounded"
                     error={!!errors.supplierName}
                     helperText={errors.supplierName}
@@ -337,10 +301,8 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     name="addressLine1"
                     value={form.addressLine1}
                     onChange={handleFormChange}
-                    label="Address Line 1*"
+                    label="Address Line 1"
                     className="border p-2 rounded"
-                    error={!!errors.addressLine1}
-                    helperText={errors.addressLine1}
                   />
                   <CustomTextField
                     name="addressLine2"
@@ -367,8 +329,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     onChange={handleFormChange}
                     label="City"
                     className="border p-2 rounded"
-                    error={!!errors.city}
-                    helperText={errors.city}
                   />
 
                   <CustomTextField
@@ -397,10 +357,8 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
-                        label="Contact Person*"
+                        label="Contact Person"
                         className="w-full border p-2 rounded"
-                        error={!!errors.contacts?.[index]?.contactPerson}
-                        helperText={errors.contacts?.[index]?.contactPerson}
                       />
                     </div>
                     <div className="md:col-span-4">
@@ -413,10 +371,8 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="Mobile No.*"
+                        label="Mobile No."
                         className="w-full border p-2 rounded"
-                        error={!!errors.contacts?.[index]?.mobileNumber}
-                        helperText={errors.contacts?.[index]?.mobileNumber}
                         type="tel"
                       />
                     </div>
