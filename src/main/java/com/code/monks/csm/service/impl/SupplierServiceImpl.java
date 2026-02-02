@@ -85,26 +85,18 @@ public class SupplierServiceImpl implements SupplierService {
     private void validateSupplierAndContacts(AddSupplierRequestDto requestDto, String code) {
         List<ValidatorUtil.DuplicateCheck> duplicateChecks = new ArrayList<>();
 
-        // Supplier-level checks
-        if (StringUtils.isNotBlank(requestDto.getSupplierGstNo())) {
-            duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                    "GST number",
-                    () -> supplierRepo.existsByGstNo(requestDto.getSupplierGstNo())
-            ));
-        }
         duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
                 "code", () -> supplierRepo.existsByCode(code)
         ));
 
-        // Contact-level checks
-        if (requestDto.getContacts() != null) {
-            for (ContactRequestDto contact : requestDto.getContacts()) {
-                duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                        "mobile number (" + contact.getMobileNumber() + ")",
-                        () -> contactRepo.existsByMobileNumber(contact.getMobileNumber())
-                ));
-            }
-        }
+//        if (requestDto.getContacts() != null) {
+//            for (ContactRequestDto contact : requestDto.getContacts()) {
+//                duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+//                        "mobile number (" + contact.getMobileNumber() + ")",
+//                        () -> contactRepo.existsByMobileNumber(contact.getMobileNumber())
+//                ));
+//            }
+//        }
 
         validatorUtil.validateUniqueFields(duplicateChecks);
     }

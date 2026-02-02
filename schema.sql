@@ -33,10 +33,9 @@ CREATE TABLE transport_contacts (
         FOREIGN KEY (transport_id)
         REFERENCES transports(id)
         ON DELETE CASCADE,
-
-    CONSTRAINT uk_tc_transport_contact
-        UNIQUE (transport_id, contact_number)
+    INDEX idx_tc_transport_id (transport_id)
 );
+
 
 
 CREATE TABLE IF NOT EXISTS supplier (
@@ -322,13 +321,11 @@ ADD INDEX idx_bill_customer (customer_id);
 ALTER TABLE bill
 MODIFY remarks VARCHAR(255);
 
-
 ALTER TABLE transports
 DROP COLUMN contact_number;
 
 ALTER TABLE transports
 DROP COLUMN address;
-
 
 ALTER TABLE transports
 ADD COLUMN email VARCHAR(255) NULL,
@@ -336,9 +333,6 @@ ADD COLUMN state VARCHAR(50),
 ADD COLUMN pin_code VARCHAR(50),
 ADD COLUMN address_line1 VARCHAR(255),
 ADD COLUMN address_line2 VARCHAR(255);
-
-ALTER TABLE transports
-ADD CONSTRAINT uk_transports_email UNIQUE (email);
 
 CREATE INDEX idx_tc_contact_number
 ON transport_contacts(contact_number);
@@ -358,9 +352,6 @@ ALTER TABLE supplier
 ADD COLUMN email VARCHAR(255) NULL
 AFTER name;
 
-ALTER TABLE supplier
-ADD CONSTRAINT uk_supplier_email UNIQUE (email);
-
 CREATE INDEX idx_supplier_email ON supplier(email);
 
 ALTER TABLE customer
@@ -379,6 +370,32 @@ ADD COLUMN state VARCHAR(255);
 
 ALTER TABLE customer
 ADD COLUMN state VARCHAR(255);
+
+ALTER TABLE supplier
+DROP INDEX uk_supplier_gst;
+
+ALTER TABLE customer
+DROP INDEX uk_customer_gst;
+
+ALTER TABLE transports
+DROP INDEX uk_transports_gst_no;
+
+ALTER TABLE transports
+MODIFY COLUMN gst_no TEXT NULL;
+
+ALTER TABLE supplier
+DROP INDEX idx_supplier_gst;
+
+ALTER TABLE supplier
+MODIFY COLUMN gst_no TEXT NULL;
+
+ALTER TABLE customer
+DROP INDEX idx_customer_gst;
+
+ALTER TABLE customer
+MODIFY COLUMN gst_no TEXT NULL;
+
+
 
 
 

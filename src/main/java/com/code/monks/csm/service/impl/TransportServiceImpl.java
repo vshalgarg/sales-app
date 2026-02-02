@@ -304,69 +304,16 @@ public class TransportServiceImpl implements TransportService {
             Integer excludeId // null for add, id for update
     ) {
 
-        if (request.getContacts() != null) {
-            Set<String> seenNumbers = new HashSet<>();
-
-            for (var c : request.getContacts()) {
-                String number = c.getContactNumber();
-
-                if (!seenNumbers.add(number)) {
-                    throw new DuplicateEntryException(
-                            DUPLICATE_ENTRY,
-                            "Duplicate contact number in request: " + number
-                    );
-                }
-            }
-        }
-
         List<ValidatorUtil.DuplicateCheck> checks = new ArrayList<>();
 
         String name = request.getName().trim();
-        String email = normalize(request.getEmail());
-        String gst = normalize(request.getGstNo());
 
-        //  Name
         checks.add(new ValidatorUtil.DuplicateCheck(
                 "transport name",
                 () -> excludeId == null
                         ? transportRepository.existsByNameIgnoreCase(name)
                         : transportRepository.existsByNameIgnoreCaseAndIdNot(name, excludeId)
         ));
-
-        //  Email
-        if (StringUtils.isNotBlank(email)) {
-            checks.add(new ValidatorUtil.DuplicateCheck(
-                    "email",
-                    () -> excludeId == null
-                            ? transportRepository.existsByEmail(email)
-                            : transportRepository.existsByEmailAndIdNot(email, excludeId)
-            ));
-        }
-
-        //  GST
-        if (StringUtils.isNotBlank(gst)) {
-            checks.add(new ValidatorUtil.DuplicateCheck(
-                    "GST number",
-                    () -> excludeId == null
-                            ? transportRepository.existsByGstNo(gst)
-                            : transportRepository.existsByGstNoAndIdNot(gst, excludeId)
-            ));
-        }
-
-        //  Contact numbers
-        if (request.getContacts() != null) {
-            for (var c : request.getContacts()) {
-                checks.add(new ValidatorUtil.DuplicateCheck(
-                        "contact number (" + c.getContactNumber() + ")",
-                        () -> excludeId == null
-                                ? transportContactRepository
-                                .existsByContactNumber(c.getContactNumber())
-                                : transportContactRepository
-                                .existsByContactNumberAndTransportIdNot(
-                                        c.getContactNumber(), excludeId)
-                ));
-            }
-        }
 
         validatorUtil.validateUniqueFields(checks);
     }

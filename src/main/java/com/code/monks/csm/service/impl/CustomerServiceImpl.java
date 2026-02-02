@@ -92,29 +92,22 @@ public class CustomerServiceImpl implements CustomerService {
     private void validateCustomerAndContacts(AddCustomerRequestDto requestDto, String code) {
         List<ValidatorUtil.DuplicateCheck> duplicateChecks = new ArrayList<>();
 
-        // Customer-level checks
-        if(StringUtils.isNotBlank(requestDto.getCustomerGstNo())) {
-            duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                    "GST number", () -> customerRepo.existsByGstNo(requestDto.getCustomerGstNo())
-            ));
-        }
         duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
                 "code", () -> customerRepo.existsByCode(code)
         ));
 
-        // Contact-level checks
-        if (requestDto.getContacts() != null) {
-            for (ContactRequestDto contact : requestDto.getContacts()) {
-                // Mobile number
-                String mobile = contact.getMobileNumber();
-                if (StringUtils.isNotBlank(mobile)) {
-                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                            "mobile number (" + mobile + ")",
-                            () -> contactRepo.existsByMobileNumber(mobile)
-                    ));
-                }
-            }
-        }
+//        if (requestDto.getContacts() != null) {
+//            for (ContactRequestDto contact : requestDto.getContacts()) {
+//                // Mobile number
+//                String mobile = contact.getMobileNumber();
+//                if (StringUtils.isNotBlank(mobile)) {
+//                    duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+//                            "mobile number (" + mobile + ")",
+//                            () -> contactRepo.existsByMobileNumber(mobile)
+//                    ));
+//                }
+//            }
+//        }
         validatorUtil.validateUniqueFields(duplicateChecks);
     }
 

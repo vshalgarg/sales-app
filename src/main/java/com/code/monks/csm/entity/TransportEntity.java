@@ -30,8 +30,7 @@ public class TransportEntity extends BaseEntity{
     @Column(nullable = false, length = 100)
     private String name;
 
-    // OPTIONAL + UNIQUE
-    @Column(name = "email", nullable = true, unique = true)
+    @Column(name = "email", nullable = true)
     private String email;
 
     @Column(name = "gst_no", nullable = true)

@@ -15,7 +15,6 @@ public class BillEntryRequestDto {
     @NotNull(message = "Date must not be empty")
     private LocalDate date;
 
-    @NotNull(message = "Received date must not be empty")
     private LocalDate receivedDate;
 
     @NotBlank(message = "order is required")
