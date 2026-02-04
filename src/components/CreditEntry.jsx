@@ -572,12 +572,19 @@ export default function CreditEntryForm() {
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-4 border-t border-gray-200 bg-white
-                flex items-center justify-between
-                shrink-0 sticky bottom-0 z-10 shadow-md">
+        <div
+          className="
+    px-4 sm:px-8 py-4
+    border-t border-gray-200 bg-white
+    flex flex-col sm:flex-row
+    gap-4 sm:gap-0
+    sm:items-center sm:justify-between
+    shrink-0 sticky bottom-0 z-10 shadow-md
+  "
+        >
 
           {/* Left side – helper text */}
-          <p className="text-sm text-gray-500">
+          <p className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
             Please review all details before saving the credit entry.
           </p>
 
@@ -587,10 +594,14 @@ export default function CreditEntryForm() {
             <button
               onClick={handleReset}
               type="button"
-              className="px-5 py-2.5 text-sm font-medium text-gray-600
-                 border border-gray-300 rounded-lg
-                 hover:bg-gray-100 hover:text-gray-800
-                 transition-all duration-200"
+              className="
+        w-full sm:w-auto
+        px-4 sm:px-5 py-2.5
+        text-sm font-medium text-gray-600
+        border border-gray-300 rounded-lg
+        hover:bg-gray-100 hover:text-gray-800
+        transition-all duration-200
+      "
             >
               Reset
             </button>
@@ -599,13 +610,17 @@ export default function CreditEntryForm() {
             <button
               onClick={handleSubmit}
               type="button"
-              className="px-6 py-2.5 text-sm font-semibold text-white
-     rounded-lg
-     bg-gradient-to-r from-blue-600 to-blue-700
-     hover:from-blue-700 hover:to-blue-800
-     shadow-md hover:shadow-lg
-     transition-all duration-200
-     flex items-center gap-2"
+              className="
+        w-full sm:w-auto
+        px-5 sm:px-6 py-2.5
+        text-sm font-semibold text-white
+        rounded-lg
+        bg-gradient-to-r from-blue-600 to-blue-700
+        hover:from-blue-700 hover:to-blue-800
+        shadow-md hover:shadow-lg
+        transition-all duration-200
+        flex items-center justify-center gap-2
+      "
             >
               {isSaving ? (
                 <>
@@ -631,7 +646,7 @@ export default function CreditEntryForm() {
                   Saving...
                 </>
               ) : (
-                "Save Credit Entry"
+                "Save"
               )}
             </button>
 

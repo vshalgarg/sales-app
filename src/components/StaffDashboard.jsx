@@ -7,6 +7,7 @@ import DataTable from "./DataTable";
 import UniversalSearch from "./UniversalSearch";
 import dayjs from "dayjs";
 import { useMediaQuery } from "@mui/material";
+import useResponsive from "../customHooks/useResponsive";
 
 export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
@@ -25,7 +26,7 @@ export default function StaffDashboard() {
   const searchRef = useRef(null);
   const { showSnackbar } = useSnackbar();
   const [totalItems, setTotalItems] = useState(0);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const { isMobile } = useResponsive();
 
 
   const columns ={

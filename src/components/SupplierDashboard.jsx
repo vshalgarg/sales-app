@@ -6,6 +6,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 import { Typography, useMediaQuery } from "@mui/material";
+import useResponsive from "../customHooks/useResponsive";
 
 export default function SupplierDashboard() {
   const [loading, setLoading] = useState(false);
@@ -22,13 +23,13 @@ export default function SupplierDashboard() {
   const searchRef = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const dropdownRef = useRef(null);
+
+  const { isMobile } = useResponsive();
 
   const columns = {
     desktop: [

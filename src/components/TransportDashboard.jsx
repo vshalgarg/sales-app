@@ -4,7 +4,8 @@ import AddNewTransport from "./AddNewTransport";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
-import { useMediaQuery } from "@mui/material";
+import useResponsive from "../customHooks/useResponsive";
+
 
 export default function TransportDashboard() {
   // throw new Error("error in transport page");
@@ -23,7 +24,7 @@ export default function TransportDashboard() {
   const { showSnackbar } = useSnackbar();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [transportToDelete, setTransportToDelete] = useState(null);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const { isMobile } = useResponsive();
 
   const columns = {
     desktop: [
