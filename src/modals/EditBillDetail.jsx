@@ -14,6 +14,7 @@ import CustomerService from "../service/CustomerService";
 import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
 import useResponsive from "../customHooks/useResponsive";
+import MobileBillItemCard from "./MobileBillItemCard";
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
   const { showSnackbar } = useSnackbar();
@@ -108,6 +109,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       if (selectedBillDetail.items && selectedBillDetail.items.length > 0) {
         setItems(
           selectedBillDetail.items.map(item => ({
+            id: item.id ?? crypto.randomUUID(),
             pieces: item.pieces,
             grossAmount: item.grossAmount.toFixed(2),
             discountPercent: item.discountPercent,
@@ -447,6 +449,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               <button
                 onClick={() => {
                   setItems([...items, {
+                     id: crypto.randomUUID(),
                     pieces: "",
                     grossAmount: "",
                     discountPercent: "",
@@ -457,7 +460,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                     gstAmount: "0.00",
                   }]);
                 }}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+                className="px-2 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -466,129 +469,159 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               </button>
             </div>
 
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <table className="min-w-[900px] sm:min-w-full">
-                <thead className="bg-blue-100">
-                  <tr>
-                    <th className="px-4 py-2 text-left">Pieces</th>
-                    <th className="px-4 py-2 text-left">Gross</th>
-                    <th className="px-4 py-2 text-left">Disc %</th>
-                    <th className="px-4 py-2 text-left">Disc Amt</th>
-                    <th className="px-4 py-2 text-left">Add-On</th>
-                    <th className="px-4 py-2 text-left">ECR</th>
-                    <th className="px-4 py-2 text-left">GST %</th>
-                    <th className="px-4 py-2 text-left">GST Amt</th>
-                    <th className="px-4 py-2 text-left">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.length === 0 ? (
+            {/* ================= MOBILE ================= */}
+            {isMobile && (
+              <div className="space-y-4">
+                {items.length === 0 ? (
+                  <p className="text-center text-gray-500 py-6">
+                    No items added yet
+                  </p>
+                ) : (
+                  items.map((item, index) => (
+                    <MobileBillItemCard
+                    key={item.id} 
+                      item={item}
+                      index={index}
+                      onChange={handleItemChange}
+                      onDelete={(i) => {
+                        if (items.length > 1) {
+                          setItems(items.filter((_, idx) => idx !== i));
+                        } else {
+                          showSnackbar("At least one item is required", "warning");
+                        }
+                      }}
+                    />
+                  ))
+                )}
+              </div>  
+            )}
+
+            {!isMobile && (
+              <div className="overflow-x-auto">
+                <table className="min-w-[900px] w-full">
+                  <thead className="bg-blue-100">
                     <tr>
-                      <td colSpan="9" className="text-center py-8 text-gray-500">
-                        No items added yet. Click "Add Row" to start.
-                      </td>
+                      <th className="px-4 py-2 text-left">Pieces</th>
+                      <th className="px-4 py-2 text-left">Gross</th>
+                      <th className="px-4 py-2 text-left">Disc %</th>
+                      <th className="px-4 py-2 text-left">Disc Amt</th>
+                      <th className="px-4 py-2 text-left">Add-On</th>
+                      <th className="px-4 py-2 text-left">ECR</th>
+                      <th className="px-4 py-2 text-left">GST %</th>
+                      <th className="px-4 py-2 text-left">GST Amt</th>
+                      <th className="px-4 py-2 text-left">Action</th>
                     </tr>
-                  ) : (
-                    items.map((item, index) => (
-                      <tr key={index} className="border-t hover:bg-gray-100">
-                        <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            value={item.pieces || ""}
-                            onChange={(e) => handleItemChange(index, "pieces", e.target.value)}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0"
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            value={item.grossAmount || ""}
-                            onChange={(e) => handleItemChange(index, "grossAmount", e.target.value)}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0.00"
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            value={item.discountPercent || ""}
-                            onChange={(e) => handleItemChange(index, "discountPercent", e.target.value)}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0"
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="text"
-                            value={item.discountAmount || "0.00"}
-                            readOnly
-                            className="w-full px-3 py-2 bg-gray-200 border rounded"
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            value={item.addOnAmount || ""}
-                            onChange={(e) => handleItemChange(index, "addOnAmount", e.target.value)}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0.00"
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            value={item.ecrAmount || ""}
-                            onChange={(e) => handleItemChange(index, "ecrAmount", e.target.value)}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0.00"
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            value={item.gstPercent || ""}
-                            onChange={(e) => handleItemChange(index, "gstPercent", e.target.value)}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0"
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="text"
-                            value={item.gstAmount || "0.00"}
-                            readOnly
-                            className="w-full px-3 py-2 bg-gray-200 border rounded"
-                          />
-                        </td>
-                        <td className="px-4 py-2 text-center">
-                          <button
-                            onClick={() => {
-                              if (items.length > 1) {
-                                setItems(items.filter((_, i) => i !== index));
-                              } else {
-                                showSnackbar("At least one item is required", "warning");
-                              }
-                            }}
-                            className="text-red-600 hover:text-red-800"
-                            title="Delete row"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                  </thead>
+                  <tbody>
+                    {items.length === 0 ? (
+                      <tr>
+                        <td colSpan="9" className="text-center py-8 text-gray-500">
+                          No items added yet. Click "Add Row" to start.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      items.map((item, index) => (
+                        <tr key={index} className="border-t hover:bg-gray-100">
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              value={item.pieces || ""}
+                              onChange={(e) => handleItemChange(index, "pieces", e.target.value)}
+                              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              value={item.grossAmount || ""}
+                              onChange={(e) => handleItemChange(index, "grossAmount", e.target.value)}
+                              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0.00"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              value={item.discountPercent || ""}
+                              onChange={(e) => handleItemChange(index, "discountPercent", e.target.value)}
+                              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="text"
+                              value={item.discountAmount || "0.00"}
+                              readOnly
+                              className="w-full px-3 py-2 bg-gray-200 border rounded"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              value={item.addOnAmount || ""}
+                              onChange={(e) => handleItemChange(index, "addOnAmount", e.target.value)}
+                              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0.00"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              value={item.ecrAmount || ""}
+                              onChange={(e) => handleItemChange(index, "ecrAmount", e.target.value)}
+                              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0.00"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              value={item.gstPercent || ""}
+                              onChange={(e) => handleItemChange(index, "gstPercent", e.target.value)}
+                              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="text"
+                              value={item.gstAmount || "0.00"}
+                              readOnly
+                              className="w-full px-3 py-2 bg-gray-200 border rounded"
+                            />
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            <button
+                              onClick={() => {
+                                if (items.length > 1) {
+                                  setItems(items.filter((_, i) => i !== index));
+                                } else {
+                                  showSnackbar("At least one item is required", "warning");
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-800"
+                              title="Delete row"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Final Totals */}
-            <div className="mt-8 grid grid-cols-2 gap-8 text-lg font-bold">
-              <div className="text-right">
+            <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-base sm:text-lg font-semibold">
+              <div className="flex justify-between sm:justify-end items-center bg-gray-100 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md">
                 <span className="text-gray-600">Taxable Value:</span> ₹{formData.taxableValue || "0.00"}
               </div>
-              <div className="text-right text-blue-700">
+
+              <div className="flex justify-between sm:justify-end items-center bg-blue-50 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md text-blue-700 font-bold">
                 <span className="text-gray-600">Bill Amount:</span> ₹{formData.billAmount || "0.00"}
               </div>
             </div>
