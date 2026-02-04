@@ -6,6 +6,7 @@ import CustomerDetail from "../modals/CustomerDetail";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 import { useMediaQuery } from "@mui/material";
+import useResponsive from "../customHooks/useResponsive";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -27,7 +28,7 @@ export default function CustomerDashboard() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const { isMobile } = useResponsive();
 
   const [form, setForm] = useState({
     customerName: "",

@@ -33,6 +33,7 @@ const DataTable = ({
   totalCount,
   rowsPerPage = 10,
   onPageChange,
+  disablePagination = false,
   emptyMessage = "No records found",
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -53,7 +54,7 @@ const DataTable = ({
     onPageChange?.(newPage + 1);
   };
 
-  const showPagination = totalCount > 0 && totalCount > rowsPerPage;
+  const showPagination = !disablePagination && totalCount > 0 && totalCount > rowsPerPage;
 
   return (
     <Paper elevation={3} sx={{ borderRadius: 2, display: "flex", flexDirection: "column", height: "100%" }}>

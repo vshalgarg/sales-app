@@ -13,6 +13,7 @@ import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
+import useResponsive from "../customHooks/useResponsive";
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
   const { showSnackbar } = useSnackbar();
@@ -47,6 +48,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   } = useBillForm();
 
   const [items, setItems] = useState([]);
+  const { isMobile } = useResponsive();
+
 
 
   useEffect(() => {
@@ -215,7 +218,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       }
     } catch (err) {
       console.error(err);
-      showSnackbar("Failed to update bill", "error");
+      showSnackbar(err.message, "error");
     }
   };
 
@@ -223,15 +226,23 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-      <div className="bg-white w-full max-w-6xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
-        <div className="p-6 border-b">
-          <h2 className="text-2xl font-semibold">Edit Bill Details</h2>
+      <div
+        className={`
+    bg-white flex flex-col
+    w-full
+    ${isMobile
+            ? "h-full rounded-none"
+            : "max-w-6xl max-h-[90vh] rounded-lg"}
+  `}
+      >
+        <div className="px-4 sm:px-6 py-4">
+          <h2 className="text-lg sm:text-2xl">Edit Bill Details</h2>
         </div>
 
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
           {/* --- Section: Bill Info --- */}
           <h3 className="text-lg font-semibold mb-3">Bill Information</h3>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <CustomTextField
               name="billNumber"
               value={formData.billNumber}
@@ -292,7 +303,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                     receivedDate: validate("receivedDate", formatted),
                   }));
                 }}
-                 slotProps={{
+                slotProps={{
                   textField: {
                     size: "small",
                     fullWidth: true,
@@ -313,7 +324,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
           {/* --- Section: Supplier --- */}
           <h3 className="text-lg font-semibold mb-3">Supplier Information</h3>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div ref={searchRef} className="relative w-full">
               <Autocomplete
                 options={allSuppliers}
@@ -372,7 +383,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
           {/* --- Section: Customer --- */}
           <h3 className="text-lg font-semibold mb-3">Customer Information</h3>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div ref={custSearchRef} className="relative w-full">
               <Autocomplete
                 options={allCustomers}
@@ -455,8 +466,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-300">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="min-w-[900px] sm:min-w-full">
                 <thead className="bg-blue-100">
                   <tr>
                     <th className="px-4 py-2 text-left">Pieces</th>
@@ -637,20 +648,28 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
         </div>
 
         {/* --- Footer --- */}
-        <div className="p-4 border-t flex justify-end space-x-3">
+        <div
+          className="
+    px-4 py-4 border-t bg-white
+    flex flex-col sm:flex-row
+    gap-3 sm:justify-end
+    sticky bottom-0
+  "
+        >
+
           <button
             onClick={() => {
               localStorage.removeItem("billFormData");
               localStorage.removeItem("billFormErrors");
               setOpen(false);
             }}
-            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+            className="px-4 py-2 sm:w-auto bg-gray-400 text-white rounded-lg hover:bg-gray-500"
           >
             Cancel
           </button>
           <button
             onClick={handleUpdate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 sm:w-auto bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Save Changes
           </button>
