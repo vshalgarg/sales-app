@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
@@ -212,12 +213,20 @@ public class BillServiceImpl implements BillService {
     @Override
     public EditBillEntryResponse updateBill(String billNumber, BillUpdateRequest request) {
 
+        log.info("Update bill request started | billNumber={}", billNumber);
         BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
-                .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, billNumber));
+                .orElseThrow(() -> {
+                    log.error("Bill not found | billNumber={}", billNumber);
+                    return new ResourceNotFoundException(BILL_NOT_FOUND, billNumber);
+                });
 
+        log.debug("Bill entity fetched | id={}", bill.getId());
             bill.setDate(LocalDate.parse(request.getDate()));
-            bill.setReceivedDate(LocalDate.parse(request.getReceivedDate()));
-            bill.setOrders(request.getOrder());
+        Optional.ofNullable(request.getReceivedDate())
+                .filter(date -> !date.trim().isEmpty())
+                .map(LocalDate::parse)
+                .ifPresent(bill::setReceivedDate);
+        bill.setOrders(request.getOrder()); 
         bill.setSupplierId(request.getSupplierId());
         bill.setCustomerId(request.getCustomerId());
 
@@ -228,14 +237,16 @@ public class BillServiceImpl implements BillService {
                 String newName = request.getTransport().trim();
                 TransportEntity transport = transportService
                         .findByNameIgnoreCase(newName)
-                        .orElseThrow(() ->
-                                new BillException(
-                                        TRANSPORT_NOT_FOUND,
-                                        "Transport does not exist: " + newName
-                                )
-                        );
-
+                        .orElseThrow(() -> {
+                            log.warn("⚠Transport not found | name={}", newName);
+                            return new BillException(
+                                    TRANSPORT_NOT_FOUND,
+                                    "Transport does not exist: " + newName
+                            );
+                        });
                 bill.setTransportEntity(transport);
+                log.info("Transport linked | transportId={}, name={}",
+                        transport.getId(), transport.getName());
             }
 
             bill.setLrNumber(request.getLrNumber());
@@ -261,12 +272,22 @@ public class BillServiceImpl implements BillService {
                 .toList();
 
         bill.getBillDetails().addAll(newDetails);
+        log.info("📦 Added new bill items | count={}", newDetails.size());
 
         // Header totals update
         bill.setTaxableValue(Math.round(request.getTaxableValue()) * 100);
         bill.setBillAmount(Math.round(request.getBillAmount()) * 100);
 
+        log.debug(
+                "Totals updated | taxableValue={}, billAmount={}",
+                bill.getTaxableValue(),
+                bill.getBillAmount()
+        );
+
         billRepo.save(bill);
+
+        log.info("Bill updated successfully | billNumber={}, billId={}",
+                billNumber, bill.getId());
 
         return EditBillEntryResponse.builder()
                 .message("Bill updated successfully!")
