@@ -84,12 +84,10 @@ export default function TransportDashboard() {
       {
         key: "name",
         label: "Transport Name",
-        width: "20%",
       },
       {
         key: "city",
         label: "City",
-        width: "12%",
         render: (row) => row.city || "-",
       }
     ],

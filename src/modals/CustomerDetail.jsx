@@ -7,8 +7,8 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
   }, [selectedCustomer]);
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:flex md:items-center md:justify-center">
+        <div className="bg-white w-full h-screen  md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
           <div className="px-3 py-2  md:p-6 border-b boder-gray-300">
             <h2 className="text-lg md:text-xl font-semibold">Customer Details</h2>
           </div>

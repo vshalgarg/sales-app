@@ -58,8 +58,19 @@ const DataTable = ({
 
   return (
     <Paper elevation={3} sx={{ borderRadius: 2, display: "flex", flexDirection: "column", height: "100%" }}>
-      <TableContainer sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-        <Table stickyHeader size="small">
+      <TableContainer
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowX: "hidden", 
+          overflowY: "auto",
+        }}
+      >
+        <Table stickyHeader size="small"
+          sx={{
+            tableLayout: "fixed",
+            width: "100%",
+          }}>
           {/* TABLE HEAD */}
           <TableHead>
             <TableRow sx={
@@ -81,7 +92,7 @@ const DataTable = ({
                   {col.label}
                 </TableCell>
               ))}
-              {actions && <TableCell sx={{ width: "80px", backgroundColor: '#e0e0e0',fontWeight: 600 }}>Actions</TableCell>}
+              {actions && <TableCell sx={{ width: "80px", backgroundColor: '#e0e0e0', fontWeight: 600 }}>Actions</TableCell>}
             </TableRow>
           </TableHead>
 
@@ -101,7 +112,15 @@ const DataTable = ({
               data.map((row, index) => (
                 <TableRow key={row.id || row.code || index} hover>
                   {columns.map((col) => (
-                    <TableCell key={col.key}>
+                    <TableCell
+                      key={col.key}
+                      sx={{
+                        maxWidth: 0,
+                        whiteSpace: "normal",
+                        wordBreak: "break-word",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
                       {col.render
                         ? col.render(row, index)
                         : (row[col.key] == null || row[col.key] === "")
@@ -147,7 +166,7 @@ const DataTable = ({
           onRowsPerPageChange={(event) => {
             onRowsPerPageChange?.(parseInt(event.target.value, 10));
           }}
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[]}
           showFirstButton
           showLastButton
           labelRowsPerPage="Rows per page:"

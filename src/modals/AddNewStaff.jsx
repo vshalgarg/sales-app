@@ -86,7 +86,8 @@ export default function AddNewStaff({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-      <div className="bg-white w-full max-w-md rounded-lg shadow-lg flex flex-col">
+      <div className="bg-white w-full max-w-md mx-4 md:mx-0
+ rounded-lg shadow-lg flex flex-col">
 
         {/* Header */}
         <div className="p-6 border-b">

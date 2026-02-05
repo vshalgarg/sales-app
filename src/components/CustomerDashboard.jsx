@@ -76,8 +76,8 @@ export default function CustomerDashboard() {
       },
     ],
     mobile: [
-      { key: "customerName", label: "Name", width: "18%" },
-      { key: "city", label: "City", width: "10%" },
+      { key: "customerName", label: "Name"},
+      { key: "city", label: "City"},
     ],
   };
 
