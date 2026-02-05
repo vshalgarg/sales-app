@@ -284,7 +284,7 @@ const Users = () => {
       {/* Add User Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-          <div className="bg-white w-full max-w-md max-h-[50vh] rounded-lg shadow-lg flex flex-col">
+          <div className="bg-white w-full max-w-md mx-4 md:mx-0 max-h-[50vh] rounded-lg shadow-lg flex flex-col">
             <div className="px-6 py-4 border-b">
               <h2 className="text-lg font-bold">Add New User</h2>
             </div>
@@ -343,7 +343,7 @@ const Users = () => {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && userToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[380px] p-6 transform transition-all animate-fadeIn">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl mx-4 md:mx-0 shadow-2xl w-[380px] p-6 transform transition-all animate-fadeIn">
             <div className="flex items-center justify-center mb-4">
               <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full p-3">
                 <Trash2 className="w-6 h-6" />
@@ -384,7 +384,7 @@ const Users = () => {
 
       {changePwdModalOpen && selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white w-full max-w-md rounded-lg shadow-lg">
+          <div className="bg-white w-full max-w-md mx-4 md:mx-0 rounded-lg shadow-lg">
 
             <div className="px-6 py-4 border-b">
               <h2 className="text-lg font-bold">

@@ -15,6 +15,8 @@ import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
 import useResponsive from "../customHooks/useResponsive";
 import MobileBillItemCard from "./MobileBillItemCard";
+import { nanoid } from "nanoid";
+
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
   const { showSnackbar } = useSnackbar();
@@ -109,7 +111,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       if (selectedBillDetail.items && selectedBillDetail.items.length > 0) {
         setItems(
           selectedBillDetail.items.map(item => ({
-            id: item.id ?? crypto.randomUUID(),
+            id: item.id ?? nanoid(),
             pieces: item.pieces,
             grossAmount: item.grossAmount.toFixed(2),
             discountPercent: item.discountPercent,
@@ -449,7 +451,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               <button
                 onClick={() => {
                   setItems([...items, {
-                     id: crypto.randomUUID(),
+                    id: nanoid(),
                     pieces: "",
                     grossAmount: "",
                     discountPercent: "",

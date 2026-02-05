@@ -65,8 +65,8 @@ export default function SupplierDashboard() {
       },
     ],
     mobile: [
-      { key: "supplierName", label: "Name", width: "18%" },
-      { key: "city", label: "City", width: "10%" },
+      { key: "supplierName", label: "Name" },
+      { key: "city", label: "City"},
     ],
   };
 

@@ -52,12 +52,10 @@ export default function StaffDashboard() {
     {
       key: "staffName",
       label: "Staff Name",
-      width: "40%",
     },
     {
       key: "phone",
       label: "Phone",
-      width: "30%",
     }
   ]
   }

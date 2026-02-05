@@ -1,4 +1,4 @@
-import { Settings, MoonStar, SunMedium, LogOut, User ,Menu } from "lucide-react";
+import { Settings, MoonStar, SunMedium, LogOut, User, Menu } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -82,10 +82,10 @@ export default function Navbar({
       >
         {/* Left: App Title + Section Buttons */}
         <div className="flex items-center">
-        <Menu  onClick={onMenuClick} className="w-5 h-5 md:w-8 md:h-8 md:hidden mr-3 text-gray-700 dark:text-white" />
-          
+          <Menu onClick={onMenuClick} className="w-5 h-5 md:w-8 md:h-8 md:hidden mr-3 text-gray-700 dark:text-white" />
+
           {
-            isMobile?<div className="flex justify-center">
+            isMobile ? <div className="flex justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -100,12 +100,10 @@ export default function Navbar({
                   d="M12 4l6 8H6l6-8zM6 20h12"
                 />
               </svg>
-            </div>:<h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Textile Management
-          </h1>
+            </div> : <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              Textile Management
+            </h1>
           }
-          
-
           {/* Section Buttons */}
           <div className="hidden md:flex space-x-3 md:ml-[200px]">
             {["master", "entries", "reporting"].map((section) => (
@@ -113,10 +111,9 @@ export default function Navbar({
                 key={section}
                 onClick={() => handleSectionClick(section)}
                 className={`px-3 py-1 rounded-md font-medium transition-colors
-                  ${
-                    mainActiveSection === section
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
+                  ${mainActiveSection === section
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
                   }`}
               >
                 {section.charAt(0).toUpperCase() + section.slice(1)}
@@ -128,21 +125,29 @@ export default function Navbar({
             <select
               value={mainActiveSection}
               onChange={(e) => handleSectionClick(e.target.value)}
-              className="px-3 py-1 rounded-md border
-      bg-white dark:bg-zinc-800
-      text-gray-800 dark:text-white
-      border-gray-300 dark:border-zinc-700"
+              className="px-3 pr-8 min-h-[36px] leading-normal whitespace-normal rounded-md border
+ bg-white dark:bg-zinc-800 text-gray-800 dark:text-white border-gray-300 dark:border-zinc-700
+    appearance-none
+  "
             >
+
               <option value="master">Master</option>
               <option value="entries">Entries</option>
               <option value="reporting">Reporting</option>
             </select>
+
+            <span
+              className="pointer-events-none absolute right-2  inset-y-0 flex items-center text-gray-500 text-xs
+    "
+            >
+              ▼
+            </span>
           </div>
         </div>
 
         {/* Right: Profile Menu */}
-        <div className="relative profile-dropdown"> 
-            <Settings onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-5 h-5 md:w-8 md:h-8 text-gray-700 dark:text-white" />
+        <div className="relative profile-dropdown">
+          <Settings onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-5 h-5 md:w-8 md:h-8 text-gray-700 dark:text-white" />
 
           {/* Dropdown */}
           {showProfileMenu && (
@@ -161,7 +166,7 @@ export default function Navbar({
                 ) : (
                   <SunMedium className="w-4 h-4 text-yellow-400" />
                 )} */}
-                {/* <span className="ml-2">
+              {/* <span className="ml-2">
                   {theme === "light" ? "Dark Mode" : "Light Mode"}
                 </span>
               </button> */}
@@ -195,7 +200,8 @@ export default function Navbar({
       {/*Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6 w-[360px]">
+          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6 w-[360px] mx-4 md:mx-0
+">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               My Profile
             </h2>

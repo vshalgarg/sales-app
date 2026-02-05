@@ -213,18 +213,20 @@ const Purchase = () => {
         </div>
 
         <div className="px-6 pb-5 flex justify-end gap-3">
-          <button onClick={clearFiltersAndResults} className="px-5 py-2 border rounded">
+          <button onClick={clearFiltersAndResults} className="px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm border rounded">
             Clear Filters
           </button>
+
           <button
             onClick={() => handlePurchaseHistory(1)}
             disabled={!isAnyFilterSelected}
-            className={`px-6 py-2 rounded
-    ${isAnyFilterSelected
-                ? "bg-blue-600 text-white"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
-          >
+              className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded
+      ${isAnyFilterSelected
+        ? "bg-blue-600 text-white"
+        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+      }
+    `}
+  >
             Apply Filters
           </button>
 

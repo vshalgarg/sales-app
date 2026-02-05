@@ -285,7 +285,7 @@ const Bills = () => {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={clearFiltersAndResults}
-                className="px-5 py-2 text-sm rounded-lg border text-gray-600
+                className=" px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm rounded-lg border text-gray-600
                          hover:bg-gray-100 transition"
               >
                 Clear Filters
@@ -294,7 +294,7 @@ const Bills = () => {
               <button
                 onClick={() => handleBillDetailHistory(1)}
                 disabled={!isAnyFilterSelected}
-                className={`px-6 py-2 text-sm font-medium rounded-lg transition shadow-sm
+                className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded-lg transition shadow-sm
     ${isAnyFilterSelected
                     ? "bg-blue-600 text-white hover:bg-blue-700"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
