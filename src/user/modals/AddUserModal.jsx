@@ -73,13 +73,24 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
 
       showSnackbar(response.message, "success");
 
-      setForm({ username: "", password: "", role: "" });
+      resetForm();
       onSuccess();
       onClose();
     } catch (error) {
       showSnackbar(error.message, "error");
     }
   };
+
+  const resetForm = () => {
+    setForm({
+      username: "",
+      password: "",
+      role: "",
+    });
+    setErrors({});
+    setShowPassword(false);
+  };
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
@@ -151,7 +162,10 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
 
         <div className="px-6 py-2 border-t flex justify-end space-x-2">
           <button
-            onClick={onClose}
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
             className="px-3 py-2 border rounded-lg hover:bg-gray-200 text-sm"
           >
             Cancel
