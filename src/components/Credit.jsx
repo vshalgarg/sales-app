@@ -306,7 +306,7 @@ const Credit = () => {
 
       {isDeleteOpen && creditToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-5">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-5 mx-4 md:mx-0 ">
 
             <h3 className="text-lg font-semibold text-gray-800">
               Delete Credit
