@@ -9,7 +9,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
-import { updatePurchaseApi } from "../service/purchaseService";
+import { updatePurchaseApi } from "../service/PurchaseService";
 
 const EditPurchaseDetail = ({
     open,
