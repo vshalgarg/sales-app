@@ -8,6 +8,8 @@ import { createUser } from "../../service/UserService";
 import validate from "../../validations/Validation";
 
 const AddUserModal = ({ open, onClose, onSuccess }) => {
+
+  const ROLE_OPTIONS = ["ADMIN", "AGENT"];
   const { showSnackbar } = useSnackbar();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +58,7 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
     const payload = {
       username: form.username,
       password: form.password,
-      roles: [form.role.trim().toUpperCase()],
+      roles: [form.role],
     };
 
     try {
@@ -105,16 +107,28 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
               ),
             }}
           />
-
-          <CustomTextField
-            name="role"
-            label="Role"
-            placeholder="e.g. admin, agent"
-            value={form.role}
-            onChange={handleFormChange}
-            error={!!errors.role}
-            helperText={errors.role || ""}
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Role
+            </label>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleFormChange}
+              className={`w-full border rounded-lg p-2 ${errors.role ? "border-red-500" : "border-gray-300"
+                }`}
+            >
+              <option value="">Select role</option>
+              {ROLE_OPTIONS.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+            {errors.role && (
+              <p className="text-xs text-red-500 mt-1">{errors.role}</p>
+            )}
+          </div>
         </div>
 
         <div className="px-6 py-2 border-t flex justify-end space-x-2">

@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
-import { ErrorBoundary } from "react-error-boundary";
-import PageErrorFallback from "../components/PageErrorFallback";
 import { useMediaQuery } from "@mui/material";
 
 const AppLayout = () => {
