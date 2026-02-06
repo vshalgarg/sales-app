@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Trash2 } from "lucide-react";
 import { getStaffs, searchStaffs, deleteStaff } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 import AddNewStaff from "../modals/AddNewStaff";
 import DataTable from "./DataTable";
 import UniversalSearch from "./UniversalSearch";
 import dayjs from "dayjs";
-import { useMediaQuery } from "@mui/material";
 import useResponsive from "../customHooks/useResponsive";
+import DeleteConfirmModal from "./common/DeleteConfirmModal";
 
 export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
@@ -19,7 +18,6 @@ export default function StaffDashboard() {
   const rowsPerPage = 10;
   const [staffs, setStaffs] = useState([]);
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState(null);
@@ -29,73 +27,73 @@ export default function StaffDashboard() {
   const { isMobile } = useResponsive();
 
 
-  const columns ={
-    desktop:[
+  const columns = {
+    desktop: [
 
-    {
-      key: "staffName",
-      label: "Staff Name",
-      width: "40%",
-    },
-    {
-      key: "phone",
-      label: "Phone",
-      width: "30%",
-    },
-    {
-      key: "joiningDate",
-      label: "Joining Date",
-      width: "30%",
-    },
-  ],
-  mobile:[
-    {
-      key: "staffName",
-      label: "Staff Name",
-    },
-    {
-      key: "phone",
-      label: "Phone",
-    }
-  ]
+      {
+        key: "staffName",
+        label: "Staff Name",
+        width: "40%",
+      },
+      {
+        key: "phone",
+        label: "Phone",
+        width: "30%",
+      },
+      {
+        key: "joiningDate",
+        label: "Joining Date",
+        width: "30%",
+      },
+    ],
+    mobile: [
+      {
+        key: "staffName",
+        label: "Staff Name",
+      },
+      {
+        key: "phone",
+        label: "Phone",
+      }
+    ]
   }
-   
+
   const [form, setForm] = useState({
     staffName: "",
     phone: "",
     joiningDate: "",
   });
 
- const fetchStaffs = useCallback(async (uiPage = 1) => {
-  const backendPage = uiPage - 1;
-  setLoading(true);
-  try {
-    const data = await getStaffs(backendPage, rowsPerPage);
+  const fetchStaffs = useCallback(async (uiPage = 1) => {
+    const backendPage = uiPage - 1;
+    setLoading(true);
+    try {
+      const data = await getStaffs(backendPage, rowsPerPage);
 
-    const formatted = (data.content || []).map((s) => ({
-      ...s,
-      joiningDate: s.joiningDate
-        ? dayjs(s.joiningDate).isValid()
-          ? dayjs(s.joiningDate).format("DD-MM-YYYY")
-          : "-"
-        : "-",
-    }));
+      const formatted = (data.content || []).map((s) => ({
+        ...s,
+        joiningDate: s.joiningDate
+          ? dayjs(s.joiningDate).isValid()
+            ? dayjs(s.joiningDate).format("DD-MM-YYYY")
+            : "-"
+          : "-",
+      }));
 
-    setStaffs(formatted);
-    setTotalPages(data.totalPages || 1);
-    setTotalItems(data.totalElements || 0);
-    setCurrentPage(uiPage);
-    setIsSearchActive(false);
-    setSearchResults([]);
-  } catch (error) {
-    setStaffs([]);
-    setTotalPages(1);
-    setTotalItems(0);
-    showSnackbar(error.message, "error");
-  } finally {
-    setLoading(false);
-  }
-}, [rowsPerPage]);
+      setStaffs(formatted);
+      setTotalPages(data.totalPages || 1);
+      setTotalItems(data.totalElements || 0);
+      setCurrentPage(uiPage);
+      setIsSearchActive(false);
+      setSearchResults([]);
+    } catch (error) {
+      setStaffs([]);
+      setTotalPages(1);
+      setTotalItems(0);
+      showSnackbar(error.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [rowsPerPage]);
 
 
   useEffect(() => {
@@ -173,7 +171,7 @@ export default function StaffDashboard() {
 
 
   const handleSearchResult = (response, searchQuery) => {
-    console.log("response and searchQuery"+response+searchQuery)
+    console.log("response and searchQuery" + response + searchQuery)
     const results = response.content || [];
     console.log(results)
     setStaffs(results);
@@ -187,16 +185,16 @@ export default function StaffDashboard() {
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       <div className="pt-4">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg md:text-2xl font-bold">{isMobile?"Staff":"Staff Overview"}</h2>
-        <button
-          onClick={() => setOpen(true)}
-          className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-        >
-          Add Staff
-        </button>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-lg md:text-2xl font-bold">{isMobile ? "Staff" : "Staff Overview"}</h2>
+          <button
+            onClick={() => setOpen(true)}
+            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+          >
+            Add Staff
+          </button>
+        </div>
       </div>
-     </div>
       {/* Search */}
       <div className="flex items-center gap-2 mb-6">
         <UniversalSearch
@@ -215,7 +213,7 @@ export default function StaffDashboard() {
       {/* Staff Table */}
       <div className="flex-1 min-h-0 border mb-2 rounded-lg bg-white dark:bg-zinc-900">
         <DataTable
-          columns={isMobile?columns.mobile:columns.desktop}
+          columns={isMobile ? columns.mobile : columns.desktop}
           data={staffs}
           loading={loading}
           emptyMessage="No staff found"
@@ -230,46 +228,31 @@ export default function StaffDashboard() {
         />
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {deleteModalOpen && staffToDelete && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl mx-4 md:mx-0 shadow-2xl w-[380px] p-6">
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full p-3">
-                <Trash2 className="w-6 h-6" />
-              </div>
-            </div>
+      <DeleteConfirmModal
+        open={deleteModalOpen}
+        title="Delete Staff"
+        message={
+          <>
+            Are you sure you want to permanently delete{" "}
+            <span className="font-medium text-blue-600">
+              {staffToDelete?.staffName}
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setStaffToDelete(null);
+        }}
+        onConfirm={() => {
+          handleDelete();
+          setDeleteModalOpen(false);
+          setStaffToDelete(null);
+        }}
+      />
 
-            <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-2">
-              Delete Staff
-            </h3>
-            <p className="text-center text-gray-600 dark:text-gray-400 text-sm mb-6">
-              Are you sure you want to permanently delete{" "}
-              <span className="font-medium text-blue-600 dark:text-blue-400">
-                {staffToDelete.staffName}
-              </span>
-              ? This action cannot be undone.
-            </p>
-
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 
-                         text-gray-700 dark:text-gray-200 hover:bg-gray-100 
-                         dark:hover:bg-zinc-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {open && (
         <AddNewStaff

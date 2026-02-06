@@ -6,7 +6,7 @@ import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import CustomTextField from "../components/CustomTextField";
-import BasicSelect from "./BasicSelect";
+import BasicSelect from "../components/BasicSelect";
 
 export default function AddNewTransport({
   open,

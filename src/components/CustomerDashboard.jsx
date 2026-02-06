@@ -5,8 +5,8 @@ import AddNewCustomer from "../modals/AddNewCustomer";
 import CustomerDetail from "../modals/CustomerDetail";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
-import { useMediaQuery } from "@mui/material";
 import useResponsive from "../customHooks/useResponsive";
+import DeleteConfirmModal from "./common/DeleteConfirmModal";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -76,8 +76,8 @@ export default function CustomerDashboard() {
       },
     ],
     mobile: [
-      { key: "customerName", label: "Name"},
-      { key: "city", label: "City"},
+      { key: "customerName", label: "Name" },
+      { key: "city", label: "City" },
     ],
   };
 
@@ -266,61 +266,29 @@ export default function CustomerDashboard() {
         />
       )}
 
-      {/* Delete Confirmation Modal*/}
-      {deleteModalOpen && customerToDelete && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl mx-4 md:mx-0 shadow-2xl w-[380px] p-6">
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </div>
-            </div>
+      <DeleteConfirmModal
+        open={deleteModalOpen}
+        title="Delete Customer"
+        message={
+          <>
+            Are you sure you want to permanently delete{" "}
+            <b>{customerToDelete?.customerName}</b>?
+            This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setCustomerToDelete(null);
+        }}
+        onConfirm={() => {
+          handleDelete(customerToDelete.customerId);
+          setDeleteModalOpen(false);
+          setCustomerToDelete(null);
+        }}
+      />
 
-            <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-2">
-              Delete Customer
-            </h3>
-
-            <p className="text-center text-gray-600 dark:text-gray-400 text-sm mb-6">
-              Are you sure you want to permanently delete{" "}
-              <span className="font-medium text-blue-600 dark:text-blue-400">
-                {customerToDelete.customerName}
-              </span>
-              ? This action cannot be undone.
-            </p>
-
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 
-                     text-gray-700 dark:text-gray-200 hover:bg-gray-100 
-                     dark:hover:bg-zinc-800"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
