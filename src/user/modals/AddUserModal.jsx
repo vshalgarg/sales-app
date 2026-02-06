@@ -6,6 +6,13 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useSnackbar } from "../../context/SnackbarContext";
 import { createUser } from "../../service/UserService";
 import validate from "../../validations/Validation";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+
 
 const AddUserModal = ({ open, onClose, onSuccess }) => {
 
@@ -107,25 +114,39 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
               ),
             }}
           />
-          <div>
-            <select
+          <FormControl
+            fullWidth
+            size="small"
+            margin="dense"
+            variant="outlined"
+            error={!!errors.role}
+          >
+            <InputLabel id="role-label">Role</InputLabel>
+
+            <Select
+              labelId="role-label"
               name="role"
               value={form.role}
+              label="Role"
               onChange={handleFormChange}
-              className={`w-full border rounded-lg p-2 ${errors.role ? "border-red-500" : "border-gray-300"
-                }`}
             >
-              <option value="">Select role</option>
+              <MenuItem value="">
+                <em>Select role</em>
+              </MenuItem>
+
               {ROLE_OPTIONS.map((role) => (
-                <option key={role} value={role}>
+                <MenuItem key={role} value={role}>
                   {role}
-                </option>
+                </MenuItem>
               ))}
-            </select>
+            </Select>
+
             {errors.role && (
               <p className="text-xs text-red-500 mt-1">{errors.role}</p>
             )}
-          </div>
+          </FormControl>
+
+
         </div>
 
         <div className="px-6 py-2 border-t flex justify-end space-x-2">
