@@ -233,7 +233,7 @@ export default function StaffDashboard() {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && staffToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[380px] p-6">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl mx-4 md:mx-0 shadow-2xl w-[380px] p-6">
             <div className="flex items-center justify-center mb-4">
               <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full p-3">
                 <Trash2 className="w-6 h-6" />
