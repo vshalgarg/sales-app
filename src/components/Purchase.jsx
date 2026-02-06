@@ -5,7 +5,7 @@ import CustomTextField from "./CustomTextField";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
-import { deletePurchaseApi, searchPurchaseHistory } from "../service/purchaseService";
+import { deletePurchaseApi, searchPurchaseHistory } from "../service/PurchaseService";
 import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";

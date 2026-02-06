@@ -9,7 +9,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
-import { addPurchaseEntry } from "../service/purchaseService";
+import { addPurchaseEntry } from "../service/PurchaseService";
 import validate from "../validations/Validation";
 
 const PurchaseEntry = () => {
