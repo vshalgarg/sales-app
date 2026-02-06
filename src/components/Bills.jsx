@@ -14,6 +14,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import BillDetail from "../modals/BillDetail";
 import EditBillDetail from "../modals/EditBillDetail";
 import { deleteBill } from "../service/BillService";
+import DeleteConfirmModal from "./common/DeleteConfirmModal";
 
 
 
@@ -352,36 +353,31 @@ const Bills = () => {
         />
       )}
 
-      {isDeleteOpen && deleteBill && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-96 mx-4 md:mx-0 ">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              Delete Bill?
-            </h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete bill
-              <b> #{deleteBill.billNumber}</b>?
-              This action cannot be undone.
-            </p>
+      <DeleteConfirmModal
+        open={isDeleteOpen}
+        title="Delete Bill"
+        message={
+          <>
+            Are you sure you want to delete bill{" "}
+            <span className="font-semibold text-blue-600">
+              #{deleteBill?.billNumber}
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setDeleteBill(null);
+        }}
+        onConfirm={() => {
+          confirmDelete();
+          setIsDeleteOpen(false);
+          setDeleteBill(null);
+        }}
+      />
 
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setIsDeleteOpen(false)}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </>
   );

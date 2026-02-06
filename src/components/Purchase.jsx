@@ -12,6 +12,7 @@ import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import PurchaseHistory from "./PurchaseHistory";
 import EditPurchaseDetail from "../modals/EditPurchaseDetail";
+import DeleteConfirmModal from "./common/DeleteConfirmModal";
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
@@ -220,13 +221,13 @@ const Purchase = () => {
           <button
             onClick={() => handlePurchaseHistory(1)}
             disabled={!isAnyFilterSelected}
-              className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded
+            className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded
       ${isAnyFilterSelected
-        ? "bg-blue-600 text-white"
-        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-      }
+                ? "bg-blue-600 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }
     `}
-  >
+          >
             Apply Filters
           </button>
 
@@ -268,41 +269,32 @@ const Purchase = () => {
           }}
         />
       )}
-      {isDeleteOpen && purchaseToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-5 mx-4 md:mx-0">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Delete Purchase
-            </h3>
 
-            <p className="text-sm text-gray-600 mt-2">
-              Are you sure you want to delete purchase
-              <span className="font-medium">
-                {" "}#{purchaseToDelete.id}
-              </span> ?
-            </p>
+      <DeleteConfirmModal
+        open={isDeleteOpen}
+        title="Delete Purchase"
+        message={
+          <>
+            Are you sure you want to delete purchase{" "}
+            <span className="font-medium text-blue-600">
+              #{purchaseToDelete?.id}
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setPurchaseToDelete(null);
+        }}
+        onConfirm={() => {
+          confirmDelete();
+          setIsDeleteOpen(false);
+          setPurchaseToDelete(null);
+        }}
+      />
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsDeleteOpen(false);
-                  setPurchaseToDelete(null);
-                }}
-                className="px-4 py-2 text-sm border rounded-lg"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
