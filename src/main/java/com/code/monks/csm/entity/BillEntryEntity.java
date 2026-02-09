@@ -51,5 +51,5 @@ public class BillEntryEntity extends BaseEntity{
     private List<BillDetailEntity> billDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "billEntry", cascade = ALL, orphanRemoval = true)
-    List<BillImageEntity> images;
+    private List<BillImageEntity> images;
 }

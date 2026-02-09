@@ -367,10 +367,19 @@ public class BillServiceImpl implements BillService {
     @Override
     public Map<String, Object> deleteBillEntry(String billNumber) {
 
+        log.info("Delete request received for billNumber={}", billNumber);
         BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
                 .orElseThrow(() -> new ResourceNotFoundException(BILL_NOT_FOUND, billNumber));
 
+        log.debug("Bill found with id={}, detailsCount={}, imagesCount={}",
+                bill.getId(),
+                bill.getBillDetails() != null ? bill.getBillDetails().size() : 0,
+                bill.getImages() != null ? bill.getImages().size() : 0
+        );
+
         billRepo.delete(bill);
+
+        log.info("Bill deleted successfully for billNumber={}", billNumber);
 
         return Map.of(
                 "message", "Bill deleted successfully",
