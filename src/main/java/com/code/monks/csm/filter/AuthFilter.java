@@ -76,6 +76,10 @@ public class AuthFilter extends OncePerRequestFilter {
             log.error("Unhandled exception during authentication filter: {}", ex.getMessage(), ex);
             respondUnauthorized(response, "Internal authentication error");
         }
+        finally {
+            RequestContext.clear();
+            log.debug("RequestContext cleared after request completion");
+        }
     }
 
     private void handleBearerToken(String authHeader) throws AuthenticationException {
