@@ -1,6 +1,7 @@
 package com.code.monks.csm.entity;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,10 +21,12 @@ import lombok.Setter;
                 @Index(name = "idx_tc_transport_id", columnList = "transport_id")
         }
 )
-public class TransportContactEntity {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class TransportContactEntity extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "contact_person", length = 100)

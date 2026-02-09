@@ -1,10 +1,8 @@
 package com.code.monks.csm.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
-@Data
 @Entity
 @Table(
         name = "contact",
@@ -15,9 +13,13 @@ import lombok.ToString;
                 @Index(name = "idx_contact_customer", columnList = "customer_id")
         }
 )
-public class ContactEntity {
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class ContactEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Exclude
     private int id;
 
     @Column(name = "person")
