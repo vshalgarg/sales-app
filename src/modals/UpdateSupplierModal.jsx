@@ -50,6 +50,7 @@ const UpdateSupplierModal = ({
                     email: data.email || "",
                     groupName: data.groupName || "",
                     gstNo: data.gstNo || "",
+                    msme: data.msme || "",
                     city: data.city || "",
                     pinCode: data.pinCode || "",
                     state: data.state || "",
