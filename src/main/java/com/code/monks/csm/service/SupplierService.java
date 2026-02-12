@@ -2,6 +2,7 @@ package com.code.monks.csm.service;
 
 import com.code.monks.csm.dto.request.AddSupplierRequestDto;
 import com.code.monks.csm.dto.request.DeleteSupplierRequestDto;
+import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +18,7 @@ public interface SupplierService {
     Page<SearchSuppliersResponseDto> searchSuppliers(String keyword, Pageable pageable);
 
     List<GetSuppliersDto> getAllSuppliers();
+    void updateSupplier(Integer id, UpdateSupplierRequestDto request);
+    GetSupplierByIdResponseDto getSupplierById(Integer id);
+
 }

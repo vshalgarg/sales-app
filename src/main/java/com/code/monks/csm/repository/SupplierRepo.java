@@ -64,4 +64,7 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
     List<SupplierEntity> searchByKeyword(@Param("keyword") String keyword);
 
 
+    boolean existsBySupplierNameIgnoreCaseAndStatus(String trim, StatusEnum statusEnum);
+
+    boolean existsBySupplierNameIgnoreCaseAndIdNot(String trim, Integer currentId);
 }

@@ -3,6 +3,7 @@ package com.code.monks.csm.service.impl;
 import com.code.monks.csm.dto.request.AddCustomerRequestDto;
 import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.DeleteCustomerRequestDto;
+import com.code.monks.csm.dto.request.UpdateCustomerRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
@@ -111,6 +112,7 @@ public class CustomerServiceImpl implements CustomerService {
         validatorUtil.validateUniqueFields(duplicateChecks);
     }
 
+
     private CustomerEntity mapToCustomerEntity(AddCustomerRequestDto requestDto, String code) {
         CustomerEntity entity = AddCustomerResponseDto.dtoToEntity(requestDto);
         entity.setCode(code);
@@ -204,6 +206,174 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerException(UNEXPECTED_EXCEPTION, "Unexpected error in customer retrieval");
         }
     }
+
+    @Override
+    public void updateCustomer(Integer id, UpdateCustomerRequestDto request) {
+
+        log.info("Update request received for Customer id={}", id);
+        log.debug("Update payload: {}", request);
+
+        try {
+
+            CustomerEntity entity = customerRepo.findById(id)
+                    .orElseThrow(() -> {
+                        log.warn("Customer not found with id={}", id);
+                        return new CustomerException(DATA_NOT_FOUND,
+                                "Customer not found with id: " + id);
+                    });
+
+            log.debug("Existing customer found. code={}, name={}",
+                    entity.getCode(), entity.getCustomerName());
+
+            entity.setCustomerName(request.getCustomerName());
+            entity.setEmail(request.getEmail());
+
+            entity.setGroupName(
+                    StringUtils.isBlank(request.getGroupName())
+                            ? request.getCustomerName()
+                            : request.getGroupName()
+            );
+
+            entity.setGstNo(request.getGstNo());
+            entity.setReferencedBy(request.getReferencedBy());
+            entity.setAddressLine1(request.getAddressLine1());
+            entity.setAddressLine2(request.getAddressLine2());
+            entity.setState(request.getState());
+            entity.setCity(request.getCity());
+            entity.setPinCode(request.getPinCode());
+
+            entity.setMsme(
+                    StringUtils.isBlank(request.getMsme())
+                            ? "SMALL"
+                            : request.getMsme()
+            );
+
+            entity.setRemark(request.getRemark());
+
+            if (request.getStatus() != null) {
+                entity.setStatus(request.getStatus());
+            }
+
+            if (request.getPreferredTransportIds() != null) {
+
+                log.debug("Updating preferred transports for customer id={}", id);
+
+                Set<TransportEntity> transports = new HashSet<>();
+
+                for (Integer transportId : request.getPreferredTransportIds()) {
+                    TransportEntity transport = transportRepo.getReferenceById(transportId);
+                    transports.add(transport);
+                }
+
+                entity.getPreferredTransports().clear();
+                entity.getPreferredTransports().addAll(transports);
+
+                log.debug("Preferred transports updated. Count={}", transports.size());
+            }
+
+            if (request.getContacts() != null) {
+
+                log.debug("Updating contacts for customer id={}, count={}",
+                        id, request.getContacts().size());
+
+                entity.getContactList().clear();
+
+                List<ContactEntity> updatedContacts = request.getContacts()
+                        .stream()
+                        .map(dto -> {
+                            ContactEntity contact = new ContactEntity();
+                            contact.setContactPerson(dto.getContactPerson());
+                            contact.setMobileNumber(dto.getMobileNumber());
+                            contact.setType(dto.getType());
+                            contact.setCustomer(entity);
+                            return contact;
+                        })
+                        .toList();
+
+                entity.getContactList().addAll(updatedContacts);
+            }
+
+            customerRepo.save(entity);
+
+            log.info("Customer updated successfully. id={}, code={}",
+                    entity.getId(), entity.getCode());
+
+        } catch (DataAccessException dae) {
+            log.error("Database error while updating customer id={}", id, dae);
+            throw new CustomerException(DATA_ACCESS_ERROR, "Database error while updating customer");
+
+        } catch (Exception e) {
+            log.error("Unexpected error while updating customer id={}", id, e);
+            throw new CustomerException(UNEXPECTED_EXCEPTION, "Unexpected error while updating customer");
+        }
+    }
+
+    @Override
+    public GetCustomerByIdResponseDto getCustomerById(Integer id) {
+
+        log.info("Fetching customer details for id={}", id);
+
+        try {
+
+            CustomerEntity entity = customerRepo.findById(id)
+                    .orElseThrow(() -> {
+                        log.warn("Customer not found with id={}", id);
+                        return new CustomerException(DATA_NOT_FOUND,
+                                "Customer not found with id: " + id);
+                    });
+
+            // Contacts mapping
+            List<ContactRequestDto> contacts = ContactUtil.mapContacts(
+                    entity.getContactList(),
+                    ContactEntity::getContactPerson,
+                    ContactEntity::getMobileNumber,
+                    ContactEntity::getType
+            );
+
+            // Transport mapping
+            List<TransportDto> transportDtos = Optional.ofNullable(entity.getPreferredTransports())
+                    .orElse(Collections.emptySet())
+                    .stream()
+                    .map(t -> TransportDto.builder()
+                            .id(t.getId())
+                            .name(t.getName())
+                            .build())
+                    .toList();
+
+            log.info("Customer details fetched successfully for id={}", id);
+
+            return GetCustomerByIdResponseDto.builder()
+                    .id(entity.getId())
+                    .code(entity.getCode())
+                    .customerName(entity.getCustomerName())
+                    .email(entity.getEmail())
+                    .groupName(entity.getGroupName())
+                    .gstNo(entity.getGstNo())
+                    .referencedBy(entity.getReferencedBy())
+                    .addressLine1(entity.getAddressLine1())
+                    .addressLine2(entity.getAddressLine2())
+                    .state(entity.getState())
+                    .city(entity.getCity())
+                    .pinCode(entity.getPinCode())
+                    .msme(entity.getMsme())
+                    .remark(entity.getRemark())
+                    .status(entity.getStatus())
+                    .contacts(contacts)
+                    .preferredTransports(transportDtos)
+                    .build();
+
+        } catch (DataAccessException dae) {
+            log.error("Database error while fetching customer id={}", id, dae);
+            throw new CustomerException(DATA_ACCESS_ERROR,
+                    "Database error while fetching customer");
+
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching customer id={}", id, e);
+            throw new CustomerException(UNEXPECTED_EXCEPTION,
+                    "Unexpected error while fetching customer");
+        }
+    }
+
 
     private GetCustomersDto mapToDto(CustomerEntity record) {
         log.debug("Mapping CustomerEntity with code={} to DTO", record.getCode());
