@@ -32,8 +32,6 @@ export default function SupplierDashboard() {
   const dropdownRef = useRef(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingSupplierId, setEditingSupplierId] = useState(null);
-
-
   const { isMobile } = useResponsive();
 
   const columns = {

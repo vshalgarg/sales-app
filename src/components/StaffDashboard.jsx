@@ -171,9 +171,7 @@ export default function StaffDashboard() {
 
 
   const handleSearchResult = (response, searchQuery) => {
-    console.log("response and searchQuery" + response + searchQuery)
     const results = response.content || [];
-    console.log(results)
     setStaffs(results);
     setTotalPages(response.totalPages || 1);
     setTotalItems(response.totalElements || 0);
