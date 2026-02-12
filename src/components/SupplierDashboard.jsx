@@ -8,6 +8,7 @@ import DataTable from "./DataTable";
 import { Typography, useMediaQuery } from "@mui/material";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 
 export default function SupplierDashboard() {
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,9 @@ export default function SupplierDashboard() {
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const dropdownRef = useRef(null);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editingSupplierId, setEditingSupplierId] = useState(null);
+
 
   const { isMobile } = useResponsive();
 
@@ -242,6 +246,10 @@ export default function SupplierDashboard() {
             setSelectedSupplier(supplier);
             setIsModalOpen(true);
           }}
+          onEdit={(supplier) => {
+            setEditingSupplierId(supplier.id);
+            setOpenEdit(true);
+          }}
           onDelete={(supplier) => {
             setSupplierToDelete(supplier);
             setDeleteModalOpen(true);
@@ -271,6 +279,16 @@ export default function SupplierDashboard() {
           fetchSuppliers={fetchSuppliers}
         />
       )}
+
+      {openEdit && (
+        <UpdateSupplierModal
+          supplierId={editingSupplierId}
+          open={openEdit}
+          setOpen={setOpenEdit}
+          fetchSuppliers={() => fetchSuppliers(currentPage)}
+        />
+      )}
+
 
       <DeleteConfirmModal
         open={deleteModalOpen}

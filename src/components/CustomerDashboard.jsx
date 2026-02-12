@@ -7,6 +7,7 @@ import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -29,6 +30,9 @@ export default function CustomerDashboard() {
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const { isMobile } = useResponsive();
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editingCustomerId, setEditingCustomerId] = useState(null);
+
 
   const [form, setForm] = useState({
     customerName: "",
@@ -236,6 +240,10 @@ export default function CustomerDashboard() {
             setSelectedCustomer(customer);
             setModalOpen(true);
           }}
+          onEdit={(customer) => {
+            setEditingCustomerId(customer.id);
+            setOpenEdit(true);
+          }}
           onDelete={(customer) => {
             setCustomerToDelete(customer);
             setDeleteModalOpen(true);
@@ -265,6 +273,17 @@ export default function CustomerDashboard() {
           fetchCustomers={fetchCustomers}
         />
       )}
+
+      {/* Update Customer Modal */}
+      {openEdit && (
+        <UpdateCustomerModal
+          customerId={editingCustomerId}
+          open={openEdit}
+          setOpen={setOpenEdit}
+          fetchCustomers={() => fetchCustomers(currentPage)}
+        />
+      )}
+
 
       <DeleteConfirmModal
         open={deleteModalOpen}

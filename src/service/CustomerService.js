@@ -10,7 +10,7 @@ class CustomerService {
       const result = checkLogicalError(response.data);
       return result;
     } catch (error) {
-        throw new Error(handleApiError(error));
+      throw new Error(handleApiError(error));
     }
   }
 
@@ -22,7 +22,7 @@ class CustomerService {
       const result = checkLogicalError(response.data);
       return result;
     } catch (error) {
-        throw new Error(handleApiError(error));
+      throw new Error(handleApiError(error));
     }
   }
 
@@ -32,7 +32,7 @@ class CustomerService {
       const result = checkLogicalError(response.data);
       return result;
     } catch (error) {
-        throw new Error(handleApiError(error));
+      throw new Error(handleApiError(error));
     }
   }
 
@@ -42,9 +42,35 @@ class CustomerService {
       const result = checkLogicalError(response.data);
       return result;
     } catch (error) {
-        throw new Error(handleApiError(error));
+      throw new Error(handleApiError(error));
     }
   }
+
+  // Get customer by ID
+  static async getCustomerById(id) {
+    try {
+      const response = await api.get(`/customers/get/id/${id}`);
+      const result = checkLogicalError(response.data);
+      return result;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Update customer
+  static async updateCustomer(id, customerData) {
+    try {
+      const response = await api.put(
+        `/customers/update/id/${id}`,
+        customerData
+      );
+      const result = checkLogicalError(response.data);
+      return result;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
 
   static async searchCustomers(keyword, page = 0, size = 8) {
     return CommonService.searchWithPagination(
