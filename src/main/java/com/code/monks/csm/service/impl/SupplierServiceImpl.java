@@ -3,6 +3,7 @@ package com.code.monks.csm.service.impl;
 import com.code.monks.csm.dto.request.AddSupplierRequestDto;
 import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.DeleteSupplierRequestDto;
+import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.SupplierEntity;
@@ -300,6 +301,178 @@ public class SupplierServiceImpl implements SupplierService {
         } catch (Exception e) {
             log.error("Unexpected error while fetching all suppliers", e);
             throw new SupplierException(UNEXPECTED_EXCEPTION, e.getMessage());
+        }
+    }
+
+    @Override
+    public void updateSupplier(Integer id, UpdateSupplierRequestDto request) {
+
+        log.info("Update request received for Supplier id={}", id);
+        log.debug("Update payload for supplier id={} : {}", id, request);
+
+        try {
+
+            SupplierEntity entity = supplierRepo.findById(id)
+                    .orElseThrow(() -> {
+                        log.warn("Supplier not found for update. id={}", id);
+                        return new SupplierException(DATA_NOT_FOUND,
+                                "Supplier not found with id: " + id);
+                    });
+
+            entity.setSupplierName(request.getSupplierName());
+            entity.setEmail(request.getEmail());
+            entity.setGroupName(
+                    StringUtils.isBlank(request.getGroupName())
+                            ? request.getSupplierName()
+                            : request.getGroupName()
+            );
+            entity.setGstNo(request.getGstNo());
+            entity.setCommissionScheme(request.getCommissionScheme());
+            entity.setCommissionRate(request.getCommissionRate());
+            entity.setReferenceBy(request.getReferenceBy());
+            entity.setAddressLine1(request.getAddressLine1());
+            entity.setAddressLine2(request.getAddressLine2());
+            entity.setState(request.getState());
+            entity.setCity(request.getCity());
+            entity.setPinCode(request.getPinCode());
+            entity.setMsme(
+                    StringUtils.isBlank(request.getMsme())
+                            ? "SMALL"
+                            : request.getMsme()
+            );
+            entity.setRemark(request.getRemark());
+
+            if (request.getStatus() != null) {
+                log.debug("Updating supplier status to {}", request.getStatus());
+                entity.setStatus(request.getStatus());
+            }
+
+            if (request.getPreferredTransportIds() != null) {
+
+                log.debug("Updating preferred transports for supplier id={}", id);
+
+                Set<TransportEntity> transports = new HashSet<>();
+
+                for (Integer transportId : request.getPreferredTransportIds()) {
+                    log.trace("Fetching transport id={}", transportId);
+                    TransportEntity transport = transportRepo.getReferenceById(transportId);
+                    transports.add(transport);
+                }
+
+                entity.getPreferredTransports().clear();
+                entity.getPreferredTransports().addAll(transports);
+
+                log.debug("Preferred transports updated. Count={}", transports.size());
+            }
+
+            if (request.getContacts() != null) {
+
+                log.debug("Updating contacts for supplier id={}. New count={}",
+                        id, request.getContacts().size());
+
+                entity.getContactList().clear();
+
+                List<ContactEntity> updatedContacts = request.getContacts()
+                        .stream()
+                        .map(dto -> {
+                            ContactEntity contact = new ContactEntity();
+                            contact.setContactPerson(dto.getContactPerson());
+                            contact.setMobileNumber(dto.getMobileNumber());
+                            contact.setType(dto.getType());
+                            contact.setSupplier(entity);
+                            return contact;
+                        })
+                        .toList();
+
+                entity.getContactList().addAll(updatedContacts);
+            }
+
+            supplierRepo.save(entity);
+
+            log.info("Supplier updated successfully. id={}, code={}",
+                    entity.getId(), entity.getCode());
+
+        } catch (DuplicateEntryException ex) {
+            log.error("Duplicate entry while updating supplier id={}", id, ex);
+            throw ex;
+
+        } catch (DataAccessException dae) {
+            log.error("Database error while updating supplier id={}", id, dae);
+            throw new SupplierException(DATA_ACCESS_ERROR,
+                    "Database error while updating supplier");
+
+        } catch (Exception e) {
+            log.error("Unexpected error while updating supplier id={}", id, e);
+            throw new SupplierException(UNEXPECTED_EXCEPTION,
+                    "Unexpected error while updating supplier");
+        }
+    }
+
+    @Override
+    public GetSupplierByIdResponseDto getSupplierById(Integer id) {
+
+        log.info("Fetching supplier details for id={}", id);
+
+        try {
+
+            SupplierEntity entity = supplierRepo.findById(id)
+                    .orElseThrow(() -> {
+                        log.warn("Supplier not found with id={}", id);
+                        return new SupplierException(DATA_NOT_FOUND,
+                                "Supplier not found with id: " + id);
+                    });
+
+            // Contacts mapping
+            List<ContactRequestDto> contacts = ContactUtil.mapContacts(
+                    entity.getContactList(),
+                    ContactEntity::getContactPerson,
+                    ContactEntity::getMobileNumber,
+                    ContactEntity::getType
+            );
+
+            // Transport mapping
+            List<TransportDto> transportDtos = Optional.ofNullable(entity.getPreferredTransports())
+                    .orElse(Collections.emptySet())
+                    .stream()
+                    .map(t -> TransportDto.builder()
+                            .id(t.getId())
+                            .name(t.getName())
+                            .build())
+                    .toList();
+
+            log.info("Supplier details fetched successfully for id={}", id);
+
+            return GetSupplierByIdResponseDto.builder()
+                    .id(entity.getId())
+                    .code(entity.getCode())
+                    .supplierName(entity.getSupplierName())
+                    .email(entity.getEmail())
+                    .groupName(entity.getGroupName())
+                    .gstNo(entity.getGstNo())
+                    .commissionScheme(entity.getCommissionScheme())
+                    .commissionRate(entity.getCommissionRate())
+                    .referenceBy(entity.getReferenceBy())
+                    .addressLine1(entity.getAddressLine1())
+                    .addressLine2(entity.getAddressLine2())
+                    .state(entity.getState())
+                    .city(entity.getCity())
+                    .pinCode(entity.getPinCode())
+                    .msme(entity.getMsme())
+                    .remark(entity.getRemark())
+                    .status(entity.getStatus())
+                    .contacts(contacts)
+                    .preferredTransports(transportDtos)
+                    .build();
+
+        } catch (DataAccessException dae) {
+            log.error("Database error while fetching supplier id={}", id, dae);
+            throw new SupplierException(DATA_ACCESS_ERROR,
+                    "Database error while fetching supplier");
+
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching supplier id={}", id, e);
+            throw new SupplierException(UNEXPECTED_EXCEPTION,
+                    "Unexpected error while fetching supplier");
         }
     }
 

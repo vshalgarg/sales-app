@@ -1,7 +1,9 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.request.AddCustomerRequestDto;
 import com.code.monks.csm.dto.request.DeleteCustomerRequestDto;
+import com.code.monks.csm.dto.request.UpdateCustomerRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.CustomerService;
 import jakarta.validation.Valid;
@@ -87,6 +89,32 @@ public class CustomerController {
                 response.getContent().size(), response.getPage(), response.getTotalPages());
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(UPDATE_CUSTOMER)
+    public ResponseEntity<ApiResponse<Void>> updateCustomer(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateCustomerRequestDto request) {
+
+        customerService.updateCustomer(id, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Customer updated successfully")
+        );
+    }
+
+    @GetMapping(GET_CUSTOMER_BY_ID)
+    public ResponseEntity<ApiResponse<GetCustomerByIdResponseDto>> getCustomerById(
+            @PathVariable Integer id) {
+
+        log.info("GET customer by id={} called", id);
+
+        GetCustomerByIdResponseDto response =
+                customerService.getCustomerById(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Customer fetched successfully", response)
+        );
     }
 
 }

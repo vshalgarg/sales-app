@@ -40,4 +40,7 @@ public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
             ")")
     Page<CustomerEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
+    boolean existsByCustomerNameIgnoreCaseAndStatus(String customerName, StatusEnum statusEnum);
+
+    boolean existsByCustomerNameIgnoreCaseAndIdNot(String customerName, Integer currentId);
 }

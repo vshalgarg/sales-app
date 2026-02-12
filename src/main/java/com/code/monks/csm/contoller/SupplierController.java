@@ -1,7 +1,9 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.request.AddSupplierRequestDto;
 import com.code.monks.csm.dto.request.DeleteSupplierRequestDto;
+import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.SupplierService;
 import jakarta.validation.Valid;
@@ -91,6 +93,32 @@ public class SupplierController {
     public ResponseEntity<List<SearchSuppliersResponseDto>> searchSuppliers(@RequestParam String keyword){
         List<SearchSuppliersResponseDto> response = supplierService.searchSuppliers(keyword);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(UPDATE_SUPPLIER)
+    public ResponseEntity<ApiResponse<?>> update(
+            @PathVariable Integer id,
+            @RequestBody UpdateSupplierRequestDto request) {
+
+        supplierService.updateSupplier(id, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Supplier updated successfully")
+        );
+    }
+
+    @GetMapping(GET_SUPPLIER_BY_ID)
+    public ResponseEntity<ApiResponse<GetSupplierByIdResponseDto>> getSupplierById(
+            @PathVariable Integer id) {
+
+        log.info("GET supplier by id={} called", id);
+
+        GetSupplierByIdResponseDto response =
+                supplierService.getSupplierById(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Supplier fetched successfully", response)
+        );
     }
 
 }
