@@ -50,6 +50,7 @@ const UpdateCustomerModal = ({
           groupName: data.groupName || "",
           gstNo: data.gstNo || "",
           referencedBy: data.referencedBy || "",
+          msme: data.msme || "",
           addressLine1: data.addressLine1 || "",
           addressLine2: data.addressLine2 || "",
           state: data.state || "",
