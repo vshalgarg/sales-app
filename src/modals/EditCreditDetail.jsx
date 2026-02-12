@@ -12,7 +12,6 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import MenuItem from "@mui/material/MenuItem";
 
 
-
 const PAYMENT_TYPES = [
     "CASH",
     "UPI",
@@ -132,11 +131,7 @@ const EditCreditDetail = ({
     };
 
     const handleUpdate = async () => {
-        if (!formData.receivedAmount || Number(formData.receivedAmount) <= 0) {
-            showSnackbar("Received amount must be greater than 0", "error");
-            return;
-        }
-
+      
         try {
             setSaving(true);
 
@@ -167,155 +162,164 @@ const EditCreditDetail = ({
     };
 
     /* ================= UI ================= */
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl p-6">
-                <h2 className="text-lg font-semibold mb-4">Edit Credit</h2>
+   return (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div
+      className="
+        bg-white flex flex-col w-full
+        h-full sm:h-auto
+        sm:max-w-3xl sm:max-h-[90vh]
+        sm:rounded-xl
+      "
+    >
+      {/* Header */}
+      <div className="px-4 sm:px-6 py-4 border-b">
+        <h2 className="text-lg font-semibold">Edit Credit</h2>
+      </div>
 
-                {/* ===== BASIC INFO ===== */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                    <CustomTextField
-                        label="Bill Number"
-                        value={selectedCreditDetail.billNumber}
-                        disabled
-                    />
-                    <CustomTextField
-                        label="Date"
-                        value={dayjs(selectedCreditDetail.date).format("DD-MM-YYYY")}
-                        InputProps={{ readOnly: true }}
-                    />
-                    <CustomTextField
-                        select
-                        label="Payment Type"
-                        name="paymentType"
-                        value={formData.paymentType}
-                        onChange={handleChange}
-                    >
-                        {PAYMENT_TYPES.map((type) => (
-                            <MenuItem key={type} value={type}>
-                                {type}
-                            </MenuItem>
-                        ))}
-                    </CustomTextField>
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
 
-                </div>
-
-                {/* ===== PARTY INFO ===== */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    <Autocomplete
-                        options={allSuppliers}
-                        value={selectedSupplier}
-                        isOptionEqualToValue={(o, v) => o.id === v?.id}
-                        getOptionLabel={(o) =>
-                            o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
-                        }
-                        onChange={(e, v) => setSelectedSupplier(v)}
-                        renderInput={(params) => (
-                            <CustomTextField {...params} label="Supplier" />
-                        )}
-                    />
-
-                    <Autocomplete
-                        options={allCustomers}
-                        value={selectedCustomer}
-                        isOptionEqualToValue={(o, v) => o.id === v?.id}
-                        getOptionLabel={(o) =>
-                            o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
-                        }
-                        onChange={(e, v) => setSelectedCustomer(v)}
-                        renderInput={(params) => (
-                            <CustomTextField {...params} label="Customer" />
-                        )}
-                    />
-                </div>
-
-                {/* ===== TRANSACTION DETAILS ===== */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                    <CustomTextField
-                        label="Reference Number"
-                        name="referenceNumber"
-                        value={formData.referenceNumber}
-                        onChange={handleChange}
-                    />
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
-                            label="Reference Date"
-                            value={formData.referenceDate}
-                            onChange={(newValue) =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    referenceDate: newValue,
-                                }))
-                            }
-                            slotProps={{
-                                textField: {
-                                    fullWidth: true,
-                                    size: "small",
-                                },
-                            }}
-                        />
-                    </LocalizationProvider>
-                    <CustomTextField
-                        label="Slip Number"
-                        name="slipNumber"
-                        value={formData.slipNumber}
-                        onChange={handleSlipNumberChange}
-                    />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    <CustomTextField
-                        select
-                        label="Draw Type"
-                        name="drawType"
-                        value={formData.drawType}
-                        onChange={handleChange}
-                    >
-                        {DRAW_TYPES.map((type) => (
-                            <MenuItem key={type} value={type}>
-                                {type}
-                            </MenuItem>
-                        ))}
-                    </CustomTextField>
-
-                    <CustomTextField
-                        label="Received Amount"
-                        name="receivedAmount"
-                        value={formData.receivedAmount}
-                        onChange={handleReceivedAmountChange}
-                    />
-                </div>
-
-                <CustomTextField
-                    label="Remark"
-                    name="remark"
-                    value={formData.remark}
-                    onChange={handleChange}
-                    multiline
-                    rows={3}
-                />
-
-                {/* ===== ACTIONS ===== */}
-                <div className="flex justify-end gap-3 mt-6">
-                    <button
-                        onClick={() => setOpen(false)}
-                        disabled={saving}
-                        className="px-4 py-2 border rounded-lg"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleUpdate}
-                        disabled={saving}
-                        className={`px-4 py-2 rounded-lg text-white
-              ${saving ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
-                    >
-                        {saving ? "Saving..." : "Update"}
-                    </button>
-                </div>
-            </div>
+        {/* ===== BASIC INFO ===== */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <CustomTextField
+            label="Bill Number"
+            value={selectedCreditDetail.billNumber}
+            disabled
+          />
+          <CustomTextField
+            label="Date"
+            value={dayjs(selectedCreditDetail.date).format("DD-MM-YYYY")}
+            InputProps={{ readOnly: true }}
+          />
+          <CustomTextField
+            select
+            label="Payment Type"
+            name="paymentType"
+            value={formData.paymentType}
+            onChange={handleChange}
+          >
+            {PAYMENT_TYPES.map(type => (
+              <MenuItem key={type} value={type}>{type}</MenuItem>
+            ))}
+          </CustomTextField>
         </div>
-    );
+
+        {/* ===== PARTY INFO ===== */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Autocomplete
+            options={allSuppliers}
+            value={selectedSupplier}
+            isOptionEqualToValue={(o, v) => o.id === v?.id}
+            getOptionLabel={(o) =>
+              o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+            }
+            onChange={(e, v) => setSelectedSupplier(v)}
+            renderInput={(params) => (
+              <CustomTextField {...params} label="Supplier" />
+            )}
+          />
+
+          <Autocomplete
+            options={allCustomers}
+            value={selectedCustomer}
+            isOptionEqualToValue={(o, v) => o.id === v?.id}
+            getOptionLabel={(o) =>
+              o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+            }
+            onChange={(e, v) => setSelectedCustomer(v)}
+            renderInput={(params) => (
+              <CustomTextField {...params} label="Customer" />
+            )}
+          />
+        </div>
+
+        {/* ===== TRANSACTION DETAILS ===== */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <CustomTextField
+            label="Reference Number"
+            name="referenceNumber"
+            value={formData.referenceNumber}
+            onChange={handleChange}
+          />
+
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Reference Date"
+              value={formData.referenceDate}
+              onChange={(newValue) =>
+                setFormData(prev => ({ ...prev, referenceDate: newValue }))
+              }
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                },
+              }}
+            />
+          </LocalizationProvider>
+
+          <CustomTextField
+            label="Slip Number"
+            name="slipNumber"
+            value={formData.slipNumber}
+            onChange={handleSlipNumberChange}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <CustomTextField
+            select
+            label="Draw Type"
+            name="drawType"
+            value={formData.drawType}
+            onChange={handleChange}
+          >
+            {DRAW_TYPES.map(type => (
+              <MenuItem key={type} value={type}>{type}</MenuItem>
+            ))}
+          </CustomTextField>
+
+          <CustomTextField
+            label="Received Amount"
+            name="receivedAmount"
+            value={formData.receivedAmount}
+            onChange={handleReceivedAmountChange}
+          />
+        </div>
+
+        <CustomTextField
+          label="Remark"
+          name="remark"
+          value={formData.remark}
+          onChange={handleChange}
+          multiline
+          rows={3}
+        />
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 sm:px-6 py-4 border-t flex flex-col sm:flex-row justify-end gap-3">
+        <button
+          onClick={() => setOpen(false)}
+          disabled={saving}
+          className="w-full sm:w-auto px-4 py-2 border rounded-lg"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleUpdate}
+          disabled={saving}
+          className={`w-full sm:w-auto px-4 py-2 rounded-lg text-white
+            ${saving ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
+        >
+          {saving ? "Saving..." : "Update"}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 };
 
 export default EditCreditDetail;

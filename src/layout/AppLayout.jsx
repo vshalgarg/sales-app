@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
-import { ErrorBoundary } from "react-error-boundary";
-import PageErrorFallback from "../components/PageErrorFallback";
 import { useMediaQuery } from "@mui/material";
 
 const AppLayout = () => {
@@ -38,21 +36,26 @@ const AppLayout = () => {
   });
   const isMobile = useMediaQuery("(max-width:768px)");
 
+
+  useEffect(() => {
+    if (location.pathname !== "/") {
+      localStorage.setItem("lastRoute", location.pathname);
+    }
+  }, [location.pathname]);
+
+
   useEffect(() => {
     if (location.pathname === "/") {
-      setActiveSection("master");
-      navigate("/suppliers");
-    } else if (
-      location.pathname.startsWith("/suppliers") ||
-      location.pathname.startsWith("/customers")
-    ) {
-      setActiveSection("master");
-    } else if (location.pathname.startsWith("/bill-entry")) {
-      setActiveSection("entries");
-    } else if (location.pathname.startsWith("/bill-history")) {
-      setActiveSection("reporting");
+      const lastRoute = localStorage.getItem("lastRoute");
+
+      if (lastRoute && lastRoute !== "/") {
+        navigate(lastRoute, { replace: true });
+      } else {
+        navigate("/suppliers", { replace: true });
+      }
     }
-  }, [location, navigate]);
+  }, [location.pathname, navigate]);
+
 
   const handleSectionChange = (section) => {
     setActiveSection(section);

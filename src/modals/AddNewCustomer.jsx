@@ -192,8 +192,8 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   return (
     <>
       {open && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-          <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 md:flex md:items-center md:justify-center">
+          <div className="bg-white w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
             {/* Header */}
             <div className="p-6 border-b">
               <h2 className="text-xl font-semibold">Add New Customer</h2>

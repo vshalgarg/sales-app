@@ -6,7 +6,7 @@ import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import CustomTextField from "../components/CustomTextField";
-import BasicSelect from "./BasicSelect";
+import BasicSelect from "../components/BasicSelect";
 
 export default function AddNewTransport({
   open,
@@ -172,8 +172,8 @@ export default function AddNewTransport({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg flex flex-col">
+    <div className="fixed inset-0 bg-black/80 z-50 md:flex md:items-center md:justify-center">
+      <div className="bg-white w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
 
         {/* HEADER */}
         <div className="p-6 border-b">
@@ -285,17 +285,19 @@ export default function AddNewTransport({
 
         {/* FOOTER */}
         <div className="p-4 border-t flex justify-end gap-3">
-          <button onClick={() => setOpen(false)} className="p-2 px-4 border rounded-lg text-sm">
+          <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border rounded-lg">
             Cancel
           </button>
 
           {!editingTransport && (
-            <button onClick={() => handleSubmit({ closeAfterSave: false })} className="p-2 px-4 border border-blue-600 text-blue-600 rounded-lg text-sm">
+            <button onClick={() => handleSubmit({ closeAfterSave: false })} 
+            className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border border-blue-600 text-blue-600 rounded-lg">
               Save & Add New
             </button>
           )}
 
-          <button onClick={() => handleSubmit({ closeAfterSave: true })} className="p-2 px-4 bg-blue-600 text-white rounded-lg text-sm">
+          <button onClick={() => handleSubmit({ closeAfterSave: true })}
+           className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm bg-blue-600 text-white rounded-lg">
             {editingTransport ? "Update Transport" : "Save Transport"}
           </button>
         </div>

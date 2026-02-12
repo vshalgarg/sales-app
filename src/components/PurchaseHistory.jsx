@@ -1,3 +1,4 @@
+import useResponsive from "../customHooks/useResponsive";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
 
@@ -12,29 +13,43 @@ const PurchaseHistory = ({
   onDelete,
   emptyMessage,
 }) => {
-  const columns = [
-    {
-      key: "date",
-      label: "Date",
-      render: (r) => (r.date ? dayjs(r.date).format("DD-MM-YYYY") : "-"),
-    },
-    { key: "staffName", label: "Staff" },
-    { key: "supplierName", label: "Supplier" },
-    {
-      key: "customerNames",
-      label: "Customer(s)",
-      render: (r) =>
-        r.customerNames && r.customerNames.length > 0
-          ? r.customerNames.join(", ")
-          : "-"
-    },
 
-    { key: "purchaseAmount", label: "Amount" },
-  ];
+  const { isMobile } = useResponsive();
+
+  const columns = {
+    desktop: [
+      {
+        key: "date",
+        label: "Date",
+        render: (r) => (r.date ? dayjs(r.date).format("DD-MM-YYYY") : "-"),
+      },
+      { key: "staffName", label: "Staff" },
+      { key: "supplierName", label: "Supplier" },
+      {
+        key: "customerNames",
+        label: "Customer(s)",
+        render: (r) =>
+          r.customerNames && r.customerNames.length > 0
+            ? r.customerNames.join(", ")
+            : "-",
+      },
+      { key: "purchaseAmount", label: "Amount" },
+    ],
+
+    mobile: [
+      {
+        key: "date",
+        label: "Date",
+        render: (r) => (r.date ? dayjs(r.date).format("DD-MM-YYYY") : "-"),
+      },
+      { key: "supplierName", label: "Supplier" },
+      { key: "purchaseAmount", label: "Amount" },
+    ],
+  };
 
   return (
     <DataTable
-      columns={columns}
+      columns={isMobile ? columns.mobile : columns.desktop}
       data={data}
       loading={loading}
       page={page}

@@ -17,3 +17,10 @@ body,
   height: 100%;
 }
 
+select {
+  -webkit-appearance: none; /* Safari */
+  -moz-appearance: none;
+  appearance: none;
+  background-color: white;
+}
+

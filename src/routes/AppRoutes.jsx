@@ -17,7 +17,7 @@ import TransportDashboard from "../components/TransportDashboard";
 
 
 const SupplierDashboard = lazy(() => import("../components/SupplierDashboard"));
-const Users = lazy(() => import("../components/Users"));
+const Users = lazy(() => import("../user/Users"));
 const Login = lazy(() => import("../components/Login"));
 
 const FallbackLoader = () => (

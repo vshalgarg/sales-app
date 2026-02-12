@@ -13,6 +13,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import CreditHistory from "./CreditHistory";
 import CreditDetail from "../modals/CreditDetail";
 import EditCreditDetail from "../modals/EditCreditDetail";
+import DeleteConfirmModal from "./common/DeleteConfirmModal";
 
 const Credit = () => {
   const { showSnackbar } = useSnackbar();
@@ -236,7 +237,7 @@ const Credit = () => {
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={clearFiltersAndResults}
-              className="px-5 py-2 text-sm rounded-lg border text-gray-600"
+              className="px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm border text-gray-600"
             >
               Clear Filters
             </button>
@@ -244,7 +245,7 @@ const Credit = () => {
             <button
               onClick={() => handleCreditHistory(1)}
               disabled={!isAnyFilterSelected}
-              className={`px-6 py-2 text-sm rounded-lg transition
+              className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded-lg transition
     ${isAnyFilterSelected
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -304,40 +305,31 @@ const Credit = () => {
         />
       )}
 
-      {isDeleteOpen && creditToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-5">
+      <DeleteConfirmModal
+        open={isDeleteOpen}
+        title="Delete Credit"
+        message={
+          <>
+            Are you sure you want to delete credit{" "}
+            <span className="font-medium text-blue-600">
+              {creditToDelete?.billNumber}
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setCreditToDelete(null);
+        }}
+        onConfirm={() => {
+          confirmDelete();
+          setIsDeleteOpen(false);
+          setCreditToDelete(null);
+        }}
+      />
 
-            <h3 className="text-lg font-semibold text-gray-800">
-              Delete Credit
-            </h3>
-
-            <p className="text-sm text-gray-600 mt-2">
-              Are you sure you want to delete credit
-              <span className="font-medium"> {creditToDelete.billNumber}</span> ?
-            </p>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsDeleteOpen(false);
-                  setCreditToDelete(null);
-                }}
-                className="px-4 py-2 text-sm border rounded-lg"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

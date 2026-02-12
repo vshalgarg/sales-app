@@ -5,13 +5,14 @@ import CustomTextField from "./CustomTextField";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
-import { deletePurchaseApi, searchPurchaseHistory } from "../service/purchaseService";
+import { deletePurchaseApi, searchPurchaseHistory } from "../service/PurchaseService";
 import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import PurchaseHistory from "./PurchaseHistory";
 import EditPurchaseDetail from "../modals/EditPurchaseDetail";
+import DeleteConfirmModal from "./common/DeleteConfirmModal";
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
@@ -213,17 +214,19 @@ const Purchase = () => {
         </div>
 
         <div className="px-6 pb-5 flex justify-end gap-3">
-          <button onClick={clearFiltersAndResults} className="px-5 py-2 border rounded">
+          <button onClick={clearFiltersAndResults} className="px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm border rounded">
             Clear Filters
           </button>
+
           <button
             onClick={() => handlePurchaseHistory(1)}
             disabled={!isAnyFilterSelected}
-            className={`px-6 py-2 rounded
-    ${isAnyFilterSelected
+            className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded
+      ${isAnyFilterSelected
                 ? "bg-blue-600 text-white"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+              }
+    `}
           >
             Apply Filters
           </button>
@@ -266,41 +269,32 @@ const Purchase = () => {
           }}
         />
       )}
-      {isDeleteOpen && purchaseToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-5">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Delete Purchase
-            </h3>
 
-            <p className="text-sm text-gray-600 mt-2">
-              Are you sure you want to delete purchase
-              <span className="font-medium">
-                {" "}#{purchaseToDelete.id}
-              </span> ?
-            </p>
+      <DeleteConfirmModal
+        open={isDeleteOpen}
+        title="Delete Purchase"
+        message={
+          <>
+            Are you sure you want to delete purchase{" "}
+            <span className="font-medium text-blue-600">
+              #{purchaseToDelete?.id}
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setPurchaseToDelete(null);
+        }}
+        onConfirm={() => {
+          confirmDelete();
+          setIsDeleteOpen(false);
+          setPurchaseToDelete(null);
+        }}
+      />
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsDeleteOpen(false);
-                  setPurchaseToDelete(null);
-                }}
-                className="px-4 py-2 text-sm border rounded-lg"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

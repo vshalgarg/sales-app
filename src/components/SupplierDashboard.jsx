@@ -6,6 +6,9 @@ import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 import { Typography, useMediaQuery } from "@mui/material";
+import useResponsive from "../customHooks/useResponsive";
+import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 
 export default function SupplierDashboard() {
   const [loading, setLoading] = useState(false);
@@ -22,13 +25,14 @@ export default function SupplierDashboard() {
   const searchRef = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const dropdownRef = useRef(null);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editingSupplierId, setEditingSupplierId] = useState(null);
+  const { isMobile } = useResponsive();
 
   const columns = {
     desktop: [
@@ -64,8 +68,8 @@ export default function SupplierDashboard() {
       },
     ],
     mobile: [
-      { key: "supplierName", label: "Name", width: "18%" },
-      { key: "city", label: "City", width: "10%" },
+      { key: "supplierName", label: "Name" },
+      { key: "city", label: "City" },
     ],
   };
 
@@ -205,7 +209,7 @@ export default function SupplierDashboard() {
       {/* Header Section */}
       <div>
         <div className="flex justify-between items-center my-2">
-          <h2 className=" text-lg md:text-2xl font-bold">{isMobile?"Supplier":"Supplier Overview"}</h2>
+          <h2 className=" text-lg md:text-2xl font-bold">{isMobile ? "Supplier" : "Supplier Overview"}</h2>
           <button
             onClick={() => setOpen(true)}
             className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
@@ -233,12 +237,16 @@ export default function SupplierDashboard() {
       {/* Table Section*/}
       <div className="flex-1 min-h-0  border rounded-lg mb-2 bg-white dark:bg-zinc-900">
         <DataTable
-          columns={isMobile?columns.mobile:columns.desktop}
+          columns={isMobile ? columns.mobile : columns.desktop}
           data={suppliers}
           loading={loading}
           onView={(supplier) => {
             setSelectedSupplier(supplier);
             setIsModalOpen(true);
+          }}
+          onEdit={(supplier) => {
+            setEditingSupplierId(supplier.id);
+            setOpenEdit(true);
           }}
           onDelete={(supplier) => {
             setSupplierToDelete(supplier);
@@ -270,64 +278,39 @@ export default function SupplierDashboard() {
         />
       )}
 
-      {/* Delete Modal */}
-      {deleteModalOpen && supplierToDelete && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-[380px] p-6">
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-100 mb-2">
-              Delete Supplier
-            </h3>
-
-            <p className="text-center text-gray-600 dark:text-gray-400 text-sm mb-6">
-              Are you sure you want to permanently delete{" "}
-              <span className="font-medium text-blue-600 dark:text-blue-400">
-                {supplierToDelete.supplierName}
-              </span>
-              ? This action cannot be undone.
-            </p>
-
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 
-                     text-gray-700 dark:text-gray-200 hover:bg-gray-100 
-                     dark:hover:bg-zinc-800"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={() => {
-                  handleDelete(supplierToDelete.supplierId);
-                  setDeleteModalOpen(false);
-                }}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+      {openEdit && (
+        <UpdateSupplierModal
+          supplierId={editingSupplierId}
+          open={openEdit}
+          setOpen={setOpenEdit}
+          fetchSuppliers={() => fetchSuppliers(currentPage)}
+        />
       )}
+
+
+      <DeleteConfirmModal
+        open={deleteModalOpen}
+        title="Delete Supplier"
+        message={
+          <>
+            Are you sure you want to permanently delete{" "}
+            <b>{supplierToDelete?.supplierName}</b>?
+            This action cannot be undone.
+          </>
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSupplierToDelete(null);
+        }}
+        onConfirm={() => {
+          handleDelete(supplierToDelete.supplierId);
+          setDeleteModalOpen(false);
+          setSupplierToDelete(null);
+        }}
+      />
+
     </div>
   );
 }
