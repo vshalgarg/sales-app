@@ -45,6 +45,29 @@ class SupplierService {
      throw new Error(handleApiError(error));
     }
   }
+  
+  static async updateSupplier(id, supplierData) {
+  try {
+    const response = await api.put(`/suppliers/update/id/${id}`, supplierData);
+
+    const result = checkLogicalError(response.data);
+
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+}
+
+static async getSupplierById(id) {
+  try {
+    const response = await api.get(`/suppliers/get/id/${id}`);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+}
+
 
   static async searchSuppliers(keyword, page = 0, size = 8) {
     return CommonService.searchWithPagination(
@@ -57,5 +80,6 @@ class SupplierService {
     );
   }
 }
+
 
 export default SupplierService;
