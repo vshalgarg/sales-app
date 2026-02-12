@@ -112,7 +112,6 @@ public class CustomerServiceImpl implements CustomerService {
         validatorUtil.validateUniqueFields(duplicateChecks);
     }
 
-
     private CustomerEntity mapToCustomerEntity(AddCustomerRequestDto requestDto, String code) {
         CustomerEntity entity = AddCustomerResponseDto.dtoToEntity(requestDto);
         entity.setCode(code);

@@ -3,6 +3,7 @@ package com.code.monks.csm.dto.request;
 import com.code.monks.csm.enums.StatusEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class UpdateCustomerRequestDto {
 
     private String city;
 
+    @Size(max = 10, message = "Pin code cannot exceed 10 characters")
     private String pinCode;
 
     private String msme;
