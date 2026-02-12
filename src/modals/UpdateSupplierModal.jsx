@@ -260,7 +260,7 @@ const UpdateSupplierModal = ({
                                 />
 
                                 <BasicSelect
-                                    name="supplierMsme"
+                                    name="msme"
                                     value={form.msme || ""}
                                     onChange={handleChange}
                                     label="MSME"
