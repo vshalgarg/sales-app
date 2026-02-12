@@ -79,7 +79,7 @@ public class CustomerEntity extends BaseEntity{
     @Column(name = "status")
     private StatusEnum status;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ContactEntity> contactList;
 
 }
