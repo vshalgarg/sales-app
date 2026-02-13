@@ -18,7 +18,7 @@ public class ContactUtil {
             List<T> contacts,
             Function<T, String> contactPersonGetter,
             Function<T, String> mobileGetter,
-            Function<T, String> phoneGetter) {
+            Function<T, String> typeGetter) {
 
         if (contacts == null || contacts.isEmpty()) {
             return Collections.emptyList();
@@ -28,6 +28,7 @@ public class ContactUtil {
                 .map(contact -> ContactRequestDto.builder()
                         .contactPerson(contactPersonGetter.apply(contact))
                         .mobileNumber(mobileGetter.apply(contact))
+                        .type(typeGetter.apply(contact))
                         .build())
                 .collect(Collectors.toList());
     }

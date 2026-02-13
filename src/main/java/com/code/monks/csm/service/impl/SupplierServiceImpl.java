@@ -204,6 +204,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .supplierName(record.getSupplierName())
                 .supplierGroup(record.getGroupName())
                 .supplierGstNo(record.getGstNo())
+                .email(record.getEmail())
+                .referenceBy(record.getReferenceBy())
                 .commissionScheme(record.getCommissionScheme())
                 .commissionRate(record.getCommissionRate())
                 .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
