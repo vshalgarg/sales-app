@@ -27,6 +27,15 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
+                  Email
+                </label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
+                  {selectedCustomer.email || "-"}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
                   Group Name
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
