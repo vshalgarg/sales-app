@@ -35,10 +35,19 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
                 <label className="block text-sm font-medium mb-1">
                   GST Number
                 </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-all">
                   {selectedSupplier.supplierGstNo}
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Email
+                </label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
+                  {selectedSupplier.email || "-"}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Commission Scheme
@@ -55,6 +64,16 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
                   {selectedSupplier.commissionRate}
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Reference By
+                </label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
+                  {selectedSupplier.referenceBy || "-"}
+                </div>
+              </div>
+
             </div>
 
             {/* Section: Address Details */}
@@ -64,9 +83,10 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
                 <label className="block text-sm font-medium mb-1">
                   Address
                 </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.address}
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words whitespace-pre-wrap">
+                  {selectedSupplier.address || "-"}
                 </div>
+
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">State</label>
@@ -114,12 +134,13 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Phone No.
+                    Type
                   </label>
-                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.phone}
+                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
+                    {c.type || "-"}
                   </div>
                 </div>
+
               </div>
             ))}
 

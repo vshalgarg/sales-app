@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
 
-   useEffect(() => {
+  useEffect(() => {
     console.log("🔍 Selected Customer Data:", selectedCustomer);
   }, [selectedCustomer]);
   return (
@@ -37,9 +37,10 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
                 <label className="block text-sm font-medium mb-1">
                   GST Number
                 </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.customerGstNo}
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-all">
+                  {selectedCustomer.customerGstNo || "-"}
                 </div>
+
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">MSME</label>
@@ -64,9 +65,13 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
                 <label className="block text-sm font-medium mb-1">
                   Address
                 </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.address}
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words whitespace-pre-wrap">
+                  {[
+                    selectedCustomer.addressLine1,
+                    selectedCustomer.addressLine2,
+                  ].filter(Boolean).join(", ") || "-"}
                 </div>
+
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">State</label>
@@ -93,66 +98,66 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
             {/* Section: Contact Information */}
             <h3 className="md:text-lg font-semibold mb-3">Contact Information</h3>
             {Array.isArray(selectedCustomer.contacts) && selectedCustomer.contacts.length > 0 ? (
-            selectedCustomer.contacts.map((c, idx) => (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4" key={idx}>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Contact Person</label>
-                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.contactPerson || "-"}
+              selectedCustomer.contacts.map((c, idx) => (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4" key={idx}>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Contact Person</label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                      {c.contactPerson || "-"}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Mobile No.</label>
-                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.mobileNumber || "-"}
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Mobile No.</label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                      {c.mobileNumber || "-"}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Phone No.</label>
-                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.phone || "-"}
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Type</label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
+                      {c.type || "-"}
+                    </div>
                   </div>
+
                 </div>
+              ))
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded p-4 text-center text-gray-500">
+                No contact information available
               </div>
-            ))
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded p-4 text-center text-gray-500">
-              No contact information available
-            </div>
-          )}
+            )}
 
             {/* ------------------ Other Information ------------------ */}
-          <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
-          <div className="grid  grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Preferred Transport</label>
-              <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
-                {/* Yeh bhi safe bana diya ↓↓↓ */}
-                {Array.isArray(selectedCustomer.preferredTransports) && selectedCustomer.preferredTransports.length > 0 ? (
-                  selectedCustomer.preferredTransports.map((transport, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
-                    >
-                      {transport.name || transport.transportName || "Unnamed"}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-gray-500 text-sm">-</span>
-                )}
+            <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
+            <div className="grid  grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Preferred Transport</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
+                  {Array.isArray(selectedCustomer.preferredTransports) && selectedCustomer.preferredTransports.length > 0 ? (
+                    selectedCustomer.preferredTransports.map((transport, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+                      >
+                        {transport.name || transport.transportName || "Unnamed"}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-500 text-sm">-</span>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Remark</label>
-              <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
-                {selectedCustomer.remark || "-"}
+              <div>
+                <label className="block text-sm font-medium mb-1">Remark</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
+                  {selectedCustomer.remark || "-"}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-            {/* Footer Button */}
+          {/* Footer Button */}
           <div className="p-2 md:p-4 border-t boder-gray-300 flex justify-end space-x-3">
             <button
               onClick={() => setModalOpen(false)}
