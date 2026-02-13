@@ -15,6 +15,8 @@ public class GetSuppliersDto {
     private String supplierGroup;
     private String supplierGstNo;
     private String supplierMsme;
+    private String email;
+    private String referenceBy;
     private String commissionScheme;
     private Double commissionRate;
     private String address;
