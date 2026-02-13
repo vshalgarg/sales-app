@@ -261,7 +261,7 @@ export default function AddNewTransport({
                   <CustomTextField
                     label="Contact Number"
                     value={c.contactNumber}
-                    onChange={(e) => /^\d*$/.test(e.target.value) && handleContactChange(index, "contactNumber", e.target.value)}
+                    onChange={(e) => /^[0-9-\s]*$/.test(e.target.value) && handleContactChange(index, "contactNumber", e.target.value)}
                   />
                 </div>
                 <div className="md:col-span-3">
