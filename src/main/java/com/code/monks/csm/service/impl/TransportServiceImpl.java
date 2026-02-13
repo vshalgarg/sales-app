@@ -67,6 +67,7 @@ public class TransportServiceImpl implements TransportService {
                                 TransportContactEntity contact = new TransportContactEntity();
                                 contact.setContactPerson(c.getContactPerson());
                                 contact.setContactNumber(c.getContactNumber());
+                                contact.setType(c.getType());
                                 contact.setTransport(transport);
                                 return contact;
                             })
@@ -126,6 +127,7 @@ public class TransportServiceImpl implements TransportService {
                             TransportContactEntity contact = new TransportContactEntity();
                             contact.setContactPerson(c.getContactPerson());
                             contact.setContactNumber(c.getContactNumber());
+                            contact.setType(c.getType());
                             contact.setTransport(transport);
                             return contact;
                         })
@@ -277,6 +279,7 @@ public class TransportServiceImpl implements TransportService {
                             TransportContactResponseDto cd = new TransportContactResponseDto();
                             cd.setContactPerson(c.getContactPerson());
                             cd.setContactNumber(c.getContactNumber());
+                            cd.setType(c.getType());
                             return cd;
                         })
                         .toList();
