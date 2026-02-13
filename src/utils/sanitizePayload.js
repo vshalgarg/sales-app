@@ -1,17 +1,19 @@
 export const sanitizePayload = (obj) => {
-  const sanitized = {};
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizePayload(item));
+  }
 
-  Object.keys(obj).forEach((key) => {
-    const value = obj[key];
+  if (obj !== null && typeof obj === "object") {
+    const sanitized = {};
+    Object.keys(obj).forEach((key) => {
+      sanitized[key] = sanitizePayload(obj[key]);
+    });
+    return sanitized;
+  }
 
-    if (Array.isArray(value)) {
-      sanitized[key] = value;
-    } else if (typeof value === "string") {
-      sanitized[key] = value.trim() === "" ? null : value.trim();
-    } else {
-      sanitized[key] = value;
-    }
-  });
+  if (typeof obj === "string") {
+    return obj.trim() === "" ? null : obj.trim();
+  }
 
-  return sanitized;
+  return obj;
 };

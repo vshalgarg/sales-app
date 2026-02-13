@@ -23,7 +23,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
   const [selectedTransports, setSelectedTransports] = useState([]);
-  const [selectedTransport, setSelectedTransport] = useState(null);
 
 
   /* ---------- Load all transports once ---------- */
@@ -325,7 +324,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         value={contact.mobileNumber}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (/^\d*$/.test(value)) {
+                          if (/^[0-9-\s]*$/.test(value)) {
                             handleContactChange(index, e);
                           }
                         }}
