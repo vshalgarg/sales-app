@@ -7,4 +7,5 @@ public class TransportContactResponseDto {
 
     private String contactPerson;
     private String contactNumber;
+    private String type;
 }
