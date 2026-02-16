@@ -504,5 +504,11 @@ ADD COLUMN updated_by BIGINT NULL AFTER updated_at;
 
 ALTER TABLE supplier MODIFY code VARCHAR(7);
 
+ALTER TABLE customer MODIFY code VARCHAR(7);
+UPDATE supplier
+SET code = CONCAT('S', LPAD(SUBSTRING(code, 2), 6, '0'));
+
+UPDATE customer
+SET code = CONCAT('S', LPAD(SUBSTRING(code, 2), 6, '0'));
 
 
