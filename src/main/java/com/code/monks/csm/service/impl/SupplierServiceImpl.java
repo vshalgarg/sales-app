@@ -136,8 +136,11 @@ public class SupplierServiceImpl implements SupplierService {
 
     private String generateCode(){
         Integer maxId = supplierRepo.findMaxCodeSuffix();
+        log.info("MAX ID FROM DB = {}", maxId);
         int newId = (maxId != null ? maxId : 0) + 1;
-        return String.format("S%03d",newId);
+        String code = String.format("S%06d", newId);
+        log.info("GENERATED CODE  for supplier = {}", code);
+        return code;
     }
 
     public PagedResponseDto<GetSuppliersDto> getSuppliers(int page, int size) {
