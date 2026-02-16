@@ -147,8 +147,15 @@ public class CustomerServiceImpl implements CustomerService {
 
     private String generateCode(){
         Integer maxId = customerRepo.findMaxCodeSuffix();
+        log.info("MAX customer code suffix from DB = {}", maxId);
+
         int newId = (maxId != null ? maxId : 0) + 1;
-        return String.format("C%03d",newId);
+        log.info("New customer numeric id generated = {}", newId);
+
+        String code = String.format("C%03d", newId);
+        log.info("Final generated customer code = {}", code);
+
+        return code;
     }
 
     public PagedResponseDto<GetCustomersDto> getCustomers(int page, int size) {
