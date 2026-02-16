@@ -8,6 +8,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import { sanitizePayload } from "../utils/sanitizePayload";
 
 export default function AddNewStaff({
   open,
@@ -63,7 +64,8 @@ export default function AddNewStaff({
     try {
       setIsSaving(true);
 
-      const response = await saveStaff(form);
+      const payload = sanitizePayload(form);
+      const response = await saveStaff(payload);
 
       if (response?.code && response?.message) {
         showSnackbar(response.message, "error");
@@ -112,7 +114,7 @@ export default function AddNewStaff({
             value={form.phone}
             onChange={(e) => {
               const value = e.target.value;
-              if (/^\d*$/.test(value)) {
+              if (/^[0-9-\s]*$/.test(value)) {
                 handleFormChange("phone", value);
               }
 
@@ -121,7 +123,7 @@ export default function AddNewStaff({
             error={!!errors.phone}
             helperText={errors.phone || ""}
             type="tel"
-            inputProps={{ maxLength: 10 }}
+            inputProps={{ maxLength: 15 }}
           />
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>

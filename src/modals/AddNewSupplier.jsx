@@ -367,7 +367,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         value={contact.mobileNumber}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (/^\d*$/.test(value)) {
+                          if (/^[0-9-\s]*$/.test(value)) {
                             handleContactChange(index, e);
                           }
                         }}
