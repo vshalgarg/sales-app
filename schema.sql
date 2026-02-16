@@ -502,6 +502,7 @@ ALTER TABLE credit
 ADD COLUMN created_by BIGINT NULL AFTER created_at,
 ADD COLUMN updated_by BIGINT NULL AFTER updated_at;
 
+ALTER TABLE supplier MODIFY code VARCHAR(7);
 
 
 

@@ -14,12 +14,8 @@ import java.util.Optional;
 
 @Repository
 public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
-    @Query(value = "SELECT MAX(CAST(SUBSTRING(code, 2, 3) AS UNSIGNED)) FROM supplier", nativeQuery = true)
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(code, 2) AS UNSIGNED)) FROM supplier", nativeQuery = true)
     Integer findMaxCodeSuffix();
-
-    SupplierEntity findBySupplierName(String SupplierName);
-
-    //Page<SupplierEntity> findAllByStatus(Pageable pageable, StatusEnum status);
 
     Page<SupplierEntity> findAllByStatus(
             @Param("status") StatusEnum status,
@@ -28,11 +24,7 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
 
     Optional<SupplierEntity> findOneByCode(String code);
 
-    boolean existsByGstNo(String gstNo);
-
     boolean existsByCode(String code);
-
-    //List<SupplierEntity> findBySupplierNameContainingIgnoreCaseAndStatus(String keyword,StatusEnum status);
 
     @Query(value = "SELECT DISTINCT s FROM SupplierEntity s " +
             "LEFT JOIN s.contactList c " +
