@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
 
-    @Query(value = "SELECT MAX(CAST(SUBSTRING(code, 2, 3) AS UNSIGNED)) FROM customer", nativeQuery = true)
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(code, 2) AS UNSIGNED)) FROM customer", nativeQuery = true)
     Integer findMaxCodeSuffix();
 
     CustomerEntity findByCustomerName(String customerName);
