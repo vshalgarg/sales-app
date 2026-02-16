@@ -39,6 +39,14 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
                   {selectedSupplier.supplierGstNo}
                 </div>
               </div>
+
+               <div>
+                <label className="block text-sm font-medium mb-1">MSME</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                  {selectedSupplier.supplierMsme}
+                </div>
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Email
