@@ -178,7 +178,7 @@ CREATE TABLE purchase_images (
         FOREIGN KEY (purchase_id)
         REFERENCES purchase(id)
         ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 
 
