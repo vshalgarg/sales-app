@@ -19,10 +19,12 @@ const ImageUploader = ({
 
         if (isLimitReached || value.length + files.length > maxImages) {
             onError?.(`Maximum ${maxImages} images allowed`);
+            e.target.value = null;
             return;
         }
 
         onChange([...value, ...files]);
+        e.target.value = null; 
     };
 
     const removeImage = (index) => {
