@@ -11,6 +11,7 @@ import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { addPurchaseEntry } from "../service/PurchaseService";
 import validate from "../validations/Validation";
+import ImageUploader from "./common/ImageUploader";
 
 const PurchaseEntry = () => {
   const { showSnackbar } = useSnackbar();
@@ -25,6 +26,8 @@ const PurchaseEntry = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [purchaseImages, setPurchaseImages] = useState([]);
+
 
 
   const [formData, setFormData] = useState({
@@ -127,7 +130,19 @@ const PurchaseEntry = () => {
     setIsSaving(true);
 
     try {
-      const response = await addPurchaseEntry(formData);
+      const formDataObj = new FormData();
+
+      formDataObj.append(
+        "payload",
+        new Blob([JSON.stringify(formData)], {
+          type: "application/json",
+        })
+      );
+      purchaseImages.forEach((file) => {
+        formDataObj.append("images", file);
+      });
+
+      const response = await addPurchaseEntry(formDataObj);
       showSnackbar(response.message || "Purchase entry saved", "success");
       handleReset();
     } catch (error) {
@@ -150,6 +165,7 @@ const PurchaseEntry = () => {
       staff: "",
       purchaseAmount: "",
     });
+    setPurchaseImages([]);
     setErrors({});
   };
 
@@ -335,6 +351,38 @@ const PurchaseEntry = () => {
               />
             </div>
           </div>
+
+          {/* Purchase Images Section */}
+          <div className="
+  border border-gray-200
+  rounded-xl
+  bg-white
+  shadow-sm
+  hover:shadow-md
+  transition-shadow
+  p-3 sm:p-4 md:p-6
+">
+            <div className="flex items-center mb-4">
+              <div className="w-1 h-7 sm:h-8 bg-pink-600 rounded-full mr-3" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+                Purchase Images
+              </h3>
+              <span className="ml-2 text-xs text-gray-400">(optional)</span>
+            </div>
+
+            <ImageUploader
+              value={purchaseImages}
+              onChange={setPurchaseImages}
+              maxImages={2}
+              label="Upload Purchase Images"
+              onError={(msg) => showSnackbar(msg, "error")}
+            />
+
+            <p className="mt-2 text-xs text-gray-500">
+              You can upload up to 2 images only
+            </p>
+          </div>
+
         </div>
 
         {/* Footer */}
