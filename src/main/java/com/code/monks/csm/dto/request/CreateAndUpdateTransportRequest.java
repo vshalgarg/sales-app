@@ -14,7 +14,6 @@ public class CreateAndUpdateTransportRequest {
     @NotBlank(message = "Transport name is required")
     private String name;
 
-    @Email(message = "Invalid email format")
     private String email;
 
     private String gstNo;

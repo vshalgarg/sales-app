@@ -512,3 +512,18 @@ UPDATE customer
 SET code = CONCAT('S', LPAD(SUBSTRING(code, 2), 6, '0'));
 
 
+ALTER TABLE supplier
+MODIFY COLUMN email TEXT NULL
+AFTER name;
+
+ALTER TABLE customer
+MODIFY COLUMN email TEXT NULL
+AFTER name;
+
+ALTER TABLE transports
+MODIFY COLUMN email TEXT NULL
+AFTER name;
+
+
+
+

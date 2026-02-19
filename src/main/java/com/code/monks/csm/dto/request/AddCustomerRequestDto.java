@@ -16,7 +16,6 @@ public class AddCustomerRequestDto {
     @NotBlank(message = "Customer name is required")
     private String customerName;
 
-    @Email(message = "Invalid email format")
     private String email;
 
     private String customerGroup;
