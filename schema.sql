@@ -512,3 +512,13 @@ UPDATE customer
 SET code = CONCAT('S', LPAD(SUBSTRING(code, 2), 6, '0'));
 
 
+ALTER TABLE transports
+MODIFY COLUMN gst_no varchar(255);
+
+ALTER TABLE supplier
+MODIFY COLUMN gst_no varchar(255);
+
+ALTER TABLE customer
+MODIFY COLUMN gst_no varchar(255);
+
+
