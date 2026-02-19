@@ -161,6 +161,27 @@ CREATE TABLE purchase (
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE purchase_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    image_url VARCHAR(500) NOT NULL,
+
+    purchase_id INT NOT NULL,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    CONSTRAINT fk_purchase_images_purchase
+        FOREIGN KEY (purchase_id)
+        REFERENCES purchase(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
 CREATE TABLE purchase_customers (
     purchase_id INT NOT NULL,
     customer_id INT NOT NULL,

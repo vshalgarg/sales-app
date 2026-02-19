@@ -9,10 +9,13 @@ import com.code.monks.csm.service.PurchaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
@@ -28,9 +31,17 @@ public class PurchaseEntryController {
         this.purchaseService = purchaseService;
     }
 
-    @PostMapping(ADD_PURCHASE_ENTRY)
-    public ResponseEntity<AddPurchaseEntryResponseDto> addPurchaseEntry(@RequestBody AddPurchaseEntryRequestDto requestDto){
-        AddPurchaseEntryResponseDto response = purchaseService.addPurchaseEntry(requestDto);
+    @PostMapping(
+            value = ADD_PURCHASE_ENTRY,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<AddPurchaseEntryResponseDto> addPurchaseEntry(
+            @RequestPart("payload") AddPurchaseEntryRequestDto requestDto,
+
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images
+    ){
+        AddPurchaseEntryResponseDto response = purchaseService.addPurchaseEntry(requestDto, images);
         return ResponseEntity.ok(response);
     }
 

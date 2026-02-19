@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -37,4 +38,10 @@ public class PurchaseEntity extends BaseEntity{
 
     @Column(name = "purchase_amount")
     private Long purchaseAmount;
+
+    @OneToMany(mappedBy = "purchase",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<PurchaseImageEntity> images;
+
 }
