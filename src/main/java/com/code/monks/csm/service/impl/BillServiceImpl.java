@@ -46,6 +46,8 @@ public class BillServiceImpl implements BillService {
     private final TransportService transportService;
     private final FileUploadService fileUploadService;
 
+    private static final String MODULE_BILTY = "bilty";
+
     @Transactional
     public BillEntryResponseDto addBill(BillEntryRequestDto requestDto, List<MultipartFile> images) {
         log.info("addBill() called with items: {}", requestDto);
@@ -98,7 +100,7 @@ public class BillServiceImpl implements BillService {
             if (images != null && !images.isEmpty()) {
                 log.info("Uploading {} bill image(s)", images.size());
                 List<String> imageUrls =
-                        fileUploadService.uploadFiles(images);
+                        fileUploadService.uploadFiles(images, MODULE_BILTY);
                 List<BillImageEntity> imageEntities = imageUrls.stream()
                         .map(url -> {
                             BillImageEntity image = new BillImageEntity();

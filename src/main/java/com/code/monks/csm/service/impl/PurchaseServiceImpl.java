@@ -5,16 +5,14 @@ import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
-import com.code.monks.csm.entity.CustomerEntity;
-import com.code.monks.csm.entity.PurchaseEntity;
-import com.code.monks.csm.entity.StaffEntity;
-import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.entity.*;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.PurchaseEntryRepo;
 import com.code.monks.csm.repository.StaffRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.PurchaseService;
+import com.code.monks.csm.service.file.FileUploadService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,9 +20,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.PURCHASE_ENTRY_NOT_FOUND;
 
@@ -37,8 +37,14 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final StaffRepo staffRepo;
+    private final FileUploadService fileUploadService;
 
-    public AddPurchaseEntryResponseDto addPurchaseEntry(AddPurchaseEntryRequestDto requestDto){
+    private static final String MODULE = "orderForm";
+
+    public AddPurchaseEntryResponseDto addPurchaseEntry(
+            AddPurchaseEntryRequestDto requestDto,
+            List<MultipartFile> images
+    ){
 
         log.info("Add Purchase Entry called with payload: {}", requestDto);
         PurchaseEntity entity = new PurchaseEntity();
@@ -55,6 +61,33 @@ public class PurchaseServiceImpl implements PurchaseService {
             entity.setCustomers(
                     new HashSet<>(customerRepo.findAllById(requestDto.getCustomerIds()))
             );
+        }
+
+        // Upload Images
+        if (images != null && !images.isEmpty()) {
+
+            log.info("Uploading {} purchase image(s)", images.size());
+
+            List<String> imageUrls =
+                    fileUploadService.uploadFiles(images, MODULE);
+
+            List<PurchaseImageEntity> imageEntities =
+                    imageUrls.stream()
+                            .map(url -> {
+                                PurchaseImageEntity image = new PurchaseImageEntity();
+                                image.setImageUrl(url);
+                                image.setPurchase(entity);
+                                return image;
+                            })
+                            .collect(Collectors.toList());
+
+            entity.setImages(imageEntities);
+
+            log.info("Successfully uploaded {} image(s) for purchase",
+                    imageEntities.size());
+
+        } else {
+            log.info("No images provided for purchase entry");
         }
         purchaseEntryRepo.save(entity);
         log.info("Purchase Entry saved successfully, id={}", entity.getId());

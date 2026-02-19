@@ -21,7 +21,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     private final FileStorage fileStorage;
 
     @Override
-    public List<String> uploadFiles(List<MultipartFile> images) {
+    public List<String> uploadFiles(List<MultipartFile> images, String module) {
 
         log.info("Starting image upload process");
         fileValidator.validate(images);
@@ -38,7 +38,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                         image.getSize(),
                         image.getContentType()
                 );
-                String url = fileStorage.store(image);
+                String url = fileStorage.store(image, module);
                 imageUrls.add(url);
 
                 log.debug("Image uploaded successfully. Stored at: {}", url);
@@ -52,7 +52,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 throw new FileUploadException(ResponseErrorCode.FILE_UPLOAD_EXCEPTION);
             }
         }
-        log.info("Successfully uploaded {} image(s)", imageUrls.size());
+        log.info("Successfully uploaded {} image(s) for module: {}", imageUrls.size(), module);
         return imageUrls;
     }
 }

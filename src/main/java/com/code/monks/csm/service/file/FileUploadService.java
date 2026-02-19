@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface FileUploadService {
 
-    List<String> uploadFiles(List<MultipartFile> images);
+    List<String> uploadFiles(List<MultipartFile> images, String module);
 }
