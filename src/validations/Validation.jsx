@@ -216,12 +216,6 @@ const validate = (field, value) => {
       }
       break;
 
-    case "email":
-      if (!value) return ""; //optional
-      if (!/^\S+@\S+\.\S+$/.test(value)) return "Invalid email";
-      return "";
-
-
     default:
       break;
   }
