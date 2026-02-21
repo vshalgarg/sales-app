@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.request.BillEntryRequestDto;
 import com.code.monks.csm.dto.request.BillUpdateRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.*;
+import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.BillException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.BillEntryRepo;
@@ -46,7 +47,6 @@ public class BillServiceImpl implements BillService {
     private final TransportService transportService;
     private final FileUploadService fileUploadService;
 
-    private static final String MODULE_BILTY = "bilty";
 
     @Transactional
     public BillEntryResponseDto addBill(BillEntryRequestDto requestDto, List<MultipartFile> images) {
@@ -100,7 +100,7 @@ public class BillServiceImpl implements BillService {
             if (images != null && !images.isEmpty()) {
                 log.info("Uploading {} bill image(s)", images.size());
                 List<String> imageUrls =
-                        fileUploadService.uploadFiles(images, MODULE_BILTY);
+                        fileUploadService.uploadFiles(images, UploadModuleEnum.BILTY);
                 List<BillImageEntity> imageEntities = imageUrls.stream()
                         .map(url -> {
                             BillImageEntity image = new BillImageEntity();

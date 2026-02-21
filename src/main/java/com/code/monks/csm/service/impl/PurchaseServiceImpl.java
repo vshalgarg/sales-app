@@ -6,6 +6,7 @@ import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import com.code.monks.csm.entity.*;
+import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.PurchaseEntryRepo;
@@ -39,8 +40,6 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final SupplierRepo supplierRepo;
     private final StaffRepo staffRepo;
     private final FileUploadService fileUploadService;
-
-    private static final String MODULE = "orderForm";
 
     @Override
     @Transactional
@@ -302,7 +301,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         List<String> imageUrls =
-                fileUploadService.uploadFiles(images, MODULE);
+                fileUploadService.uploadFiles(images, UploadModuleEnum.PURCHASE);
 
         List<PurchaseImageEntity> imageEntities =
                 imageUrls.stream()

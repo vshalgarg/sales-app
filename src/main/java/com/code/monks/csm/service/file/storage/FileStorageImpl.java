@@ -1,5 +1,6 @@
 package com.code.monks.csm.service.file.storage;
 
+import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.FileUploadException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class FileStorageImpl implements FileStorage {
     private String bucketName;
 
     @Override
-    public String store(MultipartFile file, String module) {
+    public String store(MultipartFile file, UploadModuleEnum uploadModule) {
 
         try {
             log.debug("Starting upload for file: {}", file.getOriginalFilename());
@@ -41,7 +42,7 @@ public class FileStorageImpl implements FileStorage {
 
             String fileName = year + "/" +
                     month + "/" +
-                    module + "/" +
+                    uploadModule.getFolder() + "/" +
                     timestamp + extension;
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
