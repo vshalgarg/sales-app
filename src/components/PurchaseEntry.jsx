@@ -24,8 +24,8 @@ const PurchaseEntry = () => {
   const [supplierLoading, setSupplierLoading] = useState(true);
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
-  const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [selectedSuppliers, setSelectedSuppliers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [purchaseImages, setPurchaseImages] = useState([]);
 
 
@@ -33,8 +33,8 @@ const PurchaseEntry = () => {
   const [formData, setFormData] = useState({
     date: dayjs().format("YYYY-MM-DD"),
     staffId: "",
-    supplierId: "",
-    customerIds: [],
+    supplierIds: [],
+    customerId: "",
     staff: "",
     purchaseAmount: "",
   });
@@ -117,13 +117,13 @@ const PurchaseEntry = () => {
       return;
     }
 
-    if (!formData.supplierId) {
-      showSnackbar("Please select a Supplier", "error");
+    if (!formData.supplierIds || formData.supplierIds.length === 0) {
+      showSnackbar("Please select at least one Supplier", "error");
       return;
     }
 
-    if (!formData.customerIds || formData.customerIds.length === 0) {
-      showSnackbar("Please select at least one Customer", "error");
+    if (!formData.customerId) {
+      showSnackbar("Please select a Customer", "error");
       return;
     }
 
@@ -170,15 +170,15 @@ const PurchaseEntry = () => {
   };
 
   const resetSupplier = () => {
-    setSelectedSupplier(null);
+    setSelectedSuppliers([]);
     setFormData(prev => ({
       ...prev,
-      supplierId: "",
+      supplierIds: [],
     }));
   };
 
   const resetCustomer = () => {
-    setSelectedCustomers([]);
+    setSelectedCustomer(null);
     setFormData(prev => ({
       ...prev,
       customerId: "",
@@ -219,56 +219,53 @@ const PurchaseEntry = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Autocomplete
+                multiple
                 options={allSuppliers}
-                value={selectedSupplier}
+                value={selectedSuppliers}
                 loading={supplierLoading}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                isOptionEqualToValue={(o, v) => o.id === v.id}
                 getOptionLabel={(o) =>
                   o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
                 }
-                onChange={(e, value) => {
-                  if (!value) {
-                    resetSupplier();
-                    return;
-                  }
-
-                  setSelectedSupplier(value);
+                onChange={(e, values) => {
+                  setSelectedSuppliers(values);
                   setFormData(prev => ({
                     ...prev,
-                    supplierId: value.id,
+                    supplierIds: values.map(v => v.id),
                   }));
-
-                  setErrors(prev => ({ ...prev, supplierName: "" }));
                 }}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Supplier *"
-                    error={!!errors.supplierName}
+                    label="Suppliers *"
                   />
                 )}
               />
 
               <Autocomplete
-                multiple
                 options={allCustomers}
-                value={selectedCustomers}
+                value={selectedCustomer}
                 loading={customerLoading}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
                 getOptionLabel={(o) =>
                   o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
                 }
-                onChange={(e, values) => {
-                  setSelectedCustomers(values);
+                onChange={(e, value) => {
+                  if (!value) {
+                    resetCustomer();
+                    return;
+                  }
+
+                  setSelectedCustomer(value);
                   setFormData(prev => ({
                     ...prev,
-                    customerIds: values.map(v => v.id),
+                    customerId: value.id,
                   }));
                 }}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Customer(s) *"
+                    label="Customer *"
                   />
                 )}
               />
