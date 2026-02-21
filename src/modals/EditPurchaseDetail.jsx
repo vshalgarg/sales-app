@@ -23,8 +23,8 @@ const EditPurchaseDetail = ({
     const [allCustomers, setAllCustomers] = useState([]);
     const [allStaffs, setAllStaffs] = useState([]);
 
-    const [selectedSupplier, setSelectedSupplier] = useState(null);
-    const [selectedCustomers, setSelectedCustomers] = useState([]);
+    const [selectedSuppliers, setSelectedSuppliers] = useState([]);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedStaff, setSelectedStaff] = useState(null);
 
     const [formData, setFormData] = useState({
@@ -60,18 +60,18 @@ const EditPurchaseDetail = ({
         });
 
         if (allSuppliers.length > 0) {
-            setSelectedSupplier(
-                allSuppliers.find(
-                    s => s.id === Number(selectedPurchaseDetail.supplierId)
-                ) || null
+            const selected = allSuppliers.filter(s =>
+                selectedPurchaseDetail.supplierIds?.includes(s.id)
             );
+            setSelectedSuppliers(selected);
         }
 
         if (allCustomers.length > 0) {
-            const selected = allCustomers.filter(c =>
-                selectedPurchaseDetail.customerIds?.includes(c.id)
+            setSelectedCustomer(
+                allCustomers.find(
+                    c => c.id === selectedPurchaseDetail.customerId
+                ) || null
             );
-            setSelectedCustomers(selected);
         }
 
 
@@ -104,9 +104,12 @@ const EditPurchaseDetail = ({
             const payload = {
                 date: formData.date || null,
                 staffId: selectedStaff?.staffId || null,
-                supplierId: selectedSupplier?.id || null,
-                customerIds: selectedCustomers.map(c => c.id),
-                purchaseAmount: Number(formData.purchaseAmount),
+                supplierIds: selectedSuppliers.map(s => s.id),
+                customerId: selectedCustomer?.id || null,
+                purchaseAmount:
+                    formData.purchaseAmount !== ""
+                        ? Number(formData.purchaseAmount)
+                        : null,
             };
 
             await updatePurchaseApi(selectedPurchaseDetail.id, payload);
@@ -192,24 +195,24 @@ const EditPurchaseDetail = ({
                     {/* SUPPLIER + CUSTOMER */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Autocomplete
+                            multiple
                             options={allSuppliers}
-                            value={selectedSupplier}
-                            isOptionEqualToValue={(o, v) => o.id === v?.id}
+                            value={selectedSuppliers}
+                            isOptionEqualToValue={(o, v) => o.id === v.id}
                             getOptionLabel={(o) => o?.supplierName || ""}
-                            onChange={(e, v) => setSelectedSupplier(v)}
+                            onChange={(e, values) => setSelectedSuppliers(values)}
                             renderInput={(p) => (
-                                <CustomTextField {...p} label="Supplier" />
+                                <CustomTextField {...p} label="Suppliers" />
                             )}
                         />
                         <Autocomplete
-                            multiple
                             options={allCustomers}
-                            value={selectedCustomers}
-                            isOptionEqualToValue={(o, v) => o.id === v.id}
+                            value={selectedCustomer}
+                            isOptionEqualToValue={(o, v) => o.id === v?.id}
                             getOptionLabel={(o) => o?.customerName || ""}
-                            onChange={(e, values) => setSelectedCustomers(values)}
+                            onChange={(e, v) => setSelectedCustomer(v)}
                             renderInput={(p) => (
-                                <CustomTextField {...p} label="Customer(s)" />
+                                <CustomTextField {...p} label="Customer" />
                             )}
                         />
 

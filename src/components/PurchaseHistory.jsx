@@ -23,17 +23,32 @@ const PurchaseHistory = ({
         label: "Date",
         render: (r) => (r.date ? dayjs(r.date).format("DD-MM-YYYY") : "-"),
       },
+
       { key: "staffName", label: "Staff" },
-      { key: "supplierName", label: "Supplier" },
+
       {
-        key: "customerNames",
-        label: "Customer(s)",
+        key: "supplierNames",
+        label: "Suppliers",
         render: (r) =>
-          r.customerNames && r.customerNames.length > 0
-            ? r.customerNames.join(", ")
+          r.supplierNames && r.supplierNames.length > 0
+            ? r.supplierNames.join(", ")
             : "-",
       },
-      { key: "purchaseAmount", label: "Amount" },
+
+      {
+        key: "customerName",
+        label: "Customer",
+        render: (r) => r.customerName || "-",
+      },
+
+      {
+        key: "purchaseAmount",
+        label: "Amount",
+        render: (r) =>
+          r.purchaseAmount != null
+            ? `₹ ${Number(r.purchaseAmount).toFixed(2)}`
+            : "-",
+      },
     ],
 
     mobile: [
@@ -42,8 +57,22 @@ const PurchaseHistory = ({
         label: "Date",
         render: (r) => (r.date ? dayjs(r.date).format("DD-MM-YYYY") : "-"),
       },
-      { key: "supplierName", label: "Supplier" },
-      { key: "purchaseAmount", label: "Amount" },
+      {
+        key: "supplierNames",
+        label: "Suppliers",
+        render: (r) =>
+          r.supplierNames && r.supplierNames.length > 0
+            ? r.supplierNames.join(", ")
+            : "-",
+      },
+      {
+        key: "purchaseAmount",
+        label: "Amount",
+        render: (r) =>
+          r.purchaseAmount != null
+            ? `₹ ${Number(r.purchaseAmount).toFixed(2)}`
+            : "-",
+      },
     ],
   };
 
