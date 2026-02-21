@@ -20,13 +20,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.code.monks.csm.enums.ResponseErrorCode.PURCHASE_ENTRY_NOT_FOUND;
+import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
 @Service
 @AllArgsConstructor
@@ -41,56 +42,28 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private static final String MODULE = "orderForm";
 
+    @Override
+    @Transactional
     public AddPurchaseEntryResponseDto addPurchaseEntry(
             AddPurchaseEntryRequestDto requestDto,
             List<MultipartFile> images
-    ){
+    ) {
 
-        log.info("Add Purchase Entry called with payload: {}", requestDto);
         PurchaseEntity entity = new PurchaseEntity();
-        entity.setDate(requestDto.getDate());
-        entity.setStaffId(requestDto.getStaffId());
-        entity.setSupplierId(requestDto.getSupplierId());
-        entity.setPurchaseAmount(
-                requestDto.getPurchaseAmount() != null
-                        ? Math.round(requestDto.getPurchaseAmount() * 100)
-                        : null
+
+        applyRequestToEntity(
+                entity,
+                requestDto.getDate(),
+                requestDto.getStaffId(),
+                requestDto.getSupplierIds(),
+                requestDto.getCustomerId(),
+                requestDto.getPurchaseAmount()
         );
 
-        if (requestDto.getCustomerIds() != null && !requestDto.getCustomerIds().isEmpty()) {
-            entity.setCustomers(
-                    new HashSet<>(customerRepo.findAllById(requestDto.getCustomerIds()))
-            );
-        }
+        handleImages(entity, images);
 
-        // Upload Images
-        if (images != null && !images.isEmpty()) {
-
-            log.info("Uploading {} purchase image(s)", images.size());
-
-            List<String> imageUrls =
-                    fileUploadService.uploadFiles(images, MODULE);
-
-            List<PurchaseImageEntity> imageEntities =
-                    imageUrls.stream()
-                            .map(url -> {
-                                PurchaseImageEntity image = new PurchaseImageEntity();
-                                image.setImageUrl(url);
-                                image.setPurchase(entity);
-                                return image;
-                            })
-                            .collect(Collectors.toList());
-
-            entity.setImages(imageEntities);
-
-            log.info("Successfully uploaded {} image(s) for purchase",
-                    imageEntities.size());
-
-        } else {
-            log.info("No images provided for purchase entry");
-        }
         purchaseEntryRepo.save(entity);
-        log.info("Purchase Entry saved successfully, id={}", entity.getId());
+
         return AddPurchaseEntryResponseDto.builder()
                 .message("Purchase entry saved successfully")
                 .build();
@@ -105,7 +78,14 @@ public class PurchaseServiceImpl implements PurchaseService {
             int size)   {
 
         int pageIndex = Math.max(page, 0);
-        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by("date").descending());
+        Pageable pageable = PageRequest.of(
+                pageIndex,
+                size,
+                Sort.by(
+                        Sort.Order.desc("date"),
+                        Sort.Order.desc("id")
+                )
+        );
         Page<PurchaseEntity> purchaseRecords;
         log.info("Purchase search called: fromDate={}, toDate={}, supplierId={}, customerId={}",
                 fromDate, toDate, supplierId, customerId);
@@ -114,19 +94,19 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             if (supplierId != null && customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndSupplierIdAndCustomers_Id(
+                        purchaseEntryRepo.findByDateBetweenAndSuppliers_IdAndCustomer_Id(
                                 fromDate, toDate, supplierId, customerId, pageable
                         );
 
             } else if (supplierId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndSupplierId(
+                        purchaseEntryRepo.findByDateBetweenAndSuppliers_Id(
                                 fromDate, toDate, supplierId, pageable
                         );
 
             } else if (customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndCustomers_Id(
+                        purchaseEntryRepo.findByDateBetweenAndCustomer_Id(
                                 fromDate, toDate, customerId, pageable
                         );
 
@@ -139,17 +119,17 @@ public class PurchaseServiceImpl implements PurchaseService {
             // NO DATE FILTER
             if (supplierId != null && customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findBySupplierIdAndCustomers_Id(
+                        purchaseEntryRepo.findBySuppliers_IdAndCustomer_Id(
                                 supplierId, customerId, pageable
                         );
 
             } else if (supplierId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findBySupplierId(supplierId, pageable);
+                        purchaseEntryRepo.findBySuppliers_Id(supplierId, pageable);
 
             } else if (customerId != null) {
                 purchaseRecords =
-                        purchaseEntryRepo.findByCustomers_Id(customerId, pageable);
+                        purchaseEntryRepo.findByCustomer_Id(customerId, pageable);
 
             } else {
                 purchaseRecords =
@@ -173,41 +153,37 @@ public class PurchaseServiceImpl implements PurchaseService {
         );
     }
 
-        @Override
-        public Map<String, Object> updatePurchaseEntry(int id, UpdatePurchaseEntryReq req) {
-            log.info(" Update Purchase Entry called for ID={}", id);
-            PurchaseEntity entity = purchaseEntryRepo.findById(id)
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException(PURCHASE_ENTRY_NOT_FOUND,": "+ id)
-                    );
+    @Override
+    @Transactional
+    public Map<String, Object> updatePurchaseEntry(int id, UpdatePurchaseEntryReq req) {
 
-            if (req.getDate() != null) {
-                entity.setDate(req.getDate());
-            }
+        log.info("Update Purchase Entry called for ID={}", id);
 
-            if (req.getStaffId() != null) {
-                entity.setStaffId(req.getStaffId());
-            }
-
-            if (req.getSupplierId() != null) {
-                entity.setSupplierId(req.getSupplierId());
-            }
-
-            if (req.getCustomerIds() != null) {
-                entity.setCustomers(
-                        new HashSet<>(customerRepo.findAllById(req.getCustomerIds()))
+        PurchaseEntity entity = purchaseEntryRepo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                PURCHASE_ENTRY_NOT_FOUND,
+                                String.valueOf(id)
+                        )
                 );
-            }
-            entity.setPurchaseAmount(req.getPurchaseAmount());
-            PurchaseEntity updated = purchaseEntryRepo.save(entity);
-            log.info("Purchase Entry updated successfully. ID={}", updated.getId());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Purchase entry updated successfully");
-            response.put("id", updated.getId());
-            return response;
-        }
+        applyRequestToEntity(
+                entity,
+                req.getDate(),
+                req.getStaffId(),
+                req.getSupplierIds(),
+                req.getCustomerId(),
+                req.getPurchaseAmount()
+        );
 
+        PurchaseEntity updated = purchaseEntryRepo.save(entity);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Purchase entry updated successfully");
+        response.put("id", updated.getId());
+
+        return response;
+    }
     @Override
     public Map<String, Object> deletePurchaseEntry(int id) {
 
@@ -227,13 +203,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private SearchPurchaseEntryResponse convertToResponseDto(PurchaseEntity entity) {
 
-        log.info("Converting PurchaseEntity ID={}", entity.getId());
-
-        SupplierEntity supplier =
-                entity.getSupplierId() != null
-                        ? supplierRepo.findById(entity.getSupplierId()).orElse(null)
-                        : null;
-
         StaffEntity staff =
                 entity.getStaffId() != null
                         ? staffRepo.findById(entity.getStaffId()).orElse(null)
@@ -243,23 +212,109 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .id(entity.getId())
                 .date(entity.getDate())
                 .staffId(entity.getStaffId())
-                .supplierId(entity.getSupplierId())
                 .staffName(staff != null ? staff.getStaffName() : null)
-                .supplierName(supplier != null ? supplier.getSupplierName() : null)
-                .customerIds(
-                        entity.getCustomers().stream()
-                                .map(CustomerEntity::getId)
+
+                .supplierIds(
+                        entity.getSuppliers().stream()
+                                .map(SupplierEntity::getId)
                                 .toList()
                 )
-                .customerNames(
-                        entity.getCustomers().stream()
-                                .map(CustomerEntity::getCustomerName)
+                .supplierNames(
+                        entity.getSuppliers().stream()
+                                .map(SupplierEntity::getSupplierName)
                                 .toList()
                 )
+
+                .customerId(
+                        entity.getCustomer() != null
+                                ? entity.getCustomer().getId()
+                                : null
+                )
+                .customerName(
+                        entity.getCustomer() != null
+                                ? entity.getCustomer().getCustomerName()
+                                : null
+                )
+
                 .purchaseAmount(
-                        Optional.ofNullable(entity.getPurchaseAmount()).orElse(0L)
+                        entity.getPurchaseAmount() != null
+                                ? entity.getPurchaseAmount() / 100.0
+                                : 0.0
                 )
                 .build();
+    }
+    private void applyRequestToEntity(
+            PurchaseEntity entity,
+            LocalDate date,
+            Integer staffId,
+            List<Integer> supplierIds,
+            Integer customerId,
+            Double purchaseAmount
+    ) {
+
+        if (date != null) {
+            entity.setDate(date);
+        }
+
+        if (staffId != null) {
+            entity.setStaffId(staffId);
+        }
+
+        if (purchaseAmount != null) {
+            entity.setPurchaseAmount(Math.round(purchaseAmount * 100));
+        }
+
+        if (supplierIds != null) {
+
+            List<SupplierEntity> suppliers =
+                    supplierRepo.findAllById(supplierIds);
+
+            if (suppliers.size() != supplierIds.size()) {
+                throw new ResourceNotFoundException(
+                        SUPPLIER_NOT_FOUND,
+                        "Invalid supplier IDs"
+                );
+            }
+
+            entity.getSuppliers().clear();
+            entity.getSuppliers().addAll(suppliers);
+        }
+
+        if (customerId != null) {
+
+            CustomerEntity customer = customerRepo
+                    .findById(customerId)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    CUSTOMER_NOT_FOUND,
+                                    String.valueOf(customerId)
+                            )
+                    );
+
+            entity.setCustomer(customer);
+        }
+    }
+
+    private void handleImages(PurchaseEntity entity, List<MultipartFile> images) {
+
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+
+        List<String> imageUrls =
+                fileUploadService.uploadFiles(images, MODULE);
+
+        List<PurchaseImageEntity> imageEntities =
+                imageUrls.stream()
+                        .map(url -> {
+                            PurchaseImageEntity image = new PurchaseImageEntity();
+                            image.setImageUrl(url);
+                            image.setPurchase(entity);
+                            return image;
+                        })
+                        .collect(Collectors.toList());
+
+        entity.setImages(imageEntities);
     }
 
 }

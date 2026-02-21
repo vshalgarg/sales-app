@@ -10,7 +10,7 @@ public class UpdatePurchaseEntryReq {
 
     private LocalDate date;
     private Integer staffId;
-    private Integer supplierId;
-    private List<Integer> customerIds;
-    private long purchaseAmount;
+    private List<Integer> supplierIds;
+    private Integer customerId;
+    private double purchaseAmount;
 }

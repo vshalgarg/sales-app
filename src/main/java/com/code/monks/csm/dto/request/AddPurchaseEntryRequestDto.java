@@ -9,7 +9,7 @@ import java.util.List;
 public class AddPurchaseEntryRequestDto {
     private LocalDate date;
     private int staffId;
-    private int supplierId;
-    private List<Integer> customerIds;
+    private List<Integer> supplierIds;
+    private Integer customerId;
     private Double purchaseAmount;
 }
