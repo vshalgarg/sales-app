@@ -11,6 +11,7 @@ import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { addPurchaseEntry } from "../service/PurchaseService";
 import validate from "../validations/Validation";
+import ImageUploader from "./common/ImageUploader";
 
 const PurchaseEntry = () => {
   const { showSnackbar } = useSnackbar();
@@ -23,15 +24,17 @@ const PurchaseEntry = () => {
   const [supplierLoading, setSupplierLoading] = useState(true);
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
-  const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [selectedSuppliers, setSelectedSuppliers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [purchaseImages, setPurchaseImages] = useState([]);
+
 
 
   const [formData, setFormData] = useState({
     date: dayjs().format("YYYY-MM-DD"),
     staffId: "",
-    supplierId: "",
-    customerIds: [],
+    supplierIds: [],
+    customerId: "",
     staff: "",
     purchaseAmount: "",
   });
@@ -114,20 +117,32 @@ const PurchaseEntry = () => {
       return;
     }
 
-    if (!formData.supplierId) {
-      showSnackbar("Please select a Supplier", "error");
+    if (!formData.supplierIds || formData.supplierIds.length === 0) {
+      showSnackbar("Please select at least one Supplier", "error");
       return;
     }
 
-    if (!formData.customerIds || formData.customerIds.length === 0) {
-      showSnackbar("Please select at least one Customer", "error");
+    if (!formData.customerId) {
+      showSnackbar("Please select a Customer", "error");
       return;
     }
 
     setIsSaving(true);
 
     try {
-      const response = await addPurchaseEntry(formData);
+      const formDataObj = new FormData();
+
+      formDataObj.append(
+        "payload",
+        new Blob([JSON.stringify(formData)], {
+          type: "application/json",
+        })
+      );
+      purchaseImages.forEach((file) => {
+        formDataObj.append("images", file);
+      });
+
+      const response = await addPurchaseEntry(formDataObj);
       showSnackbar(response.message || "Purchase entry saved", "success");
       handleReset();
     } catch (error) {
@@ -150,19 +165,20 @@ const PurchaseEntry = () => {
       staff: "",
       purchaseAmount: "",
     });
+    setPurchaseImages([]);
     setErrors({});
   };
 
   const resetSupplier = () => {
-    setSelectedSupplier(null);
+    setSelectedSuppliers([]);
     setFormData(prev => ({
       ...prev,
-      supplierId: "",
+      supplierIds: [],
     }));
   };
 
   const resetCustomer = () => {
-    setSelectedCustomers([]);
+    setSelectedCustomer(null);
     setFormData(prev => ({
       ...prev,
       customerId: "",
@@ -202,57 +218,55 @@ const PurchaseEntry = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
               <Autocomplete
-                options={allSuppliers}
-                value={selectedSupplier}
-                loading={supplierLoading}
+                options={allCustomers}
+                value={selectedCustomer}
+                loading={customerLoading}
                 isOptionEqualToValue={(o, v) => o.id === v?.id}
                 getOptionLabel={(o) =>
-                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
                 }
                 onChange={(e, value) => {
                   if (!value) {
-                    resetSupplier();
+                    resetCustomer();
                     return;
                   }
 
-                  setSelectedSupplier(value);
+                  setSelectedCustomer(value);
                   setFormData(prev => ({
                     ...prev,
-                    supplierId: value.id,
+                    customerId: value.id,
                   }));
-
-                  setErrors(prev => ({ ...prev, supplierName: "" }));
                 }}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Supplier *"
-                    error={!!errors.supplierName}
+                    label="Customer *"
                   />
                 )}
               />
 
               <Autocomplete
                 multiple
-                options={allCustomers}
-                value={selectedCustomers}
-                loading={customerLoading}
+                options={allSuppliers}
+                value={selectedSuppliers}
+                loading={supplierLoading}
                 isOptionEqualToValue={(o, v) => o.id === v.id}
                 getOptionLabel={(o) =>
-                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
                 }
                 onChange={(e, values) => {
-                  setSelectedCustomers(values);
+                  setSelectedSuppliers(values);
                   setFormData(prev => ({
                     ...prev,
-                    customerIds: values.map(v => v.id),
+                    supplierIds: values.map(v => v.id),
                   }));
                 }}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Customer(s) *"
+                    label="Suppliers *"
                   />
                 )}
               />
@@ -335,6 +349,38 @@ const PurchaseEntry = () => {
               />
             </div>
           </div>
+
+          {/* Purchase Images Section */}
+          <div className="
+  border border-gray-200
+  rounded-xl
+  bg-white
+  shadow-sm
+  hover:shadow-md
+  transition-shadow
+  p-3 sm:p-4 md:p-6
+">
+            <div className="flex items-center mb-4">
+              <div className="w-1 h-7 sm:h-8 bg-pink-600 rounded-full mr-3" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+                Purchase Images
+              </h3>
+              <span className="ml-2 text-xs text-gray-400">(optional)</span>
+            </div>
+
+            <ImageUploader
+              value={purchaseImages}
+              onChange={setPurchaseImages}
+              maxImages={2}
+              label="Upload Purchase Images"
+              onError={(msg) => showSnackbar(msg, "error")}
+            />
+
+            <p className="mt-2 text-xs text-gray-500">
+              You can upload up to 2 images only
+            </p>
+          </div>
+
         </div>
 
         {/* Footer */}
