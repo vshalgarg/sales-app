@@ -1,48 +1,68 @@
 package com.code.monks.csm.service.file.storage;
 
+import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.FileUploadException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.FILE_STORAGE_FAILED;
 
 @Service
 @Slf4j
-public class FileStorageImpl implements FileStorage{
+@RequiredArgsConstructor
+public class FileStorageImpl implements FileStorage {
 
-    private static final String BASE_UPLOAD_DIR = "uploads/bills";
+    private final S3Client s3Client;
+
+    @Value("${e2e.s3.bucket-name}")
+    private String bucketName;
 
     @Override
-    public String store(MultipartFile file) {
+    public String store(MultipartFile file, UploadModuleEnum uploadModule) {
 
         try {
-            log.debug("Storing file: {}", file.getOriginalFilename());
+            log.debug("Starting upload for file: {}", file.getOriginalFilename());
+
             String originalName = file.getOriginalFilename();
             String extension = originalName.substring(originalName.lastIndexOf("."));
-            String fileName = UUID.randomUUID() + extension;
 
-            Path uploadDir = Paths.get(BASE_UPLOAD_DIR);
-            Files.createDirectories(uploadDir);
+            LocalDateTime now = LocalDateTime.now();
+            String year = now.format(DateTimeFormatter.ofPattern("yyyy"));
+            String month = now.format(DateTimeFormatter.ofPattern("MM"));
+            String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS"));
 
-            Path targetPath = uploadDir.resolve(fileName);
+            String fileName = year + "/" +
+                    month + "/" +
+                    uploadModule.getFolder() + "/" +
+                    timestamp + extension;
 
-            Files.copy(
-                    file.getInputStream(),
-                    targetPath,
-                    StandardCopyOption.REPLACE_EXISTING
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileName)
+                    .contentType(file.getContentType())
+                    .build();
+
+            s3Client.putObject(
+                    putObjectRequest,
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
             );
 
-            log.info("File stored successfully at {}", targetPath);
-            return targetPath.toString();
+            log.info("File uploaded successfully to bucket: {}, key: {}", bucketName, fileName);
+
+            return fileName;
+
         } catch (Exception ex) {
-            log.error("Failed to store file: {}", file.getOriginalFilename(), ex);
+            log.error("Upload failed. Bucket: {}, Endpoint issue possible.", bucketName);
+            log.error("Error message: {}", ex.getMessage());
             throw new FileUploadException(FILE_STORAGE_FAILED);
         }
     }

@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -24,17 +25,24 @@ public class PurchaseEntity extends BaseEntity{
     @Column(name = "staff_id")
     private Integer staffId;
 
-    @Column(name = "supplier_id")
-    private Integer supplierId;
-
     @ManyToMany
     @JoinTable(
-            name = "purchase_customers",
+            name = "purchase_suppliers",
             joinColumns = @JoinColumn(name = "purchase_id"),
-            inverseJoinColumns = @JoinColumn(name = "customer_id")
+            inverseJoinColumns = @JoinColumn(name = "supplier_id")
     )
-    private Set<CustomerEntity> customers = new HashSet<>();
+    private Set<SupplierEntity> suppliers = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private CustomerEntity customer;
 
     @Column(name = "purchase_amount")
     private Long purchaseAmount;
+
+    @OneToMany(mappedBy = "purchase",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<PurchaseImageEntity> images;
+
 }

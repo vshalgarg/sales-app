@@ -1,6 +1,7 @@
 package com.code.monks.csm.service.file;
 
 import com.code.monks.csm.enums.ResponseErrorCode;
+import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.FileUploadException;
 import com.code.monks.csm.service.file.storage.FileStorage;
 import com.code.monks.csm.service.file.validator.FileValidator;
@@ -21,7 +22,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     private final FileStorage fileStorage;
 
     @Override
-    public List<String> uploadFiles(List<MultipartFile> images) {
+    public List<String> uploadFiles(List<MultipartFile> images, UploadModuleEnum uploadModule) {
 
         log.info("Starting image upload process");
         fileValidator.validate(images);
@@ -38,7 +39,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                         image.getSize(),
                         image.getContentType()
                 );
-                String url = fileStorage.store(image);
+                String url = fileStorage.store(image, uploadModule);
                 imageUrls.add(url);
 
                 log.debug("Image uploaded successfully. Stored at: {}", url);
@@ -52,7 +53,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 throw new FileUploadException(ResponseErrorCode.FILE_UPLOAD_EXCEPTION);
             }
         }
-        log.info("Successfully uploaded {} image(s)", imageUrls.size());
+        log.info("Successfully uploaded {} image(s) for module: {}", imageUrls.size(), uploadModule);
         return imageUrls;
     }
 }

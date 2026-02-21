@@ -11,12 +11,14 @@ import java.util.List;
 public class SearchPurchaseEntryResponse {
     private int id;
     private LocalDate date;
-    private String staffName;
-    private String supplierName;
-    private Integer supplierId;
-    private List<Integer> customerIds;
-    private List<String> customerNames;
+
     private Integer staffId;
+    private String staffName;
+    private List<Integer> supplierIds;
+    private List<String> supplierNames;
+    private Integer customerId;
+    private String customerName;
+
     private double purchaseAmount;
 
 }
