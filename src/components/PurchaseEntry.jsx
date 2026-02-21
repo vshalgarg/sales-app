@@ -218,29 +218,6 @@ const PurchaseEntry = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Autocomplete
-                multiple
-                options={allSuppliers}
-                value={selectedSuppliers}
-                loading={supplierLoading}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-                getOptionLabel={(o) =>
-                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
-                }
-                onChange={(e, values) => {
-                  setSelectedSuppliers(values);
-                  setFormData(prev => ({
-                    ...prev,
-                    supplierIds: values.map(v => v.id),
-                  }));
-                }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Suppliers *"
-                  />
-                )}
-              />
 
               <Autocomplete
                 options={allCustomers}
@@ -266,6 +243,30 @@ const PurchaseEntry = () => {
                   <CustomTextField
                     {...params}
                     label="Customer *"
+                  />
+                )}
+              />
+
+              <Autocomplete
+                multiple
+                options={allSuppliers}
+                value={selectedSuppliers}
+                loading={supplierLoading}
+                isOptionEqualToValue={(o, v) => o.id === v.id}
+                getOptionLabel={(o) =>
+                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                }
+                onChange={(e, values) => {
+                  setSelectedSuppliers(values);
+                  setFormData(prev => ({
+                    ...prev,
+                    supplierIds: values.map(v => v.id),
+                  }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Suppliers *"
                   />
                 )}
               />
