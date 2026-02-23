@@ -113,7 +113,7 @@ export default function StaffDashboard() {
           backendPage,
           rowsPerPage
         );
-        handleSearchResult(response, query);
+        handleSearchResult(response, query, newPage);
       } catch (error) {
         console.error("Error fetching search page:", error);
         showSnackbar(error.message, "error");
@@ -170,13 +170,13 @@ export default function StaffDashboard() {
   }, []);
 
 
-  const handleSearchResult = (response, searchQuery) => {
+  const handleSearchResult = (response, searchQuery, page= 1) => {
     const results = response.content || [];
     setStaffs(results);
     setTotalPages(response.totalPages || 1);
     setTotalItems(response.totalElements || 0);
     setIsSearchActive(searchQuery.trim() !== "");
-    setCurrentPage(1);
+    setCurrentPage(page);
   };
 
 
