@@ -126,13 +126,13 @@ export default function SupplierDashboard() {
     [rowsPerPage],
   );
 
-  const handleSearchResult = (response, searchQuery) => {
+  const handleSearchResult = (response, searchQuery, page = 1) => {
     const results = response.content || [];
     setSuppliers(results);
     setTotalPages(response.totalPages || 0);
     setTotalItems(response.totalElements || 0);
     setIsSearchActive(searchQuery.trim() !== "");
-    setCurrentPage(1);
+    setCurrentPage(page);
   };
 
   const handleChangePage = async (newPage) => {
@@ -149,7 +149,7 @@ export default function SupplierDashboard() {
           rowsPerPage,
         );
 
-        handleSearchResult(response, query);
+        handleSearchResult(response, query, newPage);
       } catch (error) {
         console.error("Error fetching search page:", error);
         showSnackbar(error.message, "error");
