@@ -129,7 +129,7 @@ export default function TransportDashboard() {
     [rowsPerPage],
   );
 
-  const handleSearchResult = (response, searchQuery) => {
+  const handleSearchResult = (response, searchQuery, page =1) => {
     if (!searchQuery.trim()) {
       setIsSearchActive(false);
       fetchTransports(1);
@@ -140,7 +140,7 @@ export default function TransportDashboard() {
     setTotalPages(response.totalPages || 0);
     setTotalItems(response.totalElements || 0);
     setIsSearchActive(searchQuery.trim() !== "");
-    setCurrentPage(1);
+    setCurrentPage(page);
   };
 
   const handleChangePage = async (newPage) => {
@@ -157,7 +157,7 @@ export default function TransportDashboard() {
           rowsPerPage,
         );
 
-        handleSearchResult(response, query);
+        handleSearchResult(response, query, newPage);
       } catch (error) {
         console.error("Error fetching search page:", error);
         showSnackbar(error.message, "error");
