@@ -18,6 +18,7 @@ public class SearchPurchaseEntryResponse {
     private List<String> supplierNames;
     private Integer customerId;
     private String customerName;
+    private List<String> publicUrls;
 
     private double purchaseAmount;
 

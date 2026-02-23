@@ -3,6 +3,7 @@ package com.code.monks.csm.service.impl;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
+import com.code.monks.csm.dto.response.FileUploadResponse;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import com.code.monks.csm.entity.*;
@@ -207,11 +208,20 @@ public class PurchaseServiceImpl implements PurchaseService {
                         ? staffRepo.findById(entity.getStaffId()).orElse(null)
                         : null;
 
+        List<String> publicImageUrls =
+                entity.getImages() != null
+                        ? entity.getImages()
+                        .stream()
+                        .map(PurchaseImageEntity::getPublicUrl)
+                        .toList()
+                        : List.of();
+
         return SearchPurchaseEntryResponse.builder()
                 .id(entity.getId())
                 .date(entity.getDate())
                 .staffId(entity.getStaffId())
                 .staffName(staff != null ? staff.getStaffName() : null)
+                .publicUrls(publicImageUrls)
 
                 .supplierIds(
                         entity.getSuppliers().stream()
@@ -300,18 +310,25 @@ public class PurchaseServiceImpl implements PurchaseService {
             return;
         }
 
-        List<String> imageUrls =
-                fileUploadService.uploadFiles(images, UploadModuleEnum.PURCHASE);
+        List<FileUploadResponse> uploadedFiles =
+                fileUploadService.uploadFiles(
+                        images,
+                        UploadModuleEnum.PURCHASE
+                );
 
         List<PurchaseImageEntity> imageEntities =
-                imageUrls.stream()
-                        .map(url -> {
-                            PurchaseImageEntity image = new PurchaseImageEntity();
-                            image.setImageUrl(url);
+                uploadedFiles.stream()
+                        .map(response -> {
+                            PurchaseImageEntity image =
+                                    new PurchaseImageEntity();
+
+                            image.setObjectKey(response.getKey());
+                            image.setPublicUrl(response.getPublicUrl());
                             image.setPurchase(entity);
+
                             return image;
                         })
-                        .collect(Collectors.toList());
+                        .toList();
 
         entity.setImages(imageEntities);
     }
