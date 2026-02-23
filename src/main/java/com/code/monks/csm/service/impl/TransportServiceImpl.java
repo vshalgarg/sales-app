@@ -174,7 +174,7 @@ public class TransportServiceImpl implements TransportService {
         } else {
             String trimmedQuery = query.trim();
             log.info("Searching with trimmed query: '{}'", trimmedQuery);
-            transportPage = transportRepository.searchByName(trimmedQuery,StatusEnum.ACTIVE, pageable);
+            transportPage = transportRepository.searchByKeyword(trimmedQuery,StatusEnum.ACTIVE, pageable);
         }
 
             log.info("Search completed - found {} transports (page {}/{})",
