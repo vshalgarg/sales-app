@@ -18,14 +18,17 @@ public interface TransportRepository extends JpaRepository<TransportEntity, Inte
   @Query("""
     SELECT t FROM TransportEntity t
     WHERE t.status = :status
-      AND LOWER(t.name) LIKE LOWER(CONCAT('%', :query, '%'))
+      AND (
+            LOWER(t.name) LIKE LOWER(CONCAT('%', :query, '%'))
+         OR LOWER(t.city) LIKE LOWER(CONCAT('%', :query, '%'))
+         OR LOWER(t.gstNo) LIKE LOWER(CONCAT('%', :query, '%'))
+      )
 """)
-  Page<TransportEntity> searchByName(
+  Page<TransportEntity> searchByKeyword(
           @Param("query") String query,
           @Param("status") StatusEnum status,
           Pageable pageable
   );
-
 
   // List<TransportEntity> findAllByIsActiveTrueOrderByNameAsc();
   // Exact match (case-insensitive)
