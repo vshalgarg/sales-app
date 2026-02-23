@@ -20,6 +20,8 @@ public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
 
     CustomerEntity findByCustomerName(String customerName);
 
+    List<CustomerEntity> findAllByCustomerNameIgnoreCase(String customerName);
+
     Optional<CustomerEntity> findOneByCode(String code);
 
     boolean existsByGstNo(String gstNo);

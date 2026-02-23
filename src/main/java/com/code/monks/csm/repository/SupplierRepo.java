@@ -55,5 +55,6 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
             ")")
     List<SupplierEntity> searchByKeyword(@Param("keyword") String keyword);
 
+    List<SupplierEntity> findAllBySupplierNameIgnoreCase(String supplierName);
 
 }
