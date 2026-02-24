@@ -32,4 +32,6 @@ public class SearchBillEntryResponse {
     private String remarks;
 
     private List<BillItemDto> items;
+
+    private List<String> publicUrls;
 }

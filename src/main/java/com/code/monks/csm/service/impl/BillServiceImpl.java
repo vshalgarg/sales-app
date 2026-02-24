@@ -96,26 +96,37 @@ public class BillServiceImpl implements BillService {
                     .collect(Collectors.toList());
             billEntry.setBillDetails(billItems);
 
-            //img upload
+            // img upload
             if (images != null && !images.isEmpty()) {
+
                 log.info("Uploading {} bill image(s)", images.size());
-                List<String> imageUrls =
-                        fileUploadService.uploadFiles(images, UploadModuleEnum.BILTY);
-                List<BillImageEntity> imageEntities = imageUrls.stream()
-                        .map(url -> {
-                            BillImageEntity image = new BillImageEntity();
-                            image.setImageUrl(url);
-                            image.setBillEntry(billEntry);
-                            return image;
-                        })
-                        .collect(Collectors.toList());
+
+                List<FileUploadResponse> uploadedFiles =
+                        fileUploadService.uploadFiles(
+                                images,
+                                UploadModuleEnum.BILTY
+                        );
+
+                List<BillImageEntity> imageEntities =
+                        uploadedFiles.stream()
+                                .map(response -> {
+                                    BillImageEntity image = new BillImageEntity();
+                                    image.setObjectKey(response.getKey());
+                                    image.setPublicUrl(response.getPublicUrl());
+                                    image.setBillEntry(billEntry);
+                                    return image;
+                                })
+                                .toList();
+
                 billEntry.setImages(imageEntities);
+
                 log.info("Successfully uploaded {} image(s) for bill {}",
-                        imageEntities.size(), billNumber);
+                        imageEntities.size(),
+                        billNumber);
+
             } else {
                 log.info("No images provided for bill {}", billNumber);
             }
-
 
             billRepo.save(billEntry);
             log.info("Bill '{}' saved successfully with {} items", billNumber, billItems.size());
@@ -419,6 +430,14 @@ public class BillServiceImpl implements BillService {
             transportName = entity.getTransportEntity().getName();
         }
 
+        List<String> publicImageUrls =
+                entity.getImages() != null
+                        ? entity.getImages()
+                        .stream()
+                        .map(BillImageEntity::getPublicUrl)
+                        .toList()
+                        : List.of();
+
         return SearchBillEntryResponse.builder()
                 .billNumber(entity.getBillNumber())
                 .date(entity.getDate())
@@ -446,6 +465,7 @@ public class BillServiceImpl implements BillService {
 
                 // Sabse important: items list
                 .items(itemDtos)
+                .publicUrls(publicImageUrls)
 
                 .build();
     }

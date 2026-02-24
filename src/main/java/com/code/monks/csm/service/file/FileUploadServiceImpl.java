@@ -1,5 +1,6 @@
 package com.code.monks.csm.service.file;
 
+import com.code.monks.csm.dto.response.FileUploadResponse;
 import com.code.monks.csm.enums.ResponseErrorCode;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.FileUploadException;
@@ -7,6 +8,7 @@ import com.code.monks.csm.service.file.storage.FileStorage;
 import com.code.monks.csm.service.file.validator.FileValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,15 +24,17 @@ public class FileUploadServiceImpl implements FileUploadService {
     private final FileStorage fileStorage;
 
     @Override
-    public List<String> uploadFiles(List<MultipartFile> images, UploadModuleEnum uploadModule) {
+    public List<FileUploadResponse> uploadFiles(List<MultipartFile> images, UploadModuleEnum uploadModule) {
 
         log.info("Starting image upload process");
-        fileValidator.validate(images);
-        List<String> imageUrls = new ArrayList<>();
         if (images == null || images.isEmpty()) {
-            log.debug("Validating bill images");
-            return imageUrls;
+            return new ArrayList<>();
         }
+
+        fileValidator.validate(images);
+
+        List<String> imageUrls = new ArrayList<>();
+        List<FileUploadResponse> uploadedFiles = new ArrayList<>();
         for (MultipartFile image : images) {
             try {
                 log.debug(
@@ -39,10 +43,13 @@ public class FileUploadServiceImpl implements FileUploadService {
                         image.getSize(),
                         image.getContentType()
                 );
-                String url = fileStorage.store(image, uploadModule);
-                imageUrls.add(url);
+                FileUploadResponse response =
+                        fileStorage.store(image, uploadModule);
+                uploadedFiles.add(response);
 
-                log.debug("Image uploaded successfully. Stored at: {}", url);
+                log.debug("Image uploaded successfully. Key={}, Url={}",
+                        response.getKey(),
+                        response.getPublicUrl());
 
             } catch (Exception ex) {
                 log.error(
@@ -54,6 +61,6 @@ public class FileUploadServiceImpl implements FileUploadService {
             }
         }
         log.info("Successfully uploaded {} image(s) for module: {}", imageUrls.size(), uploadModule);
-        return imageUrls;
+        return uploadedFiles;
     }
 }

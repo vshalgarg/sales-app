@@ -17,7 +17,11 @@ public class PurchaseImageEntity extends BaseEntity{
     @EqualsAndHashCode.Include
     private Integer id;
 
-    private String imageUrl;
+    @Column(name = "object_key", nullable = false, length = 500)
+    private String objectKey;
+
+    @Column(name = "public_url", length = 500)
+    private String publicUrl;
 
     @ManyToOne
     @JoinColumn(name = "purchase_id")
