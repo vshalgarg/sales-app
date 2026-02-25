@@ -58,7 +58,7 @@ const ImageUploader = ({
                     }
         `}
             >
-                {isLimitReached ? "Image limit reached" : label}
+                {label}
             </button>
 
             <input
