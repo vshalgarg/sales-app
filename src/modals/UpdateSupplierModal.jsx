@@ -15,6 +15,8 @@ import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import { sanitizePayload } from "../utils/sanitizePayload";
+import StateAutocomplete from "../components/common/StateAutocomplete";
+
 
 const UpdateSupplierModal = ({
     supplierId,
@@ -265,9 +267,9 @@ const UpdateSupplierModal = ({
                                     onChange={handleChange}
                                     label="MSME"
                                     options={[
-                                        { value: "Micro", label: "Micro" },
-                                        { value: "Small", label: "Small" },
-                                        { value: "Medium", label: "Medium" },
+                                        { value: "MICRO", label: "Micro" },
+                                        { value: "SMALL", label: "Small" },
+                                        { value: "MEDIUM", label: "Medium" },
                                     ]}
                                 />
 
@@ -333,11 +335,11 @@ const UpdateSupplierModal = ({
                                     label="Address Line 2"
                                 />
 
-                                <CustomTextField
-                                    name="state"
-                                    value={form.state || ""}
-                                    onChange={handleChange}
-                                    label="State"
+                                <StateAutocomplete
+                                    value={form.state}
+                                    onChange={(val) =>
+                                        setForm((prev) => ({ ...prev, state: val }))
+                                    }
                                 />
 
                                 <CustomTextField

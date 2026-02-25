@@ -9,6 +9,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import TransportService from "../service/TransportService";
 import { sanitizePayload } from "../utils/sanitizePayload";
+import StateAutocomplete from "../components/common/StateAutocomplete";
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -17,7 +18,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   });
   const [touched, setTouched] = useState({});
 
-  const [states, setStates] = useState([]);
   const { showSnackbar } = useSnackbar();
 
   const [allTransports, setAllTransports] = useState([]);
@@ -116,18 +116,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       contacts: updatedContactErrors,
     }));
   };
-
-  useEffect(() => {
-    fetch("https://countriesnow.space/api/v0.1/countries/states", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ country: "India" }),
-    })
-      .then((res) => res.json())
-      .then((data) => setStates(data.data.states || []))
-      .catch((err) => showSnackbar("Error fetching states:", err));
-  }, []);
-
 
   const handleAddCustomer = async ({ closeAfterSave }) => {
     if (isSaving) return;
@@ -270,14 +258,11 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     onChange={handleFormChange}
                     label="Address Line 2"
                   />
-                  <BasicSelect
-                    name="state"
+                  <StateAutocomplete
                     value={form.state}
-                    onChange={handleFormChange}
-                    label="State"
-                    error={!!errors.state}
-                    helperText={errors.state}
-                    options={states.map((s) => ({ value: s.name, label: s.name }))}
+                    onChange={(val) =>
+                      setForm((prev) => ({ ...prev, state: val }))
+                    }
                   />
                   <CustomTextField
                     name="city"

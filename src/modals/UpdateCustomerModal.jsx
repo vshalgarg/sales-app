@@ -15,6 +15,7 @@ import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import { sanitizePayload } from "../utils/sanitizePayload";
+import StateAutocomplete from "../components/common/StateAutocomplete";
 
 const UpdateCustomerModal = ({
     customerId,
@@ -245,11 +246,11 @@ const UpdateCustomerModal = ({
                                     label="Address Line 2"
                                 />
 
-                                <CustomTextField
-                                    name="state"
-                                    value={form.state || ""}
-                                    onChange={handleChange}
-                                    label="State"
+                               <StateAutocomplete
+                                    value={form.state}
+                                    onChange={(val) =>
+                                        setForm((prev) => ({ ...prev, state: val }))
+                                    }
                                 />
 
                                 <CustomTextField
