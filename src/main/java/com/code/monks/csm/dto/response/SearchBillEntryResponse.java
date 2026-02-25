@@ -33,5 +33,6 @@ public class SearchBillEntryResponse {
 
     private List<BillItemDto> items;
 
+    public List<String> objectKeys;
     private List<String> publicUrls;
 }

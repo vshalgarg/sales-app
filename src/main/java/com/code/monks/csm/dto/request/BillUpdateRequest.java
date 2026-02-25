@@ -20,4 +20,5 @@ public class BillUpdateRequest {
     private Double taxableValue;
     private Double billAmount;
     private List<BillItemDto> billItems;
+    private List<String> existingImageKeys;
 }

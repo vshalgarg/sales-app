@@ -12,7 +12,7 @@ import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.BillService;
 import com.code.monks.csm.service.TransportService;
-import com.code.monks.csm.service.file.FileUploadService;
+import com.code.monks.csm.service.file.FileService;
 import com.code.monks.csm.utils.ValidatorUtil;
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
@@ -45,7 +45,7 @@ public class BillServiceImpl implements BillService {
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final TransportService transportService;
-    private final FileUploadService fileUploadService;
+    private final FileService fileUploadService;
 
 
     @Transactional
@@ -224,7 +224,11 @@ public class BillServiceImpl implements BillService {
 
     @Transactional
     @Override
-    public EditBillEntryResponse updateBill(String billNumber, BillUpdateRequest request) {
+    public EditBillEntryResponse updateBill(
+            String billNumber,
+            BillUpdateRequest request,
+            List<MultipartFile> images
+    ){
 
         log.info("Update bill request started | billNumber={}", billNumber);
         BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
@@ -297,6 +301,11 @@ public class BillServiceImpl implements BillService {
                 bill.getBillAmount()
         );
 
+        handleBillImageUpdate(
+                bill,
+                request.getExistingImageKeys(),
+                images
+        );
         billRepo.save(bill);
 
         log.info("Bill updated successfully | billNumber={}, billId={}",
@@ -430,13 +439,15 @@ public class BillServiceImpl implements BillService {
             transportName = entity.getTransportEntity().getName();
         }
 
-        List<String> publicImageUrls =
-                entity.getImages() != null
-                        ? entity.getImages()
-                        .stream()
-                        .map(BillImageEntity::getPublicUrl)
-                        .toList()
-                        : List.of();
+        List<String> publicImageUrls = new ArrayList<>();
+        List<String> objectKeys = new ArrayList<>();
+
+        if (entity.getImages() != null) {
+            for (BillImageEntity image : entity.getImages()) {
+                publicImageUrls.add(image.getPublicUrl());
+                objectKeys.add(image.getObjectKey());
+            }
+        }
 
         return SearchBillEntryResponse.builder()
                 .billNumber(entity.getBillNumber())
@@ -463,10 +474,58 @@ public class BillServiceImpl implements BillService {
                 .customerGstNo(customerEntity != null ? customerEntity.getGstNo() : null)
                 .customerMsme(customerEntity != null ? customerEntity.getMsme() : null)
 
-                // Sabse important: items list
                 .items(itemDtos)
                 .publicUrls(publicImageUrls)
-
+                .objectKeys(objectKeys)
                 .build();
+    }
+
+    private void handleBillImageUpdate(
+            BillEntryEntity entity,
+            List<String> existingKeys,
+            List<MultipartFile> newImages
+    ) {
+
+        List<BillImageEntity> currentImages = entity.getImages();
+
+        if (currentImages == null) {
+            currentImages = new ArrayList<>();
+            entity.setImages(currentImages);
+        }
+
+        // Identify removed images
+        List<BillImageEntity> toRemove =
+                currentImages.stream()
+                        .filter(img -> existingKeys == null ||
+                                !existingKeys.contains(img.getObjectKey()))
+                        .toList();
+
+        // Remove from entity
+        currentImages.removeAll(toRemove);
+
+        // Delete from storage
+        for (BillImageEntity img : toRemove) {
+            fileUploadService.deleteFile(img.getObjectKey());
+        }
+
+        // Upload new images
+        if (newImages != null && !newImages.isEmpty()) {
+
+            List<FileUploadResponse> uploadedFiles =
+                    fileUploadService.uploadFiles(
+                            newImages,
+                            UploadModuleEnum.BILTY
+                    );
+
+            for (FileUploadResponse response : uploadedFiles) {
+
+                BillImageEntity image = new BillImageEntity();
+                image.setObjectKey(response.getKey());
+                image.setPublicUrl(response.getPublicUrl());
+                image.setBillEntry(entity);
+
+                currentImages.add(image);
+            }
+        }
     }
 }

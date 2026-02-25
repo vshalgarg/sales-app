@@ -13,4 +13,6 @@ public class UpdatePurchaseEntryReq {
     private List<Integer> supplierIds;
     private Integer customerId;
     private double purchaseAmount;
+
+    private List<String> existingImageKeys;
 }

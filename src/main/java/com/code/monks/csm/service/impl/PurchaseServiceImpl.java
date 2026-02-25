@@ -2,19 +2,17 @@ package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
-import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
-import com.code.monks.csm.dto.response.FileUploadResponse;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
+import com.code.monks.csm.mapper.PurchaseMapper;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.PurchaseEntryRepo;
 import com.code.monks.csm.repository.StaffRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.PurchaseService;
-import com.code.monks.csm.service.file.FileUploadService;
+import com.code.monks.csm.service.file.FileService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
@@ -40,7 +37,8 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final StaffRepo staffRepo;
-    private final FileUploadService fileUploadService;
+    private final FileService fileUploadService;
+    private final PurchaseMapper purchaseMapper;
 
     @Override
     @Transactional
@@ -140,7 +138,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         List<SearchPurchaseEntryResponse> content =
                 purchaseRecords.getContent()
                         .stream()
-                        .map(this::convertToResponseDto)
+                        .map(purchaseMapper::toSearch)
                         .toList();
 
         return new PagedResponseDto<>(
@@ -155,7 +153,11 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     @Transactional
-    public Map<String, Object> updatePurchaseEntry(int id, UpdatePurchaseEntryReq req) {
+    public Map<String, Object> updatePurchaseEntry(
+            int id,
+            UpdatePurchaseEntryReq req,
+            List<MultipartFile> newImages
+    ) {
 
         log.info("Update Purchase Entry called for ID={}", id);
 
@@ -175,7 +177,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 req.getCustomerId(),
                 req.getPurchaseAmount()
         );
-
+        handleImageUpdate(entity, req.getExistingImageKeys(), newImages);
         PurchaseEntity updated = purchaseEntryRepo.save(entity);
 
         Map<String, Object> response = new HashMap<>();
@@ -201,57 +203,21 @@ public class PurchaseServiceImpl implements PurchaseService {
         return response;
     }
 
-    private SearchPurchaseEntryResponse convertToResponseDto(PurchaseEntity entity) {
+    @Override
+    @Transactional(readOnly = true)
+    public PurchaseDetailResponse getPurchaseById(int id) {
 
-        StaffEntity staff =
-                entity.getStaffId() != null
-                        ? staffRepo.findById(entity.getStaffId()).orElse(null)
-                        : null;
+        PurchaseEntity entity = purchaseEntryRepo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                PURCHASE_ENTRY_NOT_FOUND,
+                                String.valueOf(id)
+                        )
+                );
 
-        List<String> publicImageUrls =
-                entity.getImages() != null
-                        ? entity.getImages()
-                        .stream()
-                        .map(PurchaseImageEntity::getPublicUrl)
-                        .toList()
-                        : List.of();
-
-        return SearchPurchaseEntryResponse.builder()
-                .id(entity.getId())
-                .date(entity.getDate())
-                .staffId(entity.getStaffId())
-                .staffName(staff != null ? staff.getStaffName() : null)
-                .publicUrls(publicImageUrls)
-
-                .supplierIds(
-                        entity.getSuppliers().stream()
-                                .map(SupplierEntity::getId)
-                                .toList()
-                )
-                .supplierNames(
-                        entity.getSuppliers().stream()
-                                .map(SupplierEntity::getSupplierName)
-                                .toList()
-                )
-
-                .customerId(
-                        entity.getCustomer() != null
-                                ? entity.getCustomer().getId()
-                                : null
-                )
-                .customerName(
-                        entity.getCustomer() != null
-                                ? entity.getCustomer().getCustomerName()
-                                : null
-                )
-
-                .purchaseAmount(
-                        entity.getPurchaseAmount() != null
-                                ? entity.getPurchaseAmount() / 100.0
-                                : 0.0
-                )
-                .build();
+        return purchaseMapper.toDetail(entity);
     }
+
     private void applyRequestToEntity(
             PurchaseEntity entity,
             LocalDate date,
@@ -333,4 +299,52 @@ public class PurchaseServiceImpl implements PurchaseService {
         entity.setImages(imageEntities);
     }
 
+    private void handleImageUpdate(
+            PurchaseEntity entity,
+            List<String> existingKeys,
+            List<MultipartFile> newImages
+    ) {
+
+        List<PurchaseImageEntity> currentImages = entity.getImages();
+
+        if (currentImages == null) {
+            currentImages = new ArrayList<>();
+            entity.setImages(currentImages);
+        }
+
+        // Identify removed images
+        List<PurchaseImageEntity> toRemove =
+                currentImages.stream()
+                        .filter(img -> existingKeys == null ||
+                                !existingKeys.contains(img.getObjectKey()))
+                        .toList();
+
+        // Remove from entity
+        currentImages.removeAll(toRemove);
+
+        // Delete from storage
+        for (PurchaseImageEntity img : toRemove) {
+            fileUploadService.deleteFile(img.getObjectKey());
+        }
+
+        //Upload new images
+        if (newImages != null && !newImages.isEmpty()) {
+
+            List<FileUploadResponse> uploadedFiles =
+                    fileUploadService.uploadFiles(
+                            newImages,
+                            UploadModuleEnum.PURCHASE
+                    );
+
+            for (FileUploadResponse response : uploadedFiles) {
+
+                PurchaseImageEntity image = new PurchaseImageEntity();
+                image.setObjectKey(response.getKey());
+                image.setPublicUrl(response.getPublicUrl());
+                image.setPurchase(entity);
+
+                currentImages.add(image);
+            }
+        }
+    }
 }

@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
+import com.code.monks.csm.dto.response.PurchaseDetailResponse;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +25,8 @@ public interface PurchaseService {
             int page,
             int size);
 
-    Map<String, Object> updatePurchaseEntry(int id, UpdatePurchaseEntryReq req);
+    Map<String, Object> updatePurchaseEntry(int id, UpdatePurchaseEntryReq req, List<MultipartFile> newImages);
 
     Map<String, Object> deletePurchaseEntry(int id);
+    PurchaseDetailResponse getPurchaseById(int id);
 }
