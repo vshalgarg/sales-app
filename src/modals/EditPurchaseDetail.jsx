@@ -9,16 +9,28 @@ import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
-import { updatePurchaseApi } from "../service/PurchaseService";
+import { nanoid } from "nanoid";
+import {
+    updatePurchaseApi,
+    getPurchaseDetailsById
+} from "../service/PurchaseService";
+import ImageUploader from "../components/common/ImageUploader";
 
 const EditPurchaseDetail = ({
     open,
-    selectedPurchaseDetail,
+    purchaseId,
     setOpen,
     onUpdateSuccess,
 }) => {
+
+    useEffect(() => {
+        console.log("OPEN:", open);
+        console.log("PURCHASE ID:", purchaseId);
+    }, [open, purchaseId]);
+
     const { showSnackbar } = useSnackbar();
 
+    /* ================= STATES ================= */
     const [allSuppliers, setAllSuppliers] = useState([]);
     const [allCustomers, setAllCustomers] = useState([]);
     const [allStaffs, setAllStaffs] = useState([]);
@@ -27,79 +39,110 @@ const EditPurchaseDetail = ({
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedStaff, setSelectedStaff] = useState(null);
 
+    const [existingImages, setExistingImages] = useState([]);
+    const [newImages, setNewImages] = useState([]);
+
     const [formData, setFormData] = useState({
         date: "",
         purchaseAmount: "",
     });
 
     const [saving, setSaving] = useState(false);
+    const [detail, setDetail] = useState(null);
 
-    /* ================= LOAD MASTER DATA ================= */
     useEffect(() => {
-        Promise.all([
-            SupplierService.getAllSuppliers(),
-            CustomerService.getAllCustomers(),
-            getAllActiveStaffs(),
-        ]).then(([suppliers, customers, staffs]) => {
-            setAllSuppliers(suppliers || []);
-            setAllCustomers(customers || []);
-            setAllStaffs(staffs || []);
-        });
-    }, []);
+        if (!open) return;
+        const loadMasters = async () => {
+            try {
+                const [suppliers, customers, staffs] =
+                    await Promise.all([
+                        SupplierService.getAllSuppliers(),
+                        CustomerService.getAllCustomers(),
+                        getAllActiveStaffs(),
+                    ]);
 
-    /* ================= PREFILL DATA ================= */
+                setAllSuppliers(suppliers || []);
+                setAllCustomers(customers || []);
+                setAllStaffs(staffs || []);
+            } catch {
+                showSnackbar("Failed to load master data", "error");
+            }
+        };
+
+        loadMasters();
+    }, [open]);
+
+
     useEffect(() => {
-        if (!selectedPurchaseDetail) return;
+        if (!open || !purchaseId) return;
+
+        const loadDetail = async () => {
+            try {
+                const res = await getPurchaseDetailsById(purchaseId);
+                setDetail(res);
+            } catch {
+                showSnackbar("Failed to load purchase details", "error");
+            }
+        };
+
+        loadDetail();
+    }, [open, purchaseId]);
+
+    useEffect(() => {
+        if (!detail) return;
+        if (!allSuppliers.length || !allCustomers.length || !allStaffs.length) return;
 
         setFormData({
-            date: selectedPurchaseDetail.date || "",
+            date: detail.date || "",
             purchaseAmount:
-                selectedPurchaseDetail.purchaseAmount != null
-                    ? String(selectedPurchaseDetail.purchaseAmount)
+                detail.purchaseAmount != null
+                    ? String(detail.purchaseAmount)
                     : "",
         });
 
-        if (allSuppliers.length > 0) {
-            const selected = allSuppliers.filter(s =>
-                selectedPurchaseDetail.supplierIds?.includes(s.id)
-            );
-            setSelectedSuppliers(selected);
-        }
+        setSelectedSuppliers(
+            allSuppliers.filter(s =>
+                detail.supplierIds?.includes(s.id)
+            )
+        );
 
-        if (allCustomers.length > 0) {
-            setSelectedCustomer(
-                allCustomers.find(
-                    c => c.id === selectedPurchaseDetail.customerId
-                ) || null
-            );
-        }
+        setSelectedCustomer(
+            allCustomers.find(c =>
+                c.id === detail.customerId
+            ) || null
+        );
 
+        setSelectedStaff(
+            allStaffs.find(s =>
+                s.staffId === Number(detail.staffId)
+            ) || null
+        );
 
-        if (allStaffs.length > 0) {
-            setSelectedStaff(
-                allStaffs.find(
-                    s => s.staffId === Number(selectedPurchaseDetail.staffId)
-                ) || null
-            );
-        }
-    }, [selectedPurchaseDetail, allSuppliers, allCustomers, allStaffs]);
+        setExistingImages(
+            (detail.imageKeys || []).map((key, i) => ({
+                id: nanoid(),
+                key,
+                url: detail.publicUrls[i],
+            }))
+        );
 
-    if (!open) return null;
+        setNewImages([]);
+    }, [detail, allSuppliers, allCustomers, allStaffs]);
 
     const handleAmountChange = (e) => {
         const value = e.target.value;
 
-        // only numbers + max 2 decimals
         if (/^\d*\.?\d{0,2}$/.test(value)) {
             setFormData(p => ({ ...p, purchaseAmount: value }));
-            setErrors(p => ({ ...p, purchaseAmount: "" }));
         }
     };
+
     /* ================= UPDATE ================= */
     const handleUpdate = async () => {
-
         try {
             setSaving(true);
+
+            const formDataObj = new FormData();
 
             const payload = {
                 date: formData.date || null,
@@ -110,14 +153,30 @@ const EditPurchaseDetail = ({
                     formData.purchaseAmount !== ""
                         ? Number(formData.purchaseAmount)
                         : null,
+                existingImageKeys:
+                    existingImages.map(img => img.key)
             };
 
-            await updatePurchaseApi(selectedPurchaseDetail.id, payload);
+            formDataObj.append(
+                "data",
+                new Blob([JSON.stringify(payload)], {
+                    type: "application/json"
+                })
+            );
+
+            newImages.forEach(file => {
+                formDataObj.append("images", file);
+            });
+
+            await updatePurchaseApi(purchaseId, formDataObj);
 
             showSnackbar("Purchase updated successfully", "success");
+
             onUpdateSuccess();
-        } catch (err) {
-            showSnackbar(err.message || "Failed to update purchase", "error");
+            setOpen(false);
+
+        } catch {
+            showSnackbar("Failed to update purchase", "error");
         } finally {
             setSaving(false);
         }
@@ -136,7 +195,9 @@ const EditPurchaseDetail = ({
             >
                 {/* Header */}
                 <div className="px-4 sm:px-6 py-4 border-b">
-                    <h2 className="text-lg sm:text-xl font-semibold">Edit Purchase</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold">
+                        Edit Purchase
+                    </h2>
                 </div>
 
                 {/* Body */}
@@ -146,7 +207,7 @@ const EditPurchaseDetail = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <CustomTextField
                             label="Purchase ID"
-                            value={selectedPurchaseDetail.id}
+                            value={purchaseId}
                             disabled
                         />
 
@@ -162,7 +223,9 @@ const EditPurchaseDetail = ({
                                 onChange={(v) =>
                                     setFormData(p => ({
                                         ...p,
-                                        date: v ? dayjs(v).format("YYYY-MM-DD") : "",
+                                        date: v
+                                            ? dayjs(v).format("YYYY-MM-DD")
+                                            : "",
                                     }))
                                 }
                                 slotProps={{
@@ -177,7 +240,9 @@ const EditPurchaseDetail = ({
                         <Autocomplete
                             options={allStaffs}
                             value={selectedStaff}
-                            isOptionEqualToValue={(o, v) => o.staffId === v?.staffId}
+                            isOptionEqualToValue={(o, v) =>
+                                o.staffId === v?.staffId
+                            }
                             getOptionLabel={(o) => o?.staffName || ""}
                             onChange={(e, v) => setSelectedStaff(v)}
                             renderInput={(p) => (
@@ -200,24 +265,86 @@ const EditPurchaseDetail = ({
                             value={selectedSuppliers}
                             isOptionEqualToValue={(o, v) => o.id === v.id}
                             getOptionLabel={(o) => o?.supplierName || ""}
-                            onChange={(e, values) => setSelectedSuppliers(values)}
+                            onChange={(e, values) =>
+                                setSelectedSuppliers(values)
+                            }
                             renderInput={(p) => (
                                 <CustomTextField {...p} label="Suppliers" />
                             )}
                         />
+
                         <Autocomplete
                             options={allCustomers}
                             value={selectedCustomer}
                             isOptionEqualToValue={(o, v) => o.id === v?.id}
                             getOptionLabel={(o) => o?.customerName || ""}
-                            onChange={(e, v) => setSelectedCustomer(v)}
+                            onChange={(e, v) =>
+                                setSelectedCustomer(v)
+                            }
                             renderInput={(p) => (
                                 <CustomTextField {...p} label="Customer" />
                             )}
                         />
-
                     </div>
+
+
+                    {/* Existing Images */}
+                    {existingImages.length > 0 && (
+                        <div>
+                            <label className="block text-sm font-medium mb-2">
+                                Existing Images
+                            </label>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {existingImages.map((img) => (
+                                    <div key={img.id} className="relative">
+                                        <img
+                                            src={img.url}
+                                            alt=""
+                                            className="h-20 w-full object-cover rounded-lg border"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setExistingImages(prev =>
+                                                    prev.filter(i => i.id !== img.id)
+                                                )
+                                            }
+                                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* New Image Upload */}
+                    <ImageUploader
+                        value={newImages}
+                        onChange={(files) => {
+                            const total =
+                                existingImages.length + files.length;
+
+                            if (total > 2) {
+                                showSnackbar(
+                                    "Maximum 2 images allowed",
+                                    "error"
+                                );
+                                return;
+                            }
+
+                            setNewImages(files);
+                        }}
+                        maxImages={2 - existingImages.length}
+                        label="Upload Images"
+                        onError={(msg) =>
+                            showSnackbar(msg, "error")
+                        }
+                    />
                 </div>
+
                 {/* Footer */}
                 <div className="px-4 sm:px-6 py-4 border-t flex flex-col sm:flex-row gap-3 sm:justify-end">
                     <button
@@ -226,6 +353,7 @@ const EditPurchaseDetail = ({
                     >
                         Cancel
                     </button>
+
                     <button
                         onClick={handleUpdate}
                         disabled={saving}
