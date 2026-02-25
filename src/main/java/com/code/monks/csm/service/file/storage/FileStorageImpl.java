@@ -73,6 +73,20 @@ public class FileStorageImpl implements FileStorage {
         }
     }
 
+    @Override
+    public void delete(String key) {
+        try {
+            s3Client.deleteObject(builder ->
+                    builder.bucket(bucketName)
+                            .key(key)
+            );
+            log.info("File deleted from storage. Key={}", key);
+        } catch (Exception ex) {
+            log.error("File delete failed for key={}", key);
+            throw new FileUploadException(FILE_STORAGE_FAILED);
+        }
+    }
+
     private String getPublicUrl(String key) {
         return endpoint + "/" + bucketName + "/" + key;
     }

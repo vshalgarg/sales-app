@@ -8,7 +8,6 @@ import com.code.monks.csm.service.file.storage.FileStorage;
 import com.code.monks.csm.service.file.validator.FileValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +17,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class FileUploadServiceImpl implements FileUploadService {
+public class FileServiceImpl implements FileService {
 
     private final FileValidator fileValidator;
     private final FileStorage fileStorage;
@@ -62,5 +61,10 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
         log.info("Successfully uploaded {} image(s) for module: {}", imageUrls.size(), uploadModule);
         return uploadedFiles;
+    }
+
+    @Override
+    public void deleteFile(String key) {
+        fileStorage.delete(key);
     }
 }

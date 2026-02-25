@@ -7,4 +7,5 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileStorage {
 
     FileUploadResponse store(MultipartFile file, UploadModuleEnum module);
+    void delete(String key);
 }

@@ -6,7 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-public interface FileUploadService {
+public interface FileService {
 
     List<FileUploadResponse> uploadFiles(List<MultipartFile> images, UploadModuleEnum uploadModule);
+    void deleteFile(String key);
 }
