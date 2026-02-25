@@ -7,6 +7,8 @@ import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import CustomTextField from "../components/CustomTextField";
 import BasicSelect from "../components/BasicSelect";
+import { INDIAN_STATES } from "../constants/states";
+import StateAutocomplete from "../components/common/StateAutocomplete";
 
 export default function AddNewTransport({
   open,
@@ -33,7 +35,6 @@ export default function AddNewTransport({
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({ contacts: [] });
   const [isSaving, setIsSaving] = useState(false);
-  const [states, setStates] = useState([]);
 
 
   /* ================= RESET ================= */
@@ -41,17 +42,6 @@ export default function AddNewTransport({
     setFormData(initialState);
     setErrors({ contacts: [] });
   };
-
-  useEffect(() => {
-    fetch("https://countriesnow.space/api/v0.1/countries/states", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ country: "India" }),
-    })
-      .then(res => res.json())
-      .then(data => setStates(data.data.states || []))
-      .catch(() => showSnackbar("Failed to load states", "error"));
-  }, []);
 
 
   /* ================= EDIT MODE ================= */
@@ -116,13 +106,13 @@ export default function AddNewTransport({
   const handleSubmit = async ({ closeAfterSave }) => {
     if (isSaving) return;
 
- const nameError = validate("supplierName", formData.name);
+    const nameError = validate("supplierName", formData.name);
 
     if (nameError) {
-    setErrors({ name: nameError });
-    showSnackbar(nameError, "error");
-    return;
-  }
+      setErrors({ name: nameError });
+      showSnackbar(nameError, "error");
+      return;
+    }
 
     try {
       setIsSaving(true);
@@ -218,13 +208,12 @@ export default function AddNewTransport({
                 onChange={handleChange}
               />
 
-              <BasicSelect
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                label="State"
-                options={states.map(s => ({ value: s.name, label: s.name }))}
-              />
+               <StateAutocomplete
+                    value={formData.state}
+                    onChange={(val) =>
+                      setFormData((prev) => ({ ...prev, state: val }))
+                    }
+                  />
 
               <CustomTextField label="City"
                 name="city"
@@ -290,14 +279,14 @@ export default function AddNewTransport({
           </button>
 
           {!editingTransport && (
-            <button onClick={() => handleSubmit({ closeAfterSave: false })} 
-            className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border border-blue-600 text-blue-600 rounded-lg">
+            <button onClick={() => handleSubmit({ closeAfterSave: false })}
+              className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border border-blue-600 text-blue-600 rounded-lg">
               Save & Add New
             </button>
           )}
 
           <button onClick={() => handleSubmit({ closeAfterSave: true })}
-           className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm bg-blue-600 text-white rounded-lg">
+            className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm bg-blue-600 text-white rounded-lg">
             {editingTransport ? "Update Transport" : "Save Transport"}
           </button>
         </div>
