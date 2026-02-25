@@ -137,7 +137,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       setExistingImages(
         selectedBillDetail.publicUrls.map((url, index) => ({
           id: nanoid(),
-          key: selectedBillDetail.imageKeys?.[index],
+          key: selectedBillDetail.objectKeys?.[index],
           url: url,
         }))
       );
@@ -231,7 +231,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
         ecrAmount: Math.round(parseFloat(item.ecrAmount || 0)),
         gstPercent: parseFloat(item.gstPercent || 0),
         gstAmount: Math.round(parseFloat(item.gstAmount || 0)),
-      }))
+      })),
+      existingImageKeys: existingImages.map(img => img.key)
     };
 
     const formDataObj = new FormData();
