@@ -15,7 +15,6 @@ public class UpdateSupplierRequestDto {
     @NotBlank(message = "Supplier name is required")
     private String supplierName;
 
-    @Email(message = "Invalid email format")
     private String email;
 
     private String groupName;
