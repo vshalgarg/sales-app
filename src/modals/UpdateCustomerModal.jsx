@@ -31,6 +31,7 @@ const UpdateCustomerModal = ({
     const [selectedTransports, setSelectedTransports] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [states, setStates] = useState([]);
 
     /* ================= FETCH CUSTOMER ================= */
 
@@ -82,6 +83,18 @@ const UpdateCustomerModal = ({
             setAllTransports(transports || []);
         };
         fetchTransports();
+    }, []);
+
+    useEffect(() => {
+        if (!open) return;
+        fetch("https://countriesnow.space/api/v0.1/countries/states", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ country: "India" }),
+        })
+            .then((res) => res.json())
+            .then((data) => setStates(data.data.states || []))
+            .catch((err) => showSnackbar("Error fetching states:", err));
     }, []);
 
     /* ================= HANDLERS ================= */
@@ -245,12 +258,18 @@ const UpdateCustomerModal = ({
                                     label="Address Line 2"
                                 />
 
-                                <CustomTextField
-                                    name="state"
-                                    value={form.state || ""}
-                                    onChange={handleChange}
-                                    label="State"
-                                />
+                                {states.length > 0 && (
+                                    <BasicSelect
+                                        name="state"
+                                        value={form.state || ""}
+                                        onChange={handleChange}
+                                        label="State"
+                                        options={states.map((s) => ({
+                                            value: s.name,
+                                            label: s.name
+                                        }))}
+                                    />
+                                )}
 
                                 <CustomTextField
                                     name="city"

@@ -76,8 +76,7 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words whitespace-pre-wrap">
                   {[
-                    selectedCustomer.addressLine1,
-                    selectedCustomer.addressLine2,
+                    selectedCustomer.address
                   ].filter(Boolean).join(", ") || "-"}
                 </div>
 
