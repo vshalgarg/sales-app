@@ -15,6 +15,8 @@ import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import { sanitizePayload } from "../utils/sanitizePayload";
+import StateAutocomplete from "../components/common/StateAutocomplete";
+
 
 const UpdateSupplierModal = ({
     supplierId,
@@ -31,7 +33,6 @@ const UpdateSupplierModal = ({
     const [selectedTransports, setSelectedTransports] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [states, setStates] = useState([]);
 
     /* ---------------- FETCH SUPPLIER ---------------- */
 
@@ -92,18 +93,6 @@ const UpdateSupplierModal = ({
         };
 
         fetchTransports();
-    }, []);
-
-    useEffect(() => {
-        if (!open) return;
-        fetch("https://countriesnow.space/api/v0.1/countries/states", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ country: "India" }),
-        })
-            .then((res) => res.json())
-            .then((data) => setStates(data.data.states || []))
-            .catch((err) => showSnackbar("Error fetching states:", err));
     }, []);
 
     /* ---------------- RESET WHEN CLOSED ---------------- */
@@ -346,18 +335,12 @@ const UpdateSupplierModal = ({
                                     label="Address Line 2"
                                 />
 
-                                {states.length > 0 && (
-                                    <BasicSelect
-                                        name="state"
-                                        value={form.state || ""}
-                                        onChange={handleChange}
-                                        label="State"
-                                        options={states.map((s) => ({
-                                            value: s.name,
-                                            label: s.name
-                                        }))}
-                                    />
-                                )}
+                                <StateAutocomplete
+                                    value={form.state}
+                                    onChange={(val) =>
+                                        setForm((prev) => ({ ...prev, state: val }))
+                                    }
+                                />
 
                                 <CustomTextField
                                     name="city"
