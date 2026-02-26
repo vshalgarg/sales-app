@@ -1,18 +1,23 @@
 package com.code.monks.csm.service.impl;
 
+import com.code.monks.csm.common.BillItemCommon;
 import com.code.monks.csm.dto.request.BillEntryRequestDto;
+import com.code.monks.csm.dto.request.BillItemRequestDto;
 import com.code.monks.csm.dto.request.BillUpdateRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.BillException;
+import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.BillService;
 import com.code.monks.csm.service.TransportService;
-import com.code.monks.csm.service.file.FileService;
+import com.code.monks.csm.service.file.FileUploadService;
+import com.code.monks.csm.specification.GenericSpecificationBuilder;
+import com.code.monks.csm.utils.MoneyUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
@@ -22,10 +27,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,99 +56,91 @@ public class BillServiceImpl implements BillService {
 
 
     @Transactional
-    public BillEntryResponseDto addBill(BillEntryRequestDto requestDto, List<MultipartFile> images) {
-        log.info("addBill() called with items: {}", requestDto);
+    public BillEntryResponseDto addBill(
+            BillEntryRequestDto requestDto,
+            List<MultipartFile> images) {
+
+        log.info("AddBill request received | order={} | supplierId={} | customerId={} | taxableValue={} | billAmount={}",
+                requestDto.getOrder(),
+                requestDto.getSupplierId(),
+                requestDto.getCustomerId(),
+                requestDto.getTaxableValue(),
+                requestDto.getBillAmount());
 
         checkLrNumberDuplicate(requestDto.getLrNumber());
 
         String billNumber = generateBillNumber();
-        log.debug("Generated bill number: {}", billNumber);
-        String transportName = requestDto.getTransportName();
-        try {
-            BillEntryEntity billEntry = new BillEntryEntity();
-            if (transportName != null && !transportName.trim().isEmpty()) {
-                TransportEntity transport =
-                        transportService.getOrCreateTransport(transportName.trim());
-                billEntry.setTransportEntity(transport);
-                log.debug("Transport set: {}", transportName);
-            } else {
-                billEntry.setTransportEntity(null);
-                log.debug("No transport provided");
-            }
-            billEntry.setBillNumber(billNumber);
-            billEntry.setDate(requestDto.getDate());
-            billEntry.setReceivedDate(requestDto.getReceivedDate());
-            billEntry.setOrders(requestDto.getOrder());
-            billEntry.setSupplierId(requestDto.getSupplierId());
-            billEntry.setCustomerId(requestDto.getCustomerId());
-            billEntry.setLrNumber(requestDto.getLrNumber());
-            billEntry.setRemarks(requestDto.getRemarks());
-            billEntry.setTaxableValue(requestDto.getTaxableValue()*100);
-            billEntry.setBillAmount(requestDto.getBillAmount()*100);
 
-            List<BillDetailEntity> billItems = requestDto.getBillItems().stream()
-                    .map(itemDto -> {
-                        BillDetailEntity detail = new BillDetailEntity();
-                        detail.setPieces(itemDto.getPieces());
-                        detail.setGrossAmount((long) (itemDto.getGrossAmount() * 100));
-                        detail.setDiscountPercent((int) itemDto.getDiscountPercent() * 100);
-                        detail.setDiscountAmount((long) (itemDto.getDiscountAmount() * 100));
-                        detail.setAddOnAmount((long) (itemDto.getAddOnAmount() * 100));
-                        detail.setEcrAmount(itemDto.getEcrAmount() * 100);
-                        detail.setGstPercent((int) itemDto.getGstPercent() * 100);
-                        detail.setGstAmount((long) (itemDto.getGstAmount() * 100));
-                        detail.setBillEntry(billEntry); // relation set
-                        return detail;
-                    })
-                    .collect(Collectors.toList());
-            billEntry.setBillDetails(billItems);
+        BillEntryEntity billEntry = new BillEntryEntity();
 
-            // img upload
-            if (images != null && !images.isEmpty()) {
+        // Header mapping
+        mapHeaderFields(billEntry, requestDto);
 
-                log.info("Uploading {} bill image(s)", images.size());
+        // Money fields
+        billEntry.setTaxableValue(
+                MoneyUtil.toPaisa(requestDto.getTaxableValue()));
+        billEntry.setBillAmount(
+                MoneyUtil.toPaisa(requestDto.getBillAmount()));
 
-                List<FileUploadResponse> uploadedFiles =
-                        fileUploadService.uploadFiles(
-                                images,
-                                UploadModuleEnum.BILTY
-                        );
+        // Detail mapping
+        List<BillDetailEntity> billItems =
+                mapToBillDetails(requestDto.getBillItems(), billEntry);
 
-                List<BillImageEntity> imageEntities =
-                        uploadedFiles.stream()
-                                .map(response -> {
-                                    BillImageEntity image = new BillImageEntity();
-                                    image.setObjectKey(response.getKey());
-                                    image.setPublicUrl(response.getPublicUrl());
-                                    image.setBillEntry(billEntry);
-                                    return image;
-                                })
-                                .toList();
+        billEntry.setBillDetails(billItems);
 
-                billEntry.setImages(imageEntities);
+        // Images
+        handleImageUpload(images, billEntry);
 
-                log.info("Successfully uploaded {} image(s) for bill {}",
-                        imageEntities.size(),
-                        billNumber);
+        log.info("Saving Bill | billNumber={} | taxablePaisa={} | billAmountPaisa={}",
+                billNumber,
+                billEntry.getTaxableValue(),
+                billEntry.getBillAmount());
 
-            } else {
-                log.info("No images provided for bill {}", billNumber);
-            }
+        billRepo.save(billEntry);
 
-            billRepo.save(billEntry);
-            log.info("Bill '{}' saved successfully with {} items", billNumber, billItems.size());
+        return BillEntryResponseDto.builder()
+                .message("Bill added successfully: " + billNumber)
+                .build();
+    }
 
-            return BillEntryResponseDto.builder()
-                    .message("Bill added successfully: " + billNumber)
-                    .build();
+    @Transactional
+    @Override
+    public EditBillEntryResponse updateBill(
+            String billNumber,
+            BillUpdateRequest request) {
 
-        } catch (BillException ex) {
-            log.warn("Business rule violation: {}", ex.getMessage());
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Unexpected error while adding bill '{}'", billNumber, ex);
-            throw new BillException(UNEXPECTED_EXCEPTION, "Failed to save bill");
-        }
+        log.info("UpdateBill request | billNumber={} | taxableValue={} | billAmount={}",
+                billNumber,
+                request.getTaxableValue(),
+                request.getBillAmount());
+
+        BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(BILL_NOT_FOUND, billNumber));
+
+        // Header mapping
+        mapHeaderFieldsForUpdate(bill, request);
+
+        // Clear old details
+        bill.getBillDetails().clear();
+
+        // Re-map details
+        List<BillDetailEntity> newDetails =
+                mapToBillDetails(request.getBillItems(), bill);
+
+        bill.getBillDetails().addAll(newDetails);
+
+        // Header totals
+        bill.setTaxableValue(
+                MoneyUtil.toPaisa(request.getTaxableValue()));
+        bill.setBillAmount(
+                MoneyUtil.toPaisa(request.getBillAmount()));
+
+        billRepo.save(bill);
+
+        return EditBillEntryResponse.builder()
+                .message("Bill updated successfully!")
+                .build();
     }
 
     private void checkLrNumberDuplicate(String lrNumber) {
@@ -222,100 +221,6 @@ public class BillServiceImpl implements BillService {
         }
     }
 
-    @Transactional
-    @Override
-    public EditBillEntryResponse updateBill(
-            String billNumber,
-            BillUpdateRequest request,
-            List<MultipartFile> images
-    ){
-
-        log.info("Update bill request started | billNumber={}", billNumber);
-        BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
-                .orElseThrow(() -> {
-                    log.error("Bill not found | billNumber={}", billNumber);
-                    return new ResourceNotFoundException(BILL_NOT_FOUND, billNumber);
-                });
-
-        log.debug("Bill entity fetched | id={}", bill.getId());
-            bill.setDate(LocalDate.parse(request.getDate()));
-        Optional.ofNullable(request.getReceivedDate())
-                .filter(date -> !date.trim().isEmpty())
-                .map(LocalDate::parse)
-                .ifPresent(bill::setReceivedDate);
-        bill.setOrders(request.getOrder()); 
-        bill.setSupplierId(request.getSupplierId());
-        bill.setCustomerId(request.getCustomerId());
-
-
-            if (request.getTransport() == null || request.getTransport().trim().isEmpty()) {
-                bill.setTransportEntity(null);
-            } else {
-                String newName = request.getTransport().trim();
-                TransportEntity transport = transportService
-                        .findByNameIgnoreCase(newName)
-                        .orElseThrow(() -> {
-                            log.warn("⚠Transport not found | name={}", newName);
-                            return new BillException(
-                                    TRANSPORT_NOT_FOUND,
-                                    "Transport does not exist: " + newName
-                            );
-                        });
-                bill.setTransportEntity(transport);
-                log.info("Transport linked | transportId={}, name={}",
-                        transport.getId(), transport.getName());
-            }
-
-            bill.setLrNumber(request.getLrNumber());
-            bill.setRemarks(request.getRemarks());
-
-        bill.getBillDetails().forEach(d -> d.setBillEntry(null));
-        bill.getBillDetails().clear();
-
-        List<BillDetailEntity> newDetails = request.getBillItems().stream()
-                .map(dto -> {
-                    BillDetailEntity d = new BillDetailEntity();
-                    d.setPieces(dto.getPieces());
-                    d.setGrossAmount(Math.round(dto.getGrossAmount()) * 100);
-                    d.setDiscountPercent(dto.getDiscountPercent() * 100);
-                    d.setDiscountAmount(Math.round(dto.getDiscountAmount())  * 100);
-                    d.setAddOnAmount(Math.round(dto.getAddOnAmount())  * 100);
-                    d.setEcrAmount(Math.round(dto.getEcrAmount())  * 100);
-                    d.setGstPercent(dto.getGstPercent()  * 100);
-                    d.setGstAmount(Math.round(dto.getGstAmount())  * 100);
-                    d.setBillEntry(bill);
-                    return d;
-                })
-                .toList();
-
-        bill.getBillDetails().addAll(newDetails);
-        log.info("📦 Added new bill items | count={}", newDetails.size());
-
-        // Header totals update
-        bill.setTaxableValue(Math.round(request.getTaxableValue()) * 100);
-        bill.setBillAmount(Math.round(request.getBillAmount()) * 100);
-
-        log.debug(
-                "Totals updated | taxableValue={}, billAmount={}",
-                bill.getTaxableValue(),
-                bill.getBillAmount()
-        );
-
-        handleBillImageUpdate(
-                bill,
-                request.getExistingImageKeys(),
-                images
-        );
-        billRepo.save(bill);
-
-        log.info("Bill updated successfully | billNumber={}, billId={}",
-                billNumber, bill.getId());
-
-        return EditBillEntryResponse.builder()
-                .message("Bill updated successfully!")
-                .build();
-    }
-
     @Override
     public PagedResponseDto<SearchBillEntryResponse> searchBillHistory(
             LocalDate fromDate,
@@ -330,45 +235,25 @@ public class BillServiceImpl implements BillService {
                 fromDate, toDate, supplierId, customerId, page, size
         );
 
-        //STEP-1: Normalize dates
-        LocalDate startDate =
-                (fromDate != null) ? fromDate : LocalDate.of(1970, 1, 1);
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(
+                        Sort.Order.desc("date"),
+                        Sort.Order.desc("id")
+                )
+        );
 
-        LocalDate endDate =
-                (toDate != null) ? toDate : LocalDate.now();
+        Specification<BillEntryEntity> spec =
+                new GenericSpecificationBuilder<BillEntryEntity>()
+                        .fromDate("date", fromDate)
+                        .toDate("date", toDate)
+                        .equal("supplierId", supplierId)
+                        .equal("customerId", customerId)
+                        .build();
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date", "id").descending()); // sorting by date desc
-        Page<BillEntryEntity> billRecords;
-
-        //Dynamic filter logic
-        if (supplierId != null && customerId != null) {
-
-            billRecords =
-                    billRepo.findByDateBetweenAndSupplierIdAndCustomerId(
-                            startDate, endDate, supplierId, customerId, pageable
-                    );
-
-        } else if (supplierId != null) {
-
-            billRecords =
-                    billRepo.findByDateBetweenAndSupplierId(
-                            startDate, endDate, supplierId, pageable
-                    );
-
-        } else if (customerId != null) {
-
-            billRecords =
-                    billRepo.findByDateBetweenAndCustomerId(
-                            startDate, endDate, customerId, pageable
-                    );
-
-        } else {
-
-            billRecords =
-                    billRepo.findByDateBetween(
-                            startDate, endDate, pageable
-                    );
-        }
+        Page<BillEntryEntity> billRecords =
+                billRepo.findAll(spec, pageable);
 
         List<SearchBillEntryResponse> content =
                 billRecords.getContent()
@@ -376,6 +261,9 @@ public class BillServiceImpl implements BillService {
                         .map(this::convertToResponseDto)
                         .toList();
 
+        log.info("Search result fetched | totalRecords={} | page={}",
+                billRecords.getTotalElements(),
+                billRecords.getNumber());
         return new PagedResponseDto<>(
                 content,
                 billRecords.getNumber(),
@@ -410,6 +298,7 @@ public class BillServiceImpl implements BillService {
     }
 
     private SearchBillEntryResponse convertToResponseDto(BillEntryEntity entity) {
+
         CustomerEntity customerEntity = null;
         SupplierEntity supplierEntity = null;
 
@@ -421,41 +310,44 @@ public class BillServiceImpl implements BillService {
             supplierEntity = supplierRepo.findById(entity.getSupplierId()).orElse(null);
         }
 
-        List<BillItemDto> itemDtos = entity.getBillDetails().stream()
-                .map(detail -> BillItemDto.builder()
-                        .pieces(detail.getPieces())
-                        .grossAmount(detail.getGrossAmount()/100)
-                        .discountPercent(detail.getDiscountPercent() /100)
-                        .discountAmount(detail.getDiscountAmount()/100)
-                        .addOnAmount(detail.getAddOnAmount()/100)
-                        .ecrAmount(detail.getEcrAmount()/100)
-                        .gstPercent(detail.getGstPercent()/ 100)
-                        .gstAmount(detail.getGstAmount() / 100.0)
-                        .build())
-                .toList();
+        List<BillItemDto> itemDtos = new ArrayList<>();
 
-        String transportName = null;
-        if (entity.getTransportEntity() != null) {
-            transportName = entity.getTransportEntity().getName();
+        for (BillDetailEntity detail : entity.getBillDetails()) {
+
+            log.info("Converting Detail To Response | storedGstBP={} | storedDiscountBP={}",
+                    detail.getGstPercent(),
+                    detail.getDiscountPercent());
+
+            BillItemDto dto = BillItemDto.builder()
+                    .pieces(detail.getPieces())
+                    .grossAmount(MoneyUtil.toRupee(detail.getGrossAmount()))
+                    .discountAmount(MoneyUtil.toRupee(detail.getDiscountAmount()))
+                    .addOnAmount(MoneyUtil.toRupee(detail.getAddOnAmount()))
+                    .ecrAmount(MoneyUtil.toRupee(detail.getEcrAmount()))
+                    .gstAmount(MoneyUtil.toRupee(detail.getGstAmount()))
+                    .discountPercent(
+                            MoneyUtil.basisPointToPercent(detail.getDiscountPercent()))
+                    .gstPercent(
+                            MoneyUtil.basisPointToPercent(detail.getGstPercent()))
+                    .build();
+
+            itemDtos.add(dto);
         }
 
-        List<String> publicImageUrls = new ArrayList<>();
-        List<String> objectKeys = new ArrayList<>();
 
-        if (entity.getImages() != null) {
-            for (BillImageEntity image : entity.getImages()) {
-                publicImageUrls.add(image.getPublicUrl());
-                objectKeys.add(image.getObjectKey());
-            }
-        }
+        String transportName = entity.getTransportEntity() != null
+                ? entity.getTransportEntity().getName()
+                : null;
 
         return SearchBillEntryResponse.builder()
                 .billNumber(entity.getBillNumber())
                 .date(entity.getDate())
                 .receivedDate(entity.getReceivedDate())
                 .order(entity.getOrders())
-                .billAmount(entity.getBillAmount()/100)
-                .taxableValue(entity.getTaxableValue()/100)
+
+                .billAmount(MoneyUtil.toRupee(entity.getBillAmount()))
+                .taxableValue(MoneyUtil.toRupee(entity.getTaxableValue()))
+
                 .transport(transportName)
                 .lrNumber(entity.getLrNumber())
                 .remarks(entity.getRemarks())
@@ -475,57 +367,127 @@ public class BillServiceImpl implements BillService {
                 .customerMsme(customerEntity != null ? customerEntity.getMsme() : null)
 
                 .items(itemDtos)
-                .publicUrls(publicImageUrls)
-                .objectKeys(objectKeys)
                 .build();
     }
 
-    private void handleBillImageUpdate(
-            BillEntryEntity entity,
-            List<String> existingKeys,
-            List<MultipartFile> newImages
+    private List<BillDetailEntity> mapToBillDetails(
+            List<? extends BillItemCommon> items,
+            BillEntryEntity billEntry) {
+
+        List<BillDetailEntity> details = new ArrayList<>();
+
+        for (BillItemCommon dto : items) {
+
+            log.info("Incoming Percent From DTO | discountPercent={} | gstPercent={}",
+                    dto.getDiscountPercent(),
+                    dto.getGstPercent());
+
+            int discountBP = MoneyUtil.percentToBasisPoint(dto.getDiscountPercent());
+            int gstBP = MoneyUtil.percentToBasisPoint(dto.getGstPercent());
+
+            log.info("Converted Percent To BasisPoint | discountBP={} | gstBP={}",
+                    discountBP, gstBP);
+            BillDetailEntity detail = new BillDetailEntity();
+
+            detail.setPieces(dto.getPieces());
+            detail.setGrossAmount(MoneyUtil.toPaisa(dto.getGrossAmount()));
+            detail.setDiscountAmount(MoneyUtil.toPaisa(dto.getDiscountAmount()));
+            detail.setAddOnAmount(MoneyUtil.toPaisa(dto.getAddOnAmount()));
+            detail.setEcrAmount(MoneyUtil.toPaisa(dto.getEcrAmount()));
+            detail.setGstAmount(MoneyUtil.toPaisa(dto.getGstAmount()));
+
+            detail.setDiscountPercent(discountBP);
+            detail.setGstPercent(gstBP);
+
+            detail.setBillEntry(billEntry);
+
+            details.add(detail);
+        }
+
+        return details;
+    }
+
+    private void mapHeaderFields(
+            BillEntryEntity bill,
+            BillEntryRequestDto dto) {
+
+        bill.setBillNumber(generateBillNumber());
+        bill.setDate(dto.getDate());
+        bill.setReceivedDate(dto.getReceivedDate());
+        bill.setOrders(dto.getOrder());
+        bill.setSupplierId(dto.getSupplierId());
+        bill.setCustomerId(dto.getCustomerId());
+        bill.setLrNumber(dto.getLrNumber());
+        bill.setRemarks(dto.getRemarks());
+
+        if (dto.getTransportName() != null &&
+                !dto.getTransportName().trim().isEmpty()) {
+
+            TransportEntity transport =
+                    transportService.getOrCreateTransport(
+                            dto.getTransportName().trim());
+
+            bill.setTransportEntity(transport);
+        }
+    }
+
+    private void mapHeaderFieldsForUpdate(
+            BillEntryEntity bill,
+            BillUpdateRequest dto) {
+
+        bill.setDate(LocalDate.parse(dto.getDate()));
+
+        Optional.ofNullable(dto.getReceivedDate())
+                .filter(d -> !d.trim().isEmpty())
+                .map(LocalDate::parse)
+                .ifPresent(bill::setReceivedDate);
+
+        bill.setOrders(dto.getOrder());
+        bill.setSupplierId(dto.getSupplierId());
+        bill.setCustomerId(dto.getCustomerId());
+        bill.setLrNumber(dto.getLrNumber());
+        bill.setRemarks(dto.getRemarks());
+
+        if (dto.getTransport() == null ||
+                dto.getTransport().trim().isEmpty()) {
+
+            bill.setTransportEntity(null);
+
+        } else {
+
+            TransportEntity transport =
+                    transportService.findByNameIgnoreCase(
+                                    dto.getTransport().trim())
+                            .orElseThrow(() ->
+                                    new BillException(
+                                            TRANSPORT_NOT_FOUND,
+                                            "Transport not found"));
+
+            bill.setTransportEntity(transport);
+        }
+    }
+
+    private void handleImageUpload(
+            List<MultipartFile> images,
+            BillEntryEntity billEntry
     ) {
 
-        List<BillImageEntity> currentImages = entity.getImages();
+        if (images == null || images.isEmpty()) return;
 
-        if (currentImages == null) {
-            currentImages = new ArrayList<>();
-            entity.setImages(currentImages);
-        }
+        List<String> imageUrls =
+                fileUploadService.uploadFiles(
+                        images, UploadModuleEnum.BILTY);
 
-        // Identify removed images
-        List<BillImageEntity> toRemove =
-                currentImages.stream()
-                        .filter(img -> existingKeys == null ||
-                                !existingKeys.contains(img.getObjectKey()))
-                        .toList();
+        List<BillImageEntity> imageEntities =
+                imageUrls.stream()
+                        .map(url -> {
+                            BillImageEntity image =
+                                    new BillImageEntity();
+                            image.setImageUrl(url);
+                            image.setBillEntry(billEntry);
+                            return image;
+                        }).toList();
 
-        // Remove from entity
-        currentImages.removeAll(toRemove);
-
-        // Delete from storage
-        for (BillImageEntity img : toRemove) {
-            fileUploadService.deleteFile(img.getObjectKey());
-        }
-
-        // Upload new images
-        if (newImages != null && !newImages.isEmpty()) {
-
-            List<FileUploadResponse> uploadedFiles =
-                    fileUploadService.uploadFiles(
-                            newImages,
-                            UploadModuleEnum.BILTY
-                    );
-
-            for (FileUploadResponse response : uploadedFiles) {
-
-                BillImageEntity image = new BillImageEntity();
-                image.setObjectKey(response.getKey());
-                image.setPublicUrl(response.getPublicUrl());
-                image.setBillEntry(entity);
-
-                currentImages.add(image);
-            }
-        }
+        billEntry.setImages(imageEntities);
     }
 }
