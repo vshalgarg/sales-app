@@ -2,20 +2,18 @@ package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.common.BillItemCommon;
 import com.code.monks.csm.dto.request.BillEntryRequestDto;
-import com.code.monks.csm.dto.request.BillItemRequestDto;
 import com.code.monks.csm.dto.request.BillUpdateRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.BillException;
-import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.BillService;
 import com.code.monks.csm.service.TransportService;
-import com.code.monks.csm.service.file.FileUploadService;
+import com.code.monks.csm.service.file.FileService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import com.code.monks.csm.utils.MoneyUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
@@ -32,13 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
@@ -52,7 +48,7 @@ public class BillServiceImpl implements BillService {
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final TransportService transportService;
-    private final FileService fileUploadService;
+    private final FileService fileService;
 
 
     @Transactional
@@ -68,8 +64,6 @@ public class BillServiceImpl implements BillService {
                 requestDto.getBillAmount());
 
         checkLrNumberDuplicate(requestDto.getLrNumber());
-
-        String billNumber = generateBillNumber();
 
         BillEntryEntity billEntry = new BillEntryEntity();
 
@@ -89,17 +83,17 @@ public class BillServiceImpl implements BillService {
         billEntry.setBillDetails(billItems);
 
         // Images
-        handleImageUpload(images, billEntry);
+        handleBillImages(billEntry, images);
 
         log.info("Saving Bill | billNumber={} | taxablePaisa={} | billAmountPaisa={}",
-                billNumber,
+                billEntry.getBillNumber(),
                 billEntry.getTaxableValue(),
                 billEntry.getBillAmount());
 
         billRepo.save(billEntry);
 
         return BillEntryResponseDto.builder()
-                .message("Bill added successfully: " + billNumber)
+                .message("Bill added successfully: " + billEntry.getBillNumber())
                 .build();
     }
 
@@ -107,7 +101,9 @@ public class BillServiceImpl implements BillService {
     @Override
     public EditBillEntryResponse updateBill(
             String billNumber,
-            BillUpdateRequest request) {
+            BillUpdateRequest request,
+            List<MultipartFile> newImages
+    ) {
 
         log.info("UpdateBill request | billNumber={} | taxableValue={} | billAmount={}",
                 billNumber,
@@ -136,89 +132,16 @@ public class BillServiceImpl implements BillService {
         bill.setBillAmount(
                 MoneyUtil.toPaisa(request.getBillAmount()));
 
+        handleBillImageUpdate(
+                bill,
+                request.getExistingImageKeys(),
+                newImages
+        );
         billRepo.save(bill);
 
         return EditBillEntryResponse.builder()
                 .message("Bill updated successfully!")
                 .build();
-    }
-
-    private void checkLrNumberDuplicate(String lrNumber) {
-        if (StringUtils.isNotBlank(lrNumber) && billRepo.existsByLrNumber(lrNumber)) {
-            log.warn("LR number already exists: {}", lrNumber);
-            throw new BillException(DUPLICATE_ENTRY, "LR number already exists: " + lrNumber);
-        }
-    }
-
-
-    private synchronized String generateBillNumber() {
-        // 1️⃣ Fetch the last saved bill number from DB
-        String lastBillNumber = billRepo.findTopByOrderByIdDesc()
-                .map(BillEntryEntity::getBillNumber)
-                .orElse(null);
-
-        // 2️⃣ Extract the numeric part and increment
-        int nextNumber = 1;
-        if (lastBillNumber != null && lastBillNumber.startsWith("INV-")) {
-            String numberPart = lastBillNumber.substring(4); // remove "INV-"
-            try {
-                nextNumber = Integer.parseInt(numberPart) + 1;
-            } catch (NumberFormatException ignored) {
-                nextNumber = 1;
-            }
-        }
-
-        // 3️⃣ Format like INV-00001
-        return String.format("INV-%05d", nextNumber);
-    }
-
-
-    private void validateBill(String billNumber) {
-        List<ValidatorUtil.DuplicateCheck> duplicateChecks = new ArrayList<>();
-
-        duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                "billNumber", () -> billRepo.existsByBillNumber(billNumber)
-        ));
-        validatorUtil.validateUniqueFields(duplicateChecks);
-    }
-
-    public List<GetBillEntries> getBillEntries() {
-        log.info("Fetching all bill entries from database...");
-
-        try {
-            // Fetch all bills
-            List<BillEntryEntity> bills = billRepo.findAll();
-            log.info("Fetched {} bill entries from database", bills.size());
-
-            // Map bill entries to DTO
-            List<GetBillEntries> result = bills.stream().map(bill -> {
-                GetBillEntries dto = GetBillEntries.convertToGetBillEntries(bill);
-
-                CustomerEntity customerEntity = customerRepo.findById(bill.getCustomerId()).orElseThrow();
-                dto.setCustomerName(customerEntity.getCustomerName());
-                dto.setCustomerGroup(customerEntity.getGroupName());
-                dto.setCustomerMsme(customerEntity.getMsme());
-                dto.setCustomerGstNo(customerEntity.getGstNo());
-
-                SupplierEntity supplierEntity = supplierRepo.findById(bill.getSupplierId()).orElseThrow();
-                dto.setSupplierName(supplierEntity.getSupplierName());
-                dto.setSupplierGroup(supplierEntity.getGroupName());
-                dto.setSupplierMsme(supplierEntity.getMsme());
-                dto.setSupplierGstNo(supplierEntity.getGstNo());
-
-                return dto;
-            }).toList();
-
-            log.info("Successfully mapped {} bill entries with customer & supplier names", result.size());
-            return result;
-
-        } catch (DataAccessException dae) {
-            log.error("Database access error while fetching bill entries", dae);
-            throw new BillException(DATA_ACCESS_ERROR, dae.getMessage());
-        } catch (Exception ex) {
-            log.error("Unexpected error occurred while fetching bill entries", ex);
-            throw new BillException(UNEXPECTED_EXCEPTION, " fetching bill entries");
-        }
     }
 
     @Override
@@ -273,6 +196,86 @@ public class BillServiceImpl implements BillService {
                 billRecords.isLast()
         );
     }
+
+    public List<GetBillEntries> getBillEntries() {
+        log.info("Fetching all bill entries from database...");
+
+        try {
+            // Fetch all bills
+            List<BillEntryEntity> bills = billRepo.findAll();
+            log.info("Fetched {} bill entries from database", bills.size());
+
+            // Map bill entries to DTO
+            List<GetBillEntries> result = bills.stream().map(bill -> {
+                GetBillEntries dto = GetBillEntries.convertToGetBillEntries(bill);
+
+                CustomerEntity customerEntity = customerRepo.findById(bill.getCustomerId()).orElseThrow();
+                dto.setCustomerName(customerEntity.getCustomerName());
+                dto.setCustomerGroup(customerEntity.getGroupName());
+                dto.setCustomerMsme(customerEntity.getMsme());
+                dto.setCustomerGstNo(customerEntity.getGstNo());
+
+                SupplierEntity supplierEntity = supplierRepo.findById(bill.getSupplierId()).orElseThrow();
+                dto.setSupplierName(supplierEntity.getSupplierName());
+                dto.setSupplierGroup(supplierEntity.getGroupName());
+                dto.setSupplierMsme(supplierEntity.getMsme());
+                dto.setSupplierGstNo(supplierEntity.getGstNo());
+
+                return dto;
+            }).toList();
+
+            log.info("Successfully mapped {} bill entries with customer & supplier names", result.size());
+            return result;
+
+        } catch (DataAccessException dae) {
+            log.error("Database access error while fetching bill entries", dae);
+            throw new BillException(DATA_ACCESS_ERROR, dae.getMessage());
+        } catch (Exception ex) {
+            log.error("Unexpected error occurred while fetching bill entries", ex);
+            throw new BillException(UNEXPECTED_EXCEPTION, " fetching bill entries");
+        }
+    }
+
+
+    private void checkLrNumberDuplicate(String lrNumber) {
+        if (StringUtils.isNotBlank(lrNumber) && billRepo.existsByLrNumber(lrNumber)) {
+            log.warn("LR number already exists: {}", lrNumber);
+            throw new BillException(DUPLICATE_ENTRY, "LR number already exists: " + lrNumber);
+        }
+    }
+
+
+    private synchronized String generateBillNumber() {
+        // 1️⃣ Fetch the last saved bill number from DB
+        String lastBillNumber = billRepo.findTopByOrderByIdDesc()
+                .map(BillEntryEntity::getBillNumber)
+                .orElse(null);
+
+        // 2️⃣ Extract the numeric part and increment
+        int nextNumber = 1;
+        if (lastBillNumber != null && lastBillNumber.startsWith("INV-")) {
+            String numberPart = lastBillNumber.substring(4); // remove "INV-"
+            try {
+                nextNumber = Integer.parseInt(numberPart) + 1;
+            } catch (NumberFormatException ignored) {
+                nextNumber = 1;
+            }
+        }
+
+        // 3️⃣ Format like INV-00001
+        return String.format("INV-%05d", nextNumber);
+    }
+
+
+    private void validateBill(String billNumber) {
+        List<ValidatorUtil.DuplicateCheck> duplicateChecks = new ArrayList<>();
+
+        duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
+                "billNumber", () -> billRepo.existsByBillNumber(billNumber)
+        ));
+        validatorUtil.validateUniqueFields(duplicateChecks);
+    }
+
 
     @Override
     public Map<String, Object> deleteBillEntry(String billNumber) {
@@ -339,6 +342,16 @@ public class BillServiceImpl implements BillService {
                 ? entity.getTransportEntity().getName()
                 : null;
 
+        List<String> publicImageUrls = new ArrayList<>();
+        List<String> objectKeys = new ArrayList<>();
+
+        if (entity.getImages() != null) {
+            for (BillImageEntity image : entity.getImages()) {
+                publicImageUrls.add(image.getPublicUrl());
+                objectKeys.add(image.getObjectKey());
+            }
+        }
+
         return SearchBillEntryResponse.builder()
                 .billNumber(entity.getBillNumber())
                 .date(entity.getDate())
@@ -367,6 +380,8 @@ public class BillServiceImpl implements BillService {
                 .customerMsme(customerEntity != null ? customerEntity.getMsme() : null)
 
                 .items(itemDtos)
+                .publicUrls(publicImageUrls)
+                .objectKeys(objectKeys)
                 .build();
     }
 
@@ -411,7 +426,8 @@ public class BillServiceImpl implements BillService {
             BillEntryEntity bill,
             BillEntryRequestDto dto) {
 
-        bill.setBillNumber(generateBillNumber());
+        String billNumber = generateBillNumber();
+        bill.setBillNumber(billNumber);
         bill.setDate(dto.getDate());
         bill.setReceivedDate(dto.getReceivedDate());
         bill.setOrders(dto.getOrder());
@@ -467,27 +483,115 @@ public class BillServiceImpl implements BillService {
         }
     }
 
-    private void handleImageUpload(
-            List<MultipartFile> images,
-            BillEntryEntity billEntry
+    /**
+     * Handle images upload for ADD bill case
+     */
+    private void handleBillImages(
+            BillEntryEntity entity,
+            List<MultipartFile> images
     ) {
 
-        if (images == null || images.isEmpty()) return;
+        if (images == null || images.isEmpty()) {
+            log.info("No images provided for bill {}", entity.getBillNumber());
+            return;
+        }
 
-        List<String> imageUrls =
-                fileUploadService.uploadFiles(
-                        images, UploadModuleEnum.BILTY);
+        log.info("Uploading {} bill image(s) for bill {}",
+                images.size(),
+                entity.getBillNumber());
+
+        List<FileUploadResponse> uploadedFiles =
+                fileService.uploadFiles(
+                        images,
+                        UploadModuleEnum.BILTY
+                );
 
         List<BillImageEntity> imageEntities =
-                imageUrls.stream()
-                        .map(url -> {
-                            BillImageEntity image =
-                                    new BillImageEntity();
-                            image.setImageUrl(url);
-                            image.setBillEntry(billEntry);
+                uploadedFiles.stream()
+                        .map(response -> {
+                            BillImageEntity image = new BillImageEntity();
+                            image.setObjectKey(response.getKey());
+                            image.setPublicUrl(response.getPublicUrl());
+                            image.setBillEntry(entity);
                             return image;
-                        }).toList();
+                        })
+                        .toList();
 
-        billEntry.setImages(imageEntities);
+        entity.setImages(imageEntities);
+
+        log.info("Successfully uploaded {} image(s) for bill {}",
+                imageEntities.size(),
+                entity.getBillNumber());
+    }
+
+    /**
+     * Handle image update for UPDATE bill case
+     */
+    private void handleBillImageUpdate(
+            BillEntryEntity entity,
+            List<String> existingKeys,
+            List<MultipartFile> newImages
+    ) {
+
+        List<BillImageEntity> currentImages = entity.getImages();
+
+        if (currentImages == null) {
+            currentImages = new ArrayList<>();
+            entity.setImages(currentImages);
+        }
+
+        log.info("Starting image update for bill {} | existingImages={}",
+                entity.getBillNumber(),
+                currentImages.size());
+
+        // Identify removed images
+        List<BillImageEntity> toRemove =
+                currentImages.stream()
+                        .filter(img -> existingKeys == null ||
+                                !existingKeys.contains(img.getObjectKey()))
+                        .toList();
+
+        log.info("Images to remove count={} for bill {}",
+                toRemove.size(),
+                entity.getBillNumber());
+
+        // Remove from entity
+        currentImages.removeAll(toRemove);
+
+        // Delete from storage
+        for (BillImageEntity img : toRemove) {
+            fileService.deleteFile(img.getObjectKey());
+            log.info("Deleted image from storage | key={}", img.getObjectKey());
+        }
+
+        // Upload new images
+        if (newImages != null && !newImages.isEmpty()) {
+
+            log.info("Uploading {} new image(s) for bill {}",
+                    newImages.size(),
+                    entity.getBillNumber());
+
+            List<FileUploadResponse> uploadedFiles =
+                    fileService.uploadFiles(
+                            newImages,
+                            UploadModuleEnum.BILTY
+                    );
+
+            for (FileUploadResponse response : uploadedFiles) {
+
+                BillImageEntity image = new BillImageEntity();
+                image.setObjectKey(response.getKey());
+                image.setPublicUrl(response.getPublicUrl());
+                image.setBillEntry(entity);
+
+                currentImages.add(image);
+
+                log.info("Added new image | key={}", response.getKey());
+            }
+        }
+
+        log.info("Image update completed for bill {} | finalImageCount={}",
+                entity.getBillNumber(),
+                currentImages.size());
     }
 }
