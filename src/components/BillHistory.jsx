@@ -15,9 +15,9 @@ const BillHistory = ({
   emptyMessage,
 }) => {
 
-const { isMobile } = useResponsive();
+  const { isMobile } = useResponsive();
 
-const columns = {
+  const columns = {
     desktop: [
       { key: "billNumber", label: "Bill Number" },
       {
@@ -35,7 +35,14 @@ const columns = {
       { key: "order", label: "Order" },
       { key: "supplierName", label: "Supplier" },
       { key: "customerName", label: "Customer" },
-      { key: "billAmount", label: "Bill Amount" },
+      {
+        key: "billAmount",
+        label: "Bill Amount",
+        render: (row) =>
+          row.billAmount != null
+            ? Number(row.billAmount).toFixed(2)
+            : "-"
+      },
     ],
     mobile: [
       { key: "billNumber", label: "Bill No" },

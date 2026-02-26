@@ -3,7 +3,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import validate from "../validations/Validation";
 import { useBillForm } from "../customHooks/useBillForm";
 import { useState, useEffect, useRef } from "react";
 import { addBill } from "../service/BillService";
@@ -78,11 +77,11 @@ const BillEntry = () => {
   }, []);
 
   useEffect(() => {
-  setFormData(prev => ({
-    ...prev,
-    date: dayjs().format("DD-MM-YYYY")
-  }));
-}, []);
+    setFormData(prev => ({
+      ...prev,
+      date: dayjs().format("DD-MM-YYYY")
+    }));
+  }, []);
 
 
   const handleResetBillDetail = () => {
@@ -267,6 +266,11 @@ const BillEntry = () => {
       successMessage = "Item added successfully";
     }
 
+    setErrors(prev => ({
+      ...prev,
+      items: ""
+    }));
+
     // Reset bill detail fields
     setFormData((prev) => ({
       ...prev,
@@ -287,56 +291,35 @@ const BillEntry = () => {
 
   const validateBillForm = () => {
     const newErrors = {};
-
     // Required fields check
     if (!billForm.date) newErrors.date = "Date is required";
-    if (!billForm.order?.trim()) newErrors.order = "Order is required";
+    if (!billForm.order || billForm.order.trim() === "") {
+      newErrors.order = "Invoice is required";
+    }
 
     if (!billForm.supplierId) newErrors.supplierName = "Supplier is required";
     if (!billForm.customerId) newErrors.customerName = "Customer is required";
-    // console.log("billForm.transport",billForm.transport.trim())
-    // if (billForm.transport?.trim()==='') newErrors.transport = "Transport is required";
     if (savedItems.length === 0)
-      newErrors.items = "At least one item is required";
+      newErrors.items = "Please add at least one bill item";
 
-    setErrors((prev) => ({ ...prev, ...newErrors }));
+    setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
 
-  const removeImage = (index) => {
-    setBillImages((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleOpenConfirm = () => {
+    const isValid = validateBillForm();
 
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-
-    if (billImages.length + files.length > 2) {
-      showSnackbar("You can upload maximum 2 images only", "error");
-      return;
-    }
-
-    setBillImages((prev) => [...prev, ...files]);
-  };
-
-
-  const handleSubmit = async () => {
-    if (savedItems.length === 0) {
-      showSnackbar(
-        "Please add and save at least one item before submitting the bill",
-        "error",
-      );
-      return;
-    }
-    await saveBillEntry();
-  };
-
-  const saveBillEntry = async () => {
-    if (!validateBillForm()) {
+    if (!isValid) {
       showSnackbar("Please fill all required fields", "error");
       return;
     }
+
+    setIsConfirmOpen(true);
+  };
+
+
+  const saveBillEntry = async () => {
 
     const payload = {
       date: billForm.date
@@ -518,6 +501,11 @@ const BillEntry = () => {
                   getOptionLabel={(o) =>
                     o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
                   }
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.supplierName} - {option.city || ""}
+                    </li>
+                  )}
                   onChange={(e, value) => {
                     if (!value) {
                       resetSupplier();
@@ -578,6 +566,11 @@ const BillEntry = () => {
                   getOptionLabel={(o) =>
                     o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
                   }
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.customerName} - {option.city || ""}
+                    </li>
+                  )}
                   onChange={(e, value) => {
                     if (!value) {
                       resetCustomer();
@@ -643,6 +636,13 @@ const BillEntry = () => {
               Add Bill Item
             </button>
           </div>
+          {errors.items && (
+            <div className="flex justify-end mt-2">
+              <p className="text-red-600 text-sm">
+                {errors.items}
+              </p>
+            </div>
+          )}
 
           {/* Total Bills Table */}
           {savedItems.length > 0 && (
@@ -804,14 +804,13 @@ const BillEntry = () => {
               <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                 Bill Images
               </h3>
-              <span className="ml-2 text-xs text-gray-400">(optional)</span>
             </div>
 
             <ImageUploader
               value={billImages}
               onChange={setBillImages}
               maxImages={2}
-              label="Upload Bill Images"
+              label="Add Bill Images"
               onError={(msg) => showSnackbar(msg, "error")}
             />
 
@@ -842,6 +841,11 @@ const BillEntry = () => {
                     getOptionLabel={(o) =>
                       o?.name ? `${o.name} - ${o.city || ""}` : ""
                     }
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.id}>
+                        {option.name} - {option.city || ""}
+                      </li>
+                    )}
                     onChange={(e, value) => {
                       if (!value) {
                         resetTransport();
@@ -926,7 +930,7 @@ const BillEntry = () => {
           </button>
 
           <button
-            onClick={() => setIsConfirmOpen(true)}
+            onClick={handleOpenConfirm}
             type="button"
             disabled={isSaving}
             className={`px-3 py-2 rounded-lg font-medium shadow-lg transition-all duration-200
@@ -943,10 +947,7 @@ const BillEntry = () => {
         <ConfirmationModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
-          onConfirm={() => {
-            handleSubmit();
-            setIsConfirmOpen(false);
-          }}
+          onConfirm={saveBillEntry}
           title="Confirm Bill Submission"
           message="Please review all entries carefully. Do you want to submit this bill now?"
           confirmText="Submit"
