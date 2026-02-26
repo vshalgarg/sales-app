@@ -21,12 +21,15 @@ public class SearchCreditEntryResponse {
 
     private LocalDate referenceDate;
 
-    private Double receivedAmount;
+    private long receivedAmount;
 
     private String supplierName;
 
     private String customerName;
 
+    private long supplierCurrentBalance;
+
+    private long customerCurrentBalance;
 
     private String slipNumber;
 

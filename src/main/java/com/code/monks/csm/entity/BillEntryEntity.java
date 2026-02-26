@@ -28,10 +28,10 @@ public class BillEntryEntity extends BaseEntity{
     private String orders;
 
     @Column(name = "taxable_value")
-    private long taxableValue;
+    private double taxableValue;
 
     @Column(name = "bill_amount")
-    private long billAmount;
+    private double billAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transport_id")

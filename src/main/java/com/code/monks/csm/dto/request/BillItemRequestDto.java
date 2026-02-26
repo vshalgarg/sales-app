@@ -1,19 +1,16 @@
 package com.code.monks.csm.dto.request;
 
 
-import com.code.monks.csm.common.BillItemCommon;
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 @Data
-public class BillItemRequestDto implements BillItemCommon {
+public class BillItemRequestDto {
     private int pieces;
-    private BigDecimal discountPercent;
-    private BigDecimal gstPercent;
-    private BigDecimal grossAmount;
-    private BigDecimal discountAmount;
-    private BigDecimal addOnAmount;
-    private BigDecimal ecrAmount;
-    private BigDecimal gstAmount;
+    private double grossAmount;
+    private float discountPercent;
+    private double discountAmount;
+    private double addOnAmount;
+    private double ecrAmount;
+    private float gstPercent;
+    private double gstAmount;
 }

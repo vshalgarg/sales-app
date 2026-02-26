@@ -17,6 +17,6 @@ public class CreditUpdateRequest {
     private String slipNumber;
     private String drawType;
 
-    private Double receivedAmount;
+    private long receivedAmount;
     private String remark;
 }

@@ -3,7 +3,6 @@ package com.code.monks.csm.dto.response;
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,8 +15,8 @@ public class SearchBillEntryResponse {
     private String order;
     private String supplierName;
     private String customerName;
-    private BigDecimal billAmount;
-    private BigDecimal taxableValue;
+    private double billAmount;
+    private double taxableValue;
 
     private Integer supplierId;
     private String supplierGroup;
