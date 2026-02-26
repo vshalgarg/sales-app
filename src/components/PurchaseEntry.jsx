@@ -363,16 +363,15 @@ const PurchaseEntry = () => {
             <div className="flex items-center mb-4">
               <div className="w-1 h-7 sm:h-8 bg-pink-600 rounded-full mr-3" />
               <h3 className="text-base sm:text-lg font-semibold text-gray-800">
-                Purchase Images
+              Order Form
               </h3>
-              <span className="ml-2 text-xs text-gray-400">(optional)</span>
             </div>
 
             <ImageUploader
               value={purchaseImages}
               onChange={setPurchaseImages}
               maxImages={2}
-              label="Upload Purchase Images"
+              label="Add Order Form"
               onError={(msg) => showSnackbar(msg, "error")}
             />
 

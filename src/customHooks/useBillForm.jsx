@@ -113,25 +113,6 @@ export const useBillForm = () => {
     }
   }, [errors.transport]); // run whenever transport error is present
 
-  // 🔹 Run whenever errors are restored
-  useEffect(() => {
-    if (!errors || Object.keys(errors).length === 0) return;
-
-    setFormData((prev) => {
-      const updated = { ...prev };
-      let changed = false;
-
-      Object.keys(errors).forEach((field) => {
-        if (errors[field] && prev[field]) {
-          updated[field] = "";
-          changed = true;
-        }
-      });
-
-      return changed ? updated : prev;
-    });
-  }, [errors]); // ✅ runs after errors are loaded
-  // run only once on mount
 
   // 🔹 Save formData to localStorage (skip empty fields)
   // --- Save logic with debug logs ---

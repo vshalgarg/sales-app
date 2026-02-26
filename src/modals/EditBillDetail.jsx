@@ -199,17 +199,17 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       transport: formData.transport || null,
       lrNumber: formData.lrNumber || null,
       remarks: formData.remarks || null,
-      taxableValue: Math.round((parseFloat(formData.taxableValue) || 0)),
-      billAmount: Math.round((parseFloat(formData.billAmount) || 0)),
+      taxableValue: parseFloat(formData.taxableValue) || 0,
+      billAmount: parseFloat(formData.billAmount) || 0,
       billItems: items.map(item => ({
         pieces: parseInt(item.pieces) || 0,
-        grossAmount: Math.round(parseFloat(item.grossAmount || 0)),
+        grossAmount: parseFloat(item.grossAmount) || 0,
         discountPercent: parseFloat(item.discountPercent || 0),
-        discountAmount: Math.round(parseFloat(item.discountAmount || 0)),
-        addOnAmount: Math.round(parseFloat(item.addOnAmount || 0)),
-        ecrAmount: Math.round(parseFloat(item.ecrAmount || 0)),
+        discountAmount: parseFloat(item.discountAmount) || 0,
+        addOnAmount: parseFloat(item.addOnAmount) || 0,
+        ecrAmount: parseFloat(item.ecrAmount) || 0,
+        gstAmount: parseFloat(item.gstAmount) || 0,
         gstPercent: parseFloat(item.gstPercent || 0),
-        gstAmount: Math.round(parseFloat(item.gstAmount || 0)),
       }))
     };
 
@@ -481,7 +481,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                 ) : (
                   items.map((item, index) => (
                     <MobileBillItemCard
-                    key={item.id} 
+                      key={item.id}
                       item={item}
                       index={index}
                       onChange={handleItemChange}
@@ -495,7 +495,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                     />
                   ))
                 )}
-              </div>  
+              </div>
             )}
 
             {!isMobile && (
@@ -536,6 +536,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.grossAmount || ""}
                               onChange={(e) => handleItemChange(index, "grossAmount", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -545,6 +546,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.discountPercent || ""}
                               onChange={(e) => handleItemChange(index, "discountPercent", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -554,6 +556,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="text"
+                              step="0.01"
                               value={item.discountAmount || "0.00"}
                               readOnly
                               className="w-full px-3 py-2 bg-gray-200 border rounded"
@@ -562,6 +565,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.addOnAmount || ""}
                               onChange={(e) => handleItemChange(index, "addOnAmount", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -571,6 +575,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.ecrAmount || ""}
                               onChange={(e) => handleItemChange(index, "ecrAmount", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -580,6 +585,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.gstPercent || ""}
                               onChange={(e) => handleItemChange(index, "gstPercent", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
