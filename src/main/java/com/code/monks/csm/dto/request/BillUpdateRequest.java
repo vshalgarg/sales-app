@@ -21,4 +21,5 @@ public class BillUpdateRequest {
     private BigDecimal taxableValue;
     private BigDecimal billAmount;
     private List<BillItemDto> billItems;
+    private List<String> existingImageKeys;
 }

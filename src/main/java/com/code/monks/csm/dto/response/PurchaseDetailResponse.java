@@ -8,18 +8,23 @@ import java.util.List;
 
 @Data
 @Builder
-public class SearchPurchaseEntryResponse {
+public class PurchaseDetailResponse {
+
     private int id;
+
     private LocalDate date;
 
     private Integer staffId;
     private String staffName;
+
     private List<Integer> supplierIds;
     private List<String> supplierNames;
+
     private Integer customerId;
     private String customerName;
+
+    private Double purchaseAmount;
+
+    private List<String> imageKeys;
     private List<String> publicUrls;
-
-    private double purchaseAmount;
-
 }

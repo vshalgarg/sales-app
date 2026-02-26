@@ -33,4 +33,7 @@ public class SearchBillEntryResponse {
     private String remarks;
 
     private List<BillItemDto> items;
+
+    public List<String> objectKeys;
+    private List<String> publicUrls;
 }

@@ -52,7 +52,7 @@ public class BillServiceImpl implements BillService {
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final TransportService transportService;
-    private final FileUploadService fileUploadService;
+    private final FileService fileUploadService;
 
 
     @Transactional
