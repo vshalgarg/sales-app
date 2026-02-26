@@ -17,8 +17,6 @@ public class GetCreditEntries {
     private String referenceNumber;
     private LocalDate referenceDate;
     private Double receivedAmount;
-    private Double supplierCurrentBalance;
-    private Double customerCurrentBalance;
     private String remark;
     private Integer supplierId;
     private Integer customerId;
@@ -32,8 +30,6 @@ public class GetCreditEntries {
                 .referenceNumber(creditEntry.getReferenceNumber())
                 .referenceDate(creditEntry.getReferenceDate())
                 .receivedAmount(creditEntry.getReceivedAmount() / 100.0)
-                .supplierCurrentBalance(creditEntry.getSupplierCurrentBalance() / 100.0)
-                .customerCurrentBalance(creditEntry.getCustomerCurrentBalance() / 100.0)
                 .remark(creditEntry.getRemark())
                 .supplierId(creditEntry.getSupplierId())
                 .customerId(creditEntry.getCustomerId())

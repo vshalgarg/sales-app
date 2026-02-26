@@ -576,3 +576,8 @@ CREATE TABLE purchase_suppliers (
 );
 
 
+ALTER TABLE credit
+DROP COLUMN supplier_current_balance;
+
+ALTER TABLE credit
+DROP COLUMN customer_current_balance;

@@ -21,13 +21,13 @@ public class BillDetailEntity extends BaseEntity{
     private int id;
 
     private int pieces;
-    private double grossAmount;
+    private long grossAmount;
     private int discountPercent;
-    private double discountAmount;
-    private double addOnAmount;
-    private double ecrAmount;
+    private long discountAmount;
+    private long addOnAmount;
+    private long ecrAmount;
     private int gstPercent;
-    private double gstAmount;
+    private long gstAmount;
 
     @ManyToOne
     @JoinColumn(name = "bill_Entry_id")
