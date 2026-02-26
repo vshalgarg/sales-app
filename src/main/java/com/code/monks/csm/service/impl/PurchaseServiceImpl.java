@@ -3,16 +3,18 @@ package com.code.monks.csm.service.impl;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.*;
-import com.code.monks.csm.entity.*;
+import com.code.monks.csm.entity.CustomerEntity;
+import com.code.monks.csm.entity.PurchaseEntity;
+import com.code.monks.csm.entity.PurchaseImageEntity;
+import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.mapper.PurchaseMapper;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.PurchaseEntryRepo;
-import com.code.monks.csm.repository.StaffRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.PurchaseService;
-import com.code.monks.csm.service.file.FileUploadService;
+import com.code.monks.csm.service.file.FileService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
@@ -38,8 +43,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final PurchaseEntryRepo purchaseEntryRepo;
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
-    private final StaffRepo staffRepo;
-    private final FileService fileUploadService;
+    private final FileService fileService;
     private final PurchaseMapper purchaseMapper;
 
     @Override
@@ -48,6 +52,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             AddPurchaseEntryRequestDto requestDto,
             List<MultipartFile> images
     ) {
+        log.info("Add Purchase Entry called ");
 
         PurchaseEntity entity = new PurchaseEntity();
 
@@ -61,6 +66,11 @@ public class PurchaseServiceImpl implements PurchaseService {
         );
 
         handleImages(entity, images);
+
+        log.info("Saving Purchase entry | date={} | staffId={} | amount={}",
+                entity.getDate(),
+                entity.getStaffId(),
+                entity.getPurchaseAmount());
 
         purchaseEntryRepo.save(entity);
 
@@ -146,6 +156,10 @@ public class PurchaseServiceImpl implements PurchaseService {
                 req.getCustomerId(),
                 req.getPurchaseAmount()
         );
+        log.info("Updating Purchase entry ID={} | newAmount={}",
+                id,
+                entity.getPurchaseAmount());
+
         handleImageUpdate(entity, req.getExistingImageKeys(), newImages);
         PurchaseEntity updated = purchaseEntryRepo.save(entity);
 
@@ -242,11 +256,15 @@ public class PurchaseServiceImpl implements PurchaseService {
     private void handleImages(PurchaseEntity entity, List<MultipartFile> images) {
 
         if (images == null || images.isEmpty()) {
+            log.info("No images provided for Purchase entry");
             return;
         }
 
+        log.info("Uploading {} image(s) for Purchase entry",
+                images.size());
+
         List<FileUploadResponse> uploadedFiles =
-                fileUploadService.uploadFiles(
+                fileService.uploadFiles(
                         images,
                         UploadModuleEnum.PURCHASE
                 );
@@ -266,6 +284,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                         .toList();
 
         entity.setImages(imageEntities);
+        log.info("Successfully uploaded {} image(s) for Purchase entry",
+                imageEntities.size());
     }
 
     private void handleImageUpdate(
@@ -281,26 +301,30 @@ public class PurchaseServiceImpl implements PurchaseService {
             entity.setImages(currentImages);
         }
 
+        log.info("Starting image update | existingImages={}",
+                currentImages.size());
+
         // Identify removed images
         List<PurchaseImageEntity> toRemove =
                 currentImages.stream()
                         .filter(img -> existingKeys == null ||
                                 !existingKeys.contains(img.getObjectKey()))
                         .toList();
-
+        log.info("Images to remove count={}", toRemove.size());
         // Remove from entity
         currentImages.removeAll(toRemove);
 
         // Delete from storage
         for (PurchaseImageEntity img : toRemove) {
-            fileUploadService.deleteFile(img.getObjectKey());
+            fileService.deleteFile(img.getObjectKey());
+            log.info("Deleted image from storage | key={}", img.getObjectKey());
         }
 
         //Upload new images
         if (newImages != null && !newImages.isEmpty()) {
-
+            log.info("Uploading {} new image(s)", newImages.size());
             List<FileUploadResponse> uploadedFiles =
-                    fileUploadService.uploadFiles(
+                    fileService.uploadFiles(
                             newImages,
                             UploadModuleEnum.PURCHASE
                     );
@@ -313,7 +337,11 @@ public class PurchaseServiceImpl implements PurchaseService {
                 image.setPurchase(entity);
 
                 currentImages.add(image);
+                log.info("Added new image | key={}", response.getKey());
             }
         }
+
+        log.info("Image update completed | finalImageCount={}",
+                currentImages.size());
     }
 }
