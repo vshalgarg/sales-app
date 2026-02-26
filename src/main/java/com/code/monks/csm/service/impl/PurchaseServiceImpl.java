@@ -12,13 +12,15 @@ import com.code.monks.csm.repository.PurchaseEntryRepo;
 import com.code.monks.csm.repository.StaffRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.PurchaseService;
-import com.code.monks.csm.service.file.FileService;
+import com.code.monks.csm.service.file.FileUploadService;
+import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,7 +75,8 @@ public class PurchaseServiceImpl implements PurchaseService {
             Integer supplierId,
             Integer customerId,
             int page,
-            int size)   {
+            int size)
+    {
 
         int pageIndex = Math.max(page, 0);
         Pageable pageable = PageRequest.of(
@@ -84,56 +87,22 @@ public class PurchaseServiceImpl implements PurchaseService {
                         Sort.Order.desc("id")
                 )
         );
-        Page<PurchaseEntity> purchaseRecords;
+
         log.info("Purchase search called: fromDate={}, toDate={}, supplierId={}, customerId={}",
                 fromDate, toDate, supplierId, customerId);
 
-        if (fromDate != null && toDate != null) {
+        GenericSpecificationBuilder<PurchaseEntity> builder =
+                new GenericSpecificationBuilder<>();
 
-            if (supplierId != null && customerId != null) {
-                purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndSuppliers_IdAndCustomer_Id(
-                                fromDate, toDate, supplierId, customerId, pageable
-                        );
+        Specification<PurchaseEntity> spec = builder
+                .fromDate("date", fromDate)
+                .toDate("date", toDate)
+                .joinEqual("suppliers", "id", supplierId)
+                .joinEqual("customer", "id", customerId)
+                .build();
 
-            } else if (supplierId != null) {
-                purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndSuppliers_Id(
-                                fromDate, toDate, supplierId, pageable
-                        );
-
-            } else if (customerId != null) {
-                purchaseRecords =
-                        purchaseEntryRepo.findByDateBetweenAndCustomer_Id(
-                                fromDate, toDate, customerId, pageable
-                        );
-
-            } else {
-                purchaseRecords =
-                        purchaseEntryRepo.findByDateBetween(fromDate, toDate, pageable);
-            }
-
-        } else {
-            // NO DATE FILTER
-            if (supplierId != null && customerId != null) {
-                purchaseRecords =
-                        purchaseEntryRepo.findBySuppliers_IdAndCustomer_Id(
-                                supplierId, customerId, pageable
-                        );
-
-            } else if (supplierId != null) {
-                purchaseRecords =
-                        purchaseEntryRepo.findBySuppliers_Id(supplierId, pageable);
-
-            } else if (customerId != null) {
-                purchaseRecords =
-                        purchaseEntryRepo.findByCustomer_Id(customerId, pageable);
-
-            } else {
-                purchaseRecords =
-                        purchaseEntryRepo.findAll(pageable);
-            }
-        }
+        Page<PurchaseEntity> purchaseRecords =
+                purchaseEntryRepo.findAll(spec, pageable);
 
         List<SearchPurchaseEntryResponse> content =
                 purchaseRecords.getContent()

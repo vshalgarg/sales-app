@@ -574,6 +574,11 @@ CREATE TABLE purchase_suppliers (
 );
 
 
+ALTER TABLE credit
+DROP COLUMN supplier_current_balance;
+
+ALTER TABLE credit
+DROP COLUMN customer_current_balance;
 ALTER TABLE purchase_images
 CHANGE COLUMN image_url public_url VARCHAR(500);
 

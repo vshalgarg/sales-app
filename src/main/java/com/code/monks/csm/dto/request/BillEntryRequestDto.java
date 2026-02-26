@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,8 +29,8 @@ public class BillEntryRequestDto {
     private String lrNumber;
     private String remarks;
 
-    private double taxableValue;
-    private double billAmount;
+    private BigDecimal taxableValue;
+    private BigDecimal billAmount;
 
     @NotEmpty(message = "At least one bill item is required")
     @Valid
