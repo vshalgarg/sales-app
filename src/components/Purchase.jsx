@@ -248,7 +248,7 @@ const Purchase = () => {
             : "Apply filters to view purchase history"
         }
         onEdit={(row) => {
-          setPurchaseToEdit(row);
+          setPurchaseToEdit(row.id);
           setIsEditOpen(true);
         }}
         onDelete={(row) => {
@@ -260,7 +260,7 @@ const Purchase = () => {
       {isEditOpen && purchaseToEdit && (
         <EditPurchaseDetail
           open={isEditOpen}
-          selectedPurchaseDetail={purchaseToEdit}
+           purchaseId={purchaseToEdit}
           setOpen={setIsEditOpen}
           onUpdateSuccess={() => {
             setIsEditOpen(false);

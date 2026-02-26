@@ -15,6 +15,7 @@ import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
 import useResponsive from "../customHooks/useResponsive";
 import MobileBillItemCard from "./MobileBillItemCard";
+import ImageUploader from "../components/common/ImageUploader";
 import { nanoid } from "nanoid";
 
 
@@ -38,8 +39,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     customer: false,
     transport: false,
   });
-
-
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
   const {
     formData,
     setFormData,
@@ -128,6 +129,26 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     }
   }, [selectedBillDetail, setFormData]);
 
+  useEffect(() => {
+    if (!selectedBillDetail) return;
+
+    // existing images map
+    if (selectedBillDetail.publicUrls?.length) {
+      setExistingImages(
+        selectedBillDetail.publicUrls.map((url, index) => ({
+          id: nanoid(),
+          key: selectedBillDetail.objectKeys?.[index],
+          url: url,
+        }))
+      );
+    } else {
+      setExistingImages([]);
+    }
+
+    setNewImages([]);
+
+  }, [selectedBillDetail]);
+
   // Recalculate totals live
   useEffect(() => {
     let totalTaxable = 0;
@@ -213,8 +234,21 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       }))
     };
 
+    const formDataObj = new FormData();
+
+    formDataObj.append(
+      "data",
+      new Blob([JSON.stringify(payload)], {
+        type: "application/json",
+      })
+    );
+
+    newImages.forEach(file => {
+      formDataObj.append("images", file);
+    });
+
     try {
-      const response = await updateBillApi(formData.billNumber, payload);
+      const response = await updateBillApi(formData.billNumber, formDataObj);
       showSnackbar(response?.message || "Bill updated successfully!", "success");
       setOpen(false);
       if (onUpdateSuccess) {
@@ -635,6 +669,56 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             </div>
           </div>
 
+          {/* ================= BILL IMAGES ================= */}
+
+          {existingImages.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">
+                Existing Images
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {existingImages.map((img) => (
+                  <div key={img.id} className="relative">
+                    <img
+                      src={img.url}
+                      alt=""
+                      className="h-24 w-full object-cover rounded-lg border"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExistingImages(prev =>
+                          prev.filter(i => i.id !== img.id)
+                        )
+                      }
+                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <ImageUploader
+            value={newImages}
+            onChange={(files) => {
+              const total = existingImages.length + files.length;
+
+              if (total > 2) {
+                showSnackbar("Maximum 2 images allowed", "error");
+                return;
+              }
+
+              setNewImages(files);
+            }}
+            maxImages={2 - existingImages.length}
+            label="Upload Images"
+            onError={(msg) => showSnackbar(msg, "error")}
+          />
           {/* --- Section: Transport --- */}
           <h3 className="text-lg font-semibold mb-3">
             Transport & Logistics Information
