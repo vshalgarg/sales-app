@@ -288,61 +288,99 @@ const EditPurchaseDetail = ({
                     </div>
 
 
-                    {/* Existing Images */}
-                    {existingImages.length > 0 && (
-                        <div>
-                            <label className="block text-sm font-medium mb-2">
-                                Existing Images
-                            </label>
+                    {/* ================= PURCHASE IMAGES ================= */}
 
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                {existingImages.map((img) => (
-                                    <div key={img.id} className="relative">
-                                        <img
-                                            src={img.url}
-                                            alt=""
-                                            className="h-20 w-full object-cover rounded-lg border"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() =>
+                    <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                        <div className="flex justify-between items-center mb-5">
+                            <h3 className="text-sm font-semibold text-gray-800">
+                                Images
+                            </h3>
+                            <span className="text-xs text-gray-500">
+                                {existingImages.length + newImages.length}/2
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+
+                            {/* ---- OLD + NEW TOGETHER ---- */}
+                            {[...existingImages,
+                            ...newImages.map(file => ({
+                                id: file.name + file.lastModified,
+                                url: URL.createObjectURL(file),
+                                isNew: true,
+                                file
+                            }))
+                            ].map((img, index) => (
+                                <div
+                                    key={img.id || index}
+                                    className="relative group rounded-2xl overflow-hidden border bg-gray-100 shadow-sm"
+                                >
+                                    <img
+                                        src={img.url}
+                                        alt=""
+                                        className="h-28 w-full object-cover transition duration-300 group-hover:scale-105"
+                                    />
+
+                                    {/* Overlay */}
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300" />
+
+                                    {/* Delete */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (img.isNew) {
+                                                setNewImages(prev =>
+                                                    prev.filter(f =>
+                                                        (f.name + f.lastModified) !== img.id
+                                                    )
+                                                );
+                                            } else {
                                                 setExistingImages(prev =>
                                                     prev.filter(i => i.id !== img.id)
-                                                )
+                                                );
                                             }
-                                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                                        }}
+                                        className="absolute top-2 right-2 bg-white text-red-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition hover:bg-red-600 hover:text-white"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+
+                            {/* ---- ADD CARD ---- */}
+                            {(existingImages.length + newImages.length) < 2 && (
+                                <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                                    <span className="text-3xl text-gray-400">+</span>
+                                    <span className="text-xs text-gray-500 mt-1">
+                                        Add Image
+                                    </span>
+
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        hidden
+                                        onChange={(e) => {
+                                            const files = Array.from(e.target.files || []);
+                                            if (!files.length) return;
+
+                                            const total =
+                                                existingImages.length +
+                                                newImages.length +
+                                                files.length;
+
+                                            if (total > 2) {
+                                                showSnackbar("Maximum 2 images allowed", "error");
+                                                return;
+                                            }
+
+                                            setNewImages(prev => [...prev, ...files]);
+                                            e.target.value = "";
+                                        }}
+                                    />
+                                </label>
+                            )}
                         </div>
-                    )}
-
-                    {/* New Image Upload */}
-                    <ImageUploader
-                        value={newImages}
-                        onChange={(files) => {
-                            const total =
-                                existingImages.length + files.length;
-
-                            if (total > 2) {
-                                showSnackbar(
-                                    "Maximum 2 images allowed",
-                                    "error"
-                                );
-                                return;
-                            }
-
-                            setNewImages(files);
-                        }}
-                        maxImages={2 - existingImages.length}
-                        label="Upload Images"
-                        onError={(msg) =>
-                            showSnackbar(msg, "error")
-                        }
-                    />
+                    </div>
                 </div>
 
                 {/* Footer */}
