@@ -110,23 +110,24 @@ const PurchaseEntry = () => {
 
     if (isSaving) return;
 
+    const newErrors = {};
+
     const dateError = validate("date", formData.date);
-    if (dateError) {
-      setErrors({ date: dateError });
-      showSnackbar(dateError, "error");
-      return;
-    }
+    if (dateError) newErrors.date = dateError;
 
     if (!formData.supplierIds || formData.supplierIds.length === 0) {
-      showSnackbar("Please select at least one Supplier", "error");
-      return;
+      newErrors.supplierIds = "Please select at least one Supplier";
     }
 
     if (!formData.customerId) {
-      showSnackbar("Please select a Customer", "error");
-      return;
+      newErrors.customerId = "Please select a Customer";
     }
 
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      showSnackbar("Please fill all required fields", "error");
+      return;
+    }
     setIsSaving(true);
 
     try {
@@ -238,11 +239,14 @@ const PurchaseEntry = () => {
                     ...prev,
                     customerId: value.id,
                   }));
+                  setErrors(prev => ({ ...prev, customerId: "" }));
                 }}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
                     label="Customer *"
+                    error={!!errors.customerId}
+                    helperText={errors.customerId || ""}
                   />
                 )}
               />
@@ -262,11 +266,14 @@ const PurchaseEntry = () => {
                     ...prev,
                     supplierIds: values.map(v => v.id),
                   }));
+                  setErrors(prev => ({ ...prev, supplierIds: "" }));
                 }}
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
                     label="Suppliers *"
+                    error={!!errors.supplierIds}
+                    helperText={errors.supplierIds || ""}
                   />
                 )}
               />
@@ -363,7 +370,7 @@ const PurchaseEntry = () => {
             <div className="flex items-center mb-4">
               <div className="w-1 h-7 sm:h-8 bg-pink-600 rounded-full mr-3" />
               <h3 className="text-base sm:text-lg font-semibold text-gray-800">
-              Order Form
+                Order Form
               </h3>
             </div>
 

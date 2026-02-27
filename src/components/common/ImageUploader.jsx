@@ -1,124 +1,117 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import ImagePreviewDialog from "./ImagePreviewDialog";
 
 const ImageUploader = ({
-    value = [],
-    onChange,
-    maxImages = 2,
-    label = "Upload Images",
-    onError,
+  value = [],
+  onChange,
+  maxImages = 2,
+  label = "Images",
+  onError,
 }) => {
-    const fileInputRef = useRef(null);
-    const [previewIndex, setPreviewIndex] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef(null);
+  const [previewIndex, setPreviewIndex] = useState(null);
 
-    const isLimitReached = value.length >= maxImages;
+  const totalImages = value.length;
+  const isLimitReached = totalImages >= maxImages;
 
-    const handleUpload = (e) => {
-        const files = Array.from(e.target.files);
+  const previewUrls = useMemo(() => {
+    return value.map((file) => URL.createObjectURL(file));
+  }, [value]);
 
-        if (isLimitReached || value.length + files.length > maxImages) {
-            onError?.(`Maximum ${maxImages} images allowed`);
-            e.target.value = null;
-            return;
-        }
-
-        onChange([...value, ...files]);
-        e.target.value = null; 
+  // Cleanup URLs to prevent memory leak
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
     };
+  }, [previewUrls]);
 
-    const removeImage = (index) => {
-        onChange(value.filter((_, i) => i !== index));
-    };
+  const handleUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    // preview URL handling
-    useEffect(() => {
-        if (previewIndex !== null) {
-            const url = URL.createObjectURL(value[previewIndex]);
-            setPreviewUrl(url);
-            return () => URL.revokeObjectURL(url);
-        }
-    }, [previewIndex, value]);
+    if (totalImages + files.length > maxImages) {
+      onError?.(`Maximum ${maxImages} images allowed`);
+      e.target.value = "";
+      return;
+    }
 
-    return (
-        <>
-            {/* Upload Button */}
-            <button
-                type="button"
-                disabled={isLimitReached}
-                onClick={() => !isLimitReached && fileInputRef.current.click()}
-                className={`
-          px-4 py-2 rounded-lg
-          text-sm sm:text-base font-medium
-          w-full sm:w-auto
-          transition
-          ${isLimitReached
-                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                    }
-        `}
+    onChange([...value, ...files]);
+    e.target.value = "";
+  };
+
+  const removeImage = (index) => {
+    onChange(value.filter((_, i) => i !== index));
+  };
+
+  return (
+    <>
+      <div className="bg-white border rounded-2xl p-6 shadow-sm">
+        <div className="flex justify-between items-center mb-5">
+          <h3 className="text-sm font-semibold text-gray-800">
+            {label}
+          </h3>
+          <span className="text-xs text-gray-500">
+            {totalImages}/{maxImages}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+          {previewUrls.map((url, index) => (
+            <div
+              key={index}
+              className="relative group rounded-2xl overflow-hidden border bg-gray-100 shadow-sm"
             >
-                {label}
-            </button>
+              <img
+                src={url}
+                alt=""
+                onClick={() => setPreviewIndex(index)}
+                className="h-28 w-full object-cover transition duration-300 group-hover:scale-105 cursor-pointer"
+              />
 
-            <input
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 pointer-events-none" />
+
+              {/* Delete */}
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-2 right-2 bg-white text-red-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition hover:bg-red-600 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+
+          {!isLimitReached && (
+            <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+              <span className="text-3xl text-gray-400">+</span>
+              <span className="text-xs text-gray-500 mt-1">
+                Add Image
+              </span>
+
+              <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 multiple
                 hidden
                 onChange={handleUpload}
-            />
+              />
+            </label>
+          )}
+        </div>
+      </div>
 
-            {/* Images Grid */}
-            {value.length > 0 && (
-                <div className="
-          grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4
-          gap-3 sm:gap-4 mt-4
-        ">
-                    {value.map((img, idx) => (
-                        <div key={idx} className="relative">
-                            <img
-                                src={URL.createObjectURL(img)}
-                                alt=""
-                                onClick={() => setPreviewIndex(idx)}
-                                className="
-                  h-20 sm:h-24
-                  w-full object-cover
-                  rounded-lg border
-                  cursor-pointer
-                "
-                            />
-
-                            {/* Remove */}
-                            <button
-                                onClick={() => removeImage(idx)}
-                                className="
-                  absolute -top-2 -right-2
-                  bg-red-600 text-white
-                  rounded-full
-                  w-5 h-5 sm:w-6 sm:h-6
-                  text-xs
-                "
-                            >
-                                ✕
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Preview Dialog */}
-            <ImagePreviewDialog
-                open={previewIndex !== null}
-                images={value.map((file) => URL.createObjectURL(file))}
-                index={previewIndex}
-                onChangeIndex={setPreviewIndex}
-                onClose={() => setPreviewIndex(null)}
-            />
-
-        </>
-    );
+      {/*PREVIEW DIALOG */}
+      <ImagePreviewDialog
+        open={previewIndex !== null}
+        images={previewUrls}
+        index={previewIndex}
+        onChangeIndex={setPreviewIndex}
+        onClose={() => setPreviewIndex(null)}
+      />
+    </>
+  );
 };
 
 export default ImageUploader;
