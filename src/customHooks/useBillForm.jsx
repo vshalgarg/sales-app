@@ -150,32 +150,27 @@ export const useBillForm = () => {
   // }, []);
 
   // 🔹 Handlers
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+ const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    let finalValue = value;
+  let finalValue = value;
 
-    // alphabets + numbers + limited special chars  
-    if (name === "order" || name === "lrNumber") {
-      finalValue = value.replace(/[^a-zA-Z0-9\s\-_/\.@#&()]/g, "");
-    }
+  if (name === "order" || name === "lrNumber") {
+    finalValue = value.replace(/[^a-zA-Z0-9\s\-_/\.@#&()]/g, "");
+  }
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: finalValue,
-    }));
+  setFormData(prev => ({
+    ...prev,
+    [name]: finalValue,
+  }));
 
-    if (
-      name === "order" ||
-      name === "lrNumber"
-    ) {
-      return;
-    }
-    setErrors(prev => ({
-      ...prev,
-      [name]: validate(name, finalValue) || "",
-    }));
-  };
+  setErrors(prev => ({
+    ...prev,
+    [name]: finalValue.trim()
+      ? ""
+      : validate(name, finalValue) || "",
+  }));
+};
 
 
   const handleReset = () => {
