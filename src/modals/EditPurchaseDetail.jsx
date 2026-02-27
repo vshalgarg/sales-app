@@ -14,7 +14,6 @@ import {
     updatePurchaseApi,
     getPurchaseDetailsById
 } from "../service/PurchaseService";
-import ImageUploader from "../components/common/ImageUploader";
 
 const EditPurchaseDetail = ({
     open,
@@ -302,7 +301,6 @@ const EditPurchaseDetail = ({
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
 
-                            {/* ---- OLD + NEW TOGETHER ---- */}
                             {[...existingImages,
                             ...newImages.map(file => ({
                                 id: file.name + file.lastModified,

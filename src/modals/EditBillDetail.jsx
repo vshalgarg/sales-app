@@ -7,7 +7,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import validate from "../validations/Validation";
 import { useSnackbar } from "../context/SnackbarContext";
-import { updateBillApi, searchTransports } from "../service/BillService";
+import { updateBillApi } from "../service/BillService";
 import { Trash2 } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
@@ -15,7 +15,6 @@ import TransportService from "../service/TransportService";
 import Autocomplete from "@mui/material/Autocomplete";
 import useResponsive from "../customHooks/useResponsive";
 import MobileBillItemCard from "./MobileBillItemCard";
-import ImageUploader from "../components/common/ImageUploader";
 import { nanoid } from "nanoid";
 
 
