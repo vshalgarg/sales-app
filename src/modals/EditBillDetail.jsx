@@ -222,6 +222,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       remarks: formData.remarks || null,
       taxableValue: parseFloat(formData.taxableValue) || 0,
       billAmount: parseFloat(formData.billAmount) || 0,
+      existingImageKeys: existingImages.map(img => img.key),
       billItems: items.map(item => ({
         pieces: parseInt(item.pieces) || 0,
         grossAmount: parseFloat(item.grossAmount) || 0,
