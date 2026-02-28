@@ -14,6 +14,8 @@ import {
     updatePurchaseApi,
     getPurchaseDetailsById
 } from "../service/PurchaseService";
+import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const EditPurchaseDetail = ({
     open,
@@ -40,6 +42,7 @@ const EditPurchaseDetail = ({
 
     const [existingImages, setExistingImages] = useState([]);
     const [newImages, setNewImages] = useState([]);
+    const [previewIndex, setPreviewIndex] = useState(null);
 
     const [formData, setFormData] = useState({
         date: "",
@@ -118,10 +121,10 @@ const EditPurchaseDetail = ({
         );
 
         setExistingImages(
-            (detail.imageKeys || []).map((key, i) => ({
-                id: nanoid(),
-                key,
-                url: detail.publicUrls[i],
+            (detail.imageKeys || []).map((key, index) => ({
+                id: key,
+                key: key,
+                url: detail.publicUrls?.[index]
             }))
         );
 
@@ -291,42 +294,52 @@ const EditPurchaseDetail = ({
 
                     <div className="bg-white border rounded-2xl p-6 shadow-sm">
                         <div className="flex justify-between items-center mb-5">
-                            <h3 className="text-sm font-semibold text-gray-800">
-                                Images
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                OrderForm
                             </h3>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-sm text-gray-500">
                                 {existingImages.length + newImages.length}/2
                             </span>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-
-                            {[...existingImages,
-                            ...newImages.map(file => ({
-                                id: file.name + file.lastModified,
-                                url: URL.createObjectURL(file),
-                                isNew: true,
-                                file
-                            }))
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {[
+                                ...existingImages.map(img => ({
+                                    type: "existing",
+                                    id: img.id,
+                                    key: img.key
+                                })),
+                                ...newImages.map(file => ({
+                                    type: "new",
+                                    id: file.name + file.lastModified,
+                                    file
+                                }))
                             ].map((img, index) => (
                                 <div
                                     key={img.id || index}
-                                    className="relative group rounded-2xl overflow-hidden border bg-gray-100 shadow-sm"
+                                    className="relative group"
                                 >
-                                    <img
-                                        src={img.url}
-                                        alt=""
-                                        className="h-28 w-full object-cover transition duration-300 group-hover:scale-105"
-                                    />
+                                    <div
+                                        onClick={() => setPreviewIndex(index)}
+                                        className="h-20 rounded-xl border bg-gray-50 flex items-center px-4 
+                   cursor-pointer hover:bg-gray-100 hover:shadow 
+                   transition-all"
+                                    >
+                                        <VisibilityIcon className="text-gray-500 mr-3" />
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-700">
+                                                Attachment {index + 1}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Click to preview
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                    {/* Overlay */}
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300" />
-
-                                    {/* Delete */}
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (img.isNew) {
+                                            if (img.type === "new") {
                                                 setNewImages(prev =>
                                                     prev.filter(f =>
                                                         (f.name + f.lastModified) !== img.id
@@ -334,25 +347,26 @@ const EditPurchaseDetail = ({
                                                 );
                                             } else {
                                                 setExistingImages(prev =>
-                                                    prev.filter(i => i.id !== img.id)
+                                                    prev.filter(i => i.key !== img.key)
                                                 );
                                             }
                                         }}
-                                        className="absolute top-2 right-2 bg-white text-red-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition hover:bg-red-600 hover:text-white"
+                                        className="absolute -top-2 -right-2 bg-white border text-red-600 
+                   rounded-full w-7 h-7 flex items-center justify-center 
+                   shadow hover:bg-red-600 hover:text-white transition"
                                     >
                                         ✕
                                     </button>
                                 </div>
                             ))}
 
-                            {/* ---- ADD CARD ---- */}
                             {(existingImages.length + newImages.length) < 2 && (
-                                <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
-                                    <span className="text-3xl text-gray-400">+</span>
-                                    <span className="text-xs text-gray-500 mt-1">
-                                        Add Image
+                                <label className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
+                      flex items-center justify-center cursor-pointer 
+                      hover:border-blue-500 hover:bg-blue-50 transition">
+                                    <span className="text-sm text-gray-600 font-medium">
+                                        + Add Attachment
                                     </span>
-
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -379,6 +393,17 @@ const EditPurchaseDetail = ({
                             )}
                         </div>
                     </div>
+
+                    <ImagePreviewDialog
+                        open={previewIndex !== null}
+                        images={[
+                            ...existingImages.map(img => img.url),
+                            ...newImages.map(file => URL.createObjectURL(file))
+                        ]}
+                        index={previewIndex || 0}
+                        onChangeIndex={setPreviewIndex}
+                        onClose={() => setPreviewIndex(null)}
+                    />
                 </div>
 
                 {/* Footer */}
