@@ -31,10 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
@@ -544,25 +541,31 @@ public class BillServiceImpl implements BillService {
                 entity.getBillNumber(),
                 currentImages.size());
 
-        // Identify removed images
-        List<BillImageEntity> toRemove =
-                currentImages.stream()
-                        .filter(img -> existingKeys == null ||
-                                !existingKeys.contains(img.getObjectKey()))
-                        .toList();
 
-        log.info("Images to remove count={} for bill {}",
-                toRemove.size(),
-                entity.getBillNumber());
+        // Remove
+        Iterator<BillImageEntity> iterator = currentImages.iterator();
+        int removeCount = 0;
+        while (iterator.hasNext()) {
+            BillImageEntity img = iterator.next();
 
-        // Remove from entity
-        currentImages.removeAll(toRemove);
+            if (existingKeys != null &&
+                    !existingKeys.contains(img.getObjectKey())) {
 
-        // Delete from storage
-        for (BillImageEntity img : toRemove) {
-            fileService.deleteFile(img.getObjectKey());
-            log.info("Deleted image from storage | key={}", img.getObjectKey());
+                String key = img.getObjectKey();
+                iterator.remove();
+                log.info("Removed image reference from DB | bill={} | key={}",
+                        entity.getBillNumber(),
+                        key);
+                fileService.deleteFile(img.getObjectKey());
+
+                log.info("Deleted image from cloud storage | bill={} | key={}",
+                        entity.getBillNumber(),
+                        key);
+            }
         }
+        log.info("Images removed count={} for bill {}",
+                removeCount,
+                entity.getBillNumber());
 
         // Upload new images
         if (newImages != null && !newImages.isEmpty()) {
