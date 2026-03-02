@@ -1,5 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import ImagePreviewDialog from "./ImagePreviewDialog";
+import CloseIcon from "@mui/icons-material/Close";
 
 const ImageUploader = ({
   value = [],
@@ -77,7 +78,7 @@ const ImageUploader = ({
                 onClick={() => removeImage(index)}
                 className="absolute top-2 right-2 bg-white text-red-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition hover:bg-red-600 hover:text-white"
               >
-                ✕
+                <CloseIcon fontSize="small" />
               </button>
             </div>
           ))}
