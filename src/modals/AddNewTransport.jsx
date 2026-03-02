@@ -356,7 +356,7 @@ export default function AddNewTransport({
         <div className="p-4 border-t bg-white 
                 flex justify-end gap-3 
                 sticky bottom-0 z-20">
-          <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border rounded-lg">
+          <button onClick={() => setOpen(false)} className="px-3 py-2 text-xs md:px-4 md:py-2 md:text-sm border rounded-lg">
             Cancel
           </button>
 
