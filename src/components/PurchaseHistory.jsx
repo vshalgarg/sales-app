@@ -1,6 +1,8 @@
 import useResponsive from "../customHooks/useResponsive";
+import PurchaseView from "../modals/PurchaseView";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
+import { useState } from "react";
 
 const PurchaseHistory = ({
   data,
@@ -15,6 +17,15 @@ const PurchaseHistory = ({
 }) => {
 
   const { isMobile } = useResponsive();
+  const [viewData, setViewData] = useState(null);
+
+  const handleView = (row) => {
+    setViewData(row);
+  };
+
+  const handleCloseView = () => {
+    setViewData(null);
+  };
 
   const columns = {
     desktop: [
@@ -77,19 +88,31 @@ const PurchaseHistory = ({
   };
 
   return (
-    <DataTable
-      columns={isMobile ? columns.mobile : columns.desktop}
-      data={data}
-      loading={loading}
-      page={page}
-      totalCount={totalItems}
-      rowsPerPage={rowsPerPage}
-      onPageChange={onPageChange}
-      actions={true}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      emptyMessage={emptyMessage}
-    />
+    <>
+      <DataTable
+        columns={isMobile ? columns.mobile : columns.desktop}
+        data={data}
+        loading={loading}
+        page={page}
+        totalCount={totalItems}
+        rowsPerPage={rowsPerPage}
+        onPageChange={onPageChange}
+        actions
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onView={handleView}
+        emptyMessage={emptyMessage}
+      />
+
+      {/* View Modal */}
+      {viewData && (
+        <PurchaseView
+          open={!!viewData}
+          data={viewData}
+          onClose={handleCloseView}
+        />
+      )}
+    </>
   );
 };
 

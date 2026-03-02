@@ -56,3 +56,16 @@ export const deletePurchaseApi = async (id) => {
   }
 };
 
+export const getPurchaseDetailsById = async (id) => {
+  try {
+    const response = await api.get(`/purchase/get/details/${id}`);
+
+    const result = checkLogicalError(response.data);
+
+    return result;
+
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+

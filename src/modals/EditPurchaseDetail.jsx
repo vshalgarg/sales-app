@@ -9,16 +9,29 @@ import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
-import { updatePurchaseApi } from "../service/PurchaseService";
+import { nanoid } from "nanoid";
+import {
+    updatePurchaseApi,
+    getPurchaseDetailsById
+} from "../service/PurchaseService";
+import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const EditPurchaseDetail = ({
     open,
-    selectedPurchaseDetail,
+    purchaseId,
     setOpen,
     onUpdateSuccess,
 }) => {
+
+    useEffect(() => {
+        console.log("OPEN:", open);
+        console.log("PURCHASE ID:", purchaseId);
+    }, [open, purchaseId]);
+
     const { showSnackbar } = useSnackbar();
 
+    /* ================= STATES ================= */
     const [allSuppliers, setAllSuppliers] = useState([]);
     const [allCustomers, setAllCustomers] = useState([]);
     const [allStaffs, setAllStaffs] = useState([]);
@@ -27,79 +40,111 @@ const EditPurchaseDetail = ({
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedStaff, setSelectedStaff] = useState(null);
 
+    const [existingImages, setExistingImages] = useState([]);
+    const [newImages, setNewImages] = useState([]);
+    const [previewIndex, setPreviewIndex] = useState(null);
+
     const [formData, setFormData] = useState({
         date: "",
         purchaseAmount: "",
     });
 
     const [saving, setSaving] = useState(false);
+    const [detail, setDetail] = useState(null);
 
-    /* ================= LOAD MASTER DATA ================= */
     useEffect(() => {
-        Promise.all([
-            SupplierService.getAllSuppliers(),
-            CustomerService.getAllCustomers(),
-            getAllActiveStaffs(),
-        ]).then(([suppliers, customers, staffs]) => {
-            setAllSuppliers(suppliers || []);
-            setAllCustomers(customers || []);
-            setAllStaffs(staffs || []);
-        });
-    }, []);
+        if (!open) return;
+        const loadMasters = async () => {
+            try {
+                const [suppliers, customers, staffs] =
+                    await Promise.all([
+                        SupplierService.getAllSuppliers(),
+                        CustomerService.getAllCustomers(),
+                        getAllActiveStaffs(),
+                    ]);
 
-    /* ================= PREFILL DATA ================= */
+                setAllSuppliers(suppliers || []);
+                setAllCustomers(customers || []);
+                setAllStaffs(staffs || []);
+            } catch {
+                showSnackbar("Failed to load master data", "error");
+            }
+        };
+
+        loadMasters();
+    }, [open]);
+
+
     useEffect(() => {
-        if (!selectedPurchaseDetail) return;
+        if (!open || !purchaseId) return;
+
+        const loadDetail = async () => {
+            try {
+                const res = await getPurchaseDetailsById(purchaseId);
+                setDetail(res);
+            } catch {
+                showSnackbar("Failed to load purchase details", "error");
+            }
+        };
+
+        loadDetail();
+    }, [open, purchaseId]);
+
+    useEffect(() => {
+        if (!detail) return;
+        if (!allSuppliers.length || !allCustomers.length || !allStaffs.length) return;
 
         setFormData({
-            date: selectedPurchaseDetail.date || "",
+            date: detail.date || "",
             purchaseAmount:
-                selectedPurchaseDetail.purchaseAmount != null
-                    ? String(selectedPurchaseDetail.purchaseAmount)
+                detail.purchaseAmount != null
+                    ? String(detail.purchaseAmount)
                     : "",
         });
 
-        if (allSuppliers.length > 0) {
-            const selected = allSuppliers.filter(s =>
-                selectedPurchaseDetail.supplierIds?.includes(s.id)
-            );
-            setSelectedSuppliers(selected);
-        }
+        setSelectedSuppliers(
+            allSuppliers.filter(s =>
+                detail.supplierIds?.includes(s.id)
+            )
+        );
 
-        if (allCustomers.length > 0) {
-            setSelectedCustomer(
-                allCustomers.find(
-                    c => c.id === selectedPurchaseDetail.customerId
-                ) || null
-            );
-        }
+        setSelectedCustomer(
+            allCustomers.find(c =>
+                c.id === detail.customerId
+            ) || null
+        );
 
+        setSelectedStaff(
+            allStaffs.find(s =>
+                s.staffId === Number(detail.staffId)
+            ) || null
+        );
 
-        if (allStaffs.length > 0) {
-            setSelectedStaff(
-                allStaffs.find(
-                    s => s.staffId === Number(selectedPurchaseDetail.staffId)
-                ) || null
-            );
-        }
-    }, [selectedPurchaseDetail, allSuppliers, allCustomers, allStaffs]);
+        setExistingImages(
+            (detail.imageKeys || []).map((key, index) => ({
+                id: key,
+                key: key,
+                url: detail.publicUrls?.[index]
+            }))
+        );
 
-    if (!open) return null;
+        setNewImages([]);
+    }, [detail, allSuppliers, allCustomers, allStaffs]);
 
     const handleAmountChange = (e) => {
         const value = e.target.value;
 
-        // only numbers + max 2 decimals
         if (/^\d*\.?\d{0,2}$/.test(value)) {
             setFormData(p => ({ ...p, purchaseAmount: value }));
-            setErrors(p => ({ ...p, purchaseAmount: "" }));
         }
     };
+
     /* ================= UPDATE ================= */
     const handleUpdate = async () => {
-
         try {
             setSaving(true);
+
+            const formDataObj = new FormData();
 
             const payload = {
                 date: formData.date || null,
@@ -110,14 +155,30 @@ const EditPurchaseDetail = ({
                     formData.purchaseAmount !== ""
                         ? Number(formData.purchaseAmount)
                         : null,
+                existingImageKeys:
+                    existingImages.map(img => img.key)
             };
 
-            await updatePurchaseApi(selectedPurchaseDetail.id, payload);
+            formDataObj.append(
+                "data",
+                new Blob([JSON.stringify(payload)], {
+                    type: "application/json"
+                })
+            );
+
+            newImages.forEach(file => {
+                formDataObj.append("images", file);
+            });
+
+            await updatePurchaseApi(purchaseId, formDataObj);
 
             showSnackbar("Purchase updated successfully", "success");
+
             onUpdateSuccess();
-        } catch (err) {
-            showSnackbar(err.message || "Failed to update purchase", "error");
+            setOpen(false);
+
+        } catch {
+            showSnackbar("Failed to update purchase", "error");
         } finally {
             setSaving(false);
         }
@@ -136,7 +197,9 @@ const EditPurchaseDetail = ({
             >
                 {/* Header */}
                 <div className="px-4 sm:px-6 py-4 border-b">
-                    <h2 className="text-lg sm:text-xl font-semibold">Edit Purchase</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold">
+                        Edit Purchase
+                    </h2>
                 </div>
 
                 {/* Body */}
@@ -146,7 +209,7 @@ const EditPurchaseDetail = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <CustomTextField
                             label="Purchase ID"
-                            value={selectedPurchaseDetail.id}
+                            value={purchaseId}
                             disabled
                         />
 
@@ -162,7 +225,9 @@ const EditPurchaseDetail = ({
                                 onChange={(v) =>
                                     setFormData(p => ({
                                         ...p,
-                                        date: v ? dayjs(v).format("YYYY-MM-DD") : "",
+                                        date: v
+                                            ? dayjs(v).format("YYYY-MM-DD")
+                                            : "",
                                     }))
                                 }
                                 slotProps={{
@@ -177,7 +242,9 @@ const EditPurchaseDetail = ({
                         <Autocomplete
                             options={allStaffs}
                             value={selectedStaff}
-                            isOptionEqualToValue={(o, v) => o.staffId === v?.staffId}
+                            isOptionEqualToValue={(o, v) =>
+                                o.staffId === v?.staffId
+                            }
                             getOptionLabel={(o) => o?.staffName || ""}
                             onChange={(e, v) => setSelectedStaff(v)}
                             renderInput={(p) => (
@@ -200,24 +267,145 @@ const EditPurchaseDetail = ({
                             value={selectedSuppliers}
                             isOptionEqualToValue={(o, v) => o.id === v.id}
                             getOptionLabel={(o) => o?.supplierName || ""}
-                            onChange={(e, values) => setSelectedSuppliers(values)}
+                            onChange={(e, values) =>
+                                setSelectedSuppliers(values)
+                            }
                             renderInput={(p) => (
                                 <CustomTextField {...p} label="Suppliers" />
                             )}
                         />
+
                         <Autocomplete
                             options={allCustomers}
                             value={selectedCustomer}
                             isOptionEqualToValue={(o, v) => o.id === v?.id}
                             getOptionLabel={(o) => o?.customerName || ""}
-                            onChange={(e, v) => setSelectedCustomer(v)}
+                            onChange={(e, v) =>
+                                setSelectedCustomer(v)
+                            }
                             renderInput={(p) => (
                                 <CustomTextField {...p} label="Customer" />
                             )}
                         />
-
                     </div>
+
+
+                    {/* ================= PURCHASE IMAGES ================= */}
+
+                    <div className="bg-white border rounded-2xl p-6 shadow-sm">
+                        <div className="flex justify-between items-center mb-5">
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                OrderForm
+                            </h3>
+                            <span className="text-sm text-gray-500">
+                                {existingImages.length + newImages.length}/2
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {[
+                                ...existingImages.map(img => ({
+                                    type: "existing",
+                                    id: img.id,
+                                    key: img.key
+                                })),
+                                ...newImages.map(file => ({
+                                    type: "new",
+                                    id: file.name + file.lastModified,
+                                    file
+                                }))
+                            ].map((img, index) => (
+                                <div
+                                    key={img.id || index}
+                                    className="relative group"
+                                >
+                                    <div
+                                        onClick={() => setPreviewIndex(index)}
+                                        className="h-20 rounded-xl border bg-gray-50 flex items-center px-4 
+                   cursor-pointer hover:bg-gray-100 hover:shadow 
+                   transition-all"
+                                    >
+                                        <VisibilityIcon className="text-gray-500 mr-3" />
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-700">
+                                                Attachment {index + 1}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Click to preview
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (img.type === "new") {
+                                                setNewImages(prev =>
+                                                    prev.filter(f =>
+                                                        (f.name + f.lastModified) !== img.id
+                                                    )
+                                                );
+                                            } else {
+                                                setExistingImages(prev =>
+                                                    prev.filter(i => i.key !== img.key)
+                                                );
+                                            }
+                                        }}
+                                        className="absolute -top-2 -right-2 bg-white border text-red-600 
+                   rounded-full w-7 h-7 flex items-center justify-center 
+                   shadow hover:bg-red-600 hover:text-white transition"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+
+                            {(existingImages.length + newImages.length) < 2 && (
+                                <label className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
+                      flex items-center justify-center cursor-pointer 
+                      hover:border-blue-500 hover:bg-blue-50 transition">
+                                    <span className="text-sm text-gray-600 font-medium">
+                                        + Add Attachment
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        hidden
+                                        onChange={(e) => {
+                                            const files = Array.from(e.target.files || []);
+                                            if (!files.length) return;
+
+                                            const total =
+                                                existingImages.length +
+                                                newImages.length +
+                                                files.length;
+
+                                            if (total > 2) {
+                                                showSnackbar("Maximum 2 images allowed", "error");
+                                                return;
+                                            }
+
+                                            setNewImages(prev => [...prev, ...files]);
+                                            e.target.value = "";
+                                        }}
+                                    />
+                                </label>
+                            )}
+                        </div>
+                    </div>
+
+                    <ImagePreviewDialog
+                        open={previewIndex !== null}
+                        images={[
+                            ...existingImages.map(img => img.url),
+                            ...newImages.map(file => URL.createObjectURL(file))
+                        ]}
+                        index={previewIndex || 0}
+                        onChangeIndex={setPreviewIndex}
+                        onClose={() => setPreviewIndex(null)}
+                    />
                 </div>
+
                 {/* Footer */}
                 <div className="px-4 sm:px-6 py-4 border-t flex flex-col sm:flex-row gap-3 sm:justify-end">
                     <button
@@ -226,6 +414,7 @@ const EditPurchaseDetail = ({
                     >
                         Cancel
                     </button>
+
                     <button
                         onClick={handleUpdate}
                         disabled={saving}

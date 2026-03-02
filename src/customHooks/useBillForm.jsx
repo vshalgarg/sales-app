@@ -113,25 +113,6 @@ export const useBillForm = () => {
     }
   }, [errors.transport]); // run whenever transport error is present
 
-  // 🔹 Run whenever errors are restored
-  useEffect(() => {
-    if (!errors || Object.keys(errors).length === 0) return;
-
-    setFormData((prev) => {
-      const updated = { ...prev };
-      let changed = false;
-
-      Object.keys(errors).forEach((field) => {
-        if (errors[field] && prev[field]) {
-          updated[field] = "";
-          changed = true;
-        }
-      });
-
-      return changed ? updated : prev;
-    });
-  }, [errors]); // ✅ runs after errors are loaded
-  // run only once on mount
 
   // 🔹 Save formData to localStorage (skip empty fields)
   // --- Save logic with debug logs ---
@@ -169,32 +150,27 @@ export const useBillForm = () => {
   // }, []);
 
   // 🔹 Handlers
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+ const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    let finalValue = value;
+  let finalValue = value;
 
-    // alphabets + numbers + limited special chars  
-    if (name === "order" || name === "lrNumber") {
-      finalValue = value.replace(/[^a-zA-Z0-9\s\-_/\.@#&()]/g, "");
-    }
+  if (name === "order" || name === "lrNumber") {
+    finalValue = value.replace(/[^a-zA-Z0-9\s\-_/\.@#&()]/g, "");
+  }
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: finalValue,
-    }));
+  setFormData(prev => ({
+    ...prev,
+    [name]: finalValue,
+  }));
 
-    if (
-      name === "order" ||
-      name === "lrNumber"
-    ) {
-      return;
-    }
-    setErrors(prev => ({
-      ...prev,
-      [name]: validate(name, finalValue) || "",
-    }));
-  };
+  setErrors(prev => ({
+    ...prev,
+    [name]: finalValue.trim()
+      ? ""
+      : validate(name, finalValue) || "",
+  }));
+};
 
 
   const handleReset = () => {

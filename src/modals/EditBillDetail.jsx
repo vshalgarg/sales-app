@@ -7,7 +7,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import validate from "../validations/Validation";
 import { useSnackbar } from "../context/SnackbarContext";
-import { updateBillApi, searchTransports } from "../service/BillService";
+import { updateBillApi } from "../service/BillService";
 import { Trash2 } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
@@ -16,6 +16,8 @@ import Autocomplete from "@mui/material/Autocomplete";
 import useResponsive from "../customHooks/useResponsive";
 import MobileBillItemCard from "./MobileBillItemCard";
 import { nanoid } from "nanoid";
+import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
@@ -38,8 +40,9 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     customer: false,
     transport: false,
   });
-
-
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [previewIndex, setPreviewIndex] = useState(null);
   const {
     formData,
     setFormData,
@@ -128,6 +131,19 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     }
   }, [selectedBillDetail, setFormData]);
 
+  useEffect(() => {
+  if (open && selectedBillDetail) {
+    setExistingImages(
+      (selectedBillDetail.objectKeys || []).map((key, index) => ({
+        id: key,
+        key: key,
+        url: selectedBillDetail.publicUrls[index]
+      }))
+    );
+    setNewImages([]);
+  }
+}, [open]);
+
   // Recalculate totals live
   useEffect(() => {
     let totalTaxable = 0;
@@ -199,22 +215,36 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
       transport: formData.transport || null,
       lrNumber: formData.lrNumber || null,
       remarks: formData.remarks || null,
-      taxableValue: Math.round((parseFloat(formData.taxableValue) || 0)),
-      billAmount: Math.round((parseFloat(formData.billAmount) || 0)),
+      taxableValue: parseFloat(formData.taxableValue) || 0,
+      billAmount: parseFloat(formData.billAmount) || 0,
+      existingImageKeys: existingImages.map(img => img.key),
       billItems: items.map(item => ({
         pieces: parseInt(item.pieces) || 0,
-        grossAmount: Math.round(parseFloat(item.grossAmount || 0)),
+        grossAmount: parseFloat(item.grossAmount) || 0,
         discountPercent: parseFloat(item.discountPercent || 0),
-        discountAmount: Math.round(parseFloat(item.discountAmount || 0)),
-        addOnAmount: Math.round(parseFloat(item.addOnAmount || 0)),
-        ecrAmount: Math.round(parseFloat(item.ecrAmount || 0)),
+        discountAmount: parseFloat(item.discountAmount) || 0,
+        addOnAmount: parseFloat(item.addOnAmount) || 0,
+        ecrAmount: parseFloat(item.ecrAmount) || 0,
+        gstAmount: parseFloat(item.gstAmount) || 0,
         gstPercent: parseFloat(item.gstPercent || 0),
-        gstAmount: Math.round(parseFloat(item.gstAmount || 0)),
       }))
     };
 
+    const formDataObj = new FormData();
+
+    formDataObj.append(
+      "data",
+      new Blob([JSON.stringify(payload)], {
+        type: "application/json",
+      })
+    );
+
+    newImages.forEach(file => {
+      formDataObj.append("images", file);
+    });
+
     try {
-      const response = await updateBillApi(formData.billNumber, payload);
+      const response = await updateBillApi(formData.billNumber, formDataObj);
       showSnackbar(response?.message || "Bill updated successfully!", "success");
       setOpen(false);
       if (onUpdateSuccess) {
@@ -481,7 +511,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                 ) : (
                   items.map((item, index) => (
                     <MobileBillItemCard
-                    key={item.id} 
+                      key={item.id}
                       item={item}
                       index={index}
                       onChange={handleItemChange}
@@ -495,7 +525,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                     />
                   ))
                 )}
-              </div>  
+              </div>
             )}
 
             {!isMobile && (
@@ -536,6 +566,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.grossAmount || ""}
                               onChange={(e) => handleItemChange(index, "grossAmount", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -545,6 +576,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.discountPercent || ""}
                               onChange={(e) => handleItemChange(index, "discountPercent", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -554,6 +586,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="text"
+                              step="0.01"
                               value={item.discountAmount || "0.00"}
                               readOnly
                               className="w-full px-3 py-2 bg-gray-200 border rounded"
@@ -562,6 +595,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.addOnAmount || ""}
                               onChange={(e) => handleItemChange(index, "addOnAmount", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -571,6 +605,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.ecrAmount || ""}
                               onChange={(e) => handleItemChange(index, "ecrAmount", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -580,6 +615,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                           <td className="px-4 py-2">
                             <input
                               type="number"
+                              step="0.01"
                               value={item.gstPercent || ""}
                               onChange={(e) => handleItemChange(index, "gstPercent", e.target.value)}
                               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -628,6 +664,128 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               </div>
             </div>
           </div>
+
+          {/* ================= BILL IMAGES ================= */}
+
+          <div className="bg-white border rounded-2xl p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Bill Attachments
+              </h3>
+              <span className="text-sm text-gray-500">
+                {existingImages.length + newImages.length}/2
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {[
+                ...existingImages.map(img => ({
+                  type: "existing",
+                  id: img.key,
+                  key: img.key
+                })),
+                ...newImages.map(file => ({
+                  type: "new",
+                  id: file.name + file.lastModified,
+                  file
+                }))
+              ].map((img, index) => (
+                <div key={img.id || index} className="relative group">
+
+                  <div
+                    onClick={() => setPreviewIndex(index)}
+                    className="h-20 rounded-xl border bg-gray-50 flex items-center px-4 
+                     cursor-pointer hover:bg-gray-100 hover:shadow 
+                     transition-all"
+                  >
+                    <VisibilityIcon className="text-gray-500 mr-3" />
+
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">
+                        Attachment {index + 1}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Click to preview
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (img.type === "new") {
+                        setNewImages(prev =>
+                          prev.filter(f =>
+                            (f.name + f.lastModified) !== img.id
+                          )
+                        );
+                      } else {
+                        setExistingImages(prev =>
+                          prev.filter(i => i.key !== img.key)
+                        );
+                      }
+                    }}
+                    className="absolute -top-2 -right-2 bg-white border text-red-600 
+                     rounded-full w-7 h-7 flex items-center justify-center 
+                     shadow hover:bg-red-600 hover:text-white transition"
+                  >
+                    ✕
+                  </button>
+
+                </div>
+              ))}
+
+              {(existingImages.length + newImages.length) < 2 && (
+                <label
+                  className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
+                   flex items-center justify-center cursor-pointer 
+                   hover:border-blue-500 hover:bg-blue-50 transition"
+                >
+                  <span className="text-sm text-gray-600 font-medium">
+                    + Add Attachment
+                  </span>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (!files.length) return;
+
+                      const total =
+                        existingImages.length +
+                        newImages.length +
+                        files.length;
+
+                      if (total > 2) {
+                        showSnackbar("Maximum 2 images allowed", "error");
+                        return;
+                      }
+
+                      setNewImages(prev => [...prev, ...files]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              )}
+
+            </div>
+
+            <ImagePreviewDialog
+              open={previewIndex !== null}
+              images={[
+                ...existingImages.map(img => img.url),
+                ...newImages.map(file => URL.createObjectURL(file))
+              ]}
+              index={previewIndex || 0}
+              onChangeIndex={setPreviewIndex}
+              onClose={() => setPreviewIndex(null)}
+            />
+
+          </div>
+
 
           {/* --- Section: Transport --- */}
           <h3 className="text-lg font-semibold mb-3">

@@ -80,7 +80,7 @@ export default function CreditEntryForm() {
     const { value } = e.target;
 
     // allow only alphanumeric
-    if (/^[a-zA-Z0-9]*$/.test(value)) {
+    if (/^[a-zA-Z0-9/-]*$/.test(value)) {
       setFormData((prev) => ({
         ...prev,
         slipNumber: value,
@@ -173,7 +173,7 @@ export default function CreditEntryForm() {
 
   const handleBillNumberChange = (e) => {
     const raw = e.target.value;
-    const sanitized = raw.replace(/[^a-zA-Z0-9]/g, "");
+    const sanitized = raw.replace(/[^a-zA-Z0-9/-]/g, "");
 
     setFormData((prev) => ({
       ...prev,
@@ -196,7 +196,7 @@ export default function CreditEntryForm() {
 
   const handleReferenceNumberChange = (e) => {
     const raw = e.target.value;
-    const sanitized = raw.replace(/[^a-zA-Z0-9-]/g, "");
+    const sanitized = raw.replace(/[^a-zA-Z0-9/-]/g, "");
 
     setFormData((prev) => ({
       ...prev,
