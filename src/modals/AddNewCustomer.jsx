@@ -180,8 +180,13 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   return (
     <>
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 md:flex md:items-center md:justify-center">
-          <div className="bg-white w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+       <div className="fixed inset-0 bg-black bg-opacity-80 z-50 
+                flex md:items-center md:justify-center">
+          <div className="bg-white w-full 
+                min-h-[100dvh]
+                md:max-w-4xl md:max-h-[90vh] 
+                md:rounded-lg shadow-lg 
+                flex flex-col">
             {/* Header */}
             <div className="p-4 md:p-6 border-b flex items-center gap-3">
               <IconButton
@@ -200,7 +205,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
             </div>
 
             {/* Scrollable form content */}
-            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
@@ -502,7 +507,9 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t flex justify-end gap-3 bg-gray-50">
+            <div className="p-4 border-t bg-gray-50 
+                flex justify-end gap-3 
+                sticky bottom-0 z-20">
 
               {/* Cancel */}
               <button
