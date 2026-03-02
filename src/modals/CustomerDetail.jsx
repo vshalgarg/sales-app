@@ -1,16 +1,29 @@
 import { useEffect } from "react";
+import { IconButton } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
 
   useEffect(() => {
-    console.log("🔍 Selected Customer Data:", selectedCustomer);
   }, [selectedCustomer]);
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:flex md:items-center md:justify-center">
         <div className="bg-white w-full h-screen  md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
-          <div className="px-3 py-2  md:p-6 border-b boder-gray-300">
-            <h2 className="text-lg md:text-xl font-semibold">Customer Details</h2>
+          <div className="px-3 py-2 md:p-6 border-b border-gray-300 sticky top-0 bg-white z-10 flex items-center gap-3">
+            {/*Back Arrow */}
+            <IconButton
+              onClick={() => setModalOpen(false)}
+              className="md:hidden"
+              size="small"
+            >
+              <ArrowBackIcon />
+            </IconButton>
+
+            <h2 className="text-lg md:text-xl font-semibold">
+              Customer Details
+            </h2>
+
           </div>
 
           <div className="px-6 py-2 md:py-4 overflow-y-auto flex-1 space-y-4 md:space-y-6">
