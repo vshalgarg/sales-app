@@ -162,8 +162,13 @@ export default function AddNewTransport({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 md:flex md:items-center md:justify-center">
-      <div className="bg-white w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+    <div className="fixed inset-0 bg-black/80 z-50 
+                flex md:items-center md:justify-center">
+      <div className="bg-white w-full 
+                min-h-[100dvh]
+                md:max-w-4xl md:max-h-[90vh] 
+                md:rounded-lg shadow-lg 
+                flex flex-col">
 
         {/* HEADER */}
         <div className="p-4 md:p-6 border-b flex items-center gap-3">
@@ -183,7 +188,7 @@ export default function AddNewTransport({
         </div>
 
         {/* BODY */}
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-8">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8">
 
           {/* ===== BASIC INFORMATION ===== */}
           <section>
@@ -348,7 +353,9 @@ export default function AddNewTransport({
         </div>
 
         {/* FOOTER */}
-        <div className="p-4 border-t flex justify-end gap-3">
+        <div className="p-4 border-t bg-white 
+                flex justify-end gap-3 
+                sticky bottom-0 z-20">
           <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border rounded-lg">
             Cancel
           </button>
