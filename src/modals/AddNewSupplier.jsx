@@ -12,6 +12,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import Chip from "@mui/material/Chip";
 import StateAutocomplete from "../components/common/StateAutocomplete";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
@@ -137,7 +138,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       showSnackbar(nameError, "error");
       return;
     }
-    
+
     const payload = sanitizePayload({
       ...form,
       preferredTransportIds: selectedTransports.map((t) => t.id),
@@ -191,8 +192,19 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:flex md:items-center md:justify-center">
           <div className="bg-white dark:bg-gray-900 w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">Add New Supplier</h2>
+            <div className="p-4 md:p-6 border-b flex items-center gap-3">
+              <IconButton
+                onClick={() => {
+                  resetForm();
+                  setOpen(false);
+                }}
+                className="md:hidden"
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <h2 className="text-lg md:text-xl font-semibold">
+                Add New Supplier
+              </h2>
             </div>
 
             {/* Scrollable form content */}
@@ -298,7 +310,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     label="Address Line 2 (Optional)"
                     className="border p-2 rounded"
                   />
-                 <StateAutocomplete
+                  <StateAutocomplete
                     value={form.state}
                     onChange={(val) =>
                       setForm((prev) => ({ ...prev, state: val }))
@@ -329,20 +341,36 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                   Contact Information
                 </h3>
                 {form.contacts.map((contact, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
-                  >
-                    <div className="md:col-span-4">
+                  <div key={index} className="mb-6">
+
+                    {/* Mobile Contact Card */}
+                    <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50">
+
+                      {/* Heading*/}
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-semibold text-gray-700">
+                          Contact {index + 1}
+                        </h4>
+
+                        {index > 0 && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteContact(index)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
+
                       <CustomTextField
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
                         label="Contact Person"
-                        className="w-full border p-2 rounded"
+                        className="w-full"
                       />
-                    </div>
-                    <div className="md:col-span-4">
+
                       <CustomTextField
                         name="mobileNumber"
                         value={contact.mobileNumber}
@@ -353,31 +381,64 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                           }
                         }}
                         label="Mobile No."
-                        className="w-full border p-2 rounded"
                         type="tel"
                       />
-                    </div>
 
-                    <div className="md:col-span-3">
                       <CustomTextField
                         name="type"
                         value={contact.type}
                         onChange={(e) => handleContactChange(index, e)}
                         label="Type"
-                        error={!!errors.contacts?.[index]?.type}
                       />
                     </div>
-                    {/* Delete icon button - hidden for first contact */}
-                    <div className="md:col-span-1 flex justify-center">
-                      {index > 0 && (
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => deleteContact(index)}
-                        >
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      )}
+
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-start">
+
+                      <div className="col-span-4">
+                        <CustomTextField
+                          name="contactPerson"
+                          value={contact.contactPerson}
+                          onChange={(e) => handleContactChange(index, e)}
+                          label="Contact Person"
+                        />
+                      </div>
+
+                      <div className="col-span-4">
+                        <CustomTextField
+                          name="mobileNumber"
+                          value={contact.mobileNumber}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[0-9-\s]*$/.test(value)) {
+                              handleContactChange(index, e);
+                            }
+                          }}
+                          label="Mobile No."
+                          type="tel"
+                        />
+                      </div>
+
+                      <div className="col-span-3">
+                        <CustomTextField
+                          name="type"
+                          value={contact.type}
+                          onChange={(e) => handleContactChange(index, e)}
+                          label="Type"
+                        />
+                      </div>
+
+                      <div className="col-span-1 flex justify-center">
+                        {index > 0 && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteContact(index)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -10,6 +10,7 @@ import validate from "../validations/Validation";
 import TransportService from "../service/TransportService";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -182,8 +183,20 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 md:flex md:items-center md:justify-center">
           <div className="bg-white w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">Add New Customer</h2>
+            <div className="p-4 md:p-6 border-b flex items-center gap-3">
+              <IconButton
+                onClick={() => {
+                  resetForm();
+                  setOpen(false);
+                }}
+                className="md:hidden"
+              >
+                <ArrowBackIcon />
+              </IconButton>
+
+              <h2 className="text-lg md:text-xl font-semibold">
+                Add New Customer
+              </h2>
             </div>
 
             {/* Scrollable form content */}
@@ -291,19 +304,35 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               <div>
                 <h3 className="text-lg font-medium mb-2">Contact Information</h3>
                 {form.contacts.map((contact, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
-                  >
-                    <div className="md:col-span-4">
+                  <div key={index} className="mb-6">
+
+                    {/* Mobile Contact Card */}
+                    <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50">
+
+                      {/* Heading */}
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-semibold text-gray-700">
+                          Contact {index + 1}
+                        </h4>
+
+                        {index > 0 && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteContact(index)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
+
                       <CustomTextField
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
                         label="Contact Person"
                       />
-                    </div>
-                    <div className="md:col-span-4">
+
                       <CustomTextField
                         name="mobileNumber"
                         value={contact.mobileNumber}
@@ -313,11 +342,10 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="MobileNo."
+                        label="Mobile No."
                         type="tel"
                       />
-                    </div>
-                    <div className="md:col-span-3">
+
                       <CustomTextField
                         name="type"
                         value={contact.type}
@@ -329,16 +357,58 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         label="Type"
                       />
                     </div>
-                    <div className="col-span-1 flex justify-center">
-                      {index > 0 && (
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => deleteContact(index)}
-                        >
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      )}
+
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-start">
+
+                      <div className="col-span-4">
+                        <CustomTextField
+                          name="contactPerson"
+                          value={contact.contactPerson}
+                          onChange={(e) => handleContactChange(index, e)}
+                          label="Contact Person"
+                        />
+                      </div>
+
+                      <div className="col-span-4">
+                        <CustomTextField
+                          name="mobileNumber"
+                          value={contact.mobileNumber}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[0-9-\s]*$/.test(value)) {
+                              handleContactChange(index, e);
+                            }
+                          }}
+                          label="Mobile No."
+                          type="tel"
+                        />
+                      </div>
+
+                      <div className="col-span-3">
+                        <CustomTextField
+                          name="type"
+                          value={contact.type}
+                          onChange={(e) => {
+                            if (/^[a-zA-Z _@#&()\-]*$/.test(e.target.value)) {
+                              handleContactChange(index, e);
+                            }
+                          }}
+                          label="Type"
+                        />
+                      </div>
+
+                      <div className="col-span-1 flex justify-center">
+                        {index > 0 && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteContact(index)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

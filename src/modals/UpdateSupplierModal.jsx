@@ -16,6 +16,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 
 const UpdateSupplierModal = ({
@@ -208,8 +209,15 @@ const UpdateSupplierModal = ({
       ">
 
                 {/* Header */}
-                <div className="p-6 border-b">
-                    <h2 className="text-xl font-semibold">
+                <div className="p-4 md:p-6 border-b flex items-center gap-3">
+                    <IconButton
+                        onClick={() => setOpen(false)}
+                        className="md:hidden"
+                    >
+                        <ArrowBackIcon />
+                    </IconButton>
+
+                    <h2 className="text-lg md:text-xl font-semibold">
                         Update Supplier
                     </h2>
                 </div>
@@ -366,29 +374,41 @@ const UpdateSupplierModal = ({
                             </h3>
 
                             {form.contacts?.map((contact, index) => (
-                                <div
-                                    key={index}
-                                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
-                                >
-                                    <div className="md:col-span-4">
+                                <div key={index} className="mb-6">
+
+                                    {/* Mobile Card Layout */}
+                                    <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50">
+
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-sm font-semibold text-gray-700">
+                                                Contact {index + 1}
+                                            </h4>
+
+                                            {index > 0 && (
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() => deleteContact(index)}
+                                                >
+                                                    <DeleteOutlineIcon fontSize="small" />
+                                                </IconButton>
+                                            )}
+                                        </div>
+
                                         <CustomTextField
                                             name="contactPerson"
                                             value={contact.contactPerson || ""}
                                             onChange={(e) => handleContactChange(index, e)}
                                             label="Contact Person"
                                         />
-                                    </div>
 
-                                    <div className="md:col-span-4">
                                         <CustomTextField
                                             name="mobileNumber"
                                             value={contact.mobileNumber || ""}
                                             onChange={(e) => handleContactChange(index, e)}
                                             label="Mobile Number"
                                         />
-                                    </div>
 
-                                    <div className="md:col-span-3">
                                         <CustomTextField
                                             name="type"
                                             value={contact.type || ""}
@@ -397,16 +417,47 @@ const UpdateSupplierModal = ({
                                         />
                                     </div>
 
-                                    <div className="md:col-span-1 flex justify-center">
-                                        {index > 0 && (
-                                            <IconButton
-                                                size="small"
-                                                color="error"
-                                                onClick={() => deleteContact(index)}
-                                            >
-                                                <DeleteOutlineIcon fontSize="small" />
-                                            </IconButton>
-                                        )}
+                                    {/* Desktop Layout */}
+                                    <div className="hidden md:grid grid-cols-12 gap-4 items-start">
+
+                                        <div className="col-span-4">
+                                            <CustomTextField
+                                                name="contactPerson"
+                                                value={contact.contactPerson || ""}
+                                                onChange={(e) => handleContactChange(index, e)}
+                                                label="Contact Person"
+                                            />
+                                        </div>
+
+                                        <div className="col-span-4">
+                                            <CustomTextField
+                                                name="mobileNumber"
+                                                value={contact.mobileNumber || ""}
+                                                onChange={(e) => handleContactChange(index, e)}
+                                                label="Mobile Number"
+                                            />
+                                        </div>
+
+                                        <div className="col-span-3">
+                                            <CustomTextField
+                                                name="type"
+                                                value={contact.type || ""}
+                                                onChange={(e) => handleContactChange(index, e)}
+                                                label="Type"
+                                            />
+                                        </div>
+
+                                        <div className="col-span-1 flex justify-center">
+                                            {index > 0 && (
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() => deleteContact(index)}
+                                                >
+                                                    <DeleteOutlineIcon fontSize="small" />
+                                                </IconButton>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -472,19 +523,24 @@ const UpdateSupplierModal = ({
                 )}
 
                 {/* Footer */}
-                <div className="p-4 border-t flex flex-col sm:flex-row justify-end gap-3 bg-gray-50">
+                <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
 
+                    {/* Cancel */}
                     <Button
                         disabled={isSaving}
                         onClick={() => setOpen(false)}
+                        variant="outlined"
+                        className="min-w-[100px]"
                     >
                         Cancel
                     </Button>
 
+                    {/* Update */}
                     <Button
                         variant="contained"
                         disabled={isSaving}
                         onClick={handleUpdate}
+                        className="min-w-[140px]"
                     >
                         {isSaving ? "Updating..." : "Update Supplier"}
                     </Button>
