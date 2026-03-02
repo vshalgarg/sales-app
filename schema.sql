@@ -180,8 +180,6 @@ CREATE TABLE purchase_images (
         ON DELETE CASCADE
 );
 
-
-
 CREATE TABLE purchase_customers (
     purchase_id INT NOT NULL,
     customer_id INT NOT NULL,
@@ -576,3 +574,29 @@ CREATE TABLE purchase_suppliers (
 );
 
 
+ALTER TABLE credit
+DROP COLUMN supplier_current_balance;
+
+ALTER TABLE credit
+DROP COLUMN customer_current_balance;
+ALTER TABLE purchase_images
+CHANGE COLUMN image_url public_url VARCHAR(500);
+
+ALTER TABLE purchase_images
+ADD COLUMN object_key VARCHAR(500) NOT NULL AFTER id;
+
+ALTER TABLE bill_images
+CHANGE COLUMN image_url public_url VARCHAR(500);
+
+ALTER TABLE bill_images
+ADD COLUMN object_key VARCHAR(500) NOT NULL AFTER id;
+
+ALTER TABLE credit
+DROP COLUMN supplier_current_balance,
+DROP COLUMN customer_current_balance;
+
+ALTER TABLE transports
+DROP INDEX uk_transports_gst_no;
+
+ALTER TABLE transports
+DROP INDEX uk_transports_email;

@@ -35,12 +35,6 @@ public class CreditEntryEntity extends BaseEntity{
     @Column(name = "received_amount")
     private long receivedAmount;
 
-    @Column(name = "supplier_current_balance")
-    private long supplierCurrentBalance;
-
-    @Column(name = "customer_current_balance")
-    private long customerCurrentBalance;
-
     @Column(name = "draw_type")
     private DrawTypeEnum drawType;
 

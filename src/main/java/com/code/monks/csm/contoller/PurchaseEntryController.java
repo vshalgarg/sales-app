@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
+import com.code.monks.csm.dto.response.PurchaseDetailResponse;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import com.code.monks.csm.service.PurchaseService;
 import lombok.extern.slf4j.Slf4j;
@@ -68,18 +69,31 @@ public class PurchaseEntryController {
         );
     }
 
-    @PatchMapping(UPDATE_PURCHASE_ENTRY)
-    public ResponseEntity<Map<String, Object>> updatePurchaseEntry(@PathVariable int id,
-                                                                   @RequestBody UpdatePurchaseEntryReq updatePurchaseEntryReq
-                                                                   ){
-       Map<String, Object> response = purchaseService.updatePurchaseEntry(id, updatePurchaseEntryReq);
-       return new ResponseEntity<>(response, HttpStatus.OK);
+    @PatchMapping(value = UPDATE_PURCHASE_ENTRY, consumes = "multipart/form-data")
+    public ResponseEntity<Map<String, Object>> updatePurchaseEntry(
+            @PathVariable int id,
+            @RequestPart("data") UpdatePurchaseEntryReq req,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        Map<String, Object> response =
+                purchaseService.updatePurchaseEntry(id, req, images);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping(DELETE_PURCHASE_ENTRY)
     public ResponseEntity<Map<String, Object>> deletePurchaseEntry(@PathVariable int id){
        Map<String, Object> response = purchaseService.deletePurchaseEntry(id);
        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(GET_PURCHASE_DETAILS_BY_ID)
+    public ResponseEntity<PurchaseDetailResponse> getPurchaseById(
+            @PathVariable int id
+    ) {
+        return ResponseEntity.ok(
+                purchaseService.getPurchaseById(id)
+        );
     }
 
 }

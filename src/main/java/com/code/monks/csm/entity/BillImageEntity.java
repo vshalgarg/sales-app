@@ -22,7 +22,10 @@ public class BillImageEntity extends BaseEntity {
     @JoinColumn(name = "bill_id", nullable = false)
     private BillEntryEntity billEntry;
 
-    @Column(name = "image_url", nullable = false, length = 500)
-    private String imageUrl;
+    @Column(name = "object_key", nullable = false, length = 500)
+    private String objectKey;
+
+    @Column(name = "public_url", nullable = false, length = 500)
+    private String publicUrl;
 }
 

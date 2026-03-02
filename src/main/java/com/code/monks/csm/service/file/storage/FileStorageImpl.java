@@ -1,5 +1,6 @@
 package com.code.monks.csm.service.file.storage;
 
+import com.code.monks.csm.dto.response.FileUploadResponse;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.FileUploadException;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,14 @@ public class FileStorageImpl implements FileStorage {
 
     private final S3Client s3Client;
 
+    @Value("${e2e.s3.endpoint}")
+    private String endpoint;
+
     @Value("${e2e.s3.bucket-name}")
     private String bucketName;
 
     @Override
-    public String store(MultipartFile file, UploadModuleEnum uploadModule) {
+    public FileUploadResponse store(MultipartFile file, UploadModuleEnum uploadModule) {
 
         try {
             log.debug("Starting upload for file: {}", file.getOriginalFilename());
@@ -56,14 +60,34 @@ public class FileStorageImpl implements FileStorage {
                     RequestBody.fromInputStream(file.getInputStream(), file.getSize())
             );
 
-            log.info("File uploaded successfully to bucket: {}, key: {}", bucketName, fileName);
+            String publicUrl = getPublicUrl(fileName);
 
-            return fileName;
+            log.info("File uploaded successfully. Key: {}, URL: {}", fileName, publicUrl);
+
+            return new FileUploadResponse(fileName, publicUrl);
 
         } catch (Exception ex) {
             log.error("Upload failed. Bucket: {}, Endpoint issue possible.", bucketName);
             log.error("Error message: {}", ex.getMessage());
             throw new FileUploadException(FILE_STORAGE_FAILED);
         }
+    }
+
+    @Override
+    public void delete(String key) {
+        try {
+            s3Client.deleteObject(builder ->
+                    builder.bucket(bucketName)
+                            .key(key)
+            );
+            log.info("File deleted from storage. Key={}", key);
+        } catch (Exception ex) {
+            log.error("File delete failed for key={}", key);
+            throw new FileUploadException(FILE_STORAGE_FAILED);
+        }
+    }
+
+    private String getPublicUrl(String key) {
+        return endpoint + "/" + bucketName + "/" + key;
     }
 }

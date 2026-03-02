@@ -42,7 +42,9 @@ public class PurchaseEntity extends BaseEntity{
 
     @OneToMany(mappedBy = "purchase",
             cascade = CascadeType.ALL,
-            orphanRemoval = true)
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
+    )
     private List<PurchaseImageEntity> images;
 
 }

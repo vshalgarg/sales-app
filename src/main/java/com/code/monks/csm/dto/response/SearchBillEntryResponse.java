@@ -3,6 +3,7 @@ package com.code.monks.csm.dto.response;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,8 +16,8 @@ public class SearchBillEntryResponse {
     private String order;
     private String supplierName;
     private String customerName;
-    private double billAmount;
-    private double taxableValue;
+    private BigDecimal billAmount;
+    private BigDecimal taxableValue;
 
     private Integer supplierId;
     private String supplierGroup;
@@ -32,4 +33,7 @@ public class SearchBillEntryResponse {
     private String remarks;
 
     private List<BillItemDto> items;
+
+    public List<String> objectKeys;
+    private List<String> publicUrls;
 }
