@@ -1,5 +1,7 @@
 import { IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
   return (
@@ -205,16 +207,20 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
               </div>
             </div>
 
-            {/* Footer Button */}
           </div>
-          <div className="p-2 md:p-4 border-t border-gray-300 flex md:justify-end justify-end">
-            <button
+
+          {/* Footer Button */}
+          <FormFooter>
+
+            <AppButton
+              type="cancel"
               onClick={() => setIsModalOpen(false)}
-              className="p-2 md:px-4 md:py-2 text-sm md:text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Cancel
-            </button>
-          </div>
+            </AppButton>
+
+          </FormFooter>
+
         </div>
       </div>
     </>

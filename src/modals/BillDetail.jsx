@@ -6,6 +6,8 @@ import { useState } from "react";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
 
@@ -245,14 +247,18 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
           </div>
 
           {/* Footer */}
-          <div className="px-4 sm:px-6 py-4 border-t flex justify-end sticky bottom-0 bg-white">
-            <button
+          <FormFooter background="bg-white">
+
+            <AppButton
+              type="primary"
               onClick={() => setIsModalOpen(false)}
-              className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              sx={{ minWidth: "140px" }}
             >
               Close
-            </button>
-          </div>
+            </AppButton>
+
+          </FormFooter>
+
         </div>
       </div>
       <ImagePreviewDialog

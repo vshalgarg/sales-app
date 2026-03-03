@@ -14,6 +14,7 @@ import CreditHistory from "./CreditHistory";
 import CreditDetail from "../modals/CreditDetail";
 import EditCreditDetail from "../modals/EditCreditDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import AppButton from "./common/AppButton";
 
 const Credit = () => {
   const { showSnackbar } = useSnackbar();
@@ -144,7 +145,7 @@ const Credit = () => {
         </div>
 
         <div className="px-6 py-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -164,12 +165,17 @@ const Credit = () => {
                   }));
                   setErrors(prev => ({ ...prev, fromDate: "" }));
                 }}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    fullWidth: true,
-                  },
-                }}
+               slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                      sx: {
+                        "& .MuiPickersSectionList-root": {
+                          fontSize: { xs: "12px", md: "16px" },
+                        },
+                      },
+                    },
+                  }}
               />
             </LocalizationProvider>
 
@@ -190,71 +196,81 @@ const Credit = () => {
                     toDate: v ? dayjs(v).format("YYYY-MM-DD") : "",
                   }))
                 }
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    fullWidth: true,
-                  },
-                }}
+               slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                      sx: {
+                        "& .MuiPickersSectionList-root": {
+                          fontSize: { xs: "12px", md: "16px" },
+                        },
+                      },
+                    },
+                  }}
               />
             </LocalizationProvider>
 
-            <Autocomplete
-              options={allSuppliers}
-              value={selectedSupplier}
-              isOptionEqualToValue={(o, v) => o.id === v?.id}
-              getOptionLabel={(o) => o?.supplierName || ""}
-              onChange={(e, value) => {
-                setSelectedSupplier(value);
-                setFilterObject(prev => ({
-                  ...prev,
-                  supplierId: value ? value.id : null,
-                }));
-              }}
-              renderInput={(params) => (
-                <CustomTextField {...params} label="Supplier" />
-              )}
-            />
+            {/* Supplier */}
+            <div className="col-span-2 md:col-span-1">
+              <Autocomplete
+                options={allSuppliers}
+                value={selectedSupplier}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) => o?.supplierName || ""}
+                onChange={(e, value) => {
+                  setSelectedSupplier(value);
+                  setFilterObject(prev => ({
+                    ...prev,
+                    supplierId: value ? value.id : null,
+                  }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField {...params} label="Supplier" />
+                )}
+              />
+            </div>
 
-            <Autocomplete
-              options={allCustomers}
-              value={selectedCustomer}
-              isOptionEqualToValue={(o, v) => o.id === v?.id}
-              getOptionLabel={(o) => o?.customerName || ""}
-              onChange={(e, value) => {
-                setSelectedCustomer(value);
-                setFilterObject(prev => ({
-                  ...prev,
-                  customerId: value ? value.id : null,
-                }));
-              }}
-              renderInput={(params) => (
-                <CustomTextField {...params} label="Customer" />
-              )}
-            />
+            {/* Customer */}
+            <div className="col-span-2 md:col-span-1">
+              <Autocomplete
+                options={allCustomers}
+                value={selectedCustomer}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) => o?.customerName || ""}
+                onChange={(e, value) => {
+                  setSelectedCustomer(value);
+                  setFilterObject(prev => ({
+                    ...prev,
+                    customerId: value ? value.id : null,
+                  }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField {...params} label="Customer" />
+                )}
+              />
+            </div>
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
-            <button
+
+            <AppButton
+              type="secondary"
               onClick={clearFiltersAndResults}
-              className="px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm border text-gray-600"
             >
               Clear Filters
-            </button>
+            </AppButton>
 
-            <button
+            <AppButton
+              type="primary"
               onClick={() => handleCreditHistory(1)}
               disabled={!isAnyFilterSelected}
-              className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded-lg transition
-    ${isAnyFilterSelected
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+              loading={loading}
             >
               Apply Filters
-            </button>
+            </AppButton>
 
           </div>
+
         </div>
       </div>
 

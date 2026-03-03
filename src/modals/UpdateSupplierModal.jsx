@@ -17,6 +17,8 @@ import validate from "../validations/Validation";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 
 const UpdateSupplierModal = ({
@@ -523,29 +525,28 @@ const UpdateSupplierModal = ({
                 )}
 
                 {/* Footer */}
-                <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
-
-                    {/* Cancel */}
-                    <Button
-                        disabled={isSaving}
-                        onClick={() => setOpen(false)}
-                        variant="outlined"
-                        className="min-w-[100px]"
-                    >
-                        Cancel
-                    </Button>
+                <FormFooter>
 
                     {/* Update */}
-                    <Button
-                        variant="contained"
-                        disabled={isSaving}
+                    <AppButton
+                        type="primary"
+                        loading={isSaving}
                         onClick={handleUpdate}
-                        className="min-w-[140px]"
+                        sx={{ minWidth: "140px" }}
                     >
-                        {isSaving ? "Updating..." : "Update Supplier"}
-                    </Button>
+                        Update Supplier
+                    </AppButton>
 
-                </div>
+                    {/* Cancel */}
+                    <AppButton
+                        type="cancel"
+                        disabled={isSaving}
+                        onClick={() => setOpen(false)}
+                    >
+                        Cancel
+                    </AppButton>
+
+                </FormFooter>
 
             </div>
         </div>

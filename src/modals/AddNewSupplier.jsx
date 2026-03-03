@@ -13,6 +13,8 @@ import { sanitizePayload } from "../utils/sanitizePayload";
 import Chip from "@mui/material/Chip";
 import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AppButton from "../components/common/AppButton";
+import FormFooter from "../components/common/FormFooter";
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
@@ -209,7 +211,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
             </div>
 
             {/* Scrollable form content */}
-           <div className="px-6 py-4 flex-1 overflow-y-auto space-y-6">
+            <div className="px-6 py-4 flex-1 overflow-y-auto space-y-6">
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
@@ -522,90 +524,39 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
             </div>
 
             {/* Footer*/}
-            <div className="p-4 border-t flex justify-end gap-3 bg-gray-50 sticky bottom-0 z-20">
+            <FormFooter>
 
-              {/* Cancel */}
-              <button
+              {/* Save Supplier */}
+              <AppButton
+                type="primary"
+                loading={isSaving}
+                onClick={() => handleAddSupplier({ closeAfterSave: true })}
+              >
+                Save Supplier
+              </AppButton>
+
+              {/* Save & Add New */}
+              <AppButton
+                type="secondary"
+                loading={isSaving}
+                onClick={() => handleAddSupplier({ closeAfterSave: false })}
+              >
+                Save & Add New
+              </AppButton>
+
+               {/* Cancel */}
+              <AppButton
+                type="cancel"
                 disabled={isSaving}
                 onClick={() => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="p-2 md:px-4 md:py-2 border rounded-lg text-sm
-               text-gray-700 hover:bg-gray-100
-               disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
-              </button>
+              </AppButton>
 
-              {/* Save & Add New */}
-              <button
-                disabled={isSaving}
-                onClick={() => handleAddSupplier({ closeAfterSave: false })}
-                className="p-2 md:px-4 md:py-2 border border-blue-600 text-blue-600
-               rounded-lg text-sm hover:bg-blue-50
-               flex items-center gap-2
-               disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                      />
-                    </svg>
-                    Saving…
-                  </>
-                ) : (
-                  "Save & Add New"
-                )}
-              </button>
-
-              {/* Save Supplier */}
-              <button
-                disabled={isSaving}
-                onClick={() => handleAddSupplier({ closeAfterSave: true })}
-                className="p-2 md:px-4 md:py-2 bg-blue-600 text-white
-               rounded-lg text-sm hover:bg-blue-700
-               flex items-center gap-2
-               disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                      />
-                    </svg>
-                    Saving…
-                  </>
-                ) : (
-                  "Save Supplier"
-                )}
-              </button>
-            </div>
+            </FormFooter>
 
           </div>
         </div>

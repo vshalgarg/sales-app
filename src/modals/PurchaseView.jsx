@@ -6,6 +6,8 @@ import { useState } from "react";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
+import AppButton from "../components/common/AppButton";
+import FormFooter from "../components/common/FormFooter";
 
 const PurchaseView = ({ data, open, onClose }) => {
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -159,14 +161,18 @@ const PurchaseView = ({ data, open, onClose }) => {
                     </div>
 
                     {/* FOOTER*/}
-                    <div className="p-2 md:p-4 border-t border-gray-300 flex justify-end">
-                        <button
+                    <FormFooter background="bg-white">
+
+                        <AppButton
+                            type="primary"
                             onClick={onClose}
-                            className="px-4 py-2 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            sx={{ minWidth: "140px" }}
                         >
                             Close
-                        </button>
-                    </div>
+                        </AppButton>
+
+                    </FormFooter>
+
                 </div>
             </div>
 

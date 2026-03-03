@@ -81,7 +81,7 @@ const PurchaseHistory = ({
         label: "Amount",
         render: (r) =>
           r.purchaseAmount != null
-            ? `₹ ${Number(r.purchaseAmount).toFixed(2)}`
+            ? r.purchaseAmount
             : "-",
       },
     ],

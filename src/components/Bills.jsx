@@ -15,6 +15,7 @@ import BillDetail from "../modals/BillDetail";
 import EditBillDetail from "../modals/EditBillDetail";
 import { deleteBill } from "../service/BillService";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import AppButton from "./common/AppButton";
 
 
 
@@ -167,7 +168,7 @@ const Bills = () => {
 
           {/* Filters */}
           <div className="px-6 py-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
 
               {/* From Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -195,6 +196,11 @@ const Bills = () => {
                     textField: {
                       size: "small",
                       fullWidth: true,
+                      sx: {
+                        "& .MuiPickersSectionList-root": {
+                          fontSize: { xs: "12px", md: "16px" },
+                        },
+                      },
                     },
                   }}
                 />
@@ -222,87 +228,95 @@ const Bills = () => {
                     textField: {
                       size: "small",
                       fullWidth: true,
+                      sx: {
+                        "& .MuiPickersSectionList-root": {
+                          fontSize: { xs: "12px", md: "16px" },
+                        },
+                      },
                     },
                   }}
                 />
               </LocalizationProvider>
 
               {/* Supplier */}
-              <Autocomplete
-                options={allSuppliers}
-                loading={supplierLoading}
-                value={selectedSupplier}
-                isOptionEqualToValue={(option, value) =>
-                  option.id === value?.id
-                }
-                getOptionLabel={(option) =>
-                  option?.supplierName || ""
-                }
-                onChange={(e, value) => {
-                  setSelectedSupplier(value);
-                  setFilterObject(prev => ({
-                    ...prev,
-                    supplierId: value ? value.id : null,
-                  }));
-                }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Supplier"
-                    placeholder="Select supplier"
-                  />
-                )}
-              />
+              <div className="col-span-2 md:col-span-1">
+                <Autocomplete
+                  options={allSuppliers}
+                  loading={supplierLoading}
+                  value={selectedSupplier}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value?.id
+                  }
+                  getOptionLabel={(option) =>
+                    option?.supplierName || ""
+                  }
+                  onChange={(e, value) => {
+                    setSelectedSupplier(value);
+                    setFilterObject(prev => ({
+                      ...prev,
+                      supplierId: value ? value.id : null,
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}
+                      label="Supplier"
+                      placeholder="Select supplier"
+                    />
+                  )}
+                />
+              </div>
+
 
               {/* Customer */}
-              <Autocomplete
-                options={allCustomers}
-                loading={customerLoading}
-                value={selectedCustomer}
-                isOptionEqualToValue={(option, value) =>
-                  option.id === value?.id
-                }
-                getOptionLabel={(option) =>
-                  option?.customerName || ""
-                }
-                onChange={(e, value) => {
-                  setSelectedCustomer(value);
-                  setFilterObject(prev => ({
-                    ...prev,
-                    customerId: value ? value.id : null,
-                  }));
-                }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Customer"
-                    placeholder="Select customer"
-                  />
-                )}
-              />
+              <div className="col-span-2 md:col-span-1">
+
+                <Autocomplete
+                  options={allCustomers}
+                  loading={customerLoading}
+                  value={selectedCustomer}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value?.id
+                  }
+                  getOptionLabel={(option) =>
+                    option?.customerName || ""
+                  }
+                  onChange={(e, value) => {
+                    setSelectedCustomer(value);
+                    setFilterObject(prev => ({
+                      ...prev,
+                      customerId: value ? value.id : null,
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}
+                      label="Customer"
+                      placeholder="Select customer"
+                    />
+                  )}
+                />
+              </div>
             </div>
 
             {/* Actions */}
             <div className="mt-6 flex justify-end gap-3">
-              <button
+              <AppButton
+                type="secondary"
                 onClick={clearFiltersAndResults}
-                className=" px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm rounded-lg border text-gray-600
-                         hover:bg-gray-100 transition"
               >
                 Clear Filters
-              </button>
+              </AppButton>
 
-              <button
+              <AppButton
+                type="primary"
                 onClick={() => handleBillDetailHistory(1)}
                 disabled={!isAnyFilterSelected}
-                className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded-lg transition shadow-sm
-    ${isAnyFilterSelected
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
+                loading={loading}
               >
                 Apply Filters
-              </button>
+              </AppButton>
+
             </div>
           </div>
         </div>
@@ -360,7 +374,7 @@ const Bills = () => {
           <>
             Are you sure you want to delete bill{" "}
             <span className="font-semibold text-blue-600">
-              #{deleteBill?.billNumber}
+              #{billToDelete?.billNumber}
             </span>
             ? This action cannot be undone.
           </>
@@ -369,15 +383,14 @@ const Bills = () => {
         cancelText="Cancel"
         onClose={() => {
           setIsDeleteOpen(false);
-          setDeleteBill(null);
+          setBillToDelete(null);
         }}
         onConfirm={() => {
           confirmDelete();
           setIsDeleteOpen(false);
-          setDeleteBill(null);
+          setBillToDelete(null);
         }}
       />
-
 
     </>
   );

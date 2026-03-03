@@ -17,6 +17,8 @@ import validate from "../validations/Validation";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AppButton from "../components/common/AppButton";
+import FormFooter from "../components/common/FormFooter";
 
 const UpdateCustomerModal = ({
     customerId,
@@ -433,29 +435,27 @@ const UpdateCustomerModal = ({
                 )}
 
                 {/* FOOTER */}
-                <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
+                <FormFooter>
+                     {/* Update */}
+                    <AppButton
+                        type="primary"
+                        loading={isSaving}
+                        onClick={handleUpdate}
+                        sx={{ minWidth: "150px" }}
+                    >
+                        Update Customer
+                    </AppButton>
 
                     {/* Cancel */}
-                    <Button
-                        variant="outlined"
+                    <AppButton
+                        type="cancel"
                         disabled={isSaving}
                         onClick={() => setOpen(false)}
-                        className="min-w-[100px]"
                     >
                         Cancel
-                    </Button>
+                    </AppButton>
 
-                    {/* Update */}
-                    <Button
-                        variant="contained"
-                        disabled={isSaving}
-                        onClick={handleUpdate}
-                        className="min-w-[150px]"
-                    >
-                        {isSaving ? "Updating..." : "Update Customer"}
-                    </Button>
-
-                </div>
+                </FormFooter>
 
             </div>
         </div>
