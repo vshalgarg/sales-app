@@ -4,6 +4,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import dayjs from "dayjs";
 import { useState } from "react";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
 
 const PurchaseView = ({ data, open, onClose }) => {
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -31,7 +33,15 @@ const PurchaseView = ({ data, open, onClose }) => {
                 <div className="bg-white dark:bg-gray-900 w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
 
                     {/* HEADER*/}
-                    <div className="px-3 py-2 md:p-6 border-b border-gray-300 sticky top-0 bg-white z-10">
+                    <div className="px-4 md:px-6 py-3 md:py-6 border-b border-gray-300 flex items-center gap-3 sticky top-0 bg-white z-10">
+
+                        <IconButton
+                            onClick={onClose}
+                            className="md:hidden"
+                        >
+                            <ArrowBackIcon />
+                        </IconButton>
+
                         <h2 className="text-lg md:text-xl font-semibold">
                             Purchase Details
                         </h2>

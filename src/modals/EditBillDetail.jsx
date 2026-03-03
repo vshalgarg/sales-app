@@ -18,6 +18,8 @@ import MobileBillItemCard from "./MobileBillItemCard";
 import { nanoid } from "nanoid";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
 
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
@@ -132,17 +134,17 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   }, [selectedBillDetail, setFormData]);
 
   useEffect(() => {
-  if (open && selectedBillDetail) {
-    setExistingImages(
-      (selectedBillDetail.objectKeys || []).map((key, index) => ({
-        id: key,
-        key: key,
-        url: selectedBillDetail.publicUrls[index]
-      }))
-    );
-    setNewImages([]);
-  }
-}, [open]);
+    if (open && selectedBillDetail) {
+      setExistingImages(
+        (selectedBillDetail.objectKeys || []).map((key, index) => ({
+          id: key,
+          key: key,
+          url: selectedBillDetail.publicUrls[index]
+        }))
+      );
+      setNewImages([]);
+    }
+  }, [open]);
 
   // Recalculate totals live
   useEffect(() => {
@@ -269,8 +271,20 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             : "max-w-6xl max-h-[90vh] rounded-lg"}
   `}
       >
-        <div className="px-4 sm:px-6 py-4">
-          <h2 className="text-lg sm:text-2xl">Edit Bill Details</h2>
+        <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+
+          <IconButton
+            onClick={() => {
+              setOpen(false);
+            }}
+            className="md:hidden"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+
+          <h2 className="text-lg sm:text-2xl font-semibold">
+            Edit Bill Details
+          </h2>
         </div>
 
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">

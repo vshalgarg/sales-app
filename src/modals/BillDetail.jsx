@@ -4,6 +4,8 @@ import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useState } from "react";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
 
 const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
 
@@ -113,14 +115,18 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
         `}
         >
           {/* Header */}
-          <div className="px-4 sm:px-6 py-4 border-b flex justify-between items-center">
-            <h2 className="text-lg sm:text-2xl font-semibold">Bill Details</h2>
-            <button
+          <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+
+            <IconButton
               onClick={() => setIsModalOpen(false)}
-              className="text-2xl text-gray-500 hover:text-gray-700"
+              className="md:hidden"
             >
-              ×
-            </button>
+              <ArrowBackIcon />
+            </IconButton>
+
+            <h2 className="text-lg sm:text-2xl font-semibold">
+              Bill Details
+            </h2>
           </div>
 
           {/* Body */}
