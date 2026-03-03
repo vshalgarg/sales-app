@@ -11,6 +11,8 @@ import TransportService from "../service/TransportService";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -180,7 +182,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   return (
     <>
       {open && (
-       <div className="fixed inset-0 bg-black bg-opacity-80 z-50 
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 
                 flex md:items-center md:justify-center">
           <div className="bg-white w-full 
                 min-h-[100dvh]
@@ -506,69 +508,39 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t bg-gray-50 
-                flex justify-end gap-3 
-                sticky bottom-0 z-20">
+            <FormFooter>
+              {/* Save Customer */}
+              <AppButton
+                type="primary"
+                loading={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: true })}
+              >
+                Save Customer
+              </AppButton>
+
+              {/* Save & Add New */}
+              <AppButton
+                type="secondary"
+                loading={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: false })}
+              >
+                Save & Add New
+              </AppButton>
 
               {/* Cancel */}
-              <button
+              <AppButton
+                type="cancel"
                 disabled={isSaving}
                 onClick={() => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="p-2 md:px-4 md:py-2 border rounded-lg text-sm
-      hover:bg-gray-100
-      disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
-              </button>
+              </AppButton>
 
-              {/* Save & Add New */}
-              <button
-                disabled={isSaving}
-                onClick={() => handleAddCustomer({ closeAfterSave: false })}
-                className="p-2 md:px-4 md:py-2 border border-blue-600 text-blue-600
-      rounded-lg text-sm hover:bg-blue-50
-      flex items-center gap-2
-      disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
-                    Saving…
-                  </>
-                ) : (
-                  "Save & Add New"
-                )}
-              </button>
+            </FormFooter>
 
-              {/* Save Customer */}
-              <button
-                disabled={isSaving}
-                onClick={() => handleAddCustomer({ closeAfterSave: true })}
-                className="p-2 md:px-4 md:py-2 bg-blue-600 text-white
-      rounded-lg text-sm hover:bg-blue-700
-      flex items-center gap-2
-      disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
-                    Saving…
-                  </>
-                ) : (
-                  "Save Customer"
-                )}
-              </button>
-            </div>
           </div>
         </div>
       )}

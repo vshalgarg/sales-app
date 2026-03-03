@@ -12,6 +12,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import MenuItem from "@mui/material/MenuItem";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
+import AppButton from "../components/common/AppButton";
+import FormFooter from "../components/common/FormFooter";
 
 
 const PAYMENT_TYPES = [
@@ -306,28 +308,32 @@ const EditCreditDetail = ({
             value={formData.remark}
             onChange={handleChange}
             multiline
-            rows={3}
+            rows={2}
           />
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-4 border-t flex flex-col sm:flex-row justify-end gap-3">
-          <button
+        <FormFooter background="bg-white">
+
+          <AppButton
+            type="primary"
+            onClick={handleUpdate}
+            loading={saving}
+            sx={{ minWidth: "130px" }}
+          >
+            Update
+          </AppButton>
+
+          <AppButton
+            type="cancel"
             onClick={() => setOpen(false)}
             disabled={saving}
-            className="w-full sm:w-auto px-4 py-2 border rounded-lg"
           >
             Cancel
-          </button>
-          <button
-            onClick={handleUpdate}
-            disabled={saving}
-            className={`w-full sm:w-auto px-4 py-2 rounded-lg text-white
-            ${saving ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
-          >
-            {saving ? "Saving..." : "Update"}
-          </button>
-        </div>
+          </AppButton>
+
+        </FormFooter>
+
       </div>
     </div>
   );

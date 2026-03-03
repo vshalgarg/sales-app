@@ -13,6 +13,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import PurchaseHistory from "./PurchaseHistory";
 import EditPurchaseDetail from "../modals/EditPurchaseDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import AppButton from "./common/AppButton";
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
@@ -141,95 +142,111 @@ const Purchase = () => {
           </p>
         </div>
 
-        <div className="px-6 py-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="From Date"
-              format="DD-MM-YYYY"
-              value={filterObject.fromDate ? dayjs(filterObject.fromDate) : null}
-              maxDate={todayDayjs}
-              onChange={(v) => {
-                const d = v ? dayjs(v).format("YYYY-MM-DD") : "";
-                setFilterObject(p => ({
-                  ...p,
-                  fromDate: d,
-                  toDate: p.toDate && dayjs(p.toDate).isBefore(v) ? "" : p.toDate,
-                }));
-                setErrors(p => ({ ...p, fromDate: "" }));
-              }}
-              slotProps={{
-                textField: {
-                  size: "small",
-                  fullWidth: true,
-                },
-              }}
-            />
-          </LocalizationProvider>
+        <div className="px-6 py-5">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="From Date"
+                format="DD-MM-YYYY"
+                value={filterObject.fromDate ? dayjs(filterObject.fromDate) : null}
+                maxDate={todayDayjs}
+                onChange={(v) => {
+                  const d = v ? dayjs(v).format("YYYY-MM-DD") : "";
+                  setFilterObject(p => ({
+                    ...p,
+                    fromDate: d,
+                    toDate: p.toDate && dayjs(p.toDate).isBefore(v) ? "" : p.toDate,
+                  }));
+                  setErrors(p => ({ ...p, fromDate: "" }));
+                }}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                    sx: {
+                      "& .MuiPickersSectionList-root": {
+                        fontSize: { xs: "12px", md: "16px" },
+                      },
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider>
 
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="To Date"
-              format="DD-MM-YYYY"
-              value={filterObject.toDate ? dayjs(filterObject.toDate) : null}
-              minDate={filterObject.fromDate ? dayjs(filterObject.fromDate) : undefined}
-              maxDate={todayDayjs}
-              onChange={(v) =>
-                setFilterObject(p => ({
-                  ...p,
-                  toDate: v ? dayjs(v).format("YYYY-MM-DD") : "",
-                }))
-              }
-              slotProps={{
-                textField: {
-                  size: "small",
-                  fullWidth: true,
-                },
-              }}
-            />
-          </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="To Date"
+                format="DD-MM-YYYY"
+                value={filterObject.toDate ? dayjs(filterObject.toDate) : null}
+                minDate={filterObject.fromDate ? dayjs(filterObject.fromDate) : undefined}
+                maxDate={todayDayjs}
+                onChange={(v) =>
+                  setFilterObject(p => ({
+                    ...p,
+                    toDate: v ? dayjs(v).format("YYYY-MM-DD") : "",
+                  }))
+                }
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                    sx: {
+                      "& .MuiPickersSectionList-root": {
+                        fontSize: { xs: "12px", md: "16px" },
+                      },
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider>
 
-          <Autocomplete
-            options={allSuppliers}
-            value={selectedSupplier}
-            isOptionEqualToValue={(o, v) => o.id === v?.id}
-            getOptionLabel={(o) => o?.supplierName || ""}
-            onChange={(e, v) => {
-              setSelectedSupplier(v);
-              setFilterObject(p => ({ ...p, supplierId: v ? v.id : null }));
-            }}
-            renderInput={(p) => <CustomTextField {...p} label="Supplier" />}
-          />
+            <div className="col-span-2 md:col-span-1">
+              <Autocomplete
+                options={allSuppliers}
+                value={selectedSupplier}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) => o?.supplierName || ""}
+                onChange={(e, v) => {
+                  setSelectedSupplier(v);
+                  setFilterObject(p => ({ ...p, supplierId: v ? v.id : null }));
+                }}
+                renderInput={(p) => <CustomTextField {...p} label="Supplier" />}
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <Autocomplete
+                options={allCustomers}
+                value={selectedCustomer}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) => o?.customerName || ""}
+                onChange={(e, v) => {
+                  setSelectedCustomer(v);
+                  setFilterObject(p => ({ ...p, customerId: v ? v.id : null }));
+                }}
+                renderInput={(p) => <CustomTextField {...p} label="Customer" />}
+              />
+            </div>
 
-          <Autocomplete
-            options={allCustomers}
-            value={selectedCustomer}
-            isOptionEqualToValue={(o, v) => o.id === v?.id}
-            getOptionLabel={(o) => o?.customerName || ""}
-            onChange={(e, v) => {
-              setSelectedCustomer(v);
-              setFilterObject(p => ({ ...p, customerId: v ? v.id : null }));
-            }}
-            renderInput={(p) => <CustomTextField {...p} label="Customer" />}
-          />
+          </div>
         </div>
 
         <div className="px-6 pb-5 flex justify-end gap-3">
-          <button onClick={clearFiltersAndResults} className="px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm border rounded">
-            Clear Filters
-          </button>
 
-          <button
+          <AppButton
+            type="secondary"
+            onClick={clearFiltersAndResults}
+          >
+            Clear Filters
+          </AppButton>
+
+          <AppButton
+            type="primary"
             onClick={() => handlePurchaseHistory(1)}
             disabled={!isAnyFilterSelected}
-            className={`px-4 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm rounded
-      ${isAnyFilterSelected
-                ? "bg-blue-600 text-white"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }
-    `}
+            loading={loading}
           >
             Apply Filters
-          </button>
+          </AppButton>
 
         </div>
       </div>
@@ -260,7 +277,7 @@ const Purchase = () => {
       {isEditOpen && purchaseToEdit && (
         <EditPurchaseDetail
           open={isEditOpen}
-           purchaseId={purchaseToEdit}
+          purchaseId={purchaseToEdit}
           setOpen={setIsEditOpen}
           onUpdateSuccess={() => {
             setIsEditOpen(false);
@@ -275,11 +292,8 @@ const Purchase = () => {
         title="Delete Purchase"
         message={
           <>
-            Are you sure you want to delete purchase{" "}
-            <span className="font-medium text-blue-600">
-              #{purchaseToDelete?.id}
-            </span>
-            ? This action cannot be undone.
+            Are you sure you want to delete purchase,
+             This action cannot be undone.
           </>
         }
         confirmText="Delete"

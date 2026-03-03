@@ -1,6 +1,8 @@
 import { useEffect } from "react";
-import { IconButton } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
 
@@ -179,14 +181,17 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
           </div>
 
           {/* Footer Button */}
-          <div className="p-2 md:p-4 border-t boder-gray-300 flex justify-end space-x-3">
-            <button
+          <FormFooter>
+
+            <AppButton
+              type="cancel"
               onClick={() => setModalOpen(false)}
-              className="p-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Cancel
-            </button>
-          </div>
+            </AppButton>
+
+          </FormFooter>
+
         </div>
       </div>
     </>
