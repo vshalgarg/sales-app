@@ -9,13 +9,14 @@ import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
-import { nanoid } from "nanoid";
 import {
     updatePurchaseApi,
     getPurchaseDetailsById
 } from "../service/PurchaseService";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
 
 const EditPurchaseDetail = ({
     open,
@@ -196,7 +197,15 @@ const EditPurchaseDetail = ({
       "
             >
                 {/* Header */}
-                <div className="px-4 sm:px-6 py-4 border-b">
+                <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+
+                    <IconButton
+                        onClick={() => setOpen(false)}
+                        className="md:hidden"
+                    >
+                        <ArrowBackIcon />
+                    </IconButton>
+
                     <h2 className="text-lg sm:text-xl font-semibold">
                         Edit Purchase
                     </h2>
