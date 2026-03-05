@@ -10,6 +10,9 @@ import validate from "../validations/Validation";
 import TransportService from "../service/TransportService";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -179,15 +182,32 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   return (
     <>
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 md:flex md:items-center md:justify-center">
-          <div className="bg-white w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 
+                flex md:items-center md:justify-center">
+          <div className="bg-white w-full 
+                min-h-[100dvh]
+                md:max-w-4xl md:max-h-[90vh] 
+                md:rounded-lg shadow-lg 
+                flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">Add New Customer</h2>
+            <div className="p-4 md:p-6 border-b flex items-center gap-3">
+              <IconButton
+                onClick={() => {
+                  resetForm();
+                  setOpen(false);
+                }}
+                className="md:hidden"
+              >
+                <ArrowBackIcon />
+              </IconButton>
+
+              <h2 className="text-lg md:text-xl font-semibold">
+                Add New Customer
+              </h2>
             </div>
 
             {/* Scrollable form content */}
-            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
@@ -291,19 +311,35 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               <div>
                 <h3 className="text-lg font-medium mb-2">Contact Information</h3>
                 {form.contacts.map((contact, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-start"
-                  >
-                    <div className="md:col-span-4">
+                  <div key={index} className="mb-6">
+
+                    {/* Mobile Contact Card */}
+                    <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50">
+
+                      {/* Heading */}
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-semibold text-gray-700">
+                          Contact {index + 1}
+                        </h4>
+
+                        {index > 0 && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteContact(index)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
+
                       <CustomTextField
                         name="contactPerson"
                         value={contact.contactPerson}
                         onChange={(e) => handleContactChange(index, e)}
                         label="Contact Person"
                       />
-                    </div>
-                    <div className="md:col-span-4">
+
                       <CustomTextField
                         name="mobileNumber"
                         value={contact.mobileNumber}
@@ -313,11 +349,10 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                             handleContactChange(index, e);
                           }
                         }}
-                        label="MobileNo."
+                        label="Mobile No."
                         type="tel"
                       />
-                    </div>
-                    <div className="md:col-span-3">
+
                       <CustomTextField
                         name="type"
                         value={contact.type}
@@ -329,16 +364,58 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         label="Type"
                       />
                     </div>
-                    <div className="col-span-1 flex justify-center">
-                      {index > 0 && (
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => deleteContact(index)}
-                        >
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      )}
+
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-start">
+
+                      <div className="col-span-4">
+                        <CustomTextField
+                          name="contactPerson"
+                          value={contact.contactPerson}
+                          onChange={(e) => handleContactChange(index, e)}
+                          label="Contact Person"
+                        />
+                      </div>
+
+                      <div className="col-span-4">
+                        <CustomTextField
+                          name="mobileNumber"
+                          value={contact.mobileNumber}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[0-9-\s]*$/.test(value)) {
+                              handleContactChange(index, e);
+                            }
+                          }}
+                          label="Mobile No."
+                          type="tel"
+                        />
+                      </div>
+
+                      <div className="col-span-3">
+                        <CustomTextField
+                          name="type"
+                          value={contact.type}
+                          onChange={(e) => {
+                            if (/^[a-zA-Z _@#&()\-]*$/.test(e.target.value)) {
+                              handleContactChange(index, e);
+                            }
+                          }}
+                          label="Type"
+                        />
+                      </div>
+
+                      <div className="col-span-1 flex justify-center">
+                        {index > 0 && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteContact(index)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -431,67 +508,39 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t flex justify-end gap-3 bg-gray-50">
+            <FormFooter>
+              {/* Save Customer */}
+              <AppButton
+                type="primary"
+                loading={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: true })}
+              >
+                Save Customer
+              </AppButton>
+
+              {/* Save & Add New */}
+              <AppButton
+                type="secondary"
+                loading={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: false })}
+              >
+                Save & Add New
+              </AppButton>
 
               {/* Cancel */}
-              <button
+              <AppButton
+                type="cancel"
                 disabled={isSaving}
                 onClick={() => {
                   resetForm();
                   setOpen(false);
                 }}
-                className="p-2 md:px-4 md:py-2 border rounded-lg text-sm
-      hover:bg-gray-100
-      disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
-              </button>
+              </AppButton>
 
-              {/* Save & Add New */}
-              <button
-                disabled={isSaving}
-                onClick={() => handleAddCustomer({ closeAfterSave: false })}
-                className="p-2 md:px-4 md:py-2 border border-blue-600 text-blue-600
-      rounded-lg text-sm hover:bg-blue-50
-      flex items-center gap-2
-      disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
-                    Saving…
-                  </>
-                ) : (
-                  "Save & Add New"
-                )}
-              </button>
+            </FormFooter>
 
-              {/* Save Customer */}
-              <button
-                disabled={isSaving}
-                onClick={() => handleAddCustomer({ closeAfterSave: true })}
-                className="p-2 md:px-4 md:py-2 bg-blue-600 text-white
-      rounded-lg text-sm hover:bg-blue-700
-      flex items-center gap-2
-      disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
-                    Saving…
-                  </>
-                ) : (
-                  "Save Customer"
-                )}
-              </button>
-            </div>
           </div>
         </div>
       )}

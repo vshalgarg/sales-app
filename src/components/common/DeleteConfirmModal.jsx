@@ -1,3 +1,5 @@
+import AppButton from "./AppButton";
+
 const DeleteConfirmModal = ({
   open,
   title = "Delete",
@@ -24,19 +26,25 @@ const DeleteConfirmModal = ({
 
         {/* Actions */}
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-          <button
+
+          {/* Cancel */}
+          <AppButton
+            type="cancel"
+            fullWidth
             onClick={onClose}
-            className="w-full sm:w-auto px-4 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-100 transition"
           >
             {cancelText}
-          </button>
+          </AppButton>
 
-          <button
+          {/* Confirm / Delete */}
+          <AppButton
+            type="danger"
+            fullWidth
             onClick={onConfirm}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
           >
             {confirmText}
-          </button>
+          </AppButton>
+
         </div>
       </div>
     </div>

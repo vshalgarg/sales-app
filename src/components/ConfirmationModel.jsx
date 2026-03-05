@@ -57,7 +57,7 @@ const ConfirmationModal = ({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-60 transition-colors"
+            className="px-5 py-2.5 bg-gray-400 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-60 transition-colors"
           >
             {cancelText}
           </button>

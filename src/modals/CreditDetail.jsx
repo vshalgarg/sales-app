@@ -1,30 +1,34 @@
 import useResponsive from "../customHooks/useResponsive";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
+import AppButton from "../components/common/AppButton";
+import FormFooter from "../components/common/FormFooter";
 
 const CreditDetail = ({ selectedCreditDetail, setIsModalOpen }) => {
 
   const Section = ({ title, children }) => (
-  <div>
-    <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-      {title}
-    </h3>
-    {children}
-  </div>
-);
-
-const InfoGrid = ({ cols = "md:grid-cols-2", children }) => (
-  <div className={`grid grid-cols-1 ${cols} gap-4 sm:gap-6`}>
-    {children}
-  </div>
-);
-
-const Info = ({ label, value }) => (
-  <div>
-    <label className="block text-sm font-medium mb-1">{label}</label>
-    <div className="bg-gray-100 border rounded px-3 py-2 text-sm">
-      {value ?? "-"}
+    <div>
+      <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
+        {title}
+      </h3>
+      {children}
     </div>
-  </div>
-);
+  );
+
+  const InfoGrid = ({ cols = "md:grid-cols-2", children }) => (
+    <div className={`grid grid-cols-1 ${cols} gap-4 sm:gap-6`}>
+      {children}
+    </div>
+  );
+
+  const Info = ({ label, value }) => (
+    <div>
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <div className="bg-gray-100 border rounded px-3 py-2 text-sm">
+        {value ?? "-"}
+      </div>
+    </div>
+  );
 
   if (!selectedCreditDetail) return null;
 
@@ -40,16 +44,18 @@ const Info = ({ label, value }) => (
         `}
       >
         {/* Header */}
-        <div className="px-4 sm:px-6 py-4 border-b flex justify-between items-center">
+        <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+
+          <IconButton
+            onClick={() => setIsModalOpen(false)}
+            className="md:hidden"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+
           <h2 className="text-lg sm:text-2xl font-semibold">
             Credit Details
           </h2>
-          <button
-            onClick={() => setIsModalOpen(false)}
-            className="text-2xl text-gray-500 hover:text-gray-700"
-          >
-            ×
-          </button>
         </div>
 
         {/* Body */}
@@ -101,14 +107,18 @@ const Info = ({ label, value }) => (
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-4 border-t flex justify-end sticky bottom-0 bg-white">
-          <button
+        <FormFooter background="bg-white">
+
+          <AppButton
+            type="primary"
             onClick={() => setIsModalOpen(false)}
-            className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            sx={{ minWidth: "130px" }}
           >
             Close
-          </button>
-        </div>
+          </AppButton>
+
+        </FormFooter>
+
       </div>
     </div>
   );

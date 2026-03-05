@@ -9,13 +9,16 @@ import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
-import { nanoid } from "nanoid";
 import {
     updatePurchaseApi,
     getPurchaseDetailsById
 } from "../service/PurchaseService";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 const EditPurchaseDetail = ({
     open,
@@ -196,7 +199,15 @@ const EditPurchaseDetail = ({
       "
             >
                 {/* Header */}
-                <div className="px-4 sm:px-6 py-4 border-b">
+                <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+
+                    <IconButton
+                        onClick={() => setOpen(false)}
+                        className="md:hidden"
+                    >
+                        <ArrowBackIcon />
+                    </IconButton>
+
                     <h2 className="text-lg sm:text-xl font-semibold">
                         Edit Purchase
                     </h2>
@@ -407,22 +418,26 @@ const EditPurchaseDetail = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 sm:px-6 py-4 border-t flex flex-col sm:flex-row gap-3 sm:justify-end">
-                    <button
+                <FormFooter background="bg-white">
+
+                    <AppButton
+                        type="primary"
+                        onClick={handleUpdate}
+                        loading={saving}
+                        sx={{ minWidth: "140px" }}
+                    >
+                        Update
+                    </AppButton>
+
+                      <AppButton
+                        type="cancel"
                         onClick={() => setOpen(false)}
-                        className="px-4 py-2 border rounded-lg"
                     >
                         Cancel
-                    </button>
+                    </AppButton>
 
-                    <button
-                        onClick={handleUpdate}
-                        disabled={saving}
-                        className="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white"
-                    >
-                        {saving ? "Saving..." : "Update"}
-                    </button>
-                </div>
+                </FormFooter>
+
             </div>
         </div>
     );

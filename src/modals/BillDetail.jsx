@@ -4,6 +4,10 @@ import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useState } from "react";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
 
@@ -113,14 +117,18 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
         `}
         >
           {/* Header */}
-          <div className="px-4 sm:px-6 py-4 border-b flex justify-between items-center">
-            <h2 className="text-lg sm:text-2xl font-semibold">Bill Details</h2>
-            <button
+          <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+
+            <IconButton
               onClick={() => setIsModalOpen(false)}
-              className="text-2xl text-gray-500 hover:text-gray-700"
+              className="md:hidden"
             >
-              ×
-            </button>
+              <ArrowBackIcon />
+            </IconButton>
+
+            <h2 className="text-lg sm:text-2xl font-semibold">
+              Bill Details
+            </h2>
           </div>
 
           {/* Body */}
@@ -239,14 +247,18 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
           </div>
 
           {/* Footer */}
-          <div className="px-4 sm:px-6 py-4 border-t flex justify-end sticky bottom-0 bg-white">
-            <button
+          <FormFooter background="bg-white">
+
+            <AppButton
+              type="primary"
               onClick={() => setIsModalOpen(false)}
-              className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              sx={{ minWidth: "140px" }}
             >
               Close
-            </button>
-          </div>
+            </AppButton>
+
+          </FormFooter>
+
         </div>
       </div>
       <ImagePreviewDialog

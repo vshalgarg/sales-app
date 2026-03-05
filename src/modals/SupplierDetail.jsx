@@ -1,12 +1,28 @@
+import { IconButton } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
+
 const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:flex md:items-center md:justify-center">
         <div className="bg-white dark:bg-gray-900 w-full h-screen md:max-w-4xl md:max-h-[90vh]  md:rounded-lg shadow-lg flex flex-col">
-          <div className="px-3 py-2 md:p-6 border-b border-gray-300 sticky top-0 bg-white z-10">
+          <div className="px-3 py-2 md:p-6 border-b border-gray-300 sticky top-0 bg-white z-10 flex items-center gap-3">
+
+            {/*Back Button */}
+            <IconButton
+              onClick={() => setIsModalOpen(false)}
+              className="md:hidden"
+              size="small"
+            >
+              <ArrowBackIcon />
+            </IconButton>
+
             <h2 className="text-lg md:text-xl font-semibold">
               Supplier Details
             </h2>
+
           </div>
 
           <div className="px-6 py-2 md:py-4 overflow-y-auto flex-1 space-y-4 md:space-y-6">
@@ -40,13 +56,13 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
                 </div>
               </div>
 
-               <div>
+              <div>
                 <label className="block text-sm font-medium mb-1">MSME</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
                   {selectedSupplier.supplierMsme}
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Email
@@ -191,16 +207,20 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
               </div>
             </div>
 
-            {/* Footer Button */}
           </div>
-          <div className="p-2 md:p-4 border-t border-gray-300 flex md:justify-end justify-end">
-            <button
+
+          {/* Footer Button */}
+          <FormFooter>
+
+            <AppButton
+              type="cancel"
               onClick={() => setIsModalOpen(false)}
-              className="p-2 md:px-4 md:py-2 text-sm md:text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Cancel
-            </button>
-          </div>
+            </AppButton>
+
+          </FormFooter>
+
         </div>
       </div>
     </>

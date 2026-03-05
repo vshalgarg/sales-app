@@ -18,6 +18,10 @@ import MobileBillItemCard from "./MobileBillItemCard";
 import { nanoid } from "nanoid";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { IconButton } from "@mui/material";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
@@ -55,6 +59,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
   const [items, setItems] = useState([]);
   const { isMobile } = useResponsive();
+  const lastItemRef = useRef(null);
+  const [itemAdded, setItemAdded] = useState(false);
 
 
 
@@ -82,6 +88,16 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
     loadMasterData();
   }, []);
+
+  useEffect(() => {
+    if (isMobile && itemAdded && lastItemRef.current) {
+      lastItemRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      setItemAdded(false);
+    }
+  }, [items.length, itemAdded, isMobile]);
 
   useEffect(() => {
     if (!selectedBillDetail) return;
@@ -132,17 +148,17 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   }, [selectedBillDetail, setFormData]);
 
   useEffect(() => {
-  if (open && selectedBillDetail) {
-    setExistingImages(
-      (selectedBillDetail.objectKeys || []).map((key, index) => ({
-        id: key,
-        key: key,
-        url: selectedBillDetail.publicUrls[index]
-      }))
-    );
-    setNewImages([]);
-  }
-}, [open]);
+    if (open && selectedBillDetail) {
+      setExistingImages(
+        (selectedBillDetail.objectKeys || []).map((key, index) => ({
+          id: key,
+          key: key,
+          url: selectedBillDetail.publicUrls[index]
+        }))
+      );
+      setNewImages([]);
+    }
+  }, [open]);
 
   // Recalculate totals live
   useEffect(() => {
@@ -269,8 +285,20 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             : "max-w-6xl max-h-[90vh] rounded-lg"}
   `}
       >
-        <div className="px-4 sm:px-6 py-4">
-          <h2 className="text-lg sm:text-2xl">Edit Bill Details</h2>
+        <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+
+          <IconButton
+            onClick={() => {
+              setOpen(false);
+            }}
+            className="md:hidden"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+
+          <h2 className="text-lg sm:text-2xl font-semibold">
+            Edit Bill Details
+          </h2>
         </div>
 
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
@@ -491,6 +519,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                     gstPercent: "",
                     gstAmount: "0.00",
                   }]);
+                  setItemAdded(true);
                 }}
                 className="px-2 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
               >
@@ -510,19 +539,23 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                   </p>
                 ) : (
                   items.map((item, index) => (
-                    <MobileBillItemCard
+                    <div
                       key={item.id}
-                      item={item}
-                      index={index}
-                      onChange={handleItemChange}
-                      onDelete={(i) => {
-                        if (items.length > 1) {
-                          setItems(items.filter((_, idx) => idx !== i));
-                        } else {
-                          showSnackbar("At least one item is required", "warning");
-                        }
-                      }}
-                    />
+                      ref={index === items.length - 1 ? lastItemRef : null}
+                    >
+                      <MobileBillItemCard
+                        item={item}
+                        index={index}
+                        onChange={handleItemChange}
+                        onDelete={(i) => {
+                          if (items.length > 1) {
+                            setItems(items.filter((_, idx) => idx !== i));
+                          } else {
+                            showSnackbar("At least one item is required", "warning");
+                          }
+                        }}
+                      />
+                    </div>
                   ))
                 )}
               </div>
@@ -841,32 +874,29 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
         </div>
 
         {/* --- Footer --- */}
-        <div
-          className="
-    px-4 py-4 border-t bg-white
-    flex flex-col sm:flex-row
-    gap-3 sm:justify-end
-    sticky bottom-0
-  "
-        >
+        <FormFooter background="bg-white">
 
-          <button
+          {/* Save Changes */}
+          <AppButton
+            type="primary"
+            onClick={handleUpdate}
+          >
+            Save Changes
+          </AppButton>
+
+          {/* Cancel */}
+          <AppButton
+            type="cancel"
             onClick={() => {
               localStorage.removeItem("billFormData");
               localStorage.removeItem("billFormErrors");
               setOpen(false);
             }}
-            className="px-4 py-2 sm:w-auto bg-gray-400 text-white rounded-lg hover:bg-gray-500"
           >
             Cancel
-          </button>
-          <button
-            onClick={handleUpdate}
-            className="px-4 py-2 sm:w-auto bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Save Changes
-          </button>
-        </div>
+          </AppButton>
+
+        </FormFooter>
 
         {/* Simple Custom Confirmation Popup */}
         {showConfirmPopup && (

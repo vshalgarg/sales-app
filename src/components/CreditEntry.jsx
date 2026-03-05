@@ -305,27 +305,27 @@ export default function CreditEntryForm() {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
-      <div className="bg-gray-50 w-full h-[91vh] flex flex-col">
+      <div className="bg-gray-50 w-full h-[91vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
         {/* Header */}
-        <div className="px-6 py-3 border-b border-gray-200 shrink-0
-                bg-gray-50">
-          <div className="flex items-center justify-between">
-
-            {/* Title Section */}
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
-                Credit Entry
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Record and manage all credit transactions and payments
-              </p>
-            </div>
-          </div>
+        <div className="
+  px-4 sm:px-6 py-3 
+  border-b border-gray-200 
+  shrink-0 
+  bg-gradient-to-r from-gray-50 to-white
+  sticky top-0 z-20
+">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+            Credit Entry
+          </h2>
+          <p className="text-sm sm:text-sm text-gray-500 mt-1">
+            Record and manage all credit transactions and payments
+          </p>
         </div>
-        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+
+        <div className="flex-1 overflow-y-auto p-3 sm:px-8 sm:py-6 space-y-6">
 
           {/* Party Information Card */}
-          <div className="border border-gray-200 p-4 rounded-xl bg-white">
+          <div className="border border-gray-200 p-4 sm:p-6 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <div className="flex items-start mb-5">
               <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
               <div>
@@ -572,87 +572,28 @@ export default function CreditEntryForm() {
         </div>
 
         {/* Footer */}
-        <div
-          className="
-    px-4 sm:px-8 py-4
-    border-t border-gray-200 bg-white
-    flex flex-col sm:flex-row
-    gap-4 sm:gap-0
-    sm:items-center sm:justify-between
-    shrink-0 sticky bottom-0 z-10 shadow-md
-  "
-        >
+        <div className="px-4 sm:px-8 py-3 border-t border-gray-200 bg-white shrink-0 shadow-sm">
 
-          {/* Left side – helper text */}
-          <p className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
-            Please review all details before saving the credit entry.
-          </p>
+          <div className="flex items-center justify-end gap-3">
 
-          {/* Right side – actions */}
-          <div className="flex items-center space-x-3">
-            {/* Reset */}
             <button
               onClick={handleReset}
               type="button"
-              className="
-        w-full sm:w-auto
-        px-4 sm:px-5 py-2.5
-        text-sm font-medium text-gray-600
-        border border-gray-300 rounded-lg
-        hover:bg-gray-100 hover:text-gray-800
-        transition-all duration-200
-      "
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
             >
               Reset
             </button>
 
-            {/* Save */}
             <button
               onClick={handleSubmit}
               type="button"
-              className="
-        w-full sm:w-auto
-        px-5 sm:px-6 py-2.5
-        text-sm font-semibold text-white
-        rounded-lg
-        bg-gradient-to-r from-blue-600 to-blue-700
-        hover:from-blue-700 hover:to-blue-800
-        shadow-md hover:shadow-lg
-        transition-all duration-200
-        flex items-center justify-center gap-2
-      "
+              className="px-5 py-2 text-sm font-semibold text-white rounded-lg bg-blue-600 hover:bg-blue-700 shadow-md"
             >
-              {isSaving ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4 text-white"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    />
-                  </svg>
-                  Saving...
-                </>
-              ) : (
-                "Save"
-              )}
+              {isSaving ? "Saving..." : "Save"}
             </button>
 
           </div>
         </div>
-
 
       </div>
     </div>

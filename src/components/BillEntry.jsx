@@ -14,6 +14,8 @@ import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import TransportService from "../service/TransportService";
 import ImageUploader from "./common/ImageUploader";
+import { IconButton } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const BillEntry = () => {
   const {
@@ -618,7 +620,7 @@ const BillEntry = () => {
           <div className="flex justify-end">
             <button
               onClick={() => setIsAddItemModalOpen(true)}
-              className="px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02] flex items-center gap-2"
+              className="px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02] flex items-center gap-2"
             >
               <svg
                 className="w-3 h-3"
@@ -916,31 +918,35 @@ const BillEntry = () => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-4 shrink-0 bg-gray-50">
-          <button
-            onClick={handleResetForm}
-            disabled={isSaving}
-            className={`px-3 py-2 rounded-lg border font-medium shadow-sm
-    ${isSaving
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-              }`}
-          >
-            Reset Form
-          </button>
+        <div className="px-4 sm:px-6 py-3 border-t border-gray-200 bg-gray-50 shrink-0">
 
-          <button
-            onClick={handleOpenConfirm}
-            type="button"
-            disabled={isSaving}
-            className={`px-3 py-2 rounded-lg font-medium shadow-lg transition-all duration-200
-    ${isSaving
-                ? "bg-gray-400 cursor-not-allowed text-white"
-                : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02]"
-              }`}
-          >
-            {isSaving ? "Saving..." : "Save Bill"}
-          </button>
+          <div className="flex items-center justify-end gap-3">
+
+            <button
+              onClick={handleResetForm}
+              disabled={isSaving}
+              className={`px-4 py-2 rounded-lg border text-sm font-medium shadow-sm
+        ${isSaving
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+            >
+              Reset
+            </button>
+
+            <button
+              onClick={handleOpenConfirm}
+              disabled={isSaving}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold shadow-md
+        ${isSaving
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+            >
+              {isSaving ? "Saving..." : "Save Bill"}
+            </button>
+
+          </div>
         </div>
 
         {/* Confirmation Modal*/}
@@ -958,21 +964,26 @@ const BillEntry = () => {
 
         {/* Add Item Modal*/}
         {isAddItemModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center z-50">
             <div
-              className="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-4 p-6 relative overflow-y-auto"
-              style={{ maxHeight: "80vh" }}
+              className="bg-white w-full h-full md:h-auto md:max-h-[80vh] md:max-w-4xl md:rounded-lg relative overflow-y-auto"
             >
-              <button
-                onClick={handleAddItemModalClose}
-                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-semibold"
-              >
-                ×
-              </button>
 
-              <h2 className="text-xl font-semibold text-gray-700 mb-5">
-                {isEditing ? "Edit Bill Item" : "Add Bill Item"}
-              </h2>
+              <div className="flex items-center px-4 py-3 border-b border-gray-200 sticky top-0 bg-white z-10">
+
+                <IconButton
+                  onClick={handleAddItemModalClose}
+                  size="small"
+                  className="mr-2"
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+
+                <h2 className="text-base font-semibold text-gray-800">
+                  {isEditing ? "Edit Bill Item" : "Add Bill Item"}
+                </h2>
+
+              </div>
 
               {/* MODAL CONTENT*/}
               <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">

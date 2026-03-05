@@ -6,9 +6,11 @@ import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
 import CustomTextField from "../components/CustomTextField";
-import BasicSelect from "../components/BasicSelect";
-import { INDIAN_STATES } from "../constants/states";
 import StateAutocomplete from "../components/common/StateAutocomplete";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AppButton from "../components/common/AppButton";
+import FormFooter from "../components/common/FormFooter";
+
 
 export default function AddNewTransport({
   open,
@@ -162,18 +164,33 @@ export default function AddNewTransport({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 md:flex md:items-center md:justify-center">
-      <div className="bg-white w-full h-screen md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+    <div className="fixed inset-0 bg-black/80 z-50 
+                flex md:items-center md:justify-center">
+      <div className="bg-white w-full 
+                min-h-[100dvh]
+                md:max-w-4xl md:max-h-[90vh] 
+                md:rounded-lg shadow-lg 
+                flex flex-col">
 
         {/* HEADER */}
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">
+        <div className="p-4 md:p-6 border-b flex items-center gap-3">
+          <IconButton
+            onClick={() => {
+              resetForm();
+              setOpen(false);
+            }}
+            className="md:hidden"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+
+          <h2 className="text-lg md:text-xl font-semibold">
             {editingTransport ? "Edit Transport" : "Add New Transport"}
           </h2>
         </div>
 
         {/* BODY */}
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-8">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8">
 
           {/* ===== BASIC INFORMATION ===== */}
           <section>
@@ -208,12 +225,12 @@ export default function AddNewTransport({
                 onChange={handleChange}
               />
 
-               <StateAutocomplete
-                    value={formData.state}
-                    onChange={(val) =>
-                      setFormData((prev) => ({ ...prev, state: val }))
-                    }
-                  />
+              <StateAutocomplete
+                value={formData.state}
+                onChange={(val) =>
+                  setFormData((prev) => ({ ...prev, state: val }))
+                }
+              />
 
               <CustomTextField label="City"
                 name="city"
@@ -237,31 +254,96 @@ export default function AddNewTransport({
             </h3>
 
             {formData.contacts.map((c, index) => (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-                <div className="md:col-span-4">
+              <div key={index} className="mb-6">
+
+                {/* Mobile Contact Card */}
+                <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50">
+
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-semibold text-gray-700">
+                      Contact {index + 1}
+                    </h4>
+
+                    {index > 0 && (
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => removeContact(index)}
+                      >
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </div>
+
                   <CustomTextField
                     label="Contact Person"
                     value={c.contactPerson}
-                    onChange={(e) => handleContactChange(index, "contactPerson", e.target.value)}
+                    onChange={(e) =>
+                      handleContactChange(index, "contactPerson", e.target.value)
+                    }
                   />
-                </div>
 
-                <div className="md:col-span-4">
                   <CustomTextField
                     label="Contact Number"
                     value={c.contactNumber}
-                    onChange={(e) => /^[0-9-\s]*$/.test(e.target.value) && handleContactChange(index, "contactNumber", e.target.value)}
+                    onChange={(e) =>
+                      /^[0-9-\s]*$/.test(e.target.value) &&
+                      handleContactChange(index, "contactNumber", e.target.value)
+                    }
+                  />
+
+                  <CustomTextField
+                    label="Type"
+                    value={c.type}
+                    onChange={(e) =>
+                      handleContactChange(index, "type", e.target.value)
+                    }
                   />
                 </div>
-                <div className="md:col-span-3">
-                  <CustomTextField label="Type" value={c.type} onChange={(e) => handleContactChange(index, "type", e.target.value)} />
-                </div>
-                <div className="md:col-span-1 flex justify-center">
-                  {index > 0 && (
-                    <IconButton color="error" onClick={() => removeContact(index)}>
-                      <DeleteOutlineIcon />
-                    </IconButton>
-                  )}
+
+                {/* Desktop Layout*/}
+                <div className="hidden md:grid grid-cols-12 gap-4 items-start">
+                  <div className="col-span-4">
+                    <CustomTextField
+                      label="Contact Person"
+                      value={c.contactPerson}
+                      onChange={(e) =>
+                        handleContactChange(index, "contactPerson", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div className="col-span-4">
+                    <CustomTextField
+                      label="Contact Number"
+                      value={c.contactNumber}
+                      onChange={(e) =>
+                        /^[0-9-\s]*$/.test(e.target.value) &&
+                        handleContactChange(index, "contactNumber", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div className="col-span-3">
+                    <CustomTextField
+                      label="Type"
+                      value={c.type}
+                      onChange={(e) =>
+                        handleContactChange(index, "type", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div className="col-span-1 flex justify-center">
+                    {index > 0 && (
+                      <IconButton
+                        color="error"
+                        onClick={() => removeContact(index)}
+                      >
+                        <DeleteOutlineIcon />
+                      </IconButton>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -273,23 +355,36 @@ export default function AddNewTransport({
         </div>
 
         {/* FOOTER */}
-        <div className="p-4 border-t flex justify-end gap-3">
-          <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border rounded-lg">
-            Cancel
-          </button>
+        <FormFooter background="bg-white">
 
+          {/* Save / Update */}
+          <AppButton
+            type="primary"
+            onClick={() => handleSubmit({ closeAfterSave: true })}
+          >
+            {editingTransport ? "Update Transport" : "Save Transport"}
+          </AppButton>
+
+          {/* Save & Add New (only when adding) */}
           {!editingTransport && (
-            <button onClick={() => handleSubmit({ closeAfterSave: false })}
-              className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm border border-blue-600 text-blue-600 rounded-lg">
+            <AppButton
+              type="secondary"
+              onClick={() => handleSubmit({ closeAfterSave: false })}
+            >
               Save & Add New
-            </button>
+            </AppButton>
           )}
 
-          <button onClick={() => handleSubmit({ closeAfterSave: true })}
-            className="px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm bg-blue-600 text-white rounded-lg">
-            {editingTransport ? "Update Transport" : "Save Transport"}
-          </button>
-        </div>
+          {/* Cancel */}
+          <AppButton
+            type="cancel"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </AppButton>
+
+        </FormFooter>
+
       </div>
     </div>
   );

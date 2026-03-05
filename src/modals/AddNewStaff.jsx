@@ -9,6 +9,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { sanitizePayload } from "../utils/sanitizePayload";
+import FormFooter from "../components/common/FormFooter";
+import AppButton from "../components/common/AppButton";
 
 export default function AddNewStaff({
   open,
@@ -156,66 +158,39 @@ export default function AddNewStaff({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t flex justify-end gap-3 bg-gray-50">
+        <FormFooter>
+
+          {/* Save Staff */}
+          <AppButton
+            type="primary"
+            loading={isSaving}
+            onClick={() => handleAddStaff({ closeAfterSave: true })}
+          >
+            Save Staff
+          </AppButton>
+
+          {/* Save & Add New */}
+          <AppButton
+            type="secondary"
+            loading={isSaving}
+            onClick={() => handleAddStaff({ closeAfterSave: false })}
+          >
+            Save & Add New
+          </AppButton>
 
           {/* Cancel */}
-          <button
+          <AppButton
+            type="cancel"
             disabled={isSaving}
             onClick={() => {
               resetForm();
               setOpen(false);
             }}
-            className="px-2 py-1 md:px-4 md:py-2 border rounded-lg text-sm
-              hover:bg-gray-100
-              disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
-          </button>
+          </AppButton>
 
-          {/* Save & Add New */}
-          <button
-            disabled={isSaving}
-            onClick={() => handleAddStaff({ closeAfterSave: false })}
-            className="px-2 py-1 md:px-4 md:py-2 border border-blue-600 text-blue-600
-              rounded-lg text-sm hover:bg-blue-50
-              flex items-center gap-2
-              disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
-                Saving…
-              </>
-            ) : (
-              "Save & Add New"
-            )}
-          </button>
-
-          {/* Save Staff */}
-          <button
-            disabled={isSaving}
-            onClick={() => handleAddStaff({ closeAfterSave: true })}
-            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white
-              rounded-lg text-sm hover:bg-blue-700
-              flex items-center gap-2
-              disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
-                Saving…
-              </>
-            ) : (
-              "Save Staff"
-            )}
-          </button>
-        </div>
+        </FormFooter>
 
       </div>
     </div>
