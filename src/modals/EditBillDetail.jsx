@@ -60,6 +60,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   const [items, setItems] = useState([]);
   const { isMobile } = useResponsive();
   const lastItemRef = useRef(null);
+  const [itemAdded, setItemAdded] = useState(false);
 
 
 
@@ -89,13 +90,14 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   }, []);
 
   useEffect(() => {
-    if (isMobile && lastItemRef.current) {
+    if (isMobile && itemAdded && lastItemRef.current) {
       lastItemRef.current.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
+      setItemAdded(false);
     }
-  }, [items.length]);
+  }, [items.length, itemAdded, isMobile]);
 
   useEffect(() => {
     if (!selectedBillDetail) return;
@@ -517,6 +519,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                     gstPercent: "",
                     gstAmount: "0.00",
                   }]);
+                  setItemAdded(true);
                 }}
                 className="px-2 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
               >
