@@ -71,13 +71,13 @@ export default function AddNewStaff({
       const payload = sanitizePayload(form);
       let response;
 
-    if (isEdit) {
-      response = await updateStaff(staffId, payload);
-      showSnackbar("Staff updated successfully", "success");
-    } else {
-      response = await saveStaff(payload);
-      showSnackbar("Staff added successfully", "success");
-    }
+      if (isEdit) {
+        response = await updateStaff(staffId, payload);
+        showSnackbar("Staff updated successfully", "success");
+      } else {
+        response = await saveStaff(payload);
+        showSnackbar("Staff added successfully", "success");
+      }
 
       fetchStaffs();
       resetForm();
@@ -174,13 +174,15 @@ export default function AddNewStaff({
           </AppButton>
 
           {/* Save & Add New */}
-          <AppButton
-            type="secondary"
-            loading={isSaving}
-            onClick={() => handleSaveStaff({ closeAfterSave: false })}
-          >
-            Save & Add New
-          </AppButton>
+          {!isEdit && (
+            <AppButton
+              type="secondary"
+              loading={isSaving}
+              onClick={() => handleSaveStaff({ closeAfterSave: false })}
+            >
+              Save & Add New
+            </AppButton>
+          )}
 
           {/* Cancel */}
           <AppButton
