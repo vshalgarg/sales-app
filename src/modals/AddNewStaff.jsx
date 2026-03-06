@@ -1,7 +1,7 @@
 import CustomTextField from "../components/CustomTextField";
 import validate from "../validations/Validation";
 import { useState, useEffect } from "react";
-import { saveStaff } from "../service/StaffService";
+import { saveStaff, updateStaff } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -18,6 +18,8 @@ export default function AddNewStaff({
   form,
   setForm,
   fetchStaffs,
+  isEdit = false,
+  staffId = null
 }) {
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -48,7 +50,7 @@ export default function AddNewStaff({
   };
 
   // ---------- SUBMIT----------
-  const handleAddStaff = async ({ closeAfterSave }) => {
+  const handleSaveStaff = async ({ closeAfterSave }) => {
     if (isSaving) return;
 
     const newErrors = {
@@ -67,14 +69,16 @@ export default function AddNewStaff({
       setIsSaving(true);
 
       const payload = sanitizePayload(form);
-      const response = await saveStaff(payload);
+      let response;
 
-      if (response?.code && response?.message) {
-        showSnackbar(response.message, "error");
-        return;
-      }
-
+    if (isEdit) {
+      response = await updateStaff(staffId, payload);
+      showSnackbar("Staff updated successfully", "success");
+    } else {
+      response = await saveStaff(payload);
       showSnackbar("Staff added successfully", "success");
+    }
+
       fetchStaffs();
       resetForm();
 
@@ -96,7 +100,7 @@ export default function AddNewStaff({
         {/* Header */}
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
-            Add New Staff
+            {isEdit ? "Edit Staff" : "Add New Staff"}
           </h2>
         </div>
 
@@ -164,16 +168,16 @@ export default function AddNewStaff({
           <AppButton
             type="primary"
             loading={isSaving}
-            onClick={() => handleAddStaff({ closeAfterSave: true })}
+            onClick={() => handleSaveStaff({ closeAfterSave: true })}
           >
-            Save Staff
+            {isEdit ? "Update Staff" : "Save Staff"}
           </AppButton>
 
           {/* Save & Add New */}
           <AppButton
             type="secondary"
             loading={isSaving}
-            onClick={() => handleAddStaff({ closeAfterSave: false })}
+            onClick={() => handleSaveStaff({ closeAfterSave: false })}
           >
             Save & Add New
           </AppButton>

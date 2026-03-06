@@ -16,7 +16,7 @@ import EditBillDetail from "../modals/EditBillDetail";
 import { deleteBill } from "../service/BillService";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
-
+import GenericAutocomplete from "./common/GenericAutocomplete";
 
 
 const Bills = () => {
@@ -61,9 +61,18 @@ const Bills = () => {
           SupplierService.getAllSuppliers(),
           CustomerService.getAllCustomers(),
         ]);
+        const supplierOptions = (suppliers || []).map((s) => ({
+          id: s.id,
+          label: s.supplierName,
+        }));
 
-        setAllSuppliers(suppliers || []);
-        setAllCustomers(customers || []);
+        const customerOptions = (customers || []).map((c) => ({
+          id: c.id,
+          label: c.customerName,
+        }));
+
+        setAllSuppliers(supplierOptions || []);
+        setAllCustomers(customerOptions || []);
       } catch {
         showSnackbar("Error loading suppliers/customers", "error");
       } finally {
@@ -143,7 +152,6 @@ const Bills = () => {
     setBillToDelete(row);
     setIsDeleteOpen(true);
   };
-
 
   const isAnyFilterSelected =
     !!filterObject.fromDate ||
@@ -240,61 +248,37 @@ const Bills = () => {
 
               {/* Supplier */}
               <div className="col-span-2 md:col-span-1">
-                <Autocomplete
+                <GenericAutocomplete
                   options={allSuppliers}
-                  loading={supplierLoading}
                   value={selectedSupplier}
-                  isOptionEqualToValue={(option, value) =>
-                    option.id === value?.id
-                  }
-                  getOptionLabel={(option) =>
-                    option?.supplierName || ""
-                  }
-                  onChange={(e, value) => {
+                  loading={supplierLoading}
+                  label="Supplier"
+                  placeholder="Select supplier"
+                  onChange={(value) => {
                     setSelectedSupplier(value);
-                    setFilterObject(prev => ({
+                    setFilterObject((prev) => ({
                       ...prev,
                       supplierId: value ? value.id : null,
                     }));
                   }}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}
-                      label="Supplier"
-                      placeholder="Select supplier"
-                    />
-                  )}
                 />
               </div>
 
-
               {/* Customer */}
               <div className="col-span-2 md:col-span-1">
-
-                <Autocomplete
+                <GenericAutocomplete
                   options={allCustomers}
-                  loading={customerLoading}
                   value={selectedCustomer}
-                  isOptionEqualToValue={(option, value) =>
-                    option.id === value?.id
-                  }
-                  getOptionLabel={(option) =>
-                    option?.customerName || ""
-                  }
-                  onChange={(e, value) => {
+                  loading={customerLoading}
+                  label="Customer"
+                  placeholder="Select customer"
+                  onChange={(value) => {
                     setSelectedCustomer(value);
                     setFilterObject(prev => ({
                       ...prev,
-                      customerId: value ? value.id : null,
+                      customerId: value ? value.id : null
                     }));
                   }}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}
-                      label="Customer"
-                      placeholder="Select customer"
-                    />
-                  )}
                 />
               </div>
             </div>
