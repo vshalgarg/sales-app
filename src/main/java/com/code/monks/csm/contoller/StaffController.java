@@ -2,6 +2,7 @@ package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.request.AddStaffRequestDto;
 import com.code.monks.csm.dto.request.DeleteStaffRequestDto;
+import com.code.monks.csm.dto.request.UpdateStaffRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.StaffService;
 import jakarta.validation.Valid;
@@ -76,5 +77,33 @@ public class StaffController {
         Pageable pageable = PageRequest.of(page, size);
         PagedResponseDto<SearchStaffsResponseDto> responseDto = staffService.searchStaffs(trimmedKeyword,pageable);
         return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping(GET_STAFF_BY_ID)
+    public ResponseEntity<GetStaffDto> getStaffById(
+            @PathVariable Integer staffId
+    ) {
+        log.info("GET_STAFF_BY_ID API called for staffId: {}", staffId);
+
+        GetStaffDto response = staffService.getStaffById(staffId);
+
+        log.info("GET_STAFF_BY_ID API completed for staffId: {}", staffId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(UPDATE_STAFF)
+    public ResponseEntity<UpdateStaffResponseDto> updateStaff(
+            @PathVariable Integer staffId,
+            @Valid @RequestBody UpdateStaffRequestDto requestDto
+    ) {
+
+        log.info("UPDATE_STAFF API called for staffId: {}", staffId);
+
+        UpdateStaffResponseDto response =
+                staffService.updateStaff(staffId, requestDto);
+
+        log.info("UPDATE_STAFF API completed for staffId: {}", staffId);
+
+        return ResponseEntity.ok(response);
     }
 }

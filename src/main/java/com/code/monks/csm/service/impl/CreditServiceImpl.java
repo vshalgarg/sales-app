@@ -77,9 +77,9 @@ public class CreditServiceImpl implements CreditService {
             List<String> errorMessages = new ArrayList<>();
 
             // Bill number duplicate
-            if (billEntryRepo.existsByBillNumber(requestDto.getBillNumber())) {
-                errorMessages.add("Bill number already exists");
-            }
+//            if (billEntryRepo.existsByBillNumber(requestDto.getBillNumber())) {
+//                errorMessages.add("Bill number already exists");
+//            }
 
             // Cheque number duplicate → ONLY FOR CHEQUE
             if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE &&
