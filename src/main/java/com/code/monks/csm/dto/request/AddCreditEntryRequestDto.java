@@ -13,7 +13,6 @@ public class AddCreditEntryRequestDto {
     @NotNull(message = "Payment type is required")
     private CreditEntryEnum paymentType;
 
-    @NotBlank(message = "Bill number is required")
     private String billNumber;
 
     @NotNull(message = "Date is required")
