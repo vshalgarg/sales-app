@@ -11,7 +11,6 @@ public class UpdateStaffRequestDto {
     @NotBlank(message = "Staff name is required")
     private String staffName;
 
-    @NotBlank(message = "Phone is required")
     private String phone;
 
     private LocalDate joiningDate;
