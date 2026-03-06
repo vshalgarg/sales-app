@@ -278,8 +278,8 @@ public class StaffServiceImpl implements StaffService {
         } catch (DataAccessException dae) {
 
             log.error("Database error while updating staff with id {}: {}", staffId, dae.getMessage(), dae);
-            throw new StaffException(DATA_ACCESS_ERROR, dae.getMessage());
-
+            throw new StaffException(DATA_ACCESS_ERROR,
+                    "Something went wrong while updating the staff. Please try again.");
         } catch (StaffException se) {
 
             throw se;
