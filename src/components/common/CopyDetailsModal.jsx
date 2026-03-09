@@ -29,7 +29,7 @@ export default function CopyDetailsModal({ open, onClose, title, formattedText }
         <TextField
           fullWidth
           multiline
-          rows={8}
+          rows={6}
           value={formattedText}
           variant="outlined"
         />
