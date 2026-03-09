@@ -40,12 +40,24 @@ export default function SupplierDashboard() {
 
 
   const getSupplierFormattedText = (supplier) => {
+
+    const mobileNumbers = supplier?.contacts
+      ?.map(contact => contact.mobileNumber)
+      ?.filter(Boolean)
+      ?.join(", ") || "-";
+
+    const fullAddress = [
+      supplier?.address,
+      supplier?.city,
+      supplier?.state,
+      supplier?.pinCode
+    ]
+      .filter(Boolean)
+      .join(", ");
+
     return `Firm Name: ${supplier?.supplierName || "-"}
-
-Address: ${supplier?.address || "-"}
-
-Phone No: ${supplier?.contacts?.[0]?.mobileNumber || "-"}
-
+Address: ${fullAddress || "-"}
+Phone No: ${mobileNumbers}
 GST No: ${supplier?.supplierGstNo || "-"}`;
   };
 

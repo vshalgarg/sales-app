@@ -55,13 +55,25 @@ export default function CustomerDashboard() {
     remark: "",
   });
 
-  const getCustomerFormattedText = (customer) => {
+ const getCustomerFormattedText = (customer) => {
+
+  const mobileNumbers = customer?.contacts
+    ?.map(contact => contact.mobileNumber)
+    ?.filter(Boolean)
+    ?.join(", ") || "-";
+
+  const fullAddress = [
+    customer?.address,
+    customer?.city,
+    customer?.state,
+    customer?.pinCode
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return `Firm Name: ${customer?.customerName || "-"}
-
-Address: ${customer?.address || "-"}
-
-Phone No: ${customer?.contacts?.[0]?.mobileNumber || "-"}
-
+Address: ${fullAddress || "-"}
+Phone No: ${mobileNumbers}
 GST No: ${customer?.customerGstNo || "-"}`;
 };
 

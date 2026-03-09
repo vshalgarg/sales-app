@@ -1,9 +1,35 @@
-import { IconButton } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CopyDetailsModal from "../components/common/CopyDetailsModal";
+import { useState } from "react";
 
 const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const getSupplierFormattedText = (supplier) => {
+
+    const mobileNumbers = supplier?.contacts
+      ?.map(contact => contact.mobileNumber)
+      ?.filter(Boolean)
+      ?.join(", ") || "-";
+
+    const fullAddress = [
+      supplier?.address,
+      supplier?.city,
+      supplier?.state,
+      supplier?.pinCode
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    return `Firm Name: ${supplier?.supplierName || "-"}
+Address: ${fullAddress || "-"}
+Phone No: ${mobileNumbers}
+GST No: ${supplier?.supplierGstNo || "-"}`;
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:flex md:items-center md:justify-center">
@@ -19,9 +45,20 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
               <ArrowBackIcon />
             </IconButton>
 
-            <h2 className="text-lg md:text-xl font-semibold">
-              Supplier Details
-            </h2>
+            <div className="flex items-center justify-between w-full">
+              <h2 className="text-lg md:text-xl font-semibold">
+                Supplier Details
+              </h2>
+
+              <Tooltip title="Copy Details">
+                <IconButton
+                  onClick={() => setCopyModalOpen(true)}
+                  size="small"
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </div>
 
           </div>
 
@@ -220,6 +257,15 @@ const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
             </AppButton>
 
           </FormFooter>
+
+          {copyModalOpen && (
+            <CopyDetailsModal
+              open={copyModalOpen}
+              onClose={() => setCopyModalOpen(false)}
+              title="Copy Supplier Details"
+              formattedText={getSupplierFormattedText(selectedSupplier)}
+            />
+          )}
 
         </div>
       </div>

@@ -3,8 +3,36 @@ import { Button, IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import { useState } from "react";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Tooltip } from "@mui/material";
+import CopyDetailsModal from "../components/common/CopyDetailsModal";
 
 const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
+
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+
+  const getCustomerFormattedText = (customer) => {
+
+    const mobileNumbers = customer?.contacts
+      ?.map(contact => contact.mobileNumber)
+      ?.filter(Boolean)
+      ?.join(", ") || "-";
+
+    const fullAddress = [
+      customer?.address,
+      customer?.city,
+      customer?.state,
+      customer?.pinCode
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    return `Firm Name: ${customer?.customerName || "-"}
+Address: ${fullAddress || "-"}
+Phone No: ${mobileNumbers}
+GST No: ${customer?.customerGstNo || "-"}`;
+  };
 
   useEffect(() => {
   }, [selectedCustomer]);
@@ -22,9 +50,20 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
               <ArrowBackIcon />
             </IconButton>
 
-            <h2 className="text-lg md:text-xl font-semibold">
-              Customer Details
-            </h2>
+            <div className="flex items-center justify-between w-full">
+              <h2 className="text-lg md:text-xl font-semibold">
+                Customer Details
+              </h2>
+
+              <Tooltip title="Copy Details">
+                <IconButton
+                  onClick={() => setCopyModalOpen(true)}
+                  size="small"
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </div>
 
           </div>
 
@@ -191,6 +230,15 @@ const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
             </AppButton>
 
           </FormFooter>
+
+          {copyModalOpen && (
+            <CopyDetailsModal
+              open={copyModalOpen}
+              onClose={() => setCopyModalOpen(false)}
+              title="Copy Customer Details"
+              formattedText={getCustomerFormattedText(selectedCustomer)}
+            />
+          )}
 
         </div>
       </div>
