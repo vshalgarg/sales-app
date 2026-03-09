@@ -22,7 +22,8 @@ public class ApiPaths {
     public static final String GET_STAFF_V2 = "/staffs/get/all";
 
     public static final String SEARCH_STAFFS = "/staffs/search";
-
+    public static final String GET_STAFF_BY_ID = "/staff/{staffId}";
+    public static final String UPDATE_STAFF = "/staff/{staffId}";
     public static final String DELETE_STAFF = "/staff/delete";
 
     public static final String ADD_CUSTOMER = "/customer/add";

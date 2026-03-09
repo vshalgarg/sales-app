@@ -3,12 +3,14 @@ package com.code.monks.csm.service.impl;
 import com.code.monks.csm.dto.request.AddStaffRequestDto;
 import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.DeleteStaffRequestDto;
+import com.code.monks.csm.dto.request.UpdateStaffRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.StaffEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.DuplicateEntryException;
+import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.exception.StaffException;
 import com.code.monks.csm.repository.StaffRepo;
 import com.code.monks.csm.service.StaffService;
@@ -232,6 +234,60 @@ public class StaffServiceImpl implements StaffService {
         } catch (Exception ex) {
             log.error("Unexpected error while fetching all active staff: {}", ex.getMessage(), ex);
             throw new StaffException(UNEXPECTED_EXCEPTION, ex.getMessage());
+        }
+    }
+
+    @Override
+    public GetStaffDto getStaffById(Integer staffId) {
+        log.info("getStaffById() called for staffId: {}", staffId);
+        StaffEntity staff = staffRepo.findById(staffId)
+                .orElseThrow(() -> {
+                    log.warn("Staff not found with id: {}", staffId);
+                    return new StaffException(DATA_NOT_FOUND);
+                });
+
+        log.debug("Staff found: {}", staff.getStaffName());
+        return mapToDto(staff);
+    }
+
+    @Override
+    public UpdateStaffResponseDto updateStaff(Integer staffId, UpdateStaffRequestDto requestDto) {
+
+        log.info("updateStaff() called for staffId: {}", staffId);
+
+        try {
+
+            StaffEntity staff = staffRepo.findById(staffId)
+                    .orElseThrow(() -> {
+                        log.warn("Staff not found for update with id: {}", staffId);
+                        return new StaffException(DATA_NOT_FOUND);
+                    });
+
+            log.debug("Updating staff details for: {}", staff.getStaffName());
+
+            staff.setStaffName(requestDto.getStaffName());
+            staff.setPhone(requestDto.getPhone());
+            staff.setJoiningDate(requestDto.getJoiningDate());
+
+            staffRepo.save(staff);
+
+            log.info("Staff updated successfully with id: {}", staffId);
+
+            return new UpdateStaffResponseDto("Staff updated successfully");
+
+        } catch (DataAccessException dae) {
+
+            log.error("Database error while updating staff with id {}: {}", staffId, dae.getMessage(), dae);
+            throw new StaffException(DATA_ACCESS_ERROR,
+                    "Something went wrong while updating the staff. Please try again.");
+        } catch (StaffException se) {
+
+            throw se;
+
+        } catch (Exception ex) {
+
+            log.error("Unexpected error while updating staff with id {}: {}", staffId, ex.getMessage(), ex);
+            throw new StaffException(UNEXPECTED_EXCEPTION, " updating staff");
         }
     }
 
