@@ -8,7 +8,7 @@ import DataTable from "./DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
-import CopyCustomerModal from "../modals/CopyCustomerModal";
+import CopyDetailsModal from "./common/CopyDetailsModal";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -54,6 +54,22 @@ export default function CustomerDashboard() {
     preferredTransportIds: [],
     remark: "",
   });
+
+  const getCustomerFormattedText = (customer) => {
+  return `Firm Name: ${customer?.customerName || "-"}
+
+Address: ${customer?.address || "-"}
+
+Phone No: ${customer?.contacts?.[0]?.mobileNumber || "-"}
+
+GST No: ${customer?.customerGstNo || "-"}`;
+};
+
+
+  const handleCopyDetails = (customer) => {
+    setCustomerToCopy(customer);
+    setCopyModalOpen(true);
+  };
 
   const columns = {
     desktop: [
@@ -202,11 +218,6 @@ export default function CustomerDashboard() {
     }
   };
 
-  const handleCopyDetails = (customer) => {
-    setCustomerToCopy(customer);
-    setCopyModalOpen(true);
-  };
-
   return (
     <div className="text-gray-900 flex flex-col dark:text-gray-100 h-full">
       {/* Header Section*/}
@@ -319,10 +330,11 @@ export default function CustomerDashboard() {
       />
 
       {copyModalOpen && (
-        <CopyCustomerModal
+        <CopyDetailsModal
           open={copyModalOpen}
           onClose={() => setCopyModalOpen(false)}
-          customer={customerToCopy}
+          title="Copy Customer Details"
+          formattedText={getCustomerFormattedText(customerToCopy)}
         />
       )}
 
