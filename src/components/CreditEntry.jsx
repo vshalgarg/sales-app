@@ -225,7 +225,7 @@ export default function CreditEntryForm() {
 
     Object.keys(formData).forEach((field) => {
 
-      if (field === "drawType" || field === "remark") return;
+      if (field === "drawType" || field === "remark" || field === "billNumber") return;
 
       // Supplier
       if (field === "supplierId" && !formData.supplierId) {
@@ -337,39 +337,6 @@ export default function CreditEntryForm() {
 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Supplier */}
-              <Autocomplete
-                options={allSuppliers}
-                value={selectedSupplier}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) =>
-                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
-                }
-                loading={supplierLoading}
-                onChange={(e, value) => {
-                  if (!value) {
-                    resetSupplier();
-                    return;
-                  }
-
-                  setSelectedSupplier(value);
-                  setFormData(prev => ({
-                    ...prev,
-                    supplierId: value.id,
-                  }));
-
-                  setErrors(prev => ({ ...prev, supplierName: "" }));
-                }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Supplier *"
-                    error={!!errors.supplierName}
-                    helperText={errors.supplierName || "Search/select supplier"}
-                  />
-                )}
-              />
-
 
               {/* Customer */}
               <Autocomplete
@@ -403,6 +370,40 @@ export default function CreditEntryForm() {
                   />
                 )}
               />
+
+               {/* Supplier */}
+              <Autocomplete
+                options={allSuppliers}
+                value={selectedSupplier}
+                isOptionEqualToValue={(o, v) => o.id === v?.id}
+                getOptionLabel={(o) =>
+                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                }
+                loading={supplierLoading}
+                onChange={(e, value) => {
+                  if (!value) {
+                    resetSupplier();
+                    return;
+                  }
+
+                  setSelectedSupplier(value);
+                  setFormData(prev => ({
+                    ...prev,
+                    supplierId: value.id,
+                  }));
+
+                  setErrors(prev => ({ ...prev, supplierName: "" }));
+                }}
+                renderInput={(params) => (
+                  <CustomTextField
+                    {...params}
+                    label="Supplier *"
+                    error={!!errors.supplierName}
+                    helperText={errors.supplierName || "Search/select supplier"}
+                  />
+                )}
+              />
+
 
             </div>
           </div>
@@ -442,7 +443,7 @@ export default function CreditEntryForm() {
                 name="billNumber"
                 value={formData.billNumber}
                 onChange={handleBillNumberChange}
-                label="Bill Number*"
+                label="Bill Number"
                 error={!!errors.billNumber}
                 helperText={errors.billNumber || ""}
               />

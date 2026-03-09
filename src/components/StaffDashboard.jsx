@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getStaffs, searchStaffs, deleteStaff } from "../service/StaffService";
+import { getStaffs, searchStaffs, deleteStaff, getStaffById } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 import AddNewStaff from "../modals/AddNewStaff";
 import DataTable from "./DataTable";
@@ -25,6 +25,8 @@ export default function StaffDashboard() {
   const { showSnackbar } = useSnackbar();
   const [totalItems, setTotalItems] = useState(0);
   const { isMobile } = useResponsive();
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState(null);
 
 
   const columns = {
@@ -169,8 +171,31 @@ export default function StaffDashboard() {
     };
   }, []);
 
+  const handleEditStaff = async (staffId) => {
+    try {
+      setLoading(true);
 
-  const handleSearchResult = (response, searchQuery, page= 1) => {
+      const data = await getStaffById(staffId);
+
+      setForm({
+        staffName: data.staffName || "",
+        phone: data.phone || "",
+        joiningDate: data.joiningDate
+          ? dayjs(data.joiningDate).format("YYYY-MM-DD")
+          : ""
+      });
+
+      setSelectedStaffId(staffId);
+      setEditOpen(true);
+
+    } catch (error) {
+      showSnackbar(error.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchResult = (response, searchQuery, page = 1) => {
     const results = response.content || [];
     setStaffs(results);
     setTotalPages(response.totalPages || 1);
@@ -186,7 +211,14 @@ export default function StaffDashboard() {
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-lg md:text-2xl font-bold">{isMobile ? "Staff" : "Staff Overview"}</h2>
           <button
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              setForm({
+                staffName: "",
+                phone: "",
+                joiningDate: ""
+              });
+              setOpen(true);
+            }}
             className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
             Add Staff
@@ -219,6 +251,7 @@ export default function StaffDashboard() {
           totalCount={isSearchActive ? searchResults.length : totalItems}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
+          onEdit={(staff) => handleEditStaff(staff.staffId)}
           onDelete={(staff) => {
             setStaffToDelete(staff);
             setDeleteModalOpen(true);
@@ -251,16 +284,29 @@ export default function StaffDashboard() {
         }}
       />
 
-
       {open && (
         <AddNewStaff
           open={open}
-          form={form}
           setOpen={setOpen}
+          form={form}
           setForm={setForm}
           fetchStaffs={fetchStaffs}
+          isEdit={false}
         />
       )}
+
+      {editOpen && (
+        <AddNewStaff
+          open={editOpen}
+          setOpen={setEditOpen}
+          form={form}
+          setForm={setForm}
+          fetchStaffs={fetchStaffs}
+          isEdit={true}
+          staffId={selectedStaffId}
+        />
+      )}
+
     </div>
   );
 }

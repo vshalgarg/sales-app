@@ -62,3 +62,23 @@ export const deleteStaff = async (staffId) => {
    throw new Error(handleApiError(error));
   }
 };
+
+export const getStaffById = async (staffId) => {
+  try {
+    const response = await api.get(`/staff/${staffId}`);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updateStaff = async (staffId, staffData) => {
+  try {
+    const response = await api.put(`/staff/${staffId}`, staffData);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

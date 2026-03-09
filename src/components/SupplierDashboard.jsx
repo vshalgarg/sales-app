@@ -9,6 +9,8 @@ import { Typography, useMediaQuery } from "@mui/material";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateSupplierModal from "../modals/UpdateSupplierModal";
+import CopyDetailsModal from "./common/CopyDetailsModal";
+
 
 export default function SupplierDashboard() {
   const [loading, setLoading] = useState(false);
@@ -33,6 +35,36 @@ export default function SupplierDashboard() {
   const [openEdit, setOpenEdit] = useState(false);
   const [editingSupplierId, setEditingSupplierId] = useState(null);
   const { isMobile } = useResponsive();
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [supplierToCopy, setSupplierToCopy] = useState(null);
+
+
+  const getSupplierFormattedText = (supplier) => {
+
+    const mobileNumbers = supplier?.contacts
+      ?.map(contact => contact.mobileNumber)
+      ?.filter(Boolean)
+      ?.join(", ") || "-";
+
+    const fullAddress = [
+      supplier?.address,
+      supplier?.city,
+      supplier?.state,
+      supplier?.pinCode
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    return `Firm Name: ${supplier?.supplierName || "-"}
+Address: ${fullAddress || "-"}
+Phone No: ${mobileNumbers}
+GST No: ${supplier?.supplierGstNo || "-"}`;
+  };
+
+  const handleCopyDetails = (supplier) => {
+    setSupplierToCopy(supplier);
+    setCopyModalOpen(true);
+  };
 
   const columns = {
     desktop: [
@@ -252,6 +284,7 @@ export default function SupplierDashboard() {
             setSupplierToDelete(supplier);
             setDeleteModalOpen(true);
           }}
+          onCopy={handleCopyDetails}
           emptyMessage="No suppliers found"
           page={currentPage}
           totalCount={totalItems}
@@ -284,6 +317,15 @@ export default function SupplierDashboard() {
           open={openEdit}
           setOpen={setOpenEdit}
           fetchSuppliers={() => fetchSuppliers(currentPage)}
+        />
+      )}
+
+      {copyModalOpen && (
+        <CopyDetailsModal
+          open={copyModalOpen}
+          onClose={() => setCopyModalOpen(false)}
+          title="Copy Supplier Details"
+          formattedText={getSupplierFormattedText(supplierToCopy)}
         />
       )}
 

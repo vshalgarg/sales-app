@@ -1,7 +1,6 @@
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import CustomTextField from "./CustomTextField";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
@@ -9,12 +8,13 @@ import { deleteCreditApi, searchCreditHistory } from "../service/CreditService";
 import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
-import Autocomplete from "@mui/material/Autocomplete";
 import CreditHistory from "./CreditHistory";
 import CreditDetail from "../modals/CreditDetail";
 import EditCreditDetail from "../modals/EditCreditDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
+import GenericAutocomplete from "./common/GenericAutocomplete";
+
 
 const Credit = () => {
   const { showSnackbar } = useSnackbar();
@@ -52,8 +52,18 @@ const Credit = () => {
           SupplierService.getAllSuppliers(),
           CustomerService.getAllCustomers(),
         ]);
-        setAllSuppliers(suppliers || []);
-        setAllCustomers(customers || []);
+
+        const supplierOptions = (suppliers || []).map((s) => ({
+          id: s.id,
+          label: s.supplierName,
+        }));
+
+        const customerOptions = (customers || []).map((c) => ({
+          id: c.id,
+          label: c.customerName,
+        }));
+        setAllSuppliers(supplierOptions || []);
+        setAllCustomers(customerOptions || []);
       } catch {
         showSnackbar("Error loading suppliers/customers", "error");
       }
@@ -165,17 +175,17 @@ const Credit = () => {
                   }));
                   setErrors(prev => ({ ...prev, fromDate: "" }));
                 }}
-               slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      sx: {
-                        "& .MuiPickersSectionList-root": {
-                          fontSize: { xs: "12px", md: "16px" },
-                        },
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                    sx: {
+                      "& .MuiPickersSectionList-root": {
+                        fontSize: { xs: "12px", md: "16px" },
                       },
                     },
-                  }}
+                  },
+                }}
               />
             </LocalizationProvider>
 
@@ -196,57 +206,53 @@ const Credit = () => {
                     toDate: v ? dayjs(v).format("YYYY-MM-DD") : "",
                   }))
                 }
-               slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      sx: {
-                        "& .MuiPickersSectionList-root": {
-                          fontSize: { xs: "12px", md: "16px" },
-                        },
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                    sx: {
+                      "& .MuiPickersSectionList-root": {
+                        fontSize: { xs: "12px", md: "16px" },
                       },
                     },
-                  }}
+                  },
+                }}
               />
             </LocalizationProvider>
 
             {/* Supplier */}
             <div className="col-span-2 md:col-span-1">
-              <Autocomplete
+              <GenericAutocomplete
                 options={allSuppliers}
                 value={selectedSupplier}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) => o?.supplierName || ""}
-                onChange={(e, value) => {
+                label="Supplier"
+                placeholder="Select supplier"
+                onChange={(value) => {
                   setSelectedSupplier(value);
+
                   setFilterObject(prev => ({
                     ...prev,
-                    supplierId: value ? value.id : null,
+                    supplierId: value ? value.id : null
                   }));
                 }}
-                renderInput={(params) => (
-                  <CustomTextField {...params} label="Supplier" />
-                )}
               />
             </div>
 
             {/* Customer */}
             <div className="col-span-2 md:col-span-1">
-              <Autocomplete
+              <GenericAutocomplete
                 options={allCustomers}
                 value={selectedCustomer}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) => o?.customerName || ""}
-                onChange={(e, value) => {
+                label="Customer"
+                placeholder="Select customer"
+                onChange={(value) => {
                   setSelectedCustomer(value);
+
                   setFilterObject(prev => ({
                     ...prev,
-                    customerId: value ? value.id : null,
+                    customerId: value ? value.id : null
                   }));
                 }}
-                renderInput={(params) => (
-                  <CustomTextField {...params} label="Customer" />
-                )}
               />
             </div>
           </div>

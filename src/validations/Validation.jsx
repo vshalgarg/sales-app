@@ -125,11 +125,11 @@ const validate = (field, value) => {
     //   }
     //   break;
 
-    // case "staffName":
-    //   if (!value || value.length === 0) {
-    //     error = "Staff Name is required";
-    //   }
-    //   break;
+    case "staffName":
+      if (!value || value.length === 0) {
+        error = "Staff Name is required";
+      }
+      break;
 
     case "joiningDate":
       if (!value || value.length === 0) {

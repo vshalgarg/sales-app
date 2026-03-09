@@ -8,6 +8,7 @@ import DataTable from "./DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
+import CopyDetailsModal from "./common/CopyDetailsModal";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -33,6 +34,9 @@ export default function CustomerDashboard() {
   const [openEdit, setOpenEdit] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState(null);
 
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [customerToCopy, setCustomerToCopy] = useState(null);
+
 
   const [form, setForm] = useState({
     customerName: "",
@@ -50,6 +54,34 @@ export default function CustomerDashboard() {
     preferredTransportIds: [],
     remark: "",
   });
+
+ const getCustomerFormattedText = (customer) => {
+
+  const mobileNumbers = customer?.contacts
+    ?.map(contact => contact.mobileNumber)
+    ?.filter(Boolean)
+    ?.join(", ") || "-";
+
+  const fullAddress = [
+    customer?.address,
+    customer?.city,
+    customer?.state,
+    customer?.pinCode
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return `Firm Name: ${customer?.customerName || "-"}
+Address: ${fullAddress || "-"}
+Phone No: ${mobileNumbers}
+GST No: ${customer?.customerGstNo || "-"}`;
+};
+
+
+  const handleCopyDetails = (customer) => {
+    setCustomerToCopy(customer);
+    setCopyModalOpen(true);
+  };
 
   const columns = {
     desktop: [
@@ -111,7 +143,7 @@ export default function CustomerDashboard() {
     [rowsPerPage],
   );
 
-  const handleSearchResult = (response, searchQuery,  page = 1) => {
+  const handleSearchResult = (response, searchQuery, page = 1) => {
     const results = response.content || [];
     setCustomers(results);
     setTotalPages(response.totalPages || 0);
@@ -248,6 +280,7 @@ export default function CustomerDashboard() {
             setCustomerToDelete(customer);
             setDeleteModalOpen(true);
           }}
+          onCopy={handleCopyDetails}
           emptyMessage="No customers found"
           page={currentPage}
           totalCount={totalItems}
@@ -307,6 +340,15 @@ export default function CustomerDashboard() {
           setCustomerToDelete(null);
         }}
       />
+
+      {copyModalOpen && (
+        <CopyDetailsModal
+          open={copyModalOpen}
+          onClose={() => setCopyModalOpen(false)}
+          title="Copy Customer Details"
+          formattedText={getCustomerFormattedText(customerToCopy)}
+        />
+      )}
 
     </div>
   );

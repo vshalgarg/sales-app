@@ -1,7 +1,6 @@
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import CustomTextField from "./CustomTextField";
 import { useBillForm } from "../customHooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
@@ -9,11 +8,11 @@ import { deletePurchaseApi, searchPurchaseHistory } from "../service/PurchaseSer
 import { useSnackbar } from "../context/SnackbarContext";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
-import Autocomplete from "@mui/material/Autocomplete";
 import PurchaseHistory from "./PurchaseHistory";
 import EditPurchaseDetail from "../modals/EditPurchaseDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
+import GenericAutocomplete from "./common/GenericAutocomplete";
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
@@ -49,8 +48,19 @@ const Purchase = () => {
           SupplierService.getAllSuppliers(),
           CustomerService.getAllCustomers(),
         ]);
-        setAllSuppliers(suppliers || []);
-        setAllCustomers(customers || []);
+
+        const supplierOptions = (suppliers || []).map((s) => ({
+          id: s.id,
+          label: s.supplierName,
+        }));
+
+        const customerOptions = (customers || []).map((c) => ({
+          id: c.id,
+          label: c.customerName,
+        }));
+
+        setAllSuppliers(supplierOptions || []);
+        setAllCustomers(customerOptions || []);
       } catch {
         showSnackbar("Error loading suppliers/customers", "error");
       }
@@ -201,29 +211,34 @@ const Purchase = () => {
             </LocalizationProvider>
 
             <div className="col-span-2 md:col-span-1">
-              <Autocomplete
+              <GenericAutocomplete
                 options={allSuppliers}
                 value={selectedSupplier}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) => o?.supplierName || ""}
-                onChange={(e, v) => {
-                  setSelectedSupplier(v);
-                  setFilterObject(p => ({ ...p, supplierId: v ? v.id : null }));
+                label="Supplier"
+                placeholder="Select supplier"
+                onChange={(value) => {
+                  setSelectedSupplier(value);
+
+                  setFilterObject(p => ({
+                    ...p,
+                    supplierId: value ? value.id : null
+                  }));
                 }}
-                renderInput={(p) => <CustomTextField {...p} label="Supplier" />}
               />
             </div>
             <div className="col-span-2 md:col-span-1">
-              <Autocomplete
+              <GenericAutocomplete
                 options={allCustomers}
                 value={selectedCustomer}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) => o?.customerName || ""}
-                onChange={(e, v) => {
-                  setSelectedCustomer(v);
-                  setFilterObject(p => ({ ...p, customerId: v ? v.id : null }));
+                label="Customer"
+                placeholder="Select customer"
+                onChange={(value) => {
+                  setSelectedCustomer(value);
+                  setFilterObject(p => ({
+                    ...p,
+                    customerId: value ? value.id : null
+                  }));
                 }}
-                renderInput={(p) => <CustomTextField {...p} label="Customer" />}
               />
             </div>
 
@@ -293,7 +308,7 @@ const Purchase = () => {
         message={
           <>
             Are you sure you want to delete purchase,
-             This action cannot be undone.
+            This action cannot be undone.
           </>
         }
         confirmText="Delete"
