@@ -20,6 +20,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
 const DataTable = ({
   columns,
@@ -28,6 +29,7 @@ const DataTable = ({
   onView,
   onEdit,
   onDelete,
+  onCopy,
   actions = true,
   page,
   totalCount,
@@ -62,7 +64,7 @@ const DataTable = ({
         sx={{
           flex: 1,
           minHeight: 0,
-          overflowX: "hidden", 
+          overflowX: "hidden",
           overflowY: "auto",
         }}
       >
@@ -212,6 +214,18 @@ const DataTable = ({
           >
             <EditIcon fontSize="small" sx={{ mr: 1 }} />
             Edit
+          </MenuItem>
+        )}
+
+        {onCopy && (
+          <MenuItem
+            onClick={() => {
+              onCopy(selectedRow);
+              handleCloseMenu();
+            }}
+          >
+            <ContentCopyIcon fontSize="small" sx={{ mr: 1 }} />
+            Copy Details
           </MenuItem>
         )}
 

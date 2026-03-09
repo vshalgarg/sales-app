@@ -8,6 +8,7 @@ import DataTable from "./DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
+import CopyCustomerModal from "../modals/CopyCustomerModal";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -32,6 +33,9 @@ export default function CustomerDashboard() {
   const { isMobile } = useResponsive();
   const [openEdit, setOpenEdit] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState(null);
+
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [customerToCopy, setCustomerToCopy] = useState(null);
 
 
   const [form, setForm] = useState({
@@ -111,7 +115,7 @@ export default function CustomerDashboard() {
     [rowsPerPage],
   );
 
-  const handleSearchResult = (response, searchQuery,  page = 1) => {
+  const handleSearchResult = (response, searchQuery, page = 1) => {
     const results = response.content || [];
     setCustomers(results);
     setTotalPages(response.totalPages || 0);
@@ -198,6 +202,11 @@ export default function CustomerDashboard() {
     }
   };
 
+  const handleCopyDetails = (customer) => {
+    setCustomerToCopy(customer);
+    setCopyModalOpen(true);
+  };
+
   return (
     <div className="text-gray-900 flex flex-col dark:text-gray-100 h-full">
       {/* Header Section*/}
@@ -248,6 +257,7 @@ export default function CustomerDashboard() {
             setCustomerToDelete(customer);
             setDeleteModalOpen(true);
           }}
+          onCopy={handleCopyDetails}
           emptyMessage="No customers found"
           page={currentPage}
           totalCount={totalItems}
@@ -307,6 +317,14 @@ export default function CustomerDashboard() {
           setCustomerToDelete(null);
         }}
       />
+
+      {copyModalOpen && (
+        <CopyCustomerModal
+          open={copyModalOpen}
+          onClose={() => setCopyModalOpen(false)}
+          customer={customerToCopy}
+        />
+      )}
 
     </div>
   );
