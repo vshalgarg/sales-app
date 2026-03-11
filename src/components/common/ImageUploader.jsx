@@ -16,15 +16,24 @@ const ImageUploader = ({
   const isLimitReached = totalImages >= maxImages;
 
   const previewUrls = useMemo(() => {
-    return value.map((file) => URL.createObjectURL(file));
-  }, [value]);
+  return value.map((img) => {
+    if (img instanceof File) {
+      return URL.createObjectURL(img);
+    }
+    return img.url;
+  });
+}, [value]);
 
   // Cleanup URLs to prevent memory leak
-  useEffect(() => {
-    return () => {
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [previewUrls]);
+ useEffect(() => {
+  return () => {
+    previewUrls.forEach((url) => {
+      if (url.startsWith("blob:")) {
+        URL.revokeObjectURL(url);
+      }
+    });
+  };
+}, [previewUrls]);
 
   const handleUpload = (e) => {
     const files = Array.from(e.target.files || []);
