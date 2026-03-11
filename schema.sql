@@ -600,3 +600,15 @@ DROP INDEX uk_transports_gst_no;
 
 ALTER TABLE transports
 DROP INDEX uk_transports_email;
+
+ALTER TABLE purchase
+ADD COLUMN supplier_id INT NOT NULL;
+
+ALTER TABLE purchase
+ADD CONSTRAINT fk_purchase_supplier
+FOREIGN KEY (supplier_id)
+REFERENCES supplier(id);
+
+DROP TABLE purchase_suppliers;
+
+
