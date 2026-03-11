@@ -1,10 +1,11 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.dto.ApiResponse;
+import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.PurchaseDetailResponse;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import com.code.monks.csm.service.PurchaseService;
 import lombok.extern.slf4j.Slf4j;
@@ -12,11 +13,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
@@ -38,11 +39,9 @@ public class PurchaseEntryController {
     )
     public ResponseEntity<AddPurchaseEntryResponseDto> addPurchaseEntry(
             @RequestPart("payload") AddPurchaseEntryRequestDto requestDto,
-
-            @RequestPart(value = "images", required = false)
-            List<MultipartFile> images
+            @RequestParam(required = false) MultiValueMap<String, MultipartFile> supplierImages
     ){
-        AddPurchaseEntryResponseDto response = purchaseService.addPurchaseEntry(requestDto, images);
+        AddPurchaseEntryResponseDto response = purchaseService.addPurchaseEntry(requestDto, supplierImages);
         return ResponseEntity.ok(response);
     }
 
@@ -73,10 +72,10 @@ public class PurchaseEntryController {
     public ResponseEntity<Map<String, Object>> updatePurchaseEntry(
             @PathVariable int id,
             @RequestPart("data") UpdatePurchaseEntryReq req,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
+            @RequestParam(required = false) MultiValueMap<String, MultipartFile> supplierImages
     ) {
         Map<String, Object> response =
-                purchaseService.updatePurchaseEntry(id, req, images);
+                purchaseService.updatePurchaseEntry(id, req, supplierImages);
 
         return ResponseEntity.ok(response);
     }
@@ -88,11 +87,13 @@ public class PurchaseEntryController {
     }
 
     @GetMapping(GET_PURCHASE_DETAILS_BY_ID)
-    public ResponseEntity<PurchaseDetailResponse> getPurchaseById(
+    public ResponseEntity<ApiResponse<PurchaseDetailResponse>> getPurchaseById(
             @PathVariable int id
     ) {
+        PurchaseDetailResponse response =
+                purchaseService.getPurchaseById(id);
         return ResponseEntity.ok(
-                purchaseService.getPurchaseById(id)
+                ApiResponse.success("Purchase details fetched successfully", response)
         );
     }
 

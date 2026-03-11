@@ -10,9 +10,9 @@ public class UpdatePurchaseEntryReq {
 
     private LocalDate date;
     private Integer staffId;
-    private List<Integer> supplierIds;
     private Integer customerId;
-    private double purchaseAmount;
+    private Integer supplierId;
+    private Double amount;
 
     private List<String> existingImageKeys;
 }

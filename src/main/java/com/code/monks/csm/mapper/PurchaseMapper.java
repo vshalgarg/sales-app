@@ -1,38 +1,49 @@
 package com.code.monks.csm.mapper;
 
-import com.code.monks.csm.dto.response.PurchaseDetailResponse;
+import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
+import com.code.monks.csm.dto.purchase.PurchaseImageDto;
+import com.code.monks.csm.dto.purchase.SupplierPurchaseDetailDto;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import com.code.monks.csm.entity.PurchaseEntity;
 import com.code.monks.csm.entity.PurchaseImageEntity;
-import com.code.monks.csm.entity.StaffEntity;
-import com.code.monks.csm.repository.StaffRepo;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class PurchaseMapper {
 
-    private final StaffRepo staffRepo;
+    public PurchaseDetailResponse toDetail(PurchaseEntity entity, String staffName) {
 
-    public PurchaseDetailResponse toDetail(PurchaseEntity entity) {
+        if (entity == null) {
+            return null;
+        }
 
-        StaffEntity staff =
-                entity.getStaffId() != null
-                        ? staffRepo.findById(entity.getStaffId()).orElse(null)
-                        : null;
-
-        List<String> imageKeys = new ArrayList<>();
-        List<String> publicUrls = new ArrayList<>();
+        List<PurchaseImageDto> images = new ArrayList<>();
 
         if (entity.getImages() != null) {
+
             for (PurchaseImageEntity image : entity.getImages()) {
-                imageKeys.add(image.getObjectKey());
-                publicUrls.add(image.getPublicUrl());
+
+                images.add(
+                        PurchaseImageDto.builder()
+                                .key(image.getObjectKey())
+                                .url(image.getPublicUrl())
+                                .build()
+                );
             }
+        }
+
+        SupplierPurchaseDetailDto supplier = null;
+
+        if (entity.getSupplier() != null) {
+
+            supplier = SupplierPurchaseDetailDto.builder()
+                    .supplierId(entity.getSupplier().getId())
+                    .supplierName(entity.getSupplier().getSupplierName())
+                    .images(images)
+                    .build();
         }
 
         return PurchaseDetailResponse.builder()
@@ -40,26 +51,14 @@ public class PurchaseMapper {
                 .date(entity.getDate())
 
                 .staffId(entity.getStaffId())
-                .staffName(staff != null ? staff.getStaffName() : null)
-
-                .supplierIds(
-                        entity.getSuppliers()
-                                .stream()
-                                .map(s -> s.getId())
-                                .toList()
-                )
-                .supplierNames(
-                        entity.getSuppliers()
-                                .stream()
-                                .map(s -> s.getSupplierName())
-                                .toList()
-                )
+                .staffName(staffName)
 
                 .customerId(
                         entity.getCustomer() != null
                                 ? entity.getCustomer().getId()
                                 : null
                 )
+
                 .customerName(
                         entity.getCustomer() != null
                                 ? entity.getCustomer().getCustomerName()
@@ -72,28 +71,34 @@ public class PurchaseMapper {
                                 : 0.0
                 )
 
-                .imageKeys(imageKeys)
-                .publicUrls(publicUrls)
+                .supplier(supplier)
 
                 .build();
     }
 
+    public SearchPurchaseEntryResponse toSearch(PurchaseEntity entity, String staffName) {
 
-    public SearchPurchaseEntryResponse toSearch(PurchaseEntity entity) {
+        List<String> supplierNames = new ArrayList<>();
 
-        PurchaseDetailResponse detail = toDetail(entity);
+        if (entity.getSupplier() != null) {
+            supplierNames.add(entity.getSupplier().getSupplierName());
+        }
 
         return SearchPurchaseEntryResponse.builder()
-                .id(detail.getId())
-                .date(detail.getDate())
-                .staffId(detail.getStaffId())
-                .staffName(detail.getStaffName())
-                .publicUrls(detail.getPublicUrls())
-                .supplierIds(detail.getSupplierIds())
-                .supplierNames(detail.getSupplierNames())
-                .customerId(detail.getCustomerId())
-                .customerName(detail.getCustomerName())
-                .purchaseAmount(detail.getPurchaseAmount())
+                .id(entity.getId())
+                .date(entity.getDate())
+                .staffName(staffName)
+                .supplierNames(supplierNames)
+                .customerName(
+                        entity.getCustomer() != null
+                                ? entity.getCustomer().getCustomerName()
+                                : null
+                )
+                .purchaseAmount(
+                        entity.getPurchaseAmount() != null
+                                ? entity.getPurchaseAmount() / 100.0
+                                : 0.0
+                )
                 .build();
     }
 }
