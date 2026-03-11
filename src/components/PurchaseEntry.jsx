@@ -297,7 +297,8 @@ const PurchaseEntry = () => {
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Customer *"
+                    label="Customer"
+                    required={true}
                     error={!!errors.customerId}
                     helperText={errors.customerId || ""}
                   />
@@ -399,6 +400,7 @@ const PurchaseEntry = () => {
                   {/* Supplier */}
                   <Autocomplete
                     options={filteredSuppliers}
+                    getOptionKey={(option) => option.id}
                     value={
                       allSuppliers.find(
                         s => s.id === suppliers[index]?.supplierId
@@ -413,7 +415,8 @@ const PurchaseEntry = () => {
                     renderInput={(params) => (
                       <CustomTextField
                         {...params}
-                        label="Supplier *"
+                        label="Supplier"
+                        required={true}
                         error={index === 0 && !!errors.supplierIds}
                         helperText={index === 0 ? errors.supplierIds : ""}
                       />
@@ -429,7 +432,7 @@ const PurchaseEntry = () => {
                     }
                   />
 
-                  {/* Upload */}
+                  {/* Upload Button */}
                   <button
                     type="button"
                     onClick={() => {
@@ -437,16 +440,45 @@ const PurchaseEntry = () => {
                       setTempImages(suppliers[index]?.images || []);
                       setOpenUploader(true);
                     }}
-                    className="h-[40px] px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm flex items-center gap-2 justify-center"
+                    className={`
+    h-[40px] px-4 text-sm font-medium rounded-lg shadow-sm 
+    flex items-center gap-2 justify-center transition-all duration-200
+    ${supplier.images.length > 0
+                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : 'bg-gray-200 text-gray-600 border-gray-300 hover:bg-gray-200'
+                      }
+  `}
                   >
-                    Upload Order Form
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+
+                    <span className="hidden sm:inline">
+                      {supplier.images.length > 0 ? 'Order Form Uploaded' : 'Upload Order Form'}
+                    </span>
+                    <span className="sm:hidden">
+                      {supplier.images.length > 0 ? 'Uploaded' : 'Upload'}
+                    </span>
 
                     {supplier.images.length > 0 && (
                       <>
-                        <span className="bg-white text-blue-600 text-xs px-2 rounded-full">
+                        <span className="w-px h-5 bg-white/20 mx-1 hidden sm:block"></span>
+
+                        <span className="bg-white text-green-600 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
                           {supplier.images.length}
                         </span>
-                        <CheckCircleIcon size={18} />
+
+                        <CheckCircleIcon size={18} className="text-white/90" />
                       </>
                     )}
                   </button>
