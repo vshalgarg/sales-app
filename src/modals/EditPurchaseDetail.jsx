@@ -17,12 +17,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
-import ImageUploader from "../components/common/ImageUploader";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import { CheckCircleIcon } from "lucide-react";
+import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import { useMemo } from "react";
 
 const EditPurchaseDetail = ({
     open,
@@ -48,10 +44,10 @@ const EditPurchaseDetail = ({
 
     const [saving, setSaving] = useState(false);
     const [detail, setDetail] = useState(null);
-    const [openUploader, setOpenUploader] = useState(false);
-    const [tempImages, setTempImages] = useState([]);
     const [selectedSupplier, setSelectedSupplier] = useState(null);
-    const [images, setImages] = useState([]);
+    const [existingImages, setExistingImages] = useState([]);
+    const [newImages, setNewImages] = useState([]);
+    const [previewIndex, setPreviewIndex] = useState(null);
 
     useEffect(() => {
         if (!open) return;
@@ -117,12 +113,14 @@ const EditPurchaseDetail = ({
             allSuppliers.find(s => s.id === detail.supplier?.supplierId) || null
         );
 
-        setImages(
+        setExistingImages(
             (detail.supplier?.images || []).map(img => ({
                 key: img.key,
                 url: img.url
             }))
         );
+
+        setNewImages([]);
 
     }, [detail, allSuppliers, allCustomers, allStaffs]);
 
@@ -134,21 +132,21 @@ const EditPurchaseDetail = ({
         }
     };
 
-    const handleImageSave = () => {
+    const previewImages = useMemo(() => {
+        return [
+            ...existingImages.map(img => img.url),
+            ...newImages.map(file => URL.createObjectURL(file))
+        ];
+    }, [existingImages, newImages]);
 
-        setImages(tempImages);
+    useEffect(() => {
 
-        setOpenUploader(false);
-        setTempImages([]);
+        const blobUrls = previewImages.filter(url => url.startsWith("blob:"));
+        return () => {
+            blobUrls.forEach(url => URL.revokeObjectURL(url));
+        };
 
-    };
-
-    const handleImageCancel = () => {
-
-        setOpenUploader(false);
-        setTempImages([]);
-
-    };
+    }, [previewImages]);
 
     /* ================= UPDATE ================= */
     const handleUpdate = async () => {
@@ -172,10 +170,7 @@ const EditPurchaseDetail = ({
                 customerId: selectedCustomer?.id || null,
                 supplierId: selectedSupplier?.id || null,
                 amount: formData.amount ? Number(formData.amount) : null,
-
-                existingImageKeys: (images || [])
-                    .filter(img => img.key)
-                    .map(img => img.key)
+                existingImageKeys: existingImages.map(img => img.key)
             };
 
             formDataObj.append(
@@ -186,11 +181,11 @@ const EditPurchaseDetail = ({
             );
 
             const supplierId = selectedSupplier?.id;
-            images.forEach(img => {
-                if (img instanceof File && supplierId) {
+            newImages.forEach(file => {
+                if (supplierId) {
                     formDataObj.append(
                         `supplier_${supplierId}_images`,
-                        img
+                        file
                     );
                 }
             });
@@ -311,7 +306,7 @@ const EditPurchaseDetail = ({
 
                     </div>
 
-
+                    {/* Supplier section  */}
                     <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
 
                         <div className="flex items-start justify-between mb-5">
@@ -348,30 +343,152 @@ const EditPurchaseDetail = ({
                                 onChange={handleAmountChange}
                             />
 
-                            {/* Upload */}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setTempImages(images);
-                                    setOpenUploader(true);
-                                }}
-                                className="h-[40px] mt-[2px] px-4 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
-                            >
-                               Upload Order Form
+                        </div>
 
-                                {images.length > 0 && (
-                                    <>
-                                        <span className="bg-white text-blue-600 text-xs px-2 rounded-full">
-                                            {images.length}
-                                        </span>
-                                        <CheckCircleIcon size={18} />
-                                    </>
-                                )}
-                            </button>
+                    </div>
+
+                    {/* ================= ORDER FORM ATTACHMENTS ================= */}
+
+                    <div className="bg-white border rounded-2xl p-6 shadow-sm">
+
+                        <div className="flex justify-between items-center mb-5">
+
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                Order Form Attachments
+                            </h3>
+
+                            <span className="text-sm text-gray-500">
+                                {existingImages.length + newImages.length}/2
+                            </span>
+
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                            {[
+
+                                ...existingImages.map(img => ({
+                                    type: "existing",
+                                    id: img.key,
+                                    key: img.key
+                                })),
+
+                                ...newImages.map(file => ({
+                                    type: "new",
+                                    id: file.name + file.lastModified,
+                                    file
+                                }))
+
+                            ].map((img, index) => (
+
+                                <div key={img.id || index} className="relative group">
+
+                                    <div
+                                        onClick={() => setPreviewIndex(index)}
+                                        className="h-20 rounded-xl border bg-gray-50 flex items-center px-4 
+          cursor-pointer hover:bg-gray-100 hover:shadow transition-all"
+                                    >
+
+                                        <div className="flex-1">
+
+                                            <p className="text-sm font-medium text-gray-700">
+                                                Attachment {index + 1}
+                                            </p>
+
+                                            <p className="text-xs text-gray-500">
+                                                Click to preview
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+
+                                            if (img.type === "new") {
+
+                                                setNewImages(prev =>
+                                                    prev.filter(f =>
+                                                        (f.name + f.lastModified) !== img.id
+                                                    )
+                                                );
+
+                                            } else {
+
+                                                setExistingImages(prev =>
+                                                    prev.filter(i => i.key !== img.key)
+                                                );
+
+                                            }
+
+                                        }}
+                                        className="absolute -top-2 -right-2 bg-white border text-red-600 
+          rounded-full w-7 h-7 flex items-center justify-center shadow"
+                                    >
+                                        ✕
+                                    </button>
+
+                                </div>
+
+                            ))}
+
+                            {(existingImages.length + newImages.length) < 2 && (
+
+                                <label
+                                    className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
+        flex items-center justify-center cursor-pointer 
+        hover:border-blue-500 hover:bg-blue-50 transition"
+                                >
+
+                                    <span className="text-sm text-gray-600 font-medium">
+                                        + Add Attachment
+                                    </span>
+
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        hidden
+                                        onChange={(e) => {
+
+                                            const files = Array.from(e.target.files || []);
+
+                                            if (!files.length) return;
+
+                                            const total =
+                                                existingImages.length +
+                                                newImages.length +
+                                                files.length;
+
+                                            if (total > 2) {
+
+                                                showSnackbar("Maximum 2 images allowed", "error");
+                                                return;
+
+                                            }
+
+                                            setNewImages(prev => [...prev, ...files]);
+                                            e.target.value = "";
+
+                                        }}
+                                    />
+
+                                </label>
+
+                            )}
 
                         </div>
 
                     </div>
+
+                    <ImagePreviewDialog
+                        open={previewIndex !== null}
+                        images={previewImages}
+                        index={previewIndex || 0}
+                        onChangeIndex={setPreviewIndex}
+                        onClose={() => setPreviewIndex(null)}
+                    />
                 </div>
 
                 {/* Footer */}
@@ -394,49 +511,6 @@ const EditPurchaseDetail = ({
                     </AppButton>
 
                 </FormFooter>
-
-                <Dialog
-                    open={openUploader}
-                    onClose={handleImageCancel}
-                    maxWidth="sm"
-                    fullWidth
-                >
-
-                    <DialogTitle>
-                        Upload Order Form
-                    </DialogTitle>
-
-                    <DialogContent>
-
-                        <ImageUploader
-                            value={tempImages}
-                            onChange={setTempImages}
-                            maxImages={2}
-                            label="Order Form Images"
-                            onError={(msg) => showSnackbar(msg, "error")}
-                        />
-
-                    </DialogContent>
-
-                    <DialogActions>
-
-                        <button
-                            onClick={handleImageCancel}
-                            className="px-4 py-2 border rounded"
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            onClick={handleImageSave}
-                            className="px-5 py-2 bg-blue-600 text-white rounded"
-                        >
-                            Save
-                        </button>
-
-                    </DialogActions>
-
-                </Dialog>
 
             </div>
         </div>
