@@ -149,8 +149,9 @@ const PurchaseEntry = () => {
     const dateError = validate("date", formData.date);
     if (dateError) newErrors.date = dateError;
 
-    if (!suppliers.some(s => s.supplierId)) {
-      newErrors.supplierIds = "Please select at least one Supplier";
+    const hasAtLeastOneSupplier = suppliers.some(s => s.supplierId != null && s.supplierId !== "");
+    if (!hasAtLeastOneSupplier) {
+      newErrors.supplierIds = "Please select at least one supplier";
     }
 
     if (!formData.customerId) {
@@ -416,7 +417,7 @@ const PurchaseEntry = () => {
                       <CustomTextField
                         {...params}
                         label="Supplier"
-                        required={true}
+                        required={index === 0}
                         error={index === 0 && !!errors.supplierIds}
                         helperText={index === 0 ? errors.supplierIds : ""}
                       />

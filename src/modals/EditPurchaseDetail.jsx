@@ -221,8 +221,10 @@ const EditPurchaseDetail = ({
                 className="
         bg-white flex flex-col
         w-full h-full sm:h-auto
-        sm:max-w-2xl sm:max-h-[90vh]
-        sm:rounded-xl shadow-xl
+        sm:w-[95%] md:w-[90%] lg:w-[960px] xl:w-[1080px]
+        sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl
+        sm:max-h-[96vh]
+        sm:rounded-2xl shadow-2xl overflow-hidden
       "
             >
                 {/* Header */}
@@ -355,7 +357,7 @@ const EditPurchaseDetail = ({
                                 }}
                                 className="h-[40px] mt-[2px] px-4 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
                             >
-                                Order Form
+                               Upload Order Form
 
                                 {images.length > 0 && (
                                     <>
