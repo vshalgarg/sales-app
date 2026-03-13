@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import CustomTextField from "../components/CustomTextField";
-import Autocomplete from "@mui/material/Autocomplete";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -19,6 +18,7 @@ import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import { useMemo } from "react";
+import GenericAutocomplete from "../components/common/GenericAutocomplete";
 
 const EditPurchaseDetail = ({
     open,
@@ -255,27 +255,19 @@ const EditPurchaseDetail = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                             {/* Customer */}
-                            <Autocomplete
+                            <GenericAutocomplete
                                 options={allCustomers}
                                 value={selectedCustomer}
-                                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                                getOptionLabel={(o) => o?.customerName || ""}
-                                onChange={(e, v) => setSelectedCustomer(v)}
-                                renderInput={(p) => (
-                                    <CustomTextField {...p} label="Customer" />
-                                )}
+                                label="Customer"
+                                onChange={(v) => setSelectedCustomer(v)}
                             />
 
                             {/* Staff */}
-                            <Autocomplete
+                            <GenericAutocomplete
                                 options={allStaffs}
                                 value={selectedStaff}
-                                isOptionEqualToValue={(o, v) => o.staffId === v?.staffId}
-                                getOptionLabel={(o) => o?.staffName || ""}
-                                onChange={(e, v) => setSelectedStaff(v)}
-                                renderInput={(p) => (
-                                    <CustomTextField {...p} label="Staff" />
-                                )}
+                                label="Staff"
+                                onChange={(v) => setSelectedStaff(v)}
                             />
 
                             {/* Date */}
@@ -325,15 +317,12 @@ const EditPurchaseDetail = ({
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                             {/* Supplier */}
-                            <Autocomplete
+                            <GenericAutocomplete
                                 options={allSuppliers}
                                 value={selectedSupplier}
-                                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                                getOptionLabel={(o) => o?.supplierName || ""}
-                                onChange={(e, v) => setSelectedSupplier(v)}
-                                renderInput={(p) => (
-                                    <CustomTextField {...p} label="Supplier *" />
-                                )}
+                                label="Supplier"
+                                required={true}
+                                onChange={(v) => setSelectedSupplier(v)}
                             />
 
                             {/* Amount */}
