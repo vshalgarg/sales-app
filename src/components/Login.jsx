@@ -82,8 +82,8 @@ const Login = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold">
-              Management Portal
+            <h2 className="text-2xl md:text-3xl font-bold text-[#6c63ff]">
+              Hisabio
             </h2>
             <p className="mt-2 text-gray-600">
               Simplified Billing, Streamlined Business
