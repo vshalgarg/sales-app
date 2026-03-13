@@ -17,6 +17,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { CheckCircleIcon } from "lucide-react";
 import GenericAutocomplete from "./common/GenericAutocomplete";
+import { mapToOption } from "../utils/optionMapper";
 
 
 const PurchaseEntry = () => {
@@ -30,10 +31,13 @@ const PurchaseEntry = () => {
   const [supplierLoading, setSupplierLoading] = useState(true);
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openUploader, setOpenUploader] = useState(false);
   const [activeSupplierIndex, setActiveSupplierIndex] = useState(null);
   const [tempImages, setTempImages] = useState([]);
+
+  const customerOptions = mapToOption(allCustomers, "id", "customerName");
+  const staffOptions = mapToOption(allStaffs, "staffId", "staffName");
+  const supplierOptions = mapToOption(allSuppliers, "id", "supplierName");
 
 
   const [formData, setFormData] = useState({
@@ -85,7 +89,7 @@ const PurchaseEntry = () => {
   const handleStaffSelect = (event, value) => {
     setFormData((prev) => ({
       ...prev,
-      staffId: value?.staffId || "",
+      staffId: value?.id || "",
     }));
   };
 
@@ -135,7 +139,7 @@ const PurchaseEntry = () => {
     setTempImages([]);
   };
 
-  const filteredSuppliers = allSuppliers.filter(
+  const filteredSuppliers = supplierOptions.filter(
     s => !suppliers.some(sel => sel.supplierId === s.id)
   );
 
@@ -232,7 +236,6 @@ const PurchaseEntry = () => {
   };
 
   const resetCustomer = () => {
-    setSelectedCustomer(null);
     setFormData(prev => ({
       ...prev,
       customerId: "",
@@ -275,8 +278,8 @@ const PurchaseEntry = () => {
 
               {/* Customer */}
               <GenericAutocomplete
-                options={allCustomers}
-                value={selectedCustomer}
+                options={customerOptions}
+                value={customerOptions.find(c => c.id === formData.customerId) || null}
                 loading={customerLoading}
                 label="Customer"
                 required={true}
@@ -287,8 +290,6 @@ const PurchaseEntry = () => {
                     resetCustomer();
                     return;
                   }
-
-                  setSelectedCustomer(value);
                   setFormData(prev => ({
                     ...prev,
                     customerId: value.id,
@@ -301,8 +302,8 @@ const PurchaseEntry = () => {
 
               {/* Staff */}
               <GenericAutocomplete
-                options={allStaffs}
-                value={allStaffs.find(s => s.staffId === formData.staffId) || null}
+                options={staffOptions}
+                value={staffOptions.find(s => s.id === formData.staffId) || null}
                 loading={staffLoading}
                 label="Staff"
                 error={!!errors.staff}
@@ -389,7 +390,7 @@ const PurchaseEntry = () => {
                   <GenericAutocomplete
                     options={filteredSuppliers}
                     value={
-                      allSuppliers.find(
+                      supplierOptions.find(
                         s => s.id === suppliers[index]?.supplierId
                       ) || null
                     }

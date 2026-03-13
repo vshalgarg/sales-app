@@ -19,6 +19,7 @@ import AppButton from "../components/common/AppButton";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import { useMemo } from "react";
 import GenericAutocomplete from "../components/common/GenericAutocomplete";
+import { mapToOption } from "../utils/optionMapper";
 
 const EditPurchaseDetail = ({
     open,
@@ -48,6 +49,10 @@ const EditPurchaseDetail = ({
     const [existingImages, setExistingImages] = useState([]);
     const [newImages, setNewImages] = useState([]);
     const [previewIndex, setPreviewIndex] = useState(null);
+
+    const customerOptions = mapToOption(allCustomers, "id", "customerName");
+    const staffOptions = mapToOption(allStaffs, "staffId", "staffName");
+    const supplierOptions = mapToOption(allSuppliers, "id", "supplierName");
 
     useEffect(() => {
         if (!open) return;
@@ -99,18 +104,15 @@ const EditPurchaseDetail = ({
         });
 
         setSelectedCustomer(
-            allCustomers.find(c =>
-                c.id === detail.customerId
-            ) || null
+            customerOptions.find(c => c.id === detail.customerId) || null
         );
 
         setSelectedStaff(
-            allStaffs.find(s =>
-                s.staffId === Number(detail.staffId)
-            ) || null
+            staffOptions.find(s => s.id === Number(detail.staffId)) || null
         );
+
         setSelectedSupplier(
-            allSuppliers.find(s => s.id === detail.supplier?.supplierId) || null
+            supplierOptions.find(s => s.id === detail.supplier?.supplierId) || null
         );
 
         setExistingImages(
@@ -166,7 +168,7 @@ const EditPurchaseDetail = ({
             const payload = {
 
                 date: formData.date || null,
-                staffId: selectedStaff?.staffId || null,
+                staffId: selectedStaff?.id || null,
                 customerId: selectedCustomer?.id || null,
                 supplierId: selectedSupplier?.id || null,
                 amount: formData.amount ? Number(formData.amount) : null,
@@ -256,16 +258,16 @@ const EditPurchaseDetail = ({
 
                             {/* Customer */}
                             <GenericAutocomplete
-                                options={allCustomers}
-                                value={selectedCustomer}
+                                options={customerOptions}
+                                value={customerOptions.find(c => c.id === selectedCustomer?.id) || null}
                                 label="Customer"
                                 onChange={(v) => setSelectedCustomer(v)}
                             />
 
                             {/* Staff */}
                             <GenericAutocomplete
-                                options={allStaffs}
-                                value={selectedStaff}
+                                options={staffOptions}
+                                value={staffOptions.find(s => s.id === selectedStaff?.id) || null}
                                 label="Staff"
                                 onChange={(v) => setSelectedStaff(v)}
                             />
@@ -318,8 +320,8 @@ const EditPurchaseDetail = ({
 
                             {/* Supplier */}
                             <GenericAutocomplete
-                                options={allSuppliers}
-                                value={selectedSupplier}
+                                options={supplierOptions}
+                                value={supplierOptions.find(s => s.id === selectedSupplier?.id) || null}
                                 label="Supplier"
                                 required={true}
                                 onChange={(v) => setSelectedSupplier(v)}
