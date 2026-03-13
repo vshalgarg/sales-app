@@ -46,45 +46,22 @@ const Login = () => {
     <div className="flex min-h-dvh flex-col md:flex-row">
       {/* Left decorative side */}
       <div className="hidden md:flex md:flex-1 bg-[#6c63ff] items-center justify-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="white"
-          className="w-24 h-24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 4l6 8H6l6-8zM6 20h12"
-          />
-        </svg>
+        <h1 className="text-white text-5xl font-extrabold tracking-wide drop-shadow-lg">
+          Hisabio
+        </h1>
       </div>
 
       {/* Right - Form */}
-      <div className="flex-1 flex overflow-y-auto items-center justify-center bg-gray-50 px-6 py-8 md:p-6">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 px-6 py-10 md:px-12">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 md:p-10">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="#6c63ff"
-                className="w-10 h-10"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4l6 8H6l6-8zM6 20h12"
-                />
-              </svg>
+              <img
+                src="/logo.png"
+                alt="Hisabio Logo"
+                className="w-36 md:w-48 h-auto object-contain"
+              />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#6c63ff]">
-              Hisabio
-            </h2>
             <p className="mt-2 text-gray-600">
               Simplified Billing, Streamlined Business
             </p>
@@ -181,11 +158,10 @@ const Login = () => {
               disabled={isLoading}
               className={`w-full py-3 px-4 bg-[#6c63ff] text-white font-medium 
                        rounded-lg shadow-sm transition-all duration-200
-                       ${
-                         isLoading
-                           ? "opacity-70 cursor-not-allowed"
-                           : "hover:bg-[#5a53d6] active:scale-[0.98]"
-                       }`}
+                       ${isLoading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-[#5a53d6] active:scale-[0.98]"
+                }`}
             >
               {isLoading ? "Signing in..." : "Login →"}
             </button>

@@ -5,7 +5,6 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { useSnackbar } from "../context/SnackbarContext";
 import { useEffect, useState } from "react";
-import Autocomplete from "@mui/material/Autocomplete";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
@@ -17,6 +16,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { CheckCircleIcon } from "lucide-react";
+import GenericAutocomplete from "./common/GenericAutocomplete";
 
 
 const PurchaseEntry = () => {
@@ -274,15 +274,15 @@ const PurchaseEntry = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Customer */}
-              <Autocomplete
+              <GenericAutocomplete
                 options={allCustomers}
                 value={selectedCustomer}
                 loading={customerLoading}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) =>
-                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
-                }
-                onChange={(e, value) => {
+                label="Customer"
+                required={true}
+                error={!!errors.customerId}
+                helperText={errors.customerId || ""}
+                onChange={(value) => {
                   if (!value) {
                     resetCustomer();
                     return;
@@ -293,34 +293,21 @@ const PurchaseEntry = () => {
                     ...prev,
                     customerId: value.id,
                   }));
+
                   setErrors(prev => ({ ...prev, customerId: "" }));
                 }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Customer"
-                    required={true}
-                    error={!!errors.customerId}
-                    helperText={errors.customerId || ""}
-                  />
-                )}
               />
 
+
               {/* Staff */}
-              <Autocomplete
+              <GenericAutocomplete
                 options={allStaffs}
-                getOptionLabel={(o) => o.staffName || ""}
                 value={allStaffs.find(s => s.staffId === formData.staffId) || null}
-                onChange={handleStaffSelect}
                 loading={staffLoading}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Staff"
-                    error={!!errors.staff}
-                    helperText={errors.staff || ""}
-                  />
-                )}
+                label="Staff"
+                error={!!errors.staff}
+                helperText={errors.staff || ""}
+                onChange={(value) => handleStaffSelect(null, value)}
               />
 
               {/* Transaction Date */}
@@ -399,29 +386,19 @@ const PurchaseEntry = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
 
                   {/* Supplier */}
-                  <Autocomplete
+                  <GenericAutocomplete
                     options={filteredSuppliers}
-                    getOptionKey={(option) => option.id}
                     value={
                       allSuppliers.find(
                         s => s.id === suppliers[index]?.supplierId
                       ) || null
                     }
                     loading={supplierLoading}
-                    isOptionEqualToValue={(o, v) => o.id === v?.id}
-                    getOptionLabel={(o) =>
-                      o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
-                    }
-                    onChange={(e, value) => handleSupplierChange(value, index)}
-                    renderInput={(params) => (
-                      <CustomTextField
-                        {...params}
-                        label="Supplier"
-                        required={index === 0}
-                        error={index === 0 && !!errors.supplierIds}
-                        helperText={index === 0 ? errors.supplierIds : ""}
-                      />
-                    )}
+                    label="Supplier"
+                    required={index === 0}
+                    error={index === 0 && !!errors.supplierIds}
+                    helperText={index === 0 ? errors.supplierIds : ""}
+                    onChange={(value) => handleSupplierChange(value, index)}
                   />
 
                   {/* Amount */}
