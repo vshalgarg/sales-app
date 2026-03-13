@@ -16,23 +16,14 @@ const GenericAutocomplete = ({
         <Autocomplete
             options={options}
 
-            getOptionKey={(option) => option.id || option.staffId}
+            getOptionKey={(option) => option.id}
 
             value={value}
             loading={loading}
 
-            isOptionEqualToValue={(option, value) =>
-                (option?.id || option?.staffId) === (value?.id || value?.staffId)
-            }
+            isOptionEqualToValue={(option, value) => option?.id === value?.id}
 
-            getOptionLabel={(option) =>
-                option?.label ||
-                option?.name ||
-                option?.customerName ||
-                option?.supplierName ||
-                option?.staffName ||
-                ""
-            }
+            getOptionLabel={(option) => option?.label || ""}
 
             onChange={(e, val) => onChange(val)}
 
