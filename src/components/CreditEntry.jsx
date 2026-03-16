@@ -9,9 +9,10 @@ import { useBillForm } from "../customHooks/useBillForm";
 import { useSnackbar } from "../context/SnackbarContext";
 import { addCreditEntry } from "../service/CreditService";
 import validate from "../validations/Validation";
-import Autocomplete from "@mui/material/Autocomplete";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
+import { mapToOption } from "../utils/optionMapper";
+import GenericAutocomplete from "./common/GenericAutocomplete";
 
 export default function CreditEntryForm() {
   const { showSnackbar } = useSnackbar();
@@ -40,9 +41,9 @@ export default function CreditEntryForm() {
   const [supplierLoading, setSupplierLoading] = useState(true);
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
+  const supplierOptions = mapToOption(allSuppliers, "id", "supplierName");
+  const customerOptions = mapToOption(allCustomers, "id", "customerName");
 
 
   useEffect(() => {
@@ -115,7 +116,6 @@ export default function CreditEntryForm() {
   };
 
   const resetSupplier = () => {
-    setSelectedSupplier(null);
     setFormData(prev => ({
       ...prev,
       supplierId: "",
@@ -123,7 +123,6 @@ export default function CreditEntryForm() {
   };
 
   const resetCustomer = () => {
-    setSelectedCustomer(null);
     setFormData(prev => ({
       ...prev,
       customerId: "",
@@ -339,21 +338,19 @@ export default function CreditEntryForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Customer */}
-              <Autocomplete
-                options={allCustomers}
-                value={selectedCustomer}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) =>
-                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
-                }
+              <GenericAutocomplete
+                options={customerOptions}
+                value={customerOptions.find(c => c.id === formData.customerId) || null}
                 loading={customerLoading}
-                onChange={(e, value) => {
+                label="Customer"
+                required={true}
+                error={!!errors.customerName}
+                helperText={errors.customerName || "Search/select customer"}
+                onChange={(value) => {
                   if (!value) {
                     resetCustomer();
                     return;
                   }
-
-                  setSelectedCustomer(value);
                   setFormData(prev => ({
                     ...prev,
                     customerId: value.id,
@@ -361,32 +358,22 @@ export default function CreditEntryForm() {
 
                   setErrors(prev => ({ ...prev, customerName: "" }));
                 }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Customer *"
-                    error={!!errors.customerName}
-                    helperText={errors.customerName || "Search/select customer"}
-                  />
-                )}
               />
 
-               {/* Supplier */}
-              <Autocomplete
-                options={allSuppliers}
-                value={selectedSupplier}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) =>
-                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
-                }
+              {/* Supplier */}
+              <GenericAutocomplete
+                options={supplierOptions}
+                value={supplierOptions.find(s => s.id === formData.supplierId) || null}
                 loading={supplierLoading}
-                onChange={(e, value) => {
+                label="Supplier"
+                required={true}
+                error={!!errors.supplierName}
+                helperText={errors.supplierName || "Search/select supplier"}
+                onChange={(value) => {
                   if (!value) {
                     resetSupplier();
                     return;
                   }
-
-                  setSelectedSupplier(value);
                   setFormData(prev => ({
                     ...prev,
                     supplierId: value.id,
@@ -394,16 +381,7 @@ export default function CreditEntryForm() {
 
                   setErrors(prev => ({ ...prev, supplierName: "" }));
                 }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Supplier *"
-                    error={!!errors.supplierName}
-                    helperText={errors.supplierName || "Search/select supplier"}
-                  />
-                )}
               />
-
 
             </div>
           </div>
