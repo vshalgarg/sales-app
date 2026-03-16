@@ -7,6 +7,9 @@ const GenericAutocomplete = ({
     loading = false,
     label = "",
     placeholder = "",
+    required = false,
+    error = false,
+    helperText = "",
     onChange,
 }) => {
     return (
@@ -18,13 +21,9 @@ const GenericAutocomplete = ({
             value={value}
             loading={loading}
 
-            isOptionEqualToValue={(option, value) =>
-                option.id === value?.id
-            }
+            isOptionEqualToValue={(option, value) => option?.id === value?.id}
 
-            getOptionLabel={(option) =>
-                option?.label || option?.name || ""
-            }
+            getOptionLabel={(option) => option?.label || ""}
 
             onChange={(e, val) => onChange(val)}
 
@@ -33,6 +32,9 @@ const GenericAutocomplete = ({
                     {...params}
                     label={label}
                     placeholder={placeholder}
+                    required={required}
+                    error={error}
+                    helperText={helperText}
                     size="small"
                 />
             )}

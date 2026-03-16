@@ -100,8 +100,8 @@ export default function Navbar({
                   d="M12 4l6 8H6l6-8zM6 20h12"
                 />
               </svg>
-            </div> : <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Textile Management
+            </div> : <h1 className="ml-4 text-xl font-bold text-blue-600 dark:text-blue-400 tracking-wide">
+              Hisabio
             </h1>
           }
           {/* Section Buttons */}

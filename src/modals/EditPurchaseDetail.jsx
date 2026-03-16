@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import CustomTextField from "../components/CustomTextField";
-import Autocomplete from "@mui/material/Autocomplete";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -13,12 +12,14 @@ import {
     updatePurchaseApi,
     getPurchaseDetailsById
 } from "../service/PurchaseService";
-import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
+import { useMemo } from "react";
+import GenericAutocomplete from "../components/common/GenericAutocomplete";
+import { mapToOption } from "../utils/optionMapper";
 
 const EditPurchaseDetail = ({
     open,
@@ -27,11 +28,6 @@ const EditPurchaseDetail = ({
     onUpdateSuccess,
 }) => {
 
-    useEffect(() => {
-        console.log("OPEN:", open);
-        console.log("PURCHASE ID:", purchaseId);
-    }, [open, purchaseId]);
-
     const { showSnackbar } = useSnackbar();
 
     /* ================= STATES ================= */
@@ -39,21 +35,24 @@ const EditPurchaseDetail = ({
     const [allCustomers, setAllCustomers] = useState([]);
     const [allStaffs, setAllStaffs] = useState([]);
 
-    const [selectedSuppliers, setSelectedSuppliers] = useState([]);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedStaff, setSelectedStaff] = useState(null);
 
-    const [existingImages, setExistingImages] = useState([]);
-    const [newImages, setNewImages] = useState([]);
-    const [previewIndex, setPreviewIndex] = useState(null);
-
     const [formData, setFormData] = useState({
         date: "",
-        purchaseAmount: "",
+        amount: "",
     });
 
     const [saving, setSaving] = useState(false);
     const [detail, setDetail] = useState(null);
+    const [selectedSupplier, setSelectedSupplier] = useState(null);
+    const [existingImages, setExistingImages] = useState([]);
+    const [newImages, setNewImages] = useState([]);
+    const [previewIndex, setPreviewIndex] = useState(null);
+
+    const customerOptions = mapToOption(allCustomers, "id", "customerName");
+    const staffOptions = mapToOption(allStaffs, "staffId", "staffName");
+    const supplierOptions = mapToOption(allSuppliers, "id", "supplierName");
 
     useEffect(() => {
         if (!open) return;
@@ -94,72 +93,86 @@ const EditPurchaseDetail = ({
     }, [open, purchaseId]);
 
     useEffect(() => {
-        if (!detail) return;
-        if (!allSuppliers.length || !allCustomers.length || !allStaffs.length) return;
+        if (!detail || !allSuppliers.length || !allCustomers.length || !allStaffs.length) return;
 
         setFormData({
             date: detail.date || "",
-            purchaseAmount:
+            amount:
                 detail.purchaseAmount != null
                     ? String(detail.purchaseAmount)
                     : "",
         });
 
-        setSelectedSuppliers(
-            allSuppliers.filter(s =>
-                detail.supplierIds?.includes(s.id)
-            )
-        );
-
         setSelectedCustomer(
-            allCustomers.find(c =>
-                c.id === detail.customerId
-            ) || null
+            customerOptions.find(c => c.id === detail.customerId) || null
         );
 
         setSelectedStaff(
-            allStaffs.find(s =>
-                s.staffId === Number(detail.staffId)
-            ) || null
+            staffOptions.find(s => s.id === Number(detail.staffId)) || null
+        );
+
+        setSelectedSupplier(
+            supplierOptions.find(s => s.id === detail.supplier?.supplierId) || null
         );
 
         setExistingImages(
-            (detail.imageKeys || []).map((key, index) => ({
-                id: key,
-                key: key,
-                url: detail.publicUrls?.[index]
+            (detail.supplier?.images || []).map(img => ({
+                key: img.key,
+                url: img.url
             }))
         );
 
         setNewImages([]);
+
     }, [detail, allSuppliers, allCustomers, allStaffs]);
 
     const handleAmountChange = (e) => {
         const value = e.target.value;
 
         if (/^\d*\.?\d{0,2}$/.test(value)) {
-            setFormData(p => ({ ...p, purchaseAmount: value }));
+            setFormData(p => ({ ...p, amount: value }));
         }
     };
 
+    const previewImages = useMemo(() => {
+        return [
+            ...existingImages.map(img => img.url),
+            ...newImages.map(file => URL.createObjectURL(file))
+        ];
+    }, [existingImages, newImages]);
+
+    useEffect(() => {
+
+        const blobUrls = previewImages.filter(url => url.startsWith("blob:"));
+        return () => {
+            blobUrls.forEach(url => URL.revokeObjectURL(url));
+        };
+
+    }, [previewImages]);
+
     /* ================= UPDATE ================= */
     const handleUpdate = async () => {
+
         try {
+
             setSaving(true);
+
+            if (!selectedSupplier?.id) {
+                showSnackbar("Supplier is required", "error");
+                setSaving(false);
+                return;
+            }
 
             const formDataObj = new FormData();
 
             const payload = {
+
                 date: formData.date || null,
-                staffId: selectedStaff?.staffId || null,
-                supplierIds: selectedSuppliers.map(s => s.id),
+                staffId: selectedStaff?.id || null,
                 customerId: selectedCustomer?.id || null,
-                purchaseAmount:
-                    formData.purchaseAmount !== ""
-                        ? Number(formData.purchaseAmount)
-                        : null,
-                existingImageKeys:
-                    existingImages.map(img => img.key)
+                supplierId: selectedSupplier?.id || null,
+                amount: formData.amount ? Number(formData.amount) : null,
+                existingImageKeys: existingImages.map(img => img.key)
             };
 
             formDataObj.append(
@@ -169,8 +182,14 @@ const EditPurchaseDetail = ({
                 })
             );
 
+            const supplierId = selectedSupplier?.id;
             newImages.forEach(file => {
-                formDataObj.append("images", file);
+                if (supplierId) {
+                    formDataObj.append(
+                        `supplier_${supplierId}_images`,
+                        file
+                    );
+                }
             });
 
             await updatePurchaseApi(purchaseId, formDataObj);
@@ -181,10 +200,15 @@ const EditPurchaseDetail = ({
             setOpen(false);
 
         } catch {
+
             showSnackbar("Failed to update purchase", "error");
+
         } finally {
+
             setSaving(false);
+
         }
+
     };
 
     /* ================= UI ================= */
@@ -194,8 +218,10 @@ const EditPurchaseDetail = ({
                 className="
         bg-white flex flex-col
         w-full h-full sm:h-auto
-        sm:max-w-2xl sm:max-h-[90vh]
-        sm:rounded-xl shadow-xl
+        sm:w-[95%] md:w-[90%] lg:w-[960px] xl:w-[1080px]
+        sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl
+        sm:max-h-[96vh]
+        sm:rounded-2xl shadow-2xl overflow-hidden
       "
             >
                 {/* Header */}
@@ -214,176 +240,211 @@ const EditPurchaseDetail = ({
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
+                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
 
-                    {/* BASIC INFO */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <CustomTextField
-                            label="Purchase ID"
-                            value={purchaseId}
-                            disabled
-                        />
+                    {/* Information */}
+                    <div className="border border-gray-200 p-4 sm:p-6 rounded-xl bg-white">
 
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                                label="Date"
-                                format="DD-MM-YYYY"
-                                value={
-                                    formData.date
-                                        ? dayjs(formData.date, "YYYY-MM-DD")
-                                        : null
-                                }
-                                onChange={(v) =>
-                                    setFormData(p => ({
-                                        ...p,
-                                        date: v
-                                            ? dayjs(v).format("YYYY-MM-DD")
-                                            : "",
-                                    }))
-                                }
-                                slotProps={{
-                                    textField: { size: "small", fullWidth: true },
-                                }}
+                        <div className="flex items-start mb-5">
+                            <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-800">
+                                    Information
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                            {/* Customer */}
+                            <GenericAutocomplete
+                                options={customerOptions}
+                                value={customerOptions.find(c => c.id === selectedCustomer?.id) || null}
+                                label="Customer"
+                                onChange={(v) => setSelectedCustomer(v)}
                             />
-                        </LocalizationProvider>
+
+                            {/* Staff */}
+                            <GenericAutocomplete
+                                options={staffOptions}
+                                value={staffOptions.find(s => s.id === selectedStaff?.id) || null}
+                                label="Staff"
+                                onChange={(v) => setSelectedStaff(v)}
+                            />
+
+                            {/* Date */}
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label="Transaction Date"
+                                    format="DD-MM-YYYY"
+                                    value={
+                                        formData.date
+                                            ? dayjs(formData.date, "YYYY-MM-DD")
+                                            : null
+                                    }
+                                    onChange={(v) =>
+                                        setFormData(p => ({
+                                            ...p,
+                                            date: v
+                                                ? dayjs(v).format("YYYY-MM-DD")
+                                                : "",
+                                        }))
+                                    }
+                                    slotProps={{
+                                        textField: { size: "small", fullWidth: true },
+                                    }}
+                                />
+                            </LocalizationProvider>
+
+                        </div>
+
                     </div>
 
-                    {/* STAFF + AMOUNT */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Autocomplete
-                            options={allStaffs}
-                            value={selectedStaff}
-                            isOptionEqualToValue={(o, v) =>
-                                o.staffId === v?.staffId
-                            }
-                            getOptionLabel={(o) => o?.staffName || ""}
-                            onChange={(e, v) => setSelectedStaff(v)}
-                            renderInput={(p) => (
-                                <CustomTextField {...p} label="Staff" />
-                            )}
-                        />
+                    {/* Supplier section  */}
+                    <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
 
-                        <CustomTextField
-                            label="Purchase Amount"
-                            value={formData.purchaseAmount}
-                            onChange={handleAmountChange}
-                        />
+                        <div className="flex items-start justify-between mb-5">
+
+                            <div className="flex items-start">
+
+                                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full mr-3"></div>
+
+                                <h3 className="text-lg font-semibold text-gray-800">
+                                    Suppliers
+                                </h3>
+
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                            {/* Supplier */}
+                            <GenericAutocomplete
+                                options={supplierOptions}
+                                value={supplierOptions.find(s => s.id === selectedSupplier?.id) || null}
+                                label="Supplier"
+                                required={true}
+                                onChange={(v) => setSelectedSupplier(v)}
+                            />
+
+                            {/* Amount */}
+                            <CustomTextField
+                                label="Purchase Amount"
+                                value={formData.amount}
+                                onChange={handleAmountChange}
+                            />
+
+                        </div>
+
                     </div>
 
-                    {/* SUPPLIER + CUSTOMER */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Autocomplete
-                            multiple
-                            options={allSuppliers}
-                            value={selectedSuppliers}
-                            isOptionEqualToValue={(o, v) => o.id === v.id}
-                            getOptionLabel={(o) => o?.supplierName || ""}
-                            onChange={(e, values) =>
-                                setSelectedSuppliers(values)
-                            }
-                            renderInput={(p) => (
-                                <CustomTextField {...p} label="Suppliers" />
-                            )}
-                        />
-
-                        <Autocomplete
-                            options={allCustomers}
-                            value={selectedCustomer}
-                            isOptionEqualToValue={(o, v) => o.id === v?.id}
-                            getOptionLabel={(o) => o?.customerName || ""}
-                            onChange={(e, v) =>
-                                setSelectedCustomer(v)
-                            }
-                            renderInput={(p) => (
-                                <CustomTextField {...p} label="Customer" />
-                            )}
-                        />
-                    </div>
-
-
-                    {/* ================= PURCHASE IMAGES ================= */}
+                    {/* ================= ORDER FORM ATTACHMENTS ================= */}
 
                     <div className="bg-white border rounded-2xl p-6 shadow-sm">
+
                         <div className="flex justify-between items-center mb-5">
+
                             <h3 className="text-lg font-semibold text-gray-800">
-                                OrderForm
+                                Order Form Attachments
                             </h3>
+
                             <span className="text-sm text-gray-500">
                                 {existingImages.length + newImages.length}/2
                             </span>
+
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
                             {[
+
                                 ...existingImages.map(img => ({
                                     type: "existing",
-                                    id: img.id,
+                                    id: img.key,
                                     key: img.key
                                 })),
+
                                 ...newImages.map(file => ({
                                     type: "new",
                                     id: file.name + file.lastModified,
                                     file
                                 }))
+
                             ].map((img, index) => (
-                                <div
-                                    key={img.id || index}
-                                    className="relative group"
-                                >
+
+                                <div key={img.id || index} className="relative group">
+
                                     <div
                                         onClick={() => setPreviewIndex(index)}
                                         className="h-20 rounded-xl border bg-gray-50 flex items-center px-4 
-                   cursor-pointer hover:bg-gray-100 hover:shadow 
-                   transition-all"
+          cursor-pointer hover:bg-gray-100 hover:shadow transition-all"
                                     >
-                                        <VisibilityIcon className="text-gray-500 mr-3" />
+
                                         <div className="flex-1">
+
                                             <p className="text-sm font-medium text-gray-700">
                                                 Attachment {index + 1}
                                             </p>
+
                                             <p className="text-xs text-gray-500">
                                                 Click to preview
                                             </p>
+
                                         </div>
+
                                     </div>
 
                                     <button
                                         type="button"
                                         onClick={() => {
+
                                             if (img.type === "new") {
+
                                                 setNewImages(prev =>
                                                     prev.filter(f =>
                                                         (f.name + f.lastModified) !== img.id
                                                     )
                                                 );
+
                                             } else {
+
                                                 setExistingImages(prev =>
                                                     prev.filter(i => i.key !== img.key)
                                                 );
+
                                             }
+
                                         }}
                                         className="absolute -top-2 -right-2 bg-white border text-red-600 
-                   rounded-full w-7 h-7 flex items-center justify-center 
-                   shadow hover:bg-red-600 hover:text-white transition"
+          rounded-full w-7 h-7 flex items-center justify-center shadow"
                                     >
                                         ✕
                                     </button>
+
                                 </div>
+
                             ))}
 
                             {(existingImages.length + newImages.length) < 2 && (
-                                <label className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
-                      flex items-center justify-center cursor-pointer 
-                      hover:border-blue-500 hover:bg-blue-50 transition">
+
+                                <label
+                                    className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
+        flex items-center justify-center cursor-pointer 
+        hover:border-blue-500 hover:bg-blue-50 transition"
+                                >
+
                                     <span className="text-sm text-gray-600 font-medium">
                                         + Add Attachment
                                     </span>
+
                                     <input
                                         type="file"
                                         accept="image/*"
                                         hidden
                                         onChange={(e) => {
+
                                             const files = Array.from(e.target.files || []);
+
                                             if (!files.length) return;
 
                                             const total =
@@ -392,25 +453,29 @@ const EditPurchaseDetail = ({
                                                 files.length;
 
                                             if (total > 2) {
+
                                                 showSnackbar("Maximum 2 images allowed", "error");
                                                 return;
+
                                             }
 
                                             setNewImages(prev => [...prev, ...files]);
                                             e.target.value = "";
+
                                         }}
                                     />
+
                                 </label>
+
                             )}
+
                         </div>
+
                     </div>
 
                     <ImagePreviewDialog
                         open={previewIndex !== null}
-                        images={[
-                            ...existingImages.map(img => img.url),
-                            ...newImages.map(file => URL.createObjectURL(file))
-                        ]}
+                        images={previewImages}
                         index={previewIndex || 0}
                         onChangeIndex={setPreviewIndex}
                         onClose={() => setPreviewIndex(null)}
@@ -429,7 +494,7 @@ const EditPurchaseDetail = ({
                         Update
                     </AppButton>
 
-                      <AppButton
+                    <AppButton
                         type="cancel"
                         onClick={() => setOpen(false)}
                     >

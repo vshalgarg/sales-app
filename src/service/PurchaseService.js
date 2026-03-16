@@ -62,7 +62,7 @@ export const getPurchaseDetailsById = async (id) => {
 
     const result = checkLogicalError(response.data);
 
-    return result;
+    return result.data;
 
   } catch (error) {
     throw new Error(handleApiError(error));

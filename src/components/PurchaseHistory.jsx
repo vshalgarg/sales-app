@@ -1,8 +1,10 @@
 import useResponsive from "../customHooks/useResponsive";
 import PurchaseView from "../modals/PurchaseView";
+import { getPurchaseDetailsById } from "../service/PurchaseService";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
 import { useState } from "react";
+
 
 const PurchaseHistory = ({
   data,
@@ -19,9 +21,17 @@ const PurchaseHistory = ({
   const { isMobile } = useResponsive();
   const [viewData, setViewData] = useState(null);
 
-  const handleView = (row) => {
-    setViewData(row);
-  };
+  const handleView = async (row) => {
+  try {
+
+    const detail = await getPurchaseDetailsById(row.id);
+
+    setViewData(detail);
+
+  } catch {
+    showSnackbar("Failed to load purchase details", "error");
+  }
+};
 
   const handleCloseView = () => {
     setViewData(null);
@@ -57,7 +67,7 @@ const PurchaseHistory = ({
         label: "Amount",
         render: (r) =>
           r.purchaseAmount != null
-            ? `₹ ${Number(r.purchaseAmount).toFixed(2)}`
+            ? `${Number(r.purchaseAmount).toFixed(2)}`
             : "-",
       },
     ],

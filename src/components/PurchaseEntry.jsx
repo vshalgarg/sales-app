@@ -5,13 +5,20 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { useSnackbar } from "../context/SnackbarContext";
 import { useEffect, useState } from "react";
-import Autocomplete from "@mui/material/Autocomplete";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { addPurchaseEntry } from "../service/PurchaseService";
 import validate from "../validations/Validation";
 import ImageUploader from "./common/ImageUploader";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import { CheckCircleIcon } from "lucide-react";
+import GenericAutocomplete from "./common/GenericAutocomplete";
+import { mapToOption } from "../utils/optionMapper";
+
 
 const PurchaseEntry = () => {
   const { showSnackbar } = useSnackbar();
@@ -24,20 +31,28 @@ const PurchaseEntry = () => {
   const [supplierLoading, setSupplierLoading] = useState(true);
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedSuppliers, setSelectedSuppliers] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [purchaseImages, setPurchaseImages] = useState([]);
+  const [openUploader, setOpenUploader] = useState(false);
+  const [activeSupplierIndex, setActiveSupplierIndex] = useState(null);
+  const [tempImages, setTempImages] = useState([]);
 
+  const customerOptions = mapToOption(allCustomers, "id", "customerName");
+  const staffOptions = mapToOption(allStaffs, "staffId", "staffName");
+  const supplierOptions = mapToOption(allSuppliers, "id", "supplierName");
 
 
   const [formData, setFormData] = useState({
     date: dayjs().format("YYYY-MM-DD"),
     staffId: "",
-    supplierIds: [],
     customerId: "",
-    staff: "",
-    purchaseAmount: "",
   });
+
+  const [suppliers, setSuppliers] = useState(
+    Array.from({ length: 5 }, () => ({
+      supplierId: null,
+      amount: "",
+      images: []
+    }))
+  );
 
   const [errors, setErrors] = useState({});
 
@@ -72,38 +87,61 @@ const PurchaseEntry = () => {
   }, []);
 
   const handleStaffSelect = (event, value) => {
-    if (value) {
-      setFormData((prev) => ({
-        ...prev,
-        staffId: value.staffId,
-        staff: value.staffName || "",
-      }));
-      setErrors((prev) => ({ ...prev, staff: "" }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        staffId: "",
-        staff: "",
-      }));
-    }
-  };
-
-  const handleAmountChange = (e) => {
-    const { name, value } = e.target;
-    if (/^\d*\.?\d{0,2}$/.test(value)) {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-      setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
-    }
-  };
-
-  const handleAmountBlur = (name) => {
-    const val = formData[name];
-    const num = parseFloat(val);
     setFormData((prev) => ({
       ...prev,
-      [name]: isNaN(num) || !val ? "" : num.toFixed(2),
+      staffId: value?.id || "",
     }));
   };
+
+  const handleSupplierAmountChange = (value, index) => {
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
+      const updated = [...suppliers];
+      updated[index].amount = value;
+      setSuppliers(updated);
+    }
+  };
+
+  const handleSupplierChange = (value, index) => {
+    const updated = [...suppliers];
+    updated[index].supplierId = value?.id || null;
+    setSuppliers(updated);
+    setErrors(prev => ({ ...prev, supplierIds: "" }));
+  };
+
+  const addSuppliers = () => {
+    setSuppliers(prev => [
+      ...prev,
+      {
+        supplierId: null,
+        amount: "",
+        images: []
+      }
+    ]);
+  };
+
+  const handleImageSave = () => {
+    if (activeSupplierIndex === null) return;
+
+    const updated = [...suppliers];
+    updated[activeSupplierIndex].images = tempImages;
+
+    setSuppliers(updated);
+    setOpenUploader(false);
+    setActiveSupplierIndex(null);
+    setTempImages([]);
+
+    showSnackbar("Images saved", "success");
+  };
+
+  const handleImageCancel = () => {
+    setOpenUploader(false);
+    setActiveSupplierIndex(null);
+    setTempImages([]);
+  };
+
+  const filteredSuppliers = supplierOptions.filter(
+    s => !suppliers.some(sel => sel.supplierId === s.id)
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -115,8 +153,9 @@ const PurchaseEntry = () => {
     const dateError = validate("date", formData.date);
     if (dateError) newErrors.date = dateError;
 
-    if (!formData.supplierIds || formData.supplierIds.length === 0) {
-      newErrors.supplierIds = "Please select at least one Supplier";
+    const hasAtLeastOneSupplier = suppliers.some(s => s.supplierId != null && s.supplierId !== "");
+    if (!hasAtLeastOneSupplier) {
+      newErrors.supplierIds = "Please select at least one supplier";
     }
 
     if (!formData.customerId) {
@@ -131,16 +170,36 @@ const PurchaseEntry = () => {
     setIsSaving(true);
 
     try {
+
+      const payload = {
+        date: formData.date,
+        staffId: formData.staffId || null,
+        customerId: formData.customerId,
+        suppliers: suppliers
+          .filter(s => s.supplierId)
+          .map(s => ({
+            supplierId: s.supplierId,
+            amount: s.amount ? Number(s.amount) : null
+          }))
+      };
       const formDataObj = new FormData();
 
       formDataObj.append(
         "payload",
-        new Blob([JSON.stringify(formData)], {
+        new Blob([JSON.stringify(payload)], {
           type: "application/json",
         })
       );
-      purchaseImages.forEach((file) => {
-        formDataObj.append("images", file);
+
+      suppliers.forEach((supplier) => {
+        if (!supplier.supplierId) return;
+
+        supplier.images.forEach((file) => {
+          formDataObj.append(
+            `supplier_${supplier.supplierId}_images`,
+            file
+          );
+        });
       });
 
       const response = await addPurchaseEntry(formDataObj);
@@ -161,25 +220,22 @@ const PurchaseEntry = () => {
     setFormData({
       date: dayjs().format("YYYY-MM-DD"),
       staffId: "",
-      supplierId: "",
-      customerIds: [],
-      staff: "",
-      purchaseAmount: "",
+      customerId: "",
     });
-    setPurchaseImages([]);
     setErrors({});
   };
 
   const resetSupplier = () => {
-    setSelectedSuppliers([]);
-    setFormData(prev => ({
-      ...prev,
-      supplierIds: [],
-    }));
+    setSuppliers(
+      Array.from({ length: 5 }, () => ({
+        supplierId: null,
+        amount: "",
+        images: []
+      }))
+    );
   };
 
   const resetCustomer = () => {
-    setSelectedCustomer(null);
     setFormData(prev => ({
       ...prev,
       customerId: "",
@@ -213,85 +269,49 @@ const PurchaseEntry = () => {
               <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Party Information
+                  Information
                 </h3>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-              <Autocomplete
-                options={allCustomers}
-                value={selectedCustomer}
+              {/* Customer */}
+              <GenericAutocomplete
+                options={customerOptions}
+                value={customerOptions.find(c => c.id === formData.customerId) || null}
                 loading={customerLoading}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                getOptionLabel={(o) =>
-                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
-                }
-                onChange={(e, value) => {
+                label="Customer"
+                required={true}
+                error={!!errors.customerId}
+                helperText={errors.customerId || ""}
+                onChange={(value) => {
                   if (!value) {
                     resetCustomer();
                     return;
                   }
-
-                  setSelectedCustomer(value);
                   setFormData(prev => ({
                     ...prev,
                     customerId: value.id,
                   }));
+
                   setErrors(prev => ({ ...prev, customerId: "" }));
                 }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Customer *"
-                    error={!!errors.customerId}
-                    helperText={errors.customerId || ""}
-                  />
-                )}
               />
 
-              <Autocomplete
-                multiple
-                options={allSuppliers}
-                value={selectedSuppliers}
-                loading={supplierLoading}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-                getOptionLabel={(o) =>
-                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
-                }
-                onChange={(e, values) => {
-                  setSelectedSuppliers(values);
-                  setFormData(prev => ({
-                    ...prev,
-                    supplierIds: values.map(v => v.id),
-                  }));
-                  setErrors(prev => ({ ...prev, supplierIds: "" }));
-                }}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Suppliers *"
-                    error={!!errors.supplierIds}
-                    helperText={errors.supplierIds || ""}
-                  />
-                )}
+
+              {/* Staff */}
+              <GenericAutocomplete
+                options={staffOptions}
+                value={staffOptions.find(s => s.id === formData.staffId) || null}
+                loading={staffLoading}
+                label="Staff"
+                error={!!errors.staff}
+                helperText={errors.staff || ""}
+                onChange={(value) => handleStaffSelect(null, value)}
               />
-            </div>
-          </div>
 
-          {/* Transaction Details */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
-            <div className="flex items-start mb-5">
-              <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Transaction Details
-                </h3>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Transaction Date */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Transaction Date *"
@@ -326,67 +346,128 @@ const PurchaseEntry = () => {
                   }}
                 />
               </LocalizationProvider>
+            </div>
+          </div>
 
-              <Autocomplete
-                options={allStaffs}
-                getOptionLabel={(o) => o.staffName || ""}
-                value={allStaffs.find(s => s.staffId === formData.staffId) || null}
-                onChange={handleStaffSelect}
-                loading={staffLoading}
-                renderInput={(params) => (
-                  <CustomTextField
-                    {...params}
-                    label="Staff"
-                    error={!!errors.staff}
-                    helperText={errors.staff || ""}
+
+          {/* Suppliers Section */}
+          <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
+
+            {/* Section Header */}
+            <div className="flex items-start justify-between mb-5">
+
+              <div className="flex items-start">
+                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full mr-3"></div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Suppliers
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={addSuppliers}
+                className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm"
+              >
+                <span className="sm:hidden">+ Add</span>
+                <span className="hidden sm:inline">+ Add More Supplier</span>
+              </button>
+
+            </div>
+
+            {/* Supplier Card */}
+            {suppliers.map((supplier, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50 mb-4"
+              >
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+
+                  {/* Supplier */}
+                  <GenericAutocomplete
+                    options={filteredSuppliers}
+                    value={
+                      supplierOptions.find(
+                        s => s.id === suppliers[index]?.supplierId
+                      ) || null
+                    }
+                    loading={supplierLoading}
+                    label="Supplier"
+                    required={index === 0}
+                    error={index === 0 && !!errors.supplierIds}
+                    helperText={index === 0 ? errors.supplierIds : ""}
+                    onChange={(value) => handleSupplierChange(value, index)}
                   />
-                )}
-              />
-              <CustomTextField
-                name="purchaseAmount"
-                label="Purchase Amount"
-                value={formData.purchaseAmount}
-                onChange={handleAmountChange}
-                onBlur={() => handleAmountBlur("purchaseAmount")}
-                error={!!errors.purchaseAmount}
-                helperText={errors.purchaseAmount || ""}
-                InputProps={{
-                  className: "text-lg font-semibold",
-                }}
-              />
-            </div>
+
+                  {/* Amount */}
+                  <CustomTextField
+                    label="Purchase Amount"
+                    value={suppliers[index].amount}
+                    onChange={(e) =>
+                      handleSupplierAmountChange(e.target.value, index)
+                    }
+                  />
+
+                  {/* Upload Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSupplierIndex(index);
+                      setTempImages(suppliers[index]?.images || []);
+                      setOpenUploader(true);
+                    }}
+                    className={`
+    h-[40px] px-4 text-sm font-medium rounded-lg shadow-sm 
+    flex items-center gap-2 justify-center transition-all duration-200
+    ${supplier.images.length > 0
+                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : 'bg-gray-200 text-gray-600 border-gray-300 hover:bg-gray-200'
+                      }
+  `}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+
+                    <span className="hidden sm:inline">
+                      {supplier.images.length > 0 ? 'Order Form Uploaded' : 'Upload Order Form'}
+                    </span>
+                    <span className="sm:hidden">
+                      {supplier.images.length > 0 ? 'Uploaded' : 'Upload'}
+                    </span>
+
+                    {supplier.images.length > 0 && (
+                      <>
+                        <span className="w-px h-5 bg-white/20 mx-1 hidden sm:block"></span>
+
+                        <span className="bg-white text-green-600 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                          {supplier.images.length}
+                        </span>
+
+                        <CheckCircleIcon size={18} className="text-white/90" />
+                      </>
+                    )}
+                  </button>
+
+                </div>
+
+              </div>
+            ))}
+
           </div>
-
-          {/* Purchase Images Section */}
-          <div className="
-  border border-gray-200
-  rounded-xl
-  bg-white
-  shadow-sm
-  hover:shadow-md
-  transition-shadow
-  p-3 sm:p-4 md:p-6
-">
-            <div className="flex items-center mb-4">
-              <div className="w-1 h-7 sm:h-8 bg-pink-600 rounded-full mr-3" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-800">
-                Order Form
-              </h3>
-            </div>
-
-            <ImageUploader
-              value={purchaseImages}
-              onChange={setPurchaseImages}
-              maxImages={2}
-              label="Add Order Form"
-              onError={(msg) => showSnackbar(msg, "error")}
-            />
-
-            <p className="mt-2 text-xs text-gray-500">
-              You can upload up to 2 images only
-            </p>
-          </div>
-
         </div>
 
         {/* Footer */}
@@ -412,6 +493,56 @@ const PurchaseEntry = () => {
 
           </div>
         </div>
+
+        <Dialog
+          open={openUploader}
+          onClose={handleImageCancel}
+          maxWidth="sm"
+          fullWidth
+        >
+
+          <DialogTitle
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              pr: 1
+            }}
+          >
+            Upload Order Form
+          </DialogTitle>
+
+          <DialogContent>
+
+            <ImageUploader
+              value={tempImages}
+              onChange={setTempImages}
+              maxImages={2}
+              label="Order Form Images"
+              onError={(msg) => showSnackbar(msg, "error")}
+            />
+
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <button
+              type="button"
+              onClick={handleImageCancel}
+              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              onClick={handleImageSave}
+              className="px-5 py-2 text-sm font-semibold text-white rounded-lg bg-blue-600 hover:bg-blue-700 shadow-sm"
+            >
+              Save
+            </button>
+          </DialogActions>
+
+        </Dialog>
 
       </div>
     </div>
