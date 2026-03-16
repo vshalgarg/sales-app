@@ -1,20 +1,24 @@
 package com.code.monks.csm.service.impl;
 
+import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
+import com.code.monks.csm.dto.request.SupplierPurchaseDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
-import com.code.monks.csm.dto.response.*;
-import com.code.monks.csm.entity.CustomerEntity;
-import com.code.monks.csm.entity.PurchaseEntity;
-import com.code.monks.csm.entity.PurchaseImageEntity;
-import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
+import com.code.monks.csm.dto.response.FileUploadResponse;
+import com.code.monks.csm.dto.response.PagedResponseDto;
+import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
+import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.mapper.PurchaseMapper;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.PurchaseEntryRepo;
+import com.code.monks.csm.repository.StaffRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.PurchaseService;
 import com.code.monks.csm.service.file.FileService;
+import com.code.monks.csm.service.file.validator.FileValidator;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +29,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
@@ -45,37 +47,74 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final SupplierRepo supplierRepo;
     private final FileService fileService;
     private final PurchaseMapper purchaseMapper;
+    private final FileValidator fileValidator;
+    private final StaffRepo staffRepo;
 
     @Override
     @Transactional
     public AddPurchaseEntryResponseDto addPurchaseEntry(
             AddPurchaseEntryRequestDto requestDto,
-            List<MultipartFile> images
+            MultiValueMap<String, MultipartFile> supplierImages
     ) {
-        log.info("Add Purchase Entry called ");
 
-        PurchaseEntity entity = new PurchaseEntity();
+        log.info("Add Purchase Entry API called | suppliersCount={}",
+                requestDto.getSuppliers() != null ? requestDto.getSuppliers().size() : 0);
 
-        applyRequestToEntity(
-                entity,
-                requestDto.getDate(),
-                requestDto.getStaffId(),
-                requestDto.getSupplierIds(),
-                requestDto.getCustomerId(),
-                requestDto.getPurchaseAmount()
-        );
+        List<SupplierPurchaseDto> suppliers = requestDto.getSuppliers();
 
-        handleImages(entity, images);
+        List<PurchaseEntity> entities = new ArrayList<>();
 
-        log.info("Saving Purchase entry | date={} | staffId={} | amount={}",
-                entity.getDate(),
-                entity.getStaffId(),
-                entity.getPurchaseAmount());
+        for (SupplierPurchaseDto supplierDto : suppliers) {
 
-        purchaseEntryRepo.save(entity);
+            Integer supplierId = supplierDto.getSupplierId();
+
+            log.info("Processing purchase entry | supplierId={}", supplierId);
+
+            PurchaseEntity entity = new PurchaseEntity();
+            applyRequestToEntity(
+                    entity,
+                    requestDto.getDate(),
+                    requestDto.getStaffId(),
+                    supplierId,
+                    requestDto.getCustomerId(),
+                    supplierDto.getAmount()
+            );
+
+            List<MultipartFile> images = Collections.emptyList();
+
+            if (supplierImages != null) {
+                images = supplierImages.getOrDefault(
+                        "supplier_" + supplierId + "_images",
+                        Collections.emptyList()
+                );
+            }
+
+            // validation (max images)
+            fileValidator.validate(images);
+
+            if (!images.isEmpty()) {
+
+                log.info("Uploading {} image(s) for supplierId={}",
+                        images.size(),
+                        supplierId);
+
+                handleImages(entity, images);
+
+            } else {
+
+                log.info("Saving purchase entry without images | supplierId={}", supplierId);
+            }
+
+            entities.add(entity);
+        }
+
+        purchaseEntryRepo.saveAll(entities);
+
+        log.info("All purchase entries saved successfully | totalSuppliers={}",
+                entities.size());
 
         return AddPurchaseEntryResponseDto.builder()
-                .message("Purchase entry saved successfully")
+                .message("Purchase entries saved successfully")
                 .build();
     }
 
@@ -107,7 +146,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         Specification<PurchaseEntity> spec = builder
                 .fromDate("date", fromDate)
                 .toDate("date", toDate)
-                .joinEqual("suppliers", "id", supplierId)
+                .joinEqual("supplier", "id", supplierId)
                 .joinEqual("customer", "id", customerId)
                 .build();
 
@@ -117,7 +156,18 @@ public class PurchaseServiceImpl implements PurchaseService {
         List<SearchPurchaseEntryResponse> content =
                 purchaseRecords.getContent()
                         .stream()
-                        .map(purchaseMapper::toSearch)
+                        .map(entity -> {
+
+                            String staffName = null;
+
+                            if (entity.getStaffId() != null) {
+                                staffName = staffRepo.findById(entity.getStaffId())
+                                        .map(StaffEntity::getStaffName)
+                                        .orElse(null);
+                            }
+
+                            return purchaseMapper.toSearch(entity, staffName);
+                        })
                         .toList();
 
         return new PagedResponseDto<>(
@@ -135,40 +185,65 @@ public class PurchaseServiceImpl implements PurchaseService {
     public Map<String, Object> updatePurchaseEntry(
             int id,
             UpdatePurchaseEntryReq req,
-            List<MultipartFile> newImages
+            MultiValueMap<String, MultipartFile> supplierImages
     ) {
 
-        log.info("Update Purchase Entry called for ID={}", id);
+        log.info("Update Purchase Entry called | purchaseId={}", id);
 
         PurchaseEntity entity = purchaseEntryRepo.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                PURCHASE_ENTRY_NOT_FOUND,
-                                String.valueOf(id)
-                        )
-                );
+                .orElseThrow(() -> {
+                    log.error("Purchase entry not found | purchaseId={}", id);
+                    return new ResourceNotFoundException(
+                            PURCHASE_ENTRY_NOT_FOUND,
+                            String.valueOf(id)
+                    );
+                });
+
+        log.info("Updating purchase entry | purchaseId={} | supplierId={}",
+                id,
+                req.getSupplierId());
 
         applyRequestToEntity(
                 entity,
                 req.getDate(),
                 req.getStaffId(),
-                req.getSupplierIds(),
+                req.getSupplierId(),
                 req.getCustomerId(),
-                req.getPurchaseAmount()
+                req.getAmount()
         );
-        log.info("Updating Purchase entry ID={} | newAmount={}",
-                id,
-                entity.getPurchaseAmount());
 
-        handleImageUpdate(entity, req.getExistingImageKeys(), newImages);
-        PurchaseEntity updated = purchaseEntryRepo.save(entity);
+        List<MultipartFile> newImages = Collections.emptyList();
+
+        if (supplierImages != null) {
+            newImages = supplierImages.getOrDefault(
+                    "supplier_" + req.getSupplierId() + "_images",
+                    Collections.emptyList()
+            );
+        }
+
+        fileValidator.validate(newImages);
+
+        log.info("Updating images | purchaseId={} | existingKeysCount={} | newImagesCount={}",
+                id,
+                req.getExistingImageKeys() != null ? req.getExistingImageKeys().size() : 0,
+                newImages.size());
+
+        handleImageUpdate(
+                entity,
+                req.getExistingImageKeys(),
+                newImages
+        );
+
+        purchaseEntryRepo.save(entity);
+
+        log.info("Purchase entry updated successfully | purchaseId={}", id);
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Purchase entry updated successfully");
-        response.put("id", updated.getId());
 
         return response;
     }
+
     @Override
     public Map<String, Object> deletePurchaseEntry(int id) {
 
@@ -190,22 +265,39 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Transactional(readOnly = true)
     public PurchaseDetailResponse getPurchaseById(int id) {
 
-        PurchaseEntity entity = purchaseEntryRepo.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                PURCHASE_ENTRY_NOT_FOUND,
-                                String.valueOf(id)
-                        )
-                );
+        log.info("Get Purchase Detail API called | purchaseId={}", id);
 
-        return purchaseMapper.toDetail(entity);
+        PurchaseEntity purchase = purchaseEntryRepo.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Purchase entry not found | purchaseId={}", id);
+                    return new ResourceNotFoundException(
+                            PURCHASE_ENTRY_NOT_FOUND,
+                            String.valueOf(id)
+                    );
+                });
+
+        StaffEntity staff = null;
+
+        if (purchase.getStaffId() != null) {
+
+            staff = staffRepo.findById(purchase.getStaffId()).orElse(null);
+
+        }
+
+        PurchaseDetailResponse response =
+                purchaseMapper.toDetail(purchase,
+                        staff != null ? staff.getStaffName() : null);
+
+        log.info("Purchase detail response prepared successfully | purchaseId={}", id);
+
+        return response;
     }
 
     private void applyRequestToEntity(
             PurchaseEntity entity,
             LocalDate date,
             Integer staffId,
-            List<Integer> supplierIds,
+            Integer supplierId,
             Integer customerId,
             Double purchaseAmount
     ) {
@@ -222,20 +314,18 @@ public class PurchaseServiceImpl implements PurchaseService {
             entity.setPurchaseAmount(Math.round(purchaseAmount * 100));
         }
 
-        if (supplierIds != null) {
+        if (supplierId != null) {
 
-            List<SupplierEntity> suppliers =
-                    supplierRepo.findAllById(supplierIds);
+            SupplierEntity supplier = supplierRepo
+                    .findById(supplierId)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    SUPPLIER_NOT_FOUND,
+                                    String.valueOf(supplierId)
+                            )
+                    );
 
-            if (suppliers.size() != supplierIds.size()) {
-                throw new ResourceNotFoundException(
-                        SUPPLIER_NOT_FOUND,
-                        "Invalid supplier IDs"
-                );
-            }
-
-            entity.getSuppliers().clear();
-            entity.getSuppliers().addAll(suppliers);
+            entity.setSupplier(supplier);
         }
 
         if (customerId != null) {

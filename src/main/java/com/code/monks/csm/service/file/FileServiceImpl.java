@@ -19,7 +19,6 @@ import java.util.List;
 @Slf4j
 public class FileServiceImpl implements FileService {
 
-    private final FileValidator fileValidator;
     private final FileStorage fileStorage;
 
     @Override
@@ -30,9 +29,6 @@ public class FileServiceImpl implements FileService {
             return new ArrayList<>();
         }
 
-        fileValidator.validate(images);
-
-        List<String> imageUrls = new ArrayList<>();
         List<FileUploadResponse> uploadedFiles = new ArrayList<>();
         for (MultipartFile image : images) {
             try {
@@ -59,7 +55,10 @@ public class FileServiceImpl implements FileService {
                 throw new FileUploadException(ResponseErrorCode.FILE_UPLOAD_EXCEPTION);
             }
         }
-        log.info("Successfully uploaded {} image(s) for module: {}", imageUrls.size(), uploadModule);
+        log.info("Successfully uploaded {} image(s) for module: {}",
+                uploadedFiles.size(),
+                uploadModule);
+
         return uploadedFiles;
     }
 

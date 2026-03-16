@@ -8,8 +8,7 @@ import java.util.List;
 @Data
 public class AddPurchaseEntryRequestDto {
     private LocalDate date;
-    private int staffId;
-    private List<Integer> supplierIds;
+    private Integer staffId;
     private Integer customerId;
-    private Double purchaseAmount;
+    private List<SupplierPurchaseDto> suppliers;
 }
