@@ -4,6 +4,7 @@ import { getPurchaseDetailsById } from "../service/PurchaseService";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
 import { useState } from "react";
+import { roundUp } from "../utils/numberUtils";
 
 
 const PurchaseHistory = ({
@@ -67,7 +68,7 @@ const PurchaseHistory = ({
         label: "Amount",
         render: (r) =>
           r.purchaseAmount != null
-            ? `${Number(r.purchaseAmount).toFixed(2)}`
+            ? roundUp(r.purchaseAmount)
             : "-",
       },
     ],
@@ -91,7 +92,7 @@ const PurchaseHistory = ({
         label: "Amount",
         render: (r) =>
           r.purchaseAmount != null
-            ? r.purchaseAmount
+            ? roundUp(r.purchaseAmount)
             : "-",
       },
     ],

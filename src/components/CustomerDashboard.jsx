@@ -9,6 +9,7 @@ import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
+import { cleanText, formatDetails } from "../utils/copyFormatter";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -55,26 +56,35 @@ export default function CustomerDashboard() {
     remark: "",
   });
 
- const getCustomerFormattedText = (customer) => {
+const getCustomerFormattedText = (customer) => {
 
   const mobileNumbers = customer?.contacts
     ?.map(contact => contact.mobileNumber)
     ?.filter(Boolean)
     ?.join(", ") || "-";
 
-  const fullAddress = [
+  const fullAddress = cleanText([
     customer?.address,
     customer?.city,
     customer?.state,
     customer?.pinCode
-  ]
+  ])
     .filter(Boolean)
-    .join(", ");
+    .join(", ") || "-";
 
-  return `Firm Name: ${customer?.customerName || "-"}
-Address: ${fullAddress || "-"}
-Phone No: ${mobileNumbers}
-GST No: ${customer?.customerGstNo || "-"}`;
+    const emails = customer?.email
+    const transports = customer?.preferredTransports?.map(t => t.name)
+      ?.filter(Boolean)
+      ?.join(", ");
+
+  return formatDetails({
+    "Firm Name": customer?.customerName || "-",
+    "Address": fullAddress,
+    "Phone No": mobileNumbers,
+    "GST No": customer?.customerGstNo || "-",
+    "Emails": emails,
+     "Transports": transports,
+  });
 };
 
 
