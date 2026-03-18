@@ -22,6 +22,7 @@ public interface PurchaseService {
             LocalDate toDate,
             Integer supplierId,
             Integer customerId,
+            Integer staffId,
             int page,
             int size);
 
