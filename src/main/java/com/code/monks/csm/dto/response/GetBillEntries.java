@@ -59,7 +59,7 @@ public class GetBillEntries {
                 .billNumber(bill.getBillNumber())
                 .date(bill.getDate())
                 .receivedDate(bill.getReceivedDate())
-                .order(bill.getOrders())
+                .order(bill.getInvoiceNo())
                 .pieces(pieces)
                 .grossAmount(grossAmount)
                 .discountPercent(discountPercent)

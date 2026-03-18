@@ -55,6 +55,7 @@ public class PurchaseEntryController {
 
             @RequestParam(required = false) Integer supplierId,
             @RequestParam(required = false) Integer customerId,
+            @RequestParam(required = false) Integer staffId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size
     ) {
@@ -63,7 +64,7 @@ public class PurchaseEntryController {
 
         return ResponseEntity.ok(
                 purchaseService.searchPurchaseHistory(
-                        fromDate, toDate, supplierId, customerId, page, size
+                        fromDate, toDate, supplierId, customerId, staffId, page, size
                 )
         );
     }

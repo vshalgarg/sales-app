@@ -25,7 +25,9 @@ public class BillEntryEntity extends BaseEntity{
 
     private LocalDate date;
     private LocalDate receivedDate;
-    private String orders;
+
+    @Column(name = "invoice_no")
+    private String invoiceNo;
 
     @Column(name = "taxable_value")
     private long taxableValue;

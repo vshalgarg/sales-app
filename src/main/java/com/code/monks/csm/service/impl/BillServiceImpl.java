@@ -16,7 +16,7 @@ import com.code.monks.csm.service.TransportService;
 import com.code.monks.csm.service.file.FileService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import com.code.monks.csm.utils.MoneyUtil;
-import com.code.monks.csm.utils.ValidatorUtil;
+import com.code.monks.csm.utils.ValidatorUtil;  
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -353,7 +353,7 @@ public class BillServiceImpl implements BillService {
                 .billNumber(entity.getBillNumber())
                 .date(entity.getDate())
                 .receivedDate(entity.getReceivedDate())
-                .order(entity.getOrders())
+                .invoiceNo(entity.getInvoiceNo())
 
                 .billAmount(MoneyUtil.toRupee(entity.getBillAmount()))
                 .taxableValue(MoneyUtil.toRupee(entity.getTaxableValue()))
@@ -427,7 +427,7 @@ public class BillServiceImpl implements BillService {
         bill.setBillNumber(billNumber);
         bill.setDate(dto.getDate());
         bill.setReceivedDate(dto.getReceivedDate());
-        bill.setOrders(dto.getOrder());
+        bill.setInvoiceNo(dto.getOrder());
         bill.setSupplierId(dto.getSupplierId());
         bill.setCustomerId(dto.getCustomerId());
         bill.setLrNumber(dto.getLrNumber());
@@ -455,7 +455,7 @@ public class BillServiceImpl implements BillService {
                 .map(LocalDate::parse)
                 .ifPresent(bill::setReceivedDate);
 
-        bill.setOrders(dto.getOrder());
+        bill.setInvoiceNo(dto.getOrder());
         bill.setSupplierId(dto.getSupplierId());
         bill.setCustomerId(dto.getCustomerId());
         bill.setLrNumber(dto.getLrNumber());
