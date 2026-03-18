@@ -10,6 +10,8 @@ import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import ConfirmDialog from "../components/common/ConfirmDialog";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 
 
 export default function AddNewTransport({
@@ -37,6 +39,8 @@ export default function AddNewTransport({
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({ contacts: [] });
   const [isSaving, setIsSaving] = useState(false);
+  const { isDirty } = useUnsavedChanges(formData, open);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
 
   /* ================= RESET ================= */
@@ -68,6 +72,26 @@ export default function AddNewTransport({
       resetForm();
     }
   }, [editingTransport, open]);
+
+  const handleClose = () => {
+    if (isDirty()) {
+      setConfirmOpen(true);
+      return;
+    }
+
+    resetForm();
+    setOpen(false);
+  };
+
+  const handleConfirmLeave = () => {
+    setConfirmOpen(false);
+    resetForm();
+    setOpen(false);
+  };
+
+  const handleStay = () => {
+    setConfirmOpen(false);
+  };
 
   /* ================= CONTACT HANDLERS ================= */
   const addContact = () => {
@@ -164,21 +188,17 @@ export default function AddNewTransport({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 
-                flex md:items-center md:justify-center">
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-start md:items-center justify-center">
       <div className="bg-white w-full 
-                min-h-[100dvh]
+                h-[100dvh] md:h-auto
                 md:max-w-4xl md:max-h-[90vh] 
                 md:rounded-lg shadow-lg 
                 flex flex-col">
 
         {/* HEADER */}
-        <div className="p-4 md:p-6 border-b flex items-center gap-3">
+        <div className="p-4 md:px-6 md:py-5 border-b flex items-center gap-3">
           <IconButton
-            onClick={() => {
-              resetForm();
-              setOpen(false);
-            }}
+            onClick={handleClose}
             className="md:hidden"
           >
             <ArrowBackIcon />
@@ -190,7 +210,7 @@ export default function AddNewTransport({
         </div>
 
         {/* BODY */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-8">
 
           {/* ===== BASIC INFORMATION ===== */}
           <section>
@@ -355,7 +375,7 @@ export default function AddNewTransport({
         </div>
 
         {/* FOOTER */}
-        <FormFooter background="bg-white">
+        <FormFooter background="bg-white border-t">
 
           {/* Save / Update */}
           <AppButton
@@ -378,12 +398,18 @@ export default function AddNewTransport({
           {/* Cancel */}
           <AppButton
             type="cancel"
-            onClick={() => setOpen(false)}
+            onClick={handleClose}
           >
             Cancel
           </AppButton>
 
         </FormFooter>
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onConfirm={handleConfirmLeave}
+          onCancel={handleStay}
+        />
 
       </div>
     </div>

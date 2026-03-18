@@ -13,19 +13,20 @@ import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({
     contacts: [{}],
   });
-  const [touched, setTouched] = useState({});
-
   const { showSnackbar } = useSnackbar();
-
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
   const [selectedTransports, setSelectedTransports] = useState([]);
+  const { isDirty } = useUnsavedChanges(form, open);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
 
   /* ---------- Load all transports once ---------- */
@@ -52,7 +53,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       if (!/^\d{0,6}$/.test(value)) return;
 
       setForm(prev => ({ ...prev, pinCode: value }));
-      setTouched(prev => ({ ...prev, pinCode: true }));
       setErrors(prev => ({ ...prev, pinCode: validate("pinCode", value) }));
       return;
     }
@@ -62,11 +62,28 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       ...prev,
       [name]: value,
     }));
-
-    setTouched(prev => ({ ...prev, [name]: true }));
     setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
   };
 
+  const handleClose = () => {
+    if (isDirty()) {
+      setConfirmOpen(true);
+      return;
+    }
+
+    resetForm();
+    setOpen(false);
+  };
+
+  const handleConfirmLeave = () => {
+    setConfirmOpen(false);
+    resetForm();
+    setOpen(false);
+  };
+
+  const handleStay = () => {
+    setConfirmOpen(false);
+  };
 
   const addContact = () => {
     setForm({
@@ -145,8 +162,8 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
 
       const response = await CustomerService.saveCustomer(payload);
 
-      if (response?.code && response?.message) {
-        showSnackbar(response.message, "error");
+      if (!response || response.error) {
+        showSnackbar(response?.message || "Failed to save customer", "error");
         return;
       }
 
@@ -183,19 +200,16 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     <>
       {open && (
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 
-                flex md:items-center md:justify-center">
+                flex items-start md:items-center justify-center">
           <div className="bg-white w-full 
-                min-h-[100dvh]
+                h-[100dvh] md:h-auto
                 md:max-w-4xl md:max-h-[90vh] 
                 md:rounded-lg shadow-lg 
                 flex flex-col">
             {/* Header */}
             <div className="p-4 md:p-6 border-b flex items-center gap-3">
               <IconButton
-                onClick={() => {
-                  resetForm();
-                  setOpen(false);
-                }}
+                onClick={handleClose}
                 className="md:hidden"
               >
                 <ArrowBackIcon />
@@ -508,7 +522,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               </div>
             </div>
 
-            <FormFooter>
+            <FormFooter className="border-t p-4">
               {/* Save Customer */}
               <AppButton
                 type="primary"
@@ -531,15 +545,18 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               <AppButton
                 type="cancel"
                 disabled={isSaving}
-                onClick={() => {
-                  resetForm();
-                  setOpen(false);
-                }}
+                onClick={handleClose}
               >
                 Cancel
               </AppButton>
 
             </FormFooter>
+
+            <ConfirmDialog
+              open={confirmOpen}
+              onConfirm={handleConfirmLeave}
+              onCancel={handleStay}
+            />
 
           </div>
         </div>

@@ -1,7 +1,4 @@
 import CustomTextField from "./CustomTextField";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import BasicSelect from "./BasicSelect";
@@ -13,6 +10,9 @@ import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { mapToOption } from "../utils/optionMapper";
 import GenericAutocomplete from "./common/GenericAutocomplete";
+import { useUnsaved } from "../context/UnsavedChangesContext";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import CustomDatePicker from "./common/CustomDatePicker";
 
 export default function CreditEntryForm() {
   const { showSnackbar } = useSnackbar();
@@ -25,7 +25,7 @@ export default function CreditEntryForm() {
   const [formData, setFormData] = useState({
     paymentType: "",
     billNumber: "",
-    date: dayjs().format("DD-MM-YYYY"),
+    date: dayjs().format("YYYY-MM-DD"),
     referenceNumber: "",
     referenceDate: "",
     receivedAmount: "",
@@ -41,6 +41,18 @@ export default function CreditEntryForm() {
   const [supplierLoading, setSupplierLoading] = useState(true);
   const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [userTouched, setUserTouched] = useState(false);
+  const { setIsDirty } = useUnsaved();
+
+  const { isDirty: localDirty } = useUnsavedChanges(formData);
+  useEffect(() => {
+    if (!userTouched) {
+      setIsDirty(false);
+      return;
+    }
+
+    setIsDirty(localDirty());
+  }, [formData, userTouched]);
 
   const supplierOptions = mapToOption(allSuppliers, "id", "supplierName");
   const customerOptions = mapToOption(allCustomers, "id", "customerName");
@@ -69,33 +81,17 @@ export default function CreditEntryForm() {
     fetchData();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (name !== "drawType" && name !== "remark") {
-      setErrors((prev) => ({ ...prev, [name]: validate(name, value) || "" }));
-    }
-  };
-
   const handleSlipNumberChange = (e) => {
-    const { value } = e.target;
+    const val = e.target.value;
 
-    // allow only alphanumeric
-    if (/^[a-zA-Z0-9/-]*$/.test(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        slipNumber: value,
-      }));
-
-      setErrors((prev) => ({
-        ...prev,
-        slipNumber: "",
-      }));
+    if (/^[a-zA-Z0-9/-]*$/.test(val)) {
+      handleChange("slipNumber", val);
     }
   };
 
 
   const handleReset = () => {
+    setUserTouched(false);
     resetSupplier();
     resetCustomer();
 
@@ -136,41 +132,9 @@ export default function CreditEntryForm() {
     return Number.isInteger(num) ? num.toFixed(2) : String(num);
   };
 
-  const handleDateChange = (name, newValue) => {
-    const formatted = newValue
-      ? dayjs(newValue).format("DD-MM-YYYY")
-      : "";
-
-    setFormData(prev => ({ ...prev, [name]: formatted }));
-    setErrors(prev => ({ ...prev, [name]: validate(name, formatted) || "" }));
-  };
-
-
-  const handleAmountChange = (e) => {
-    const { name, value } = e.target;
-
-    //allow only numbers + decimal with max 2 digits
-    if (/^\d*\.?\d{0,2}$/.test(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-
-      setErrors((prev) => ({
-        ...prev,
-        [name]: validate(name, value) || "",
-      }));
-    }
-  };
-
-  const handleAmountBlur = (name) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: formatAmount(prev[name]),
-    }));
-  };
 
   const handleBillNumberChange = (e) => {
+    setUserTouched(true);
     const raw = e.target.value;
     const sanitized = raw.replace(/[^a-zA-Z0-9/-]/g, "");
 
@@ -192,8 +156,15 @@ export default function CreditEntryForm() {
     }));
   };
 
+  const handleAmountBlur = (name) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: formatAmount(prev[name]),
+    }));
+  };
 
   const handleReferenceNumberChange = (e) => {
+    setUserTouched(true);
     const raw = e.target.value;
     const sanitized = raw.replace(/[^a-zA-Z0-9/-]/g, "");
 
@@ -265,13 +236,8 @@ export default function CreditEntryForm() {
     try {
       const payload = {
         ...formData,
-        date: formData.date
-          ? dayjs(formData.date, "DD-MM-YYYY").format("YYYY-MM-DD")
-          : null,
-
-        referenceDate: formData.referenceDate
-          ? dayjs(formData.referenceDate, "DD-MM-YYYY").format("YYYY-MM-DD")
-          : null,
+        date: formData.date || null,
+        referenceDate: formData.referenceDate || null,
         drawType: formData.drawType || null
       };
 
@@ -298,7 +264,21 @@ export default function CreditEntryForm() {
     }
   };
 
+  const handleChange = (name, value) => {
+    setUserTouched(true);
 
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (name !== "drawType" && name !== "remark") {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validate(name, value) || "",
+      }));
+    }
+  };
 
 
   return (
@@ -351,10 +331,7 @@ export default function CreditEntryForm() {
                     resetCustomer();
                     return;
                   }
-                  setFormData(prev => ({
-                    ...prev,
-                    customerId: value.id,
-                  }));
+                  handleChange("customerId", value.id);
 
                   setErrors(prev => ({ ...prev, customerName: "" }));
                 }}
@@ -374,10 +351,7 @@ export default function CreditEntryForm() {
                     resetSupplier();
                     return;
                   }
-                  setFormData(prev => ({
-                    ...prev,
-                    supplierId: value.id,
-                  }));
+                  handleChange("supplierId", value.id);
 
                   setErrors(prev => ({ ...prev, supplierName: "" }));
                 }}
@@ -404,7 +378,7 @@ export default function CreditEntryForm() {
               <BasicSelect
                 name="paymentType"
                 value={formData.paymentType}
-                onChange={handleChange}
+                onChange={(e) => handleChange(e.target.name, e.target.value)}
                 label="Payment Mode*"
                 options={[
                   { value: "NEFT_RTGS", label: "NEFT / RTGS" },
@@ -431,7 +405,13 @@ export default function CreditEntryForm() {
                 name="receivedAmount"
                 type="text"
                 value={formData.receivedAmount}
-                onChange={handleAmountChange}
+                onChange={(e) => {
+                  const val = e.target.value;
+
+                  if (/^\d*\.?\d{0,2}$/.test(val)) {
+                    handleChange("receivedAmount", val);
+                  }
+                }}
                 onBlur={() => handleAmountBlur("receivedAmount")}
                 label="Received Amount"
                 error={!!errors.receivedAmount}
@@ -453,50 +433,22 @@ export default function CreditEntryForm() {
 
 
               {/* Reference Date */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Reference Date*"
-                  format="DD-MM-YYYY"
-                  value={
-                    formData.referenceDate
-                      ? dayjs(formData.referenceDate, "DD-MM-YYYY")
-                      : null
-                  }
-                  onChange={(newValue) =>
-                    handleDateChange("referenceDate", newValue)
-                  }
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      error: !!errors.referenceDate,
-                      helperText: errors.referenceDate || "",
-                    },
-                  }}
-                />
-              </LocalizationProvider>
+              <CustomDatePicker
+                label="Reference Date*"
+                value={formData.referenceDate}
+                error={errors.referenceDate}
+                helperText={errors.referenceDate}
+                onChange={(val) => handleChange("referenceDate", val)}
+              />
 
               {/* Date */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Transaction Date"
-                  format="DD-MM-YYYY"
-                  value={
-                    formData.date
-                      ? dayjs(formData.date, "DD-MM-YYYY")
-                      : null
-                  }
-                  onChange={(newValue) => handleDateChange("date", newValue)}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      error: !!errors.date,
-                      helperText: errors.date || "",
-                    },
-                  }}
-                />
-              </LocalizationProvider>
+              <CustomDatePicker
+                label="Transaction Date"
+                value={formData.date}
+                error={errors.date}
+                helperText={errors.date}
+                onChange={(val) => handleChange("date", val)}
+              />
               {/* Slip Number (Optional) */}
               <CustomTextField
                 name="slipNumber"
@@ -529,7 +481,7 @@ export default function CreditEntryForm() {
               <BasicSelect
                 name="drawType"
                 value={formData.drawType}
-                onChange={handleChange}
+                onChange={(e) => handleChange(e.target.name, e.target.value)}
                 label="Draw Type"
                 options={[
                   { value: "DRAW", label: "DRAW" },
@@ -540,7 +492,7 @@ export default function CreditEntryForm() {
               <CustomTextField
                 name="remark"
                 value={formData.remark}
-                onChange={handleChange}
+                onChange={(e) => handleChange(e.target.name, e.target.value)}
                 label="Remarks"
                 multiline
                 minRows={0}

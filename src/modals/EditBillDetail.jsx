@@ -22,6 +22,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import { roundUp } from "../utils/numberUtils";
 
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
@@ -376,7 +377,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
             <CustomTextField
               name="order"
-              value={formData.order}
+              value={formData.invoiceNo}
               onChange={handleChange}
               label="Order"
               error={!!errors.order}
@@ -689,11 +690,11 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             {/* Final Totals */}
             <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-base sm:text-lg font-semibold">
               <div className="flex justify-between sm:justify-end items-center bg-gray-100 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md">
-                <span className="text-gray-600">Taxable Value:</span> ₹{formData.taxableValue || "0.00"}
+                <span className="text-gray-600">Taxable Value:</span> ₹{roundUp(formData.taxableValue)}
               </div>
 
               <div className="flex justify-between sm:justify-end items-center bg-blue-50 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md text-blue-700 font-bold">
-                <span className="text-gray-600">Bill Amount:</span> ₹{formData.billAmount || "0.00"}
+                <span className="text-gray-600">Bill Amount:</span> ₹{roundUp(formData.billAmount)}
               </div>
             </div>
           </div>

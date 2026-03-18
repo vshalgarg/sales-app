@@ -1,4 +1,5 @@
 import useResponsive from "../customHooks/useResponsive";
+import { roundUp } from "../utils/numberUtils";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
 
@@ -30,7 +31,14 @@ const CreditHistory = ({
       { key: "supplierName", label: "Supplier" },
       { key: "customerName", label: "Customer" },
       { key: "referenceNumber", label: "Reference No" },
-      { key: "receivedAmount", label: "Received Amount" },
+      {
+        key: "receivedAmount",
+        label: "Amount",
+        render: (row) =>
+          row.receivedAmount != null
+            ? roundUp(row.receivedAmount)
+            : "-"
+      },
     ],
 
     mobile: [
@@ -41,7 +49,14 @@ const CreditHistory = ({
         render: (row) =>
           row.date ? dayjs(row.date).format("DD-MM-YYYY") : "-",
       },
-      { key: "receivedAmount", label: "Amount" },
+      {
+        key: "receivedAmount",
+        label: "Received Amount",
+        render: (row) =>
+          row.receivedAmount != null
+            ? roundUp(row.receivedAmount)
+            : "-"
+      },
     ],
   };
 

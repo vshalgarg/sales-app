@@ -1,4 +1,5 @@
 import useResponsive from "../customHooks/useResponsive";
+import { roundUp } from "../utils/numberUtils";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
 
@@ -19,7 +20,7 @@ const BillHistory = ({
 
   const columns = {
     desktop: [
-      { key: "billNumber", label: "Bill Number" },
+      { key: "invoiceNo", label: "Invoice Number" },
       {
         key: "date",
         label: "Date",
@@ -32,7 +33,6 @@ const BillHistory = ({
         render: (row) =>
           row.receivedDate ? dayjs(row.receivedDate).format("DD-MM-YYYY") : "-",
       },
-      { key: "order", label: "Order" },
       { key: "supplierName", label: "Supplier" },
       { key: "customerName", label: "Customer" },
       {
@@ -40,7 +40,7 @@ const BillHistory = ({
         label: "Bill Amount",
         render: (row) =>
           row.billAmount != null
-            ? Number(row.billAmount).toFixed(2)
+            ? roundUp(row.billAmount)
             : "-"
       },
     ],
@@ -52,7 +52,14 @@ const BillHistory = ({
         render: (row) =>
           row.date ? dayjs(row.date).format("DD-MM-YYYY") : "-",
       },
-      { key: "billAmount", label: "Amount" },
+      {
+        key: "billAmount",
+        label: "Amount",
+        render: (row) =>
+          row.billAmount != null
+            ? roundUp(row.billAmount)
+            : "-"
+      },
     ],
   };
 

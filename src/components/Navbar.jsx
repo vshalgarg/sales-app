@@ -12,11 +12,11 @@ export default function Navbar({
   const navRef = useRef(null);
   const [name, setName] = useState("");
   const [userId, setUserId] = useState("");
-  const [mainActiveSection, setMainActiveSection] = useState(activeSection);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const mainActiveSection = activeSection;
 
   const navigate = useNavigate();
 
@@ -56,7 +56,6 @@ export default function Navbar({
   };
 
   const handleSectionClick = (sectionName) => {
-    setMainActiveSection(sectionName);
     onSectionChange(sectionName);
   };
 
@@ -123,7 +122,7 @@ export default function Navbar({
           {/* Mobile section dropdown */}
           <div className="relative md:hidden ml-3">
             <select
-              value={mainActiveSection}
+              value={activeSection}
               onChange={(e) => handleSectionClick(e.target.value)}
               className="px-3 pr-8 min-h-[36px] leading-normal whitespace-normal rounded-md border
  bg-white dark:bg-zinc-800 text-gray-800 dark:text-white border-gray-300 dark:border-zinc-700

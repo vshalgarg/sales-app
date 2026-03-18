@@ -8,6 +8,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import { roundUp } from "../utils/numberUtils";
 
 const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
 
@@ -139,7 +140,7 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
                 <Info label="Bill Number" value={header.billNumber} />
                 <Info label="Bill Date" value={header.date} />
                 <Info label="Received Date" value={header.receivedDate} />
-                <Info label="Order" value={header.order} />
+                <Info label="Invoice Number" value={header.invoiceNo} />
               </InfoGrid>
             </Section>
 
@@ -175,8 +176,8 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
 
               {/* Totals */}
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-right font-semibold">
-                <div>Taxable Value: ₹{header.taxableValue?.toFixed(2) || "0.00"}</div>
-                <div>Bill Amount: ₹{header.billAmount?.toFixed(2) || "0.00"}</div>
+                <div>Taxable Value: ₹{roundUp(header.taxableValue)}</div>
+                <div>Bill Amount: ₹{roundUp(header.billAmount)}</div>
               </div>
             </Section>
 

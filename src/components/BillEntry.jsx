@@ -1,7 +1,4 @@
 import CustomTextField from "./CustomTextField";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useBillForm } from "../customHooks/useBillForm";
 import { useState, useEffect, useRef } from "react";
@@ -16,6 +13,11 @@ import TransportService from "../service/TransportService";
 import ImageUploader from "./common/ImageUploader";
 import { IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { roundUp } from "../utils/numberUtils";
+import { useUnsaved } from "../context/UnsavedChangesContext";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import CustomDatePicker from "./common/CustomDatePicker";
+
 
 const BillEntry = () => {
   const {
@@ -23,7 +25,7 @@ const BillEntry = () => {
     setFormData,
     errors,
     setErrors,
-    handleChange } =
+  } =
     useBillForm();
 
   const billForm = formData;
@@ -49,7 +51,26 @@ const BillEntry = () => {
   const [savedItems, setSavedItems] = useState([]);
   const [billImages, setBillImages] = useState([]);
   const fileInputRef = useRef(null);
+  const [userTouched, setUserTouched] = useState(false);
+  const { setIsDirty } = useUnsaved();
+  const combinedData = {
+    formData,
+    savedItems,
+    selectedSupplier,
+    selectedCustomer,
+    selectedTransport,
+    billImages,
+  };
+  const { isDirty: localDirty } = useUnsavedChanges(combinedData);
 
+  useEffect(() => {
+    if (!userTouched) {
+      setIsDirty(false);
+      return;
+    }
+
+    setIsDirty(localDirty());
+  }, [combinedData, userTouched]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,7 +102,7 @@ const BillEntry = () => {
   useEffect(() => {
     setFormData(prev => ({
       ...prev,
-      date: dayjs().format("DD-MM-YYYY")
+      date: dayjs().format("YYYY-MM-DD")
     }));
   }, []);
 
@@ -194,6 +215,9 @@ const BillEntry = () => {
   };
 
   const handleResetForm = () => {
+
+    setUserTouched(false);
+    setIsDirty(false);
     resetSupplier();
     resetCustomer();
     resetTransport();
@@ -324,16 +348,9 @@ const BillEntry = () => {
   const saveBillEntry = async () => {
 
     const payload = {
-      date: billForm.date
-        ? dayjs(billForm.date, "DD-MM-YYYY").format("YYYY-MM-DD")
-        : null,
-
-      receivedDate: billForm.receivedDate
-        ? dayjs(billForm.receivedDate, "DD-MM-YYYY").format("YYYY-MM-DD")
-        : null,
-
+      date: billForm.date || null,
+      receivedDate: billForm.receivedDate || null,
       order: billForm.order || null,
-
       supplierId: billForm.supplierId ? Number(billForm.supplierId) : null,
       customerId: billForm.customerId ? Number(billForm.customerId) : null,
 
@@ -374,18 +391,48 @@ const BillEntry = () => {
       });
 
       const response = await addBill(billFormObj);
-      if (response?.message) {
-        showSnackbar(response.message, "success");
-        handleResetForm();
-      } else {
-        showSnackbar("Unexpected response", "error");
-      }
+      showSnackbar(response?.message || "Bill added successfully", "success");
+      handleResetForm();
     } catch (err) {
-      showSnackbar(err.message, "error");
+      const errorMsg =
+        err?.response?.data?.message || err.message || "Something went wrong";
+      showSnackbar(errorMsg, "error");
     } finally {
       setIsSaving(false);
       setIsConfirmOpen(false);
     }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setUserTouched(true);
+    let finalValue = value;
+    // special cleaning
+    if (name === "order" || name === "lrNumber") {
+      finalValue = value.replace(/[^a-zA-Z0-9\s\-_/\.@#&()]/g, "");
+    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: finalValue,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  // Non-event handler (DatePicker, Autocomplete, custom)
+  const handleFieldChange = (name, value) => {
+    setUserTouched(true);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   return (
@@ -411,68 +458,22 @@ const BillEntry = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {/* Bill Date */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Date*"
-                  format="DD-MM-YYYY"
-                  value={
-                    billForm.date ? dayjs(billForm.date, "DD-MM-YYYY") : null
-                  }
-                  onChange={(newValue) => {
-                    const formatted = newValue
-                      ? dayjs(newValue).format("DD-MM-YYYY")
-                      : "";
-
-                    setFormData((prev) => ({ ...prev, date: formatted }));
-                    setErrors((prev) => ({ ...prev, date: "" }));
-                  }}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      error: !!errors.date,
-                      helperText: errors.date || "",
-                    },
-                  }}
-                />
-              </LocalizationProvider>
+              <CustomDatePicker
+                label="Date *"
+                value={billForm.date}
+                error={errors.date}
+                helperText={errors.date}
+                onChange={(val) => handleFieldChange("date", val)}
+              />
 
               {/* Received Date Field */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Received Date"
-                  format="DD-MM-YYYY"
-                  value={
-                    billForm.receivedDate
-                      ? dayjs(billForm.receivedDate, "DD-MM-YYYY")
-                      : null
-                  }
-                  onChange={(newValue) => {
-                    const formatted = newValue
-                      ? dayjs(newValue).format("DD-MM-YYYY")
-                      : "";
-                    setFormData((prev) => ({
-                      ...prev,
-                      receivedDate: formatted,
-                    }));
-                  }}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      error: !!errors.receivedDate,
-                      helperText: errors.receivedDate || "",
-                      onClick: (e) => {
-                        const iconButton =
-                          e.currentTarget.parentElement.querySelector(
-                            "button[aria-label]",
-                          );
-                        iconButton?.click();
-                      },
-                    },
-                  }}
-                />
-              </LocalizationProvider>
+              <CustomDatePicker
+                label="Received Date"
+                value={billForm.receivedDate}
+                error={errors.receivedDate}
+                helperText={errors.receivedDate}
+                onChange={(val) => handleFieldChange("receivedDate", val)}
+              />
 
               <CustomTextField
                 name="order"
@@ -515,6 +516,7 @@ const BillEntry = () => {
                     }
 
                     setSelectedSupplier(value);
+                    handleFieldChange("supplierId", value.id);
                     setFormData((prev) => ({
                       ...prev,
                       supplierId: value.id,
@@ -580,6 +582,7 @@ const BillEntry = () => {
                     }
 
                     setSelectedCustomer(value);
+                    handleFieldChange("customerId", value.id);
                     setFormData((prev) => ({
                       ...prev,
                       customerId: value.id,
@@ -732,10 +735,10 @@ const BillEntry = () => {
                           {item.gstAmount || "0.00"}
                         </td>
                         <td className="px-4 py-3 text-center font-medium text-gray-800">
-                          {item.taxableValue || "0.00"}
+                          {roundUp(item.taxableValue)}
                         </td>
                         <td className="px-4 py-3 text-center font-bold text-gray-900">
-                          {item.billAmount || "0.00"}
+                          {roundUp(item.billAmount)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex justify-center items-center space-x-3">
@@ -777,7 +780,7 @@ const BillEntry = () => {
                   Taxable Value
                 </label>
                 <div className="p-2 md:p-4 bg-gray-50 border border-gray-200 rounded-lg md:text-xl font-bold text-gray-800">
-                  {taxableValue}
+                  {roundUp(taxableValue)}
                 </div>
               </div>
               <div className="space-y-1">
@@ -785,7 +788,7 @@ const BillEntry = () => {
                   Bill Amount
                 </label>
                 <div className="p-2 md:p-4 bg-gray-50 border border-gray-200 rounded-lg md:text-xl font-bold text-gray-800">
-                  {billEntry}
+                  {roundUp(billEntry)}
                 </div>
               </div>
             </div>
@@ -810,7 +813,10 @@ const BillEntry = () => {
 
             <ImageUploader
               value={billImages}
-              onChange={setBillImages}
+              onChange={(files) => {
+                setUserTouched(true);
+                setBillImages(files);
+              }}
               maxImages={2}
               label="Add Bill Images"
               onError={(msg) => showSnackbar(msg, "error")}
@@ -855,6 +861,7 @@ const BillEntry = () => {
                       }
 
                       setSelectedTransport(value);
+                      handleFieldChange("transportId", value.id);
                       setFormData((prev) => ({
                         ...prev,
                         transportId: value.id,
@@ -1133,19 +1140,19 @@ const BillEntry = () => {
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Taxable Value</p>
                     <p className="md:text-lg font-medium text-blue-600 mt-1">
-                      {billForm.taxableValue || "0.00"}
+                      {roundUp(billForm.taxableValue)}
                     </p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500">GST Amount</p>
                     <p className="md:text-lg font-medium text-green-600 mt-1">
-                      {billForm.gstAmount || "0.00"}
+                      {roundUp(billForm.gstAmount)}
                     </p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Bill Amount</p>
                     <p className="md:text-xl font-medium text-indigo-600 mt-1">
-                      {billForm.billAmount || "0.00"}
+                      {roundUp(billForm.billAmount)}
                     </p>
                   </div>
                 </div>
