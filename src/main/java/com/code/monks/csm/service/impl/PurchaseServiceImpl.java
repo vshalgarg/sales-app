@@ -123,6 +123,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             LocalDate toDate,
             Integer supplierId,
             Integer customerId,
+            Integer staffId,
             int page,
             int size)
     {
@@ -148,6 +149,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .toDate("date", toDate)
                 .joinEqual("supplier", "id", supplierId)
                 .joinEqual("customer", "id", customerId)
+                .equal("staffId", staffId)
                 .build();
 
         Page<PurchaseEntity> purchaseRecords =

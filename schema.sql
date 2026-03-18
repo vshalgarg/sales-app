@@ -611,4 +611,5 @@ REFERENCES supplier(id);
 
 DROP TABLE purchase_suppliers;
 
-
+ALTER TABLE bill
+RENAME COLUMN orders TO invoice_no;
