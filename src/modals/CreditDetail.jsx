@@ -64,7 +64,7 @@ const CreditDetail = ({ selectedCreditDetail, setIsModalOpen }) => {
           {/* Transaction Details */}
           <Section title="Transaction Details">
             <InfoGrid cols="md:grid-cols-2">
-              <Info label="Bill Number" value={selectedCreditDetail.billNumber} />
+              <Info label="Invoice Number" value={selectedCreditDetail.billNumber} />
               <Info label="Transaction Date" value={selectedCreditDetail.date} />
               <Info label="Payment Type" value={selectedCreditDetail.paymentType} />
               <Info label="Received Amount" value={selectedCreditDetail.receivedAmount} />
