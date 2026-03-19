@@ -231,7 +231,7 @@ const EditCreditDetail = ({
           {/* ===== BASIC INFO ===== */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <CustomTextField
-              label="Bill Number"
+              label="Invoice Number"
               value={selectedCreditDetail.billNumber}
               disabled
             />

@@ -395,7 +395,7 @@ export default function CreditEntryForm() {
                 name="billNumber"
                 value={formData.billNumber}
                 onChange={handleBillNumberChange}
-                label="Bill Number"
+                label="Invoice Number"
                 error={!!errors.billNumber}
                 helperText={errors.billNumber || ""}
               />

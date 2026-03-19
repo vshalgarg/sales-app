@@ -20,7 +20,7 @@ const CreditHistory = ({
 
   const columns = {
     desktop: [
-      { key: "billNumber", label: "Bill Number" },
+      { key: "billNumber", label: "Invoice Number" },
       {
         key: "date",
         label: "Date",
