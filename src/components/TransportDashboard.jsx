@@ -124,9 +124,14 @@ export default function TransportDashboard() {
 
   const getTransportFormattedText = (transport) => {
     const mobileNumbers = transport?.contacts
-      ?.map(c => c.contactNumber)
-      ?.filter(Boolean)
-      ?.join(", ") || "-";
+    ?.map(contact => {
+      const name = contact?.contactPerson || "Unknown";
+      const number = contact?.contactNumber || "";
+      if (!name && !number) return null;
+      return `${name} - ${number}`;
+    })
+    ?.filter(Boolean)
+    ?.join(", ") || "-";
 
     const fullAddress = cleanText(
       [
@@ -143,7 +148,7 @@ export default function TransportDashboard() {
     return formatDetails({
       "Firm Name": transport?.name || "-",
       "Address": fullAddress || "-",
-      "Phone No": mobileNumbers,
+      "Contacts": mobileNumbers,
       "GST No": transport?.gstNo || "-",
     });
   };
