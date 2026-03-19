@@ -20,6 +20,8 @@ import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import { useMemo } from "react";
 import GenericAutocomplete from "../components/common/GenericAutocomplete";
 import { mapToOption } from "../utils/optionMapper";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 const EditPurchaseDetail = ({
     open,
@@ -49,6 +51,19 @@ const EditPurchaseDetail = ({
     const [existingImages, setExistingImages] = useState([]);
     const [newImages, setNewImages] = useState([]);
     const [previewIndex, setPreviewIndex] = useState(null);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const { isDirty } = useUnsavedChanges(
+        {
+            ...formData,
+            supplierId: selectedSupplier?.id,
+            customerId: selectedCustomer?.id,
+            staffId: selectedStaff?.id,
+            existingImages,
+            newImages
+        },
+        open && isLoaded
+    );
 
     const customerOptions = mapToOption(allCustomers, "id", "customerName");
     const staffOptions = mapToOption(allStaffs, "staffId", "staffName");
@@ -93,8 +108,8 @@ const EditPurchaseDetail = ({
     }, [open, purchaseId]);
 
     useEffect(() => {
-        if (!detail || !allSuppliers.length || !allCustomers.length || !allStaffs.length) return;
-
+        if (!detail || !allSuppliers.length || !allCustomers.length || !allStaffs.length || !open) return;
+        setIsLoaded(false);
         setFormData({
             date: detail.date || "",
             amount:
@@ -125,6 +140,27 @@ const EditPurchaseDetail = ({
         setNewImages([]);
 
     }, [detail, allSuppliers, allCustomers, allStaffs]);
+
+    useEffect(() => {
+        if (
+            open &&
+            detail &&
+            selectedSupplier !== null &&
+            selectedCustomer !== null &&
+            selectedStaff !== null
+        ) {
+            setIsLoaded(true);
+        }
+    }, [open, detail, selectedSupplier, selectedCustomer, selectedStaff]);
+
+    const handleClose = () => {
+        if (isDirty()) {
+            setConfirmOpen(true);
+            return;
+        }
+
+        setOpen(false);
+    };
 
     const handleAmountChange = (e) => {
         const value = e.target.value;
@@ -228,7 +264,7 @@ const EditPurchaseDetail = ({
                 <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
 
                     <IconButton
-                        onClick={() => setOpen(false)}
+                        onClick={handleClose}
                         className="md:hidden"
                     >
                         <ArrowBackIcon />
@@ -496,12 +532,21 @@ const EditPurchaseDetail = ({
 
                     <AppButton
                         type="cancel"
-                        onClick={() => setOpen(false)}
+                        onClick={handleClose}
                     >
                         Cancel
                     </AppButton>
 
                 </FormFooter>
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onConfirm={() => {
+                        setConfirmOpen(false);
+                        setOpen(false);
+                    }}
+                    onCancel={() => setConfirmOpen(false)}
+                />
 
             </div>
         </div>
