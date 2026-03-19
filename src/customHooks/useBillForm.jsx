@@ -8,6 +8,7 @@ export const useBillForm = () => {
     date: "",
     receivedDate: "",
     order: "",
+    billNumber: "",
     supplierName: "",
     supplierGroup: "",
     supplierMsme: "",

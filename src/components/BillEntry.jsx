@@ -542,13 +542,13 @@ const BillEntry = () => {
               <CustomTextField
                 value={billForm.supplierGroup}
                 label="Supplier Group"
-                InputProps={{ readOnly: true }}
+                disabled
               />
 
               <CustomTextField
                 value={billForm.supplierGstNo}
                 label="GSTIN"
-                InputProps={{ readOnly: true }}
+                disabled
               />
             </div>
           </div>
@@ -608,13 +608,13 @@ const BillEntry = () => {
               <CustomTextField
                 value={billForm.customerGroup}
                 label="Customer Group"
-                InputProps={{ readOnly: true }}
+                disabled
               />
 
               <CustomTextField
                 value={billForm.customerGstNo}
                 label="GSTIN"
-                InputProps={{ readOnly: true }}
+                disabled
               />
             </div>
           </div>

@@ -59,7 +59,12 @@ export default function CustomerDashboard() {
 const getCustomerFormattedText = (customer) => {
 
   const mobileNumbers = customer?.contacts
-    ?.map(contact => contact.mobileNumber)
+    ?.map(contact => {
+      const name = contact?.contactPerson || "Unknown";
+      const number = contact?.mobileNumber || "";
+      if (!name && !number) return null;
+      return `${name} - ${number}`;
+    })
     ?.filter(Boolean)
     ?.join(", ") || "-";
 
@@ -80,7 +85,7 @@ const getCustomerFormattedText = (customer) => {
   return formatDetails({
     "Firm Name": customer?.customerName || "-",
     "Address": fullAddress,
-    "Phone No": mobileNumbers,
+    "Contacts": mobileNumbers,
     "GST No": customer?.customerGstNo || "-",
     "Emails": emails,
      "Transports": transports,

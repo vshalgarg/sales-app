@@ -39,7 +39,12 @@ export default function SupplierDashboard() {
   const getSupplierFormattedText = (supplier) => {
 
     const mobileNumbers = supplier?.contacts
-      ?.map(contact => contact.mobileNumber)
+      ?.map(contact => {
+        const name = contact?.contactPerson || "Unknown";
+        const number = contact?.mobileNumber || "";
+        if (!name && !number) return null;
+        return `${name} - ${number}`;
+      })
       ?.filter(Boolean)
       ?.join(", ") || "-";
 
@@ -63,7 +68,7 @@ export default function SupplierDashboard() {
     return formatDetails({
       "Firm Name": supplier?.supplierName,
       "Address": fullAddress,
-      "Phone No": mobileNumbers,
+      "Contacts": mobileNumbers,
       "Emails": emails,
       "Transports": transports,
       "GST No": supplier?.supplierGstNo || "-"
@@ -335,7 +340,7 @@ export default function SupplierDashboard() {
           setSupplierToDelete(null);
         }}
         onConfirm={() => {
-          onConfirm={handleDelete}
+          onConfirm = { handleDelete }
           setDeleteModalOpen(false);
           setSupplierToDelete(null);
         }}
