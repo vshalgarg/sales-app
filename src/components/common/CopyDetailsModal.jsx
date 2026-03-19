@@ -1,6 +1,7 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 import { useSnackbar } from "../../context/SnackbarContext";
 import { useState } from "react";
+import { convertHtmlToWhatsApp } from "../../utils/copyFormatter";
 
 export default function CopyDetailsModal({ open, onClose, title, formattedText }) {
 
@@ -9,33 +10,37 @@ export default function CopyDetailsModal({ open, onClose, title, formattedText }
 
   const handleCopy = async () => {
 
-      if (!formattedText) {
-        showSnackbar("No data to copy", "warning");
-        return;
+    if (!formattedText) {
+      showSnackbar("No data to copy", "warning");
+      return;
+    }
+    setCopying(true);
+
+    try {
+      if (navigator.clipboard?.write && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([formattedText.html], { type: "text/html" }),
+            "text/plain": new Blob([
+              convertHtmlToWhatsApp(formattedText.html)
+            ], { type: "text/plain" })
+          })
+        ]);
+
+      } else {
+        await navigator.clipboard.writeText(
+          convertHtmlToWhatsApp(formattedText.html)
+        );
       }
-      setCopying(true);
 
-      try {
-        if (navigator.clipboard?.write && window.ClipboardItem) {
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              "text/html": new Blob([formattedText.html], { type: "text/html" }),
-              "text/plain": new Blob([formattedText.text], { type: "text/plain" })
-            })
-          ]);
-
-        } else {
-          await navigator.clipboard.writeText(formattedText.text);
-        }
-
-        showSnackbar("Details copied to clipboard", "success");
-        onClose();
-      } catch (error) {
-        showSnackbar("Failed to copy details", "error");
-      } finally {
-        setCopying(false);
-      }
-    };
+      showSnackbar("Details copied to clipboard", "success");
+      onClose();
+    } catch (error) {
+      showSnackbar("Failed to copy details", "error");
+    } finally {
+      setCopying(false);
+    }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
