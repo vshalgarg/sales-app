@@ -19,6 +19,8 @@ import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import ConfirmDialog from "../components/common/ConfirmDialog";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 
 
 const UpdateSupplierModal = ({
@@ -36,6 +38,9 @@ const UpdateSupplierModal = ({
     const [selectedTransports, setSelectedTransports] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const { isDirty } = useUnsavedChanges(form, open && isLoaded);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     /* ---------------- FETCH SUPPLIER ---------------- */
 
@@ -72,6 +77,7 @@ const UpdateSupplierModal = ({
 
                 // 🔹 Transport auto-select safe
                 setSelectedTransports(data.preferredTransports || []);
+                setIsLoaded(true);
 
             } catch (err) {
                 showSnackbar("Failed to load supplier", "error");
@@ -107,6 +113,24 @@ const UpdateSupplierModal = ({
             setErrors({ contacts: [{}] });
         }
     }, [open]);
+
+    const handleClose = () => {
+        if (isDirty()) {
+            setConfirmOpen(true);
+            return;
+        }
+
+        setOpen(false);
+    };
+
+    const handleConfirmLeave = () => {
+        setConfirmOpen(false);
+        setOpen(false);
+    };
+
+    const handleStay = () => {
+        setConfirmOpen(false);
+    };
 
     /* ---------------- HANDLERS ---------------- */
 
@@ -213,7 +237,7 @@ const UpdateSupplierModal = ({
                 {/* Header */}
                 <div className="p-4 md:p-6 border-b flex items-center gap-3">
                     <IconButton
-                        onClick={() => setOpen(false)}
+                        onClick={handleClose}
                         className="md:hidden"
                     >
                         <ArrowBackIcon />
@@ -541,12 +565,18 @@ const UpdateSupplierModal = ({
                     <AppButton
                         type="cancel"
                         disabled={isSaving}
-                        onClick={() => setOpen(false)}
+                        onClick={handleClose}
                     >
                         Cancel
                     </AppButton>
 
                 </FormFooter>
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onConfirm={handleConfirmLeave}
+                    onCancel={handleStay}
+                />
 
             </div>
         </div>

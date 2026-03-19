@@ -34,7 +34,7 @@ export default function AddNewStaff({
         joiningDate: dayjs().format("YYYY-MM-DD"),
       }));
     }
-  }, [open]);
+  }, [open, isEdit]);
 
 
 
@@ -73,6 +73,10 @@ export default function AddNewStaff({
 
       if (isEdit) {
         response = await updateStaff(staffId, payload);
+        if (!response || response.error) {
+          showSnackbar(response?.message || "Failed to save staff", "error");
+          return;
+        }
         showSnackbar("Staff updated successfully", "success");
       } else {
         response = await saveStaff(payload);

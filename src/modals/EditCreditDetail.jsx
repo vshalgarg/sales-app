@@ -14,6 +14,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 
 const PAYMENT_TYPES = [
@@ -54,6 +56,13 @@ const EditCreditDetail = ({
   });
 
   const [saving, setSaving] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const { isDirty } = useUnsavedChanges(
+    { ...formData, supplierId: selectedSupplier?.id, customerId: selectedCustomer?.id },
+    open && isLoaded
+  );
 
   /* ================= LOAD MASTER DATA ================= */
   useEffect(() => {
@@ -68,7 +77,8 @@ const EditCreditDetail = ({
 
   /* ================= PREFILL DATA ================= */
   useEffect(() => {
-    if (!selectedCreditDetail) return;
+    if (!selectedCreditDetail || !open) return;
+    setIsLoaded(false);
     setFormData({
       paymentType: selectedCreditDetail.paymentType || "",
       referenceNumber: selectedCreditDetail.referenceNumber || "",
@@ -96,12 +106,36 @@ const EditCreditDetail = ({
         ) || null
       );
     }
-
   }, [selectedCreditDetail, allSuppliers, allCustomers]);
 
+  useEffect(() => {
+    if (
+      open &&
+      selectedCreditDetail &&
+      selectedSupplier !== null &&
+      selectedCustomer !== null
+    ) {
+      setIsLoaded(true);
+    }
+  }, [open, selectedSupplier, selectedCustomer, selectedCreditDetail]);
+
+  useEffect(() => {
+    if (!open) {
+      setIsLoaded(false);
+    }
+  }, [open]);
 
   if (!open) return null;
 
+
+  const handleClose = () => {
+    if (isDirty()) {
+      setConfirmOpen(true);
+      return;
+    }
+
+    setOpen(false);
+  };
   /* ================= RECEIVED AMOUNT VALIDATION ================= */
   const handleReceivedAmountChange = (e) => {
     const value = e.target.value;
@@ -180,7 +214,7 @@ const EditCreditDetail = ({
         <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
 
           <IconButton
-            onClick={() => setOpen(false)}
+            onClick={handleClose}
             className="md:hidden"
           >
             <ArrowBackIcon />
@@ -197,7 +231,7 @@ const EditCreditDetail = ({
           {/* ===== BASIC INFO ===== */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <CustomTextField
-              label="Bill Number"
+              label="Invoice Number"
               value={selectedCreditDetail.billNumber}
               disabled
             />
@@ -326,13 +360,22 @@ const EditCreditDetail = ({
 
           <AppButton
             type="cancel"
-            onClick={() => setOpen(false)}
+            onClick={handleClose}
             disabled={saving}
           >
             Cancel
           </AppButton>
 
         </FormFooter>
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            setOpen(false);
+          }}
+          onCancel={() => setConfirmOpen(false)}
+        />
 
       </div>
     </div>

@@ -15,17 +15,20 @@ import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import ConfirmDialog from "../components/common/ConfirmDialog";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
     contacts: [{}],
   });
-  const [touched, setTouched] = useState({});
   const { showSnackbar } = useSnackbar();
   const [selectedTransports, setSelectedTransports] = useState([]);
   const [allTransports, setAllTransports] = useState([]);
   const [transportLoading, setTransportLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { isDirty } = useUnsavedChanges(form, open);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
 
   useEffect(() => {
@@ -42,6 +45,27 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     };
     fetchTransports();
   }, []);
+
+
+  const handleClose = () => {
+    if (isDirty()) {
+      setConfirmOpen(true);
+      return;
+    }
+
+    resetForm();
+    setOpen(false);
+  };
+
+  const handleConfirmLeave = () => {
+    setConfirmOpen(false);
+    resetForm();
+    setOpen(false);
+  };
+
+  const handleStay = () => {
+    setConfirmOpen(false);
+  };
 
   // Add new empty contact
   const addContact = () => {
@@ -109,7 +133,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
       ) {
         setForm(prev => ({ ...prev, commissionRate: value }));
 
-        setTouched(prev => ({ ...prev, commissionRate: true }));
         setErrors(prev => ({
           ...prev,
           commissionRate: validate("commissionRate", value),
@@ -125,7 +148,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     }));
 
     // 🔹 Validation
-    setTouched(prev => ({ ...prev, [name]: true }));
     setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
   };
 
@@ -179,7 +201,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
           Array.isArray(form[key]) ? [] : "",
         ])
       ),
-      contacts: [{ contactPerson: "", mobileNumber: "" }],
+      contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
       preferredTransportIds: [],
     });
 
@@ -191,16 +213,12 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   return (
     <>
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 
-                flex md:items-center md:justify-center">
-          <div className="bg-white dark:bg-gray-900 w-full min-h-[100dvh] md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start md:items-center justify-center">
+          <div className="bg-white dark:bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
             {/* Header */}
             <div className="p-4 md:p-6 border-b flex items-center gap-3">
               <IconButton
-                onClick={() => {
-                  resetForm();
-                  setOpen(false);
-                }}
+                onClick={handleClose}
                 className="md:hidden"
               >
                 <ArrowBackIcon />
@@ -211,7 +229,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
             </div>
 
             {/* Scrollable form content */}
-            <div className="px-6 py-4 flex-1 overflow-y-auto space-y-6">
+            <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-6">
               {/* Basic Information */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Basic Information</h3>
@@ -544,19 +562,22 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 Save & Add New
               </AppButton>
 
-               {/* Cancel */}
+              {/* Cancel */}
               <AppButton
                 type="cancel"
                 disabled={isSaving}
-                onClick={() => {
-                  resetForm();
-                  setOpen(false);
-                }}
+                onClick={handleClose}
               >
                 Cancel
               </AppButton>
 
             </FormFooter>
+
+            <ConfirmDialog
+              open={confirmOpen}
+              onConfirm={handleConfirmLeave}
+              onCancel={handleStay}
+            />
 
           </div>
         </div>

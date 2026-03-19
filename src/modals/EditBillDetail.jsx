@@ -22,6 +22,9 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import { roundUp } from "../utils/numberUtils";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
@@ -61,6 +64,12 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   const { isMobile } = useResponsive();
   const lastItemRef = useRef(null);
   const [itemAdded, setItemAdded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { isDirty } = useUnsavedChanges(
+    { ...formData, items },
+    open && isLoaded
+  );
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
 
 
@@ -100,52 +109,63 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   }, [items.length, itemAdded, isMobile]);
 
   useEffect(() => {
-    if (!selectedBillDetail) return;
+    if (!selectedBillDetail || !open || allSuppliers.length === 0 || allCustomers.length === 0) return;
 
-    setSelectedSupplier(
-      allSuppliers.find(s => s.id === selectedBillDetail.supplierId) || null
+    setIsLoaded(false);
+
+    const supplier = allSuppliers.find(s => s.id === selectedBillDetail.supplierId);
+    const customer = allCustomers.find(c => c.id === selectedBillDetail.customerId);
+
+    const transportObj = allTransports.find(
+      t => t.name?.toLowerCase() === selectedBillDetail.transport?.toLowerCase()
     );
 
-    setSelectedCustomer(
-      allCustomers.find(c => c.id === selectedBillDetail.customerId) || null
-    );
+    setSelectedSupplier(supplier || null);
+    setSelectedCustomer(customer || null);
 
     setSelectedTransport(
-      allTransports.find(t => t.name === selectedBillDetail.transport) || null
+      transportObj || (selectedBillDetail.transport
+        ? { id: "temp", name: selectedBillDetail.transport }
+        : null)
     );
 
-  }, [selectedBillDetail, allSuppliers, allCustomers, allTransports]);
+    setFormData({
+      ...selectedBillDetail,
+      order: selectedBillDetail.invoiceNo || "",
+      taxableValue: selectedBillDetail.taxableValue?.toFixed(2) || "0.00",
+      billAmount: selectedBillDetail.billAmount?.toFixed(2) || "0.00",
 
+      // autofill
+      supplierGroup: selectedBillDetail.supplierGroup || "",
+      supplierMsme: selectedBillDetail.supplierMsme || "",
+      supplierGstNo: selectedBillDetail.supplierGstNo || "",
 
-  // Load data when modal opens
-  useEffect(() => {
-    if (selectedBillDetail) {
-      setFormData((prev) => ({
-        ...prev,
-        ...selectedBillDetail,
-        taxableValue: selectedBillDetail.taxableValue?.toFixed(2) || "0.00",
-        billAmount: selectedBillDetail.billAmount?.toFixed(2) || "0.00",
-      }));
+      customerGroup: selectedBillDetail.customerGroup || "",
+      customerMsme: selectedBillDetail.customerMsme || "",
+      customerGstNo: selectedBillDetail.customerGstNo || "",
+    });
 
-      if (selectedBillDetail.items && selectedBillDetail.items.length > 0) {
-        setItems(
-          selectedBillDetail.items.map(item => ({
-            id: item.id ?? nanoid(),
-            pieces: item.pieces,
-            grossAmount: item.grossAmount.toFixed(2),
-            discountPercent: item.discountPercent,
-            discountAmount: item.discountAmount.toFixed(2),
-            addOnAmount: item.addOnAmount.toFixed(2),
-            ecrAmount: item.ecrAmount.toFixed(2),
-            gstPercent: item.gstPercent,
-            gstAmount: item.gstAmount.toFixed(2),
-          }))
-        );
-      } else {
-        setItems([]);
-      }
+    if (selectedBillDetail.items?.length) {
+      setItems(
+        selectedBillDetail.items.map(item => ({
+          id: item.id ?? nanoid(),
+          pieces: item.pieces,
+          grossAmount: item.grossAmount.toFixed(2),
+          discountPercent: item.discountPercent,
+          discountAmount: item.discountAmount.toFixed(2),
+          addOnAmount: item.addOnAmount.toFixed(2),
+          ecrAmount: item.ecrAmount.toFixed(2),
+          gstPercent: item.gstPercent,
+          gstAmount: item.gstAmount.toFixed(2),
+        }))
+      );
+    } else {
+      setItems([]);
     }
-  }, [selectedBillDetail, setFormData]);
+
+    setIsLoaded(true);
+
+  }, [selectedBillDetail, allSuppliers, allCustomers, allTransports, open]);
 
   useEffect(() => {
     if (open && selectedBillDetail) {
@@ -186,6 +206,20 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     }));
   }, [items, setFormData]);
 
+  useEffect(() => {
+    if (!open) {
+      setIsLoaded(false);
+    }
+  }, [open]);
+
+  const handleClose = () => {
+    if (isDirty()) {
+      setConfirmOpen(true);
+      return;
+    }
+
+    setOpen(false);
+  };
 
   // Handle inline editing of any item field
   const handleItemChange = (index, field, value) => {
@@ -260,7 +294,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     });
 
     try {
-      const response = await updateBillApi(formData.billNumber, formDataObj);
+      const response = await updateBillApi(formData.id, formDataObj);
       showSnackbar(response?.message || "Bill updated successfully!", "success");
       setOpen(false);
       if (onUpdateSuccess) {
@@ -288,9 +322,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
         <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
 
           <IconButton
-            onClick={() => {
-              setOpen(false);
-            }}
+            onClick={handleClose}
             className="md:hidden"
           >
             <ArrowBackIcon />
@@ -378,7 +410,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="order"
               value={formData.order}
               onChange={handleChange}
-              label="Order"
+              label="Invoice Number"
+              placeholder="Enter invoice number"
               error={!!errors.order}
               helperText={errors.order || ""}
             />
@@ -398,10 +431,15 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                 }
                 onChange={(e, value) => {
                   setSelectedSupplier(value);
+
                   setFormData(prev => ({
                     ...prev,
-                    supplierId: value ? value.id : null
+                    supplierId: value ? value.id : null,
+                    supplierGroup: value?.supplierGroup || "",
+                    supplierMsme: value?.supplierMsme || "",
+                    supplierGstNo: value?.supplierGstNo || ""
                   }));
+
                   setErrors(prev => ({ ...prev, supplierName: "" }));
                 }}
                 renderInput={(params) => (
@@ -418,7 +456,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="supplierGroup"
               value={formData.supplierGroup}
               label="Supplier Group"
-              readOnly
+              disabled
               error={!!errors.supplierGroup}
               helperText={errors.supplierGroup || ""}
               hideErrorUI={true}
@@ -427,7 +465,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="supplierMsme"
               value={formData.supplierMsme}
               label="MSME"
-              readOnly
+              disabled
               error={!!errors.supplierMsme}
               helperText={errors.supplierMsme || ""}
               hideErrorUI={true}
@@ -436,7 +474,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="supplierGstNo"
               value={formData.supplierGstNo}
               label="GSTIN"
-              readOnly
+              disabled
               error={!!errors.supplierGstNo}
               helperText={errors.supplierGstNo || ""}
               hideErrorUI={true}
@@ -457,10 +495,15 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                 }
                 onChange={(e, value) => {
                   setSelectedCustomer(value);
+
                   setFormData(prev => ({
                     ...prev,
-                    customerId: value ? value.id : null
+                    customerId: value ? value.id : null,
+                    customerGroup: value?.customerGroup || "",
+                    customerMsme: value?.customerMsme || "",
+                    customerGstNo: value?.customerGstNo || ""
                   }));
+
                   setErrors(prev => ({ ...prev, customerName: "" }));
                 }}
                 renderInput={(params) => (
@@ -477,7 +520,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="customerGroup"
               value={formData.customerGroup}
               label="Customer Group"
-              readOnly
+              disabled
               error={!!errors.customerGroup}
               helperText={errors.customerGroup || ""}
               hideErrorUI={true}
@@ -486,7 +529,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="customerMsme"
               value={formData.customerMsme}
               label="MSME"
-              readOnly
+              disabled
               error={!!errors.customerMsme}
               helperText={errors.customerMsme || ""}
               hideErrorUI={true}
@@ -495,7 +538,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="customerGstNo"
               value={formData.customerGstNo}
               label="GSTIN"
-              readOnly
+              disabled
               error={!!errors.customerGstNo}
               helperText={errors.customerGstNo || ""}
               hideErrorUI={true}
@@ -689,11 +732,11 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             {/* Final Totals */}
             <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-base sm:text-lg font-semibold">
               <div className="flex justify-between sm:justify-end items-center bg-gray-100 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md">
-                <span className="text-gray-600">Taxable Value:</span> ₹{formData.taxableValue || "0.00"}
+                <span className="text-gray-600">Taxable Value:</span> ₹{roundUp(formData.taxableValue)}
               </div>
 
               <div className="flex justify-between sm:justify-end items-center bg-blue-50 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md text-blue-700 font-bold">
-                <span className="text-gray-600">Bill Amount:</span> ₹{formData.billAmount || "0.00"}
+                <span className="text-gray-600">Bill Amount:</span> ₹{roundUp(formData.billAmount)}
               </div>
             </div>
           </div>
@@ -887,11 +930,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
           {/* Cancel */}
           <AppButton
             type="cancel"
-            onClick={() => {
-              localStorage.removeItem("billFormData");
-              localStorage.removeItem("billFormErrors");
-              setOpen(false);
-            }}
+            onClick={handleClose}
           >
             Cancel
           </AppButton>
@@ -930,6 +969,15 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            setOpen(false);
+          }}
+          onCancel={() => setConfirmOpen(false)}
+        />
       </div>
     </div>
 

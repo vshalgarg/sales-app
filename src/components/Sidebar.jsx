@@ -6,6 +6,7 @@ const Sidebar = ({
   onClose,
   isMobile,
   navbarHeight,
+  safeNavigate
 }) => {
   let menuItems = [];
 
@@ -49,14 +50,17 @@ const Sidebar = ({
           <li key={item.name}>
             <NavLink
               to={item.path}
-              onClick={isMobile && onClose}
+              onClick={(e) => {
+                e.preventDefault();
+                safeNavigate(item.path);
+                if (isMobile) onClose();
+              }}
               className={({ isActive }) =>
                 `block px-4 py-2 rounded transition-colors
                  text-gray-700 dark:text-white
                  hover:bg-blue-100 dark:hover:bg-blue-800
-                 ${
-                   isActive ? "bg-blue-200 dark:bg-blue-700 font-semibold" : ""
-                 }`
+                 ${isActive ? "bg-blue-200 dark:bg-blue-700 font-semibold" : ""
+                }`
               }
             >
               {item.name}

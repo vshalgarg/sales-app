@@ -19,6 +19,8 @@ import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 const UpdateCustomerModal = ({
     customerId,
@@ -35,6 +37,9 @@ const UpdateCustomerModal = ({
     const [selectedTransports, setSelectedTransports] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const { isDirty } = useUnsavedChanges(form, open && isLoaded);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     /* ================= FETCH CUSTOMER ================= */
 
@@ -67,6 +72,7 @@ const UpdateCustomerModal = ({
                 });
 
                 setSelectedTransports(data.preferredTransports || []);
+                setIsLoaded(true);
 
             } catch (err) {
                 showSnackbar("Failed to load customer", "error");
@@ -87,6 +93,24 @@ const UpdateCustomerModal = ({
         };
         fetchTransports();
     }, []);
+
+    const handleClose = () => {
+        if (isDirty()) {
+            setConfirmOpen(true);
+            return;
+        }
+
+        setOpen(false);
+    };
+
+    useEffect(() => {
+        if (!open) {
+            setForm({});
+            setSelectedTransports([]);
+            setErrors({ contacts: [{}] });
+            setIsLoaded(false);
+        }
+    }, [open]);
 
     /* ================= HANDLERS ================= */
 
@@ -158,7 +182,7 @@ const UpdateCustomerModal = ({
                 {/* HEADER */}
                 <div className="p-4 md:p-6 border-b flex items-center gap-3">
                     <IconButton
-                        onClick={() => setOpen(false)}
+                        onClick={handleClose}
                         className="md:hidden"
                     >
                         <ArrowBackIcon />
@@ -436,7 +460,7 @@ const UpdateCustomerModal = ({
 
                 {/* FOOTER */}
                 <FormFooter>
-                     {/* Update */}
+                    {/* Update */}
                     <AppButton
                         type="primary"
                         loading={isSaving}
@@ -450,12 +474,21 @@ const UpdateCustomerModal = ({
                     <AppButton
                         type="cancel"
                         disabled={isSaving}
-                        onClick={() => setOpen(false)}
+                        onClick={handleClose}
                     >
                         Cancel
                     </AppButton>
 
                 </FormFooter>
+
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onConfirm={() => {
+                        setConfirmOpen(false);
+                        setOpen(false);
+                    }}
+                    onCancel={() => setConfirmOpen(false)}
+                />
 
             </div>
         </div>

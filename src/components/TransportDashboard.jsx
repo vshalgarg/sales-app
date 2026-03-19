@@ -6,6 +6,8 @@ import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import { cleanText, formatDetails } from "../utils/copyFormatter";
+import CopyDetailsModal from "./common/CopyDetailsModal";
 
 
 export default function TransportDashboard() {
@@ -19,13 +21,13 @@ export default function TransportDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const rowsPerPage = 10;
-  const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
-  const dropdownRef = useRef(null);
   const { showSnackbar } = useSnackbar();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [transportToDelete, setTransportToDelete] = useState(null);
   const { isMobile } = useResponsive();
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [copyData, setCopyData] = useState(null);
 
   const columns = {
     desktop: [
@@ -70,8 +72,8 @@ export default function TransportDashboard() {
           return (
             <span
               className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${isActive
-                  ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
+                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                 }`}
             >
               {isActive ? "Active" : "Inactive"}
@@ -93,15 +95,6 @@ export default function TransportDashboard() {
     ],
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenMenuIndex(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const fetchTransports = useCallback(
     async (uiPage = 1) => {
@@ -129,7 +122,45 @@ export default function TransportDashboard() {
     [rowsPerPage],
   );
 
-  const handleSearchResult = (response, searchQuery, page =1) => {
+  const getTransportFormattedText = (transport) => {
+    const mobileNumbers = transport?.contacts
+    ?.map(contact => {
+      const name = contact?.contactPerson || "Unknown";
+      const number = contact?.contactNumber || "";
+      if (!name && !number) return null;
+      return `${name} - ${number}`;
+    })
+    ?.filter(Boolean)
+    ?.join(", ") || "-";
+
+    const fullAddress = cleanText(
+      [
+        transport?.addressLine1,
+        transport?.addressLine2,
+        transport?.city,
+        transport?.state,
+        transport?.pinCode,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    );
+
+    return formatDetails({
+      "Firm Name": transport?.name || "-",
+      "Address": fullAddress || "-",
+      "Contacts": mobileNumbers,
+      "GST No": transport?.gstNo || "-",
+    });
+  };
+
+  const handleCopy = (transport) => {
+    const formatted = getTransportFormattedText(transport);
+
+    setCopyData(formatted);
+    setCopyModalOpen(true);
+  };
+
+  const handleSearchResult = (response, searchQuery, page = 1) => {
     if (!searchQuery.trim()) {
       setIsSearchActive(false);
       fetchTransports(1);
@@ -183,12 +214,6 @@ export default function TransportDashboard() {
     fetchTransports(1);
   }, [fetchTransports]);
 
-  const confirmDelete = (transport) => {
-    setTransportToDelete(transport);
-    setDeleteModalOpen(true);
-    setOpenMenuIndex(null);
-  };
-
   const handleDelete = async () => {
     if (!transportToDelete) return;
     try {
@@ -229,11 +254,6 @@ export default function TransportDashboard() {
   const handleAddNew = () => {
     setEditingTransport(null);
     setOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setOpen(false);
-    setEditingTransport(null);
   };
 
   const handleSuccess = () => {
@@ -281,6 +301,7 @@ export default function TransportDashboard() {
             setTransportToDelete(transport);
             setDeleteModalOpen(true);
           }}
+          onCopy={handleCopy}
           emptyMessage="No transports found"
           page={currentPage}
           totalCount={totalItems}
@@ -322,6 +343,13 @@ export default function TransportDashboard() {
           setDeleteModalOpen(false);
           setTransportToDelete(null);
         }}
+      />
+
+      <CopyDetailsModal
+        open={copyModalOpen}
+        onClose={() => setCopyModalOpen(false)}
+        title="Transport Details"
+        formattedText={copyData}
       />
 
     </div>

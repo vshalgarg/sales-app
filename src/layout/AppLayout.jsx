@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { useMediaQuery } from "@mui/material";
+import ConfirmDialog from "../components/common/ConfirmDialog";
+import { useUnsaved } from "../context/UnsavedChangesContext";
 
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [navbarHeight, setNavbarHeight] = useState(0);
-  const [activeSection, setActiveSection] = useState(() => {
+  const activeSection = (() => {
     if (
       location.pathname.startsWith("/suppliers") ||
       location.pathname.startsWith("/customers") ||
@@ -18,6 +20,7 @@ const AppLayout = () => {
     ) {
       return "master";
     }
+
     if (
       location.pathname.startsWith("/bill-entry") ||
       location.pathname.startsWith("/credit-entry") ||
@@ -25,6 +28,7 @@ const AppLayout = () => {
     ) {
       return "entries";
     }
+
     if (
       location.pathname.startsWith("/bills") ||
       location.pathname.startsWith("/credits") ||
@@ -32,10 +36,40 @@ const AppLayout = () => {
     ) {
       return "reporting";
     }
-    return "master";
-  });
-  const isMobile = useMediaQuery("(max-width:768px)");
 
+    return "master";
+  })();
+  const isMobile = useMediaQuery("(max-width:768px)");
+  const [pendingPath, setPendingPath] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const { isDirty, setIsDirty } = useUnsaved();
+  const entryPaths = ["/bill-entry", "/credit-entry", "/purchase-entry"];
+  const isEntryPage = entryPaths.some(path =>
+    location.pathname.startsWith(path)
+  );
+
+
+  const safeNavigate = (path) => {
+    if (isDirty && isEntryPage) {
+      setPendingPath(path);
+      setShowConfirm(true);
+      return;
+    }
+
+    navigate(path);
+  };
+
+const handleConfirmLeave = () => {
+  setShowConfirm(false);
+  setIsDirty(false);
+  console.log("app layout == ",isDirty)
+  navigate(pendingPath);
+};
+
+  const handleStay = () => {
+    setShowConfirm(false);
+    setPendingPath(null);
+  };
 
   useEffect(() => {
     if (location.pathname !== "/") {
@@ -58,16 +92,16 @@ const AppLayout = () => {
 
 
   const handleSectionChange = (section) => {
-    setActiveSection(section);
+
     switch (section) {
       case "master":
-        navigate("/suppliers");
+        safeNavigate("/suppliers");
         break;
       case "entries":
-        navigate("/bill-entry");
+        safeNavigate("/bill-entry");
         break;
       case "reporting":
-        navigate("/bills");
+        safeNavigate("/bills");
         break;
       default:
         break;
@@ -102,11 +136,18 @@ const AppLayout = () => {
           isMobile={isMobile}
           onClose={closeSidebar}
           navbarHeight={navbarHeight}
+          safeNavigate={safeNavigate}
         />
         <main className=" flex-1 min-h-0 px-4 overflow-hidden ">
           <Outlet />
         </main>
       </div>
+
+      <ConfirmDialog
+        open={showConfirm}
+        onConfirm={handleConfirmLeave}
+        onCancel={handleStay}
+      />
     </div>
   );
 };

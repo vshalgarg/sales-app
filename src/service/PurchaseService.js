@@ -16,7 +16,7 @@ export const searchPurchaseHistory = async (
   page,
   rowsPerPage
 ) => {
-  const { fromDate, toDate, supplierId, customerId } = filterObject;
+  const { fromDate, toDate, supplierId, customerId , staffId} = filterObject;
   try {
     const response = await api.get("/purchase/entries/search", {
       params: {
@@ -24,6 +24,7 @@ export const searchPurchaseHistory = async (
         toDate,
         supplierId: supplierId ?? null,
         customerId: customerId ?? null,
+        staffId:  staffId ?? null,
         page,
         size: rowsPerPage,
       },

@@ -1,7 +1,4 @@
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import CustomTextField from "./CustomTextField";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { useSnackbar } from "../context/SnackbarContext";
 import { useEffect, useState } from "react";
@@ -18,6 +15,9 @@ import DialogActions from "@mui/material/DialogActions";
 import { CheckCircleIcon } from "lucide-react";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { mapToOption } from "../utils/optionMapper";
+import { useUnsaved } from "../context/UnsavedChangesContext";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import CustomDatePicker from "./common/CustomDatePicker";
 
 
 const PurchaseEntry = () => {
@@ -34,6 +34,8 @@ const PurchaseEntry = () => {
   const [openUploader, setOpenUploader] = useState(false);
   const [activeSupplierIndex, setActiveSupplierIndex] = useState(null);
   const [tempImages, setTempImages] = useState([]);
+  const [userTouched, setUserTouched] = useState(false);
+  const { setIsDirty } = useUnsaved();
 
   const customerOptions = mapToOption(allCustomers, "id", "customerName");
   const staffOptions = mapToOption(allStaffs, "staffId", "staffName");
@@ -54,7 +56,22 @@ const PurchaseEntry = () => {
     }))
   );
 
+  const combinedData = {
+    formData,
+    suppliers,
+  };
+  const { isDirty: localDirty } = useUnsavedChanges(combinedData);
+
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (!userTouched) {
+      setIsDirty(false);
+      return;
+    }
+
+    setIsDirty(localDirty());
+  }, [formData, suppliers, userTouched]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -85,28 +102,6 @@ const PurchaseEntry = () => {
 
     fetchAllData();
   }, []);
-
-  const handleStaffSelect = (event, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      staffId: value?.id || "",
-    }));
-  };
-
-  const handleSupplierAmountChange = (value, index) => {
-    if (/^\d*\.?\d{0,2}$/.test(value)) {
-      const updated = [...suppliers];
-      updated[index].amount = value;
-      setSuppliers(updated);
-    }
-  };
-
-  const handleSupplierChange = (value, index) => {
-    const updated = [...suppliers];
-    updated[index].supplierId = value?.id || null;
-    setSuppliers(updated);
-    setErrors(prev => ({ ...prev, supplierIds: "" }));
-  };
 
   const addSuppliers = () => {
     setSuppliers(prev => [
@@ -215,6 +210,8 @@ const PurchaseEntry = () => {
   };
 
   const handleReset = () => {
+    setUserTouched(false);
+    setIsDirty(false);
     resetSupplier();
     resetCustomer();
     setFormData({
@@ -240,6 +237,40 @@ const PurchaseEntry = () => {
       ...prev,
       customerId: "",
     }));
+  };
+
+  const handleChange = (name, value) => {
+    setUserTouched(true);
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  const handleSupplierFieldChange = (index, field, value) => {
+    setUserTouched(true);
+
+    setSuppliers((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+      return updated;
+    });
+
+    if (field === "supplierId") {
+      setErrors((prev) => ({
+        ...prev,
+        supplierIds: "",
+      }));
+    }
   };
 
   return (
@@ -290,12 +321,7 @@ const PurchaseEntry = () => {
                     resetCustomer();
                     return;
                   }
-                  setFormData(prev => ({
-                    ...prev,
-                    customerId: value.id,
-                  }));
-
-                  setErrors(prev => ({ ...prev, customerId: "" }));
+                  handleChange("customerId", value.id);
                 }}
               />
 
@@ -308,44 +334,26 @@ const PurchaseEntry = () => {
                 label="Staff"
                 error={!!errors.staff}
                 helperText={errors.staff || ""}
-                onChange={(value) => handleStaffSelect(null, value)}
+                onChange={(value) => {
+                  handleChange("staffId", value?.id || "");
+                }}
               />
 
               {/* Transaction Date */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Transaction Date *"
-                  format="DD-MM-YYYY"
-                  value={
-                    formData.date
-                      ? dayjs(formData.date, "YYYY-MM-DD")
-                      : null
-                  }
-                  onChange={(newValue) => {
-                    const formatted = newValue
-                      ? dayjs(newValue).format("YYYY-MM-DD")
-                      : "";
+              <CustomDatePicker
+                label="Transaction Date *"
+                value={formData.date}
+                error={errors.date}
+                helperText={errors.date}
+                onChange={(val) => {
+                  handleChange("date", val);
 
-                    setFormData((prev) => ({
-                      ...prev,
-                      date: formatted,
-                    }));
-
-                    setErrors((prev) => ({
-                      ...prev,
-                      date: validate("date", formatted) || "",
-                    }));
-                  }}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      error: !!errors.date,
-                      helperText: errors.date || "",
-                    },
-                  }}
-                />
-              </LocalizationProvider>
+                  setErrors((prev) => ({
+                    ...prev,
+                    date: validate("date", val) || "",
+                  }));
+                }}
+              />
             </div>
           </div>
 
@@ -399,16 +407,22 @@ const PurchaseEntry = () => {
                     required={index === 0}
                     error={index === 0 && !!errors.supplierIds}
                     helperText={index === 0 ? errors.supplierIds : ""}
-                    onChange={(value) => handleSupplierChange(value, index)}
+                    onChange={(value) =>
+                      handleSupplierFieldChange(index, "supplierId", value?.id || null)
+                    }
                   />
 
                   {/* Amount */}
                   <CustomTextField
                     label="Purchase Amount"
                     value={suppliers[index].amount}
-                    onChange={(e) =>
-                      handleSupplierAmountChange(e.target.value, index)
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+
+                      if (/^\d*\.?\d{0,2}$/.test(val)) {
+                        handleSupplierFieldChange(index, "amount", val);
+                      }
+                    }}
                   />
 
                   {/* Upload Button */}
@@ -516,7 +530,10 @@ const PurchaseEntry = () => {
 
             <ImageUploader
               value={tempImages}
-              onChange={setTempImages}
+              onChange={(files) => {
+                setUserTouched(true);
+                setTempImages(files);
+              }}
               maxImages={2}
               label="Order Form Images"
               onError={(msg) => showSnackbar(msg, "error")}

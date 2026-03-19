@@ -13,6 +13,7 @@ import EditPurchaseDetail from "../modals/EditPurchaseDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
+import { getAllActiveStaffs } from "../service/StaffService";
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
@@ -33,6 +34,8 @@ const Purchase = () => {
   const [purchaseToEdit, setPurchaseToEdit] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [purchaseToDelete, setPurchaseToDelete] = useState(null);
+  const [allStaffs, setAllStaffs] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState(null);
 
 
   const today = dayjs().format("YYYY-MM-DD");
@@ -44,9 +47,10 @@ const Purchase = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [suppliers, customers] = await Promise.all([
+        const [suppliers, customers, staffs] = await Promise.all([
           SupplierService.getAllSuppliers(),
           CustomerService.getAllCustomers(),
+          getAllActiveStaffs()
         ]);
 
         const supplierOptions = (suppliers || []).map((s) => ({
@@ -59,8 +63,14 @@ const Purchase = () => {
           label: c.customerName,
         }));
 
+        const staffOptions = (staffs || []).map((s) => ({
+          id: s.staffId,
+          label: s.staffName,
+        }));
+
         setAllSuppliers(supplierOptions || []);
         setAllCustomers(customerOptions || []);
+        setAllStaffs(staffOptions || []);
       } catch {
         showSnackbar("Error loading suppliers/customers", "error");
       }
@@ -119,10 +129,12 @@ const Purchase = () => {
   const clearFiltersAndResults = () => {
     setSelectedSupplier(null);
     setSelectedCustomer(null);
+    setSelectedStaff(null);
 
     setFilterObject({
       supplierId: null,
       customerId: null,
+      staffId: null,
       fromDate: null,
       toDate: null,
     });
@@ -138,7 +150,8 @@ const Purchase = () => {
     !!filterObject.fromDate ||
     !!filterObject.toDate ||
     !!filterObject.supplierId ||
-    !!filterObject.customerId;
+    !!filterObject.customerId ||
+    !!filterObject.staffId;
 
 
   return (
@@ -153,7 +166,7 @@ const Purchase = () => {
         </div>
 
         <div className="px-6 py-5">
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="From Date"
@@ -237,6 +250,23 @@ const Purchase = () => {
                   setFilterObject(p => ({
                     ...p,
                     customerId: value ? value.id : null
+                  }));
+                }}
+              />
+            </div>
+
+            <div className="col-span-2 md:col-span-1">
+              <GenericAutocomplete
+                options={allStaffs}
+                value={selectedStaff}
+                label="Staff"
+                placeholder="Select staff"
+                onChange={(value) => {
+                  setSelectedStaff(value);
+
+                  setFilterObject(p => ({
+                    ...p,
+                    staffId: value ? value.id : null
                   }));
                 }}
               />

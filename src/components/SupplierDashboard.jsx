@@ -5,11 +5,12 @@ import SupplierDetail from "../modals/SupplierDetail";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
-import { Typography, useMediaQuery } from "@mui/material";
+import { Typography } from "@mui/material";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
+import { cleanText, formatDetails } from "../utils/copyFormatter";
 
 
 export default function SupplierDashboard() {
@@ -18,20 +19,16 @@ export default function SupplierDashboard() {
   const [open, setOpen] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const rowsPerPage = 10;
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const searchRef = useRef(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
-  const dropdownRef = useRef(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingSupplierId, setEditingSupplierId] = useState(null);
   const { isMobile } = useResponsive();
@@ -42,23 +39,40 @@ export default function SupplierDashboard() {
   const getSupplierFormattedText = (supplier) => {
 
     const mobileNumbers = supplier?.contacts
-      ?.map(contact => contact.mobileNumber)
+      ?.map(contact => {
+        const name = contact?.contactPerson || "Unknown";
+        const number = contact?.mobileNumber || "";
+        if (!name && !number) return null;
+        return `${name} - ${number}`;
+      })
       ?.filter(Boolean)
       ?.join(", ") || "-";
 
-    const fullAddress = [
+    const emails = supplier?.email
+
+    const transports = supplier?.preferredTransports
+      ?.map(t => t.name)
+      ?.filter(Boolean)
+      ?.join(", ");
+
+    const fullAddress = cleanText([
       supplier?.address,
       supplier?.city,
       supplier?.state,
       supplier?.pinCode
     ]
       .filter(Boolean)
-      .join(", ");
+      .join(", ")
+    );
 
-    return `Firm Name: ${supplier?.supplierName || "-"}
-Address: ${fullAddress || "-"}
-Phone No: ${mobileNumbers}
-GST No: ${supplier?.supplierGstNo || "-"}`;
+    return formatDetails({
+      "Firm Name": supplier?.supplierName,
+      "Address": fullAddress,
+      "Contacts": mobileNumbers,
+      "Emails": emails,
+      "Transports": transports,
+      "GST No": supplier?.supplierGstNo || "-"
+    });
   };
 
   const handleCopyDetails = (supplier) => {
@@ -104,16 +118,6 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
       { key: "city", label: "City" },
     ],
   };
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const [form, setForm] = useState({
     supplierName: "",
@@ -193,7 +197,6 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
 
   const handleClearSearch = useCallback(() => {
     setQuery("");
-    setSuggestions([]);
     setIsSearchActive(false);
     fetchSuppliers(1);
   }, [fetchSuppliers]);
@@ -204,16 +207,6 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
       fetchSuppliers(1);
     }
   }, [query, isSearchActive, fetchSuppliers]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenMenuIndex(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleDelete = async () => {
     if (!supplierToDelete) return;
@@ -347,7 +340,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
           setSupplierToDelete(null);
         }}
         onConfirm={() => {
-          handleDelete(supplierToDelete.supplierId);
+          onConfirm = { handleDelete }
           setDeleteModalOpen(false);
           setSupplierToDelete(null);
         }}
