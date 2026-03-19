@@ -66,14 +66,14 @@ public class BillEntryController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<EditBillEntryResponse> updateBill(
-            @PathVariable String billNumber,
+            @PathVariable Integer id,
             @RequestPart("data") BillUpdateRequest request,
             @RequestPart(value = "images", required = false)
             List<MultipartFile> images
     ) {
 
         EditBillEntryResponse response =
-                billService.updateBill(billNumber, request, images);
+                billService.updateBill(id, request, images);
 
         return ResponseEntity.ok(response);
     }

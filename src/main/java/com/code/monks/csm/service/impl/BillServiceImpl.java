@@ -97,19 +97,19 @@ public class BillServiceImpl implements BillService {
     @Transactional
     @Override
     public EditBillEntryResponse updateBill(
-            String billNumber,
+            Integer id,
             BillUpdateRequest request,
             List<MultipartFile> newImages
     ) {
 
-        log.info("UpdateBill request | billNumber={} | taxableValue={} | billAmount={}",
-                billNumber,
+        log.info("UpdateBill request | id={} | taxableValue={} | billAmount={}",
+                id,
                 request.getTaxableValue(),
                 request.getBillAmount());
 
-        BillEntryEntity bill = billRepo.findByBillNumber(billNumber)
+        BillEntryEntity bill = billRepo.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(BILL_NOT_FOUND, billNumber));
+                        new ResourceNotFoundException(BILL_NOT_FOUND, "with id "+id));
 
         // Header mapping
         mapHeaderFieldsForUpdate(bill, request);
@@ -350,6 +350,7 @@ public class BillServiceImpl implements BillService {
         }
 
         return SearchBillEntryResponse.builder()
+                .id(entity.getId())
                 .billNumber(entity.getBillNumber())
                 .date(entity.getDate())
                 .receivedDate(entity.getReceivedDate())
