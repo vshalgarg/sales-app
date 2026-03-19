@@ -13,7 +13,7 @@ import java.util.Objects;
 public interface BillService {
     BillEntryResponseDto addBill(BillEntryRequestDto requestDto, List<MultipartFile> images);
     List<GetBillEntries> getBillEntries();
-    EditBillEntryResponse updateBill(String billNumber, BillUpdateRequest request, List<MultipartFile> images);
+    EditBillEntryResponse updateBill(Integer id, BillUpdateRequest request, List<MultipartFile> images);
     PagedResponseDto<SearchBillEntryResponse> searchBillHistory(
             LocalDate fromDate,
             LocalDate toDate,

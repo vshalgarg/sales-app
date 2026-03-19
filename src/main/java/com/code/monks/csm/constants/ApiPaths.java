@@ -47,7 +47,7 @@ public class ApiPaths {
 
     public static final String GET_BILL_ENTRIES = "/bill/entries/get";
 
-    public static final String UPDATE_BILL_ENTRY = "/bill/entry/update/{billNumber}";
+    public static final String UPDATE_BILL_ENTRY = "/bill/entry/update/{id}";
 
     public static final String SEARCH_BILL_ENTRY = "bill/entries/search";
     public static final String DELETE_BILL_ENTRY = "bill/entry/delete";

@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 @Builder
 public class SearchBillEntryResponse {
+    private Integer id;
     private String billNumber;
     private LocalDate date;
     private LocalDate receivedDate;
