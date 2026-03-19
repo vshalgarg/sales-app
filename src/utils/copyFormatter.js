@@ -25,3 +25,17 @@ export const cleanText = (text) => {
 
   return text;
 };
+
+export const convertHtmlToWhatsApp = (html) => {
+  if (!html) return "";
+
+  return html
+    .replace(/<b>(.*?)<\/b>/gi, "*$1*")
+    .replace(/<strong>(.*?)<\/strong>/gi, "*$1*")
+    .replace(/<i>(.*?)<\/i>/gi, "_$1_")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<li>(.*?)<\/li>/gi, "• $1\n")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+};
