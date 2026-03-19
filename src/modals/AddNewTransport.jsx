@@ -39,7 +39,8 @@ export default function AddNewTransport({
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({ contacts: [] });
   const [isSaving, setIsSaving] = useState(false);
-  const { isDirty } = useUnsavedChanges(formData, open);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { isDirty } = useUnsavedChanges(formData, open && isLoaded);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
 
@@ -47,12 +48,15 @@ export default function AddNewTransport({
   const resetForm = () => {
     setFormData(initialState);
     setErrors({ contacts: [] });
+    setIsLoaded(false);
   };
 
 
   /* ================= EDIT MODE ================= */
   useEffect(() => {
+    if (!open) return;
     if (editingTransport) {
+      setIsLoaded(false);
       setFormData({
         name: editingTransport.name || "",
         email: editingTransport.email || "",
@@ -68,8 +72,10 @@ export default function AddNewTransport({
         addressLine2: editingTransport.addressLine2 || "",
         status: editingTransport.status || "ACTIVE",
       });
+      setTimeout(() => setIsLoaded(true), 0);
     } else {
       resetForm();
+      setIsLoaded(true);
     }
   }, [editingTransport, open]);
 
@@ -92,6 +98,12 @@ export default function AddNewTransport({
   const handleStay = () => {
     setConfirmOpen(false);
   };
+
+  useEffect(() => {
+    if (!open) {
+      setIsLoaded(false);
+    }
+  }, [open]);
 
   /* ================= CONTACT HANDLERS ================= */
   const addContact = () => {

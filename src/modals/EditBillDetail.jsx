@@ -23,6 +23,8 @@ import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
 import { roundUp } from "../utils/numberUtils";
+import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
@@ -62,6 +64,12 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   const { isMobile } = useResponsive();
   const lastItemRef = useRef(null);
   const [itemAdded, setItemAdded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { isDirty } = useUnsavedChanges(
+    { ...formData, items },
+    open && isLoaded
+  );
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
 
 
@@ -101,8 +109,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   }, [items.length, itemAdded, isMobile]);
 
   useEffect(() => {
-    if (!selectedBillDetail) return;
-
+    if (!selectedBillDetail || !open) return;
+    setIsLoaded(false);
     setSelectedSupplier(
       allSuppliers.find(s => s.id === selectedBillDetail.supplierId) || null
     );
@@ -114,7 +122,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     setSelectedTransport(
       allTransports.find(t => t.name === selectedBillDetail.transport) || null
     );
-
+    setTimeout(() => setIsLoaded(true), 0);
   }, [selectedBillDetail, allSuppliers, allCustomers, allTransports]);
 
 
@@ -187,6 +195,20 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     }));
   }, [items, setFormData]);
 
+  useEffect(() => {
+    if (!open) {
+      setIsLoaded(false);
+    }
+  }, [open]);
+
+  const handleClose = () => {
+    if (isDirty()) {
+      setConfirmOpen(true);
+      return;
+    }
+
+    setOpen(false);
+  };
 
   // Handle inline editing of any item field
   const handleItemChange = (index, field, value) => {
@@ -289,9 +311,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
         <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
 
           <IconButton
-            onClick={() => {
-              setOpen(false);
-            }}
+            onClick = { handleClose }
             className="md:hidden"
           >
             <ArrowBackIcon />
@@ -379,7 +399,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
               name="order"
               value={formData.invoiceNo}
               onChange={handleChange}
-              label="Order"
+              label="Invoice Number"
               error={!!errors.order}
               helperText={errors.order || ""}
             />
@@ -888,11 +908,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
           {/* Cancel */}
           <AppButton
             type="cancel"
-            onClick={() => {
-              localStorage.removeItem("billFormData");
-              localStorage.removeItem("billFormErrors");
-              setOpen(false);
-            }}
+            onClick = { handleClose }
           >
             Cancel
           </AppButton>
@@ -931,6 +947,15 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
             </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            setOpen(false);
+          }}
+          onCancel={() => setConfirmOpen(false)}
+        />
       </div>
     </div>
 

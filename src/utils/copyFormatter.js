@@ -14,8 +14,14 @@ export const formatDetails = (data) => {
   return { html, text };
 };
 
-export const cleanText = (text = "") =>
-  text
-    .replace(/\s+/g, " ")
-    .replace(/\s*,\s*/g, ", ")
-    .trim();
+export const cleanText = (text) => {
+  if (Array.isArray(text)) {
+    return text.map(t => (typeof t === "string" ? t.replace(/\s+/g, " ").trim() : t));
+  }
+
+  if (typeof text === "string") {
+    return text.replace(/\s+/g, " ").trim();
+  }
+
+  return text;
+};
