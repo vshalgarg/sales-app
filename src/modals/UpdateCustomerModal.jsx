@@ -66,6 +66,11 @@ const UpdateCustomerModal = ({
                     pinCode: data.pinCode || "",
                     msme: data.msme || "",
                     remark: data.remark || "",
+                    bankName: data.bankName || "",
+                    ifsc: data.ifsc || "",
+                    branch: data.branch || "",
+                    accountName: data.accountName || "",
+                    accountNumber: data.accountNumber || "",
                     contacts: data.contacts?.length
                         ? data.contacts
                         : [{ contactPerson: "", mobileNumber: "", type: "" }],
@@ -257,6 +262,43 @@ const UpdateCustomerModal = ({
                                     label="Referenced By"
                                 />
 
+                            </div>
+                        </div>
+
+                        {/* BANK DETAILS */}
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Bank Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <CustomTextField 
+                                name="bankName"     
+                                value={form.bankName || ""}     
+                                onChange={handleChange} 
+                                label="Bank Name" 
+                                />
+                                <CustomTextField 
+                                name="ifsc"          
+                                value={form.ifsc || ""}          
+                                onChange={handleChange} 
+                                label="IFSC Code" 
+                                />
+                                <CustomTextField 
+                                name="branch"        
+                                value={form.branch || ""}        
+                                onChange={handleChange} 
+                                label="Branch" 
+                                />
+                                <CustomTextField 
+                                name="accountName"   
+                                value={form.accountName || ""}   
+                                onChange={handleChange} 
+                                label="Account Holder Name" 
+                                />
+                                <CustomTextField 
+                                name="accountNumber" 
+                                value={form.accountNumber || ""} 
+                                onChange={handleChange} 
+                                label="Account Number" 
+                                />
                             </div>
                         </div>
 

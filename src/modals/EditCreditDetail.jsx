@@ -16,6 +16,7 @@ import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import CustomDatePicker from "../components/common/CustomDatePicker";
 
 
 const PAYMENT_TYPES = [
@@ -46,6 +47,7 @@ const EditCreditDetail = ({
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   const [formData, setFormData] = useState({
+    date: null,
     paymentType: "",
     referenceNumber: "",
     referenceDate: null,
@@ -80,6 +82,7 @@ const EditCreditDetail = ({
     if (!selectedCreditDetail || !open) return;
     setIsLoaded(false);
     setFormData({
+      date: selectedCreditDetail.date || null,
       paymentType: selectedCreditDetail.paymentType || "",
       referenceNumber: selectedCreditDetail.referenceNumber || "",
       referenceDate: selectedCreditDetail.referenceDate
@@ -176,6 +179,7 @@ const EditCreditDetail = ({
       const payload = {
         supplierId: selectedSupplier?.id || null,
         customerId: selectedCustomer?.id || null,
+        date: formData.date || null,
         paymentType: formData.paymentType,
         referenceNumber: formData.referenceNumber || null,
         referenceDate: formData.referenceDate
@@ -235,10 +239,12 @@ const EditCreditDetail = ({
               value={selectedCreditDetail.billNumber}
               disabled
             />
-            <CustomTextField
+            <CustomDatePicker
               label="Date"
-              value={dayjs(selectedCreditDetail.date).format("DD-MM-YYYY")}
-              InputProps={{ readOnly: true }}
+              value={formData.date}
+              onChange={(val) =>
+                setFormData(prev => ({ ...prev, date: val }))
+              }
             />
             <CustomTextField
               select

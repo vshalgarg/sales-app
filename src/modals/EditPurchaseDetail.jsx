@@ -42,7 +42,7 @@ const EditPurchaseDetail = ({
 
     const [formData, setFormData] = useState({
         date: "",
-        amount: "",
+        remarks: "",
     });
 
     const [saving, setSaving] = useState(false);
@@ -112,9 +112,9 @@ const EditPurchaseDetail = ({
         setIsLoaded(false);
         setFormData({
             date: detail.date || "",
-            amount:
-                detail.purchaseAmount != null
-                    ? String(detail.purchaseAmount)
+            remarks:
+                detail.remarks != null
+                    ? detail.remarks
                     : "",
         });
 
@@ -162,13 +162,12 @@ const EditPurchaseDetail = ({
         setOpen(false);
     };
 
-    const handleAmountChange = (e) => {
-        const value = e.target.value;
-
-        if (/^\d*\.?\d{0,2}$/.test(value)) {
-            setFormData(p => ({ ...p, amount: value }));
-        }
-    };
+   const handleChange = (field) => (e) => {
+    setFormData(p => ({
+        ...p,
+        [field]: e.target.value
+    }));
+};
 
     const previewImages = useMemo(() => {
         return [
@@ -207,7 +206,7 @@ const EditPurchaseDetail = ({
                 staffId: selectedStaff?.id || null,
                 customerId: selectedCustomer?.id || null,
                 supplierId: selectedSupplier?.id || null,
-                amount: formData.amount ? Number(formData.amount) : null,
+                remarks: formData.remarks ? formData.remarks : null,
                 existingImageKeys: existingImages.map(img => img.key)
             };
 
@@ -363,11 +362,11 @@ const EditPurchaseDetail = ({
                                 onChange={(v) => setSelectedSupplier(v)}
                             />
 
-                            {/* Amount */}
+                            {/* Remarks */}
                             <CustomTextField
-                                label="Purchase Amount"
-                                value={formData.amount}
-                                onChange={handleAmountChange}
+                                label="Remarks"
+                                value={formData.remarks}
+                                 onChange={handleChange("remarks")}
                             />
 
                         </div>

@@ -39,3 +39,110 @@ export const convertHtmlToWhatsApp = (html) => {
     .replace(/<[^>]+>/g, "")
     .trim();
 };
+
+export const getSupplierFormattedText = (supplier) => {
+  const mobileNumbers = supplier?.contacts
+    ?.map(contact => {
+      const name = contact?.contactPerson || "Unknown";
+      const number = contact?.mobileNumber || "";
+      if (!name && !number) return null;
+      return `${name} - ${number}`;
+    })
+    ?.filter(Boolean)
+    ?.join(", ") || "-";
+
+  const transports = supplier?.preferredTransports
+    ?.map(t => t.name)
+    ?.filter(Boolean)
+    ?.join(", ");
+
+  const fullAddress = cleanText([
+    supplier?.addressLine1 || supplier?.address,
+    supplier?.addressLine2,
+    supplier?.city,
+    supplier?.state,
+    supplier?.pinCode
+  ]
+    .filter(Boolean)
+    .join(", ")
+  );
+
+  return formatDetails({
+    "Firm Name": supplier?.supplierName,
+    "Address": fullAddress,
+    "Contacts": mobileNumbers,
+    "Emails": supplier?.email,
+    "Transports": transports,
+    "GST No": supplier?.supplierGstNo || supplier?.gstNo || "-"
+  });
+};
+
+
+export const getCustomerFormattedText = (customer) => {
+
+  const mobileNumbers = customer?.contacts
+    ?.map(contact => {
+      const name = contact?.contactPerson || "Unknown";
+      const number = contact?.mobileNumber || "";
+      if (!name && !number) return null;
+      return `${name} - ${number}`;
+    })
+    ?.filter(Boolean)
+    ?.join(", ") || "-";
+
+  const fullAddress = cleanText([
+    customer?.addressLine1 || customer?.address,
+    customer?.addressLine2,
+    customer?.city,
+    customer?.state,
+    customer?.pinCode
+  ]
+    .filter(Boolean)
+    .join(", ")
+  );
+
+  const transports = customer?.preferredTransports
+    ?.map(t => t.name)
+    ?.filter(Boolean)
+    ?.join(", ");
+
+  return formatDetails({
+    "Firm Name": customer?.customerName || "-",
+    "Address": fullAddress || "-",
+    "Contacts": mobileNumbers,
+    "Emails": customer?.email,
+    "Transports": transports,
+    "GST No": customer?.customerGstNo || "-"
+  });
+};
+
+export const getTransportFormattedText = (transport) => {
+
+  const mobileNumbers = transport?.contacts
+    ?.map(contact => {
+      const name = contact?.contactPerson || "Unknown";
+      const number = contact?.contactNumber || "";
+      if (!name && !number) return null;
+      return `${name} - ${number}`;
+    })
+    ?.filter(Boolean)
+    ?.join(", ") || "-";
+
+  const fullAddress = cleanText([
+    transport?.addressLine1,
+    transport?.addressLine2,
+    transport?.city,
+    transport?.state,
+    transport?.pinCode
+  ]
+    .filter(Boolean)
+    .join(", ")
+  );
+
+  return formatDetails({
+    "Firm Name": transport?.name || "-",
+    "Address": fullAddress || "-",
+    "Contacts": mobileNumbers,
+    "GST No": transport?.gstNo || "-"
+  });
+};
