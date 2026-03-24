@@ -313,6 +313,51 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 </div>
               </div>
 
+              {/* Bank Details */}
+              <div>
+                <h3 className="text-lg font-medium mb-2">Bank Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <CustomTextField
+                    name="bankName"
+                    value={form.bankName}
+                    onChange={handleFormChange}
+                    label="Bank Name"
+                    type="text"
+                  />
+
+                  <CustomTextField
+                    name="ifscCode"
+                    value={form.ifscCode}
+                    onChange={handleFormChange}
+                    label="IFSC Code"
+                  />
+
+                  <CustomTextField
+                    name="branchName"
+                    value={form.branchName}
+                    onChange={handleFormChange}
+                    label="Branch Name"
+                  />
+
+                  <CustomTextField
+                    name="accountName"
+                    value={form.accountName}
+                    onChange={handleFormChange}
+                    label="Account Holder Name"
+                  />
+
+                  <CustomTextField
+                    name="accountNumber"
+                    value={form.accountNumber}
+                    onChange={handleFormChange}
+                    label="Account Number"
+                    type="number"
+                  />
+
+                </div>
+              </div>
+
               {/* Address Details */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Address Details</h3>
@@ -353,51 +398,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     error={!!errors.pinCode}
                     helperText={errors.pinCode}
                   />
-                </div>
-              </div>
-
-              {/* Bank Details */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Bank Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  <CustomTextField
-                    name="bankName"
-                    value={form.bankName}
-                    onChange={handleFormChange}
-                    label="Bank Name"
-                    type="text"
-                  />
-
-                  <CustomTextField
-                    name="ifscCode"
-                    value={form.ifscCode}
-                    onChange={handleFormChange}
-                    label="IFSC Code"
-                  />
-
-                  <CustomTextField
-                    name="branchName"
-                    value={form.branchName}
-                    onChange={handleFormChange}
-                    label="Branch Name"
-                  />
-
-                  <CustomTextField
-                    name="accountName"
-                    value={form.accountName}
-                    onChange={handleFormChange}
-                    label="Account Holder Name"
-                  />
-
-                  <CustomTextField
-                    name="accountNumber"
-                    value={form.accountNumber}
-                    onChange={handleFormChange}
-                    label="Account Number"
-                    type = "number"
-                  />
-
                 </div>
               </div>
 
