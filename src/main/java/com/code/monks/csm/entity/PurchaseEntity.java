@@ -34,8 +34,8 @@ public class PurchaseEntity extends BaseEntity{
     @JoinColumn(name = "customer_id")
     private CustomerEntity customer;
 
-    @Column(name = "purchase_amount")
-    private Long purchaseAmount;
+    @Column(name = "remarks")
+    private String remarks;
 
     @OneToMany(mappedBy = "purchase",
             cascade = CascadeType.ALL,

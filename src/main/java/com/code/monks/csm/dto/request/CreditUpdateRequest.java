@@ -7,6 +7,7 @@ import java.time.LocalDate;
 @Data
 public class CreditUpdateRequest {
 
+    private LocalDate date;
     private Integer supplierId;
     private Integer customerId;
 

@@ -12,7 +12,7 @@ import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.DuplicateEntryException;
 import com.code.monks.csm.exception.SupplierException;
-import com.code.monks.csm.repository.ContactRepo;
+import com.code.monks.csm.mapper.SupplierMapper;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.SupplierService;
@@ -33,7 +33,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
-import static com.code.monks.csm.enums.StatusEnum.ACTIVE;
 import static com.code.monks.csm.enums.StatusEnum.INACTIVE;
 
 @Service
@@ -42,9 +41,7 @@ import static com.code.monks.csm.enums.StatusEnum.INACTIVE;
 public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepo supplierRepo;
-
-    private final ContactRepo contactRepo;
-
+    private final SupplierMapper supplierMapper;
     private final ValidatorUtil validatorUtil;
     private TransportRepository transportRepo;
 
@@ -53,19 +50,31 @@ public class SupplierServiceImpl implements SupplierService {
 
         try {
             String code = generateCode();
-            if (requestDto.getSupplierGroup() == null ||
-                    requestDto.getSupplierGroup().trim().isEmpty()) {
-
+            log.debug("Generated supplier code={}", code);
+            if (StringUtils.isBlank(requestDto.getSupplierGroup())) {
                 requestDto.setSupplierGroup(requestDto.getSupplierName());
             }
-            if (requestDto.getSupplierMsme() == null ||
-                    requestDto.getSupplierMsme().trim().isEmpty()) {
-
+            if (StringUtils.isBlank(requestDto.getSupplierMsme())) {
                 requestDto.setSupplierMsme("SMALL");
             }
             validateSupplierAndContacts(requestDto, code);
-            SupplierEntity entity = mapToSupplierEntity(requestDto, code);
+            SupplierEntity entity = supplierMapper.toEntity(requestDto, code);
+            log.debug("Supplier entity mapped successfully for code={}", code);
 
+            if (requestDto.getPreferredTransportIds() != null &&
+                    !requestDto.getPreferredTransportIds().isEmpty()) {
+                log.debug("Mapping preferred transports. count={}", requestDto.getPreferredTransportIds().size());
+                Set<TransportEntity> transports = new HashSet<>();
+                for (Integer id : requestDto.getPreferredTransportIds()) {
+                    log.trace("Fetching transport id={}", id);
+                    TransportEntity transport = transportRepo.getReferenceById(id);
+                    transports.add(transport);
+                }
+                entity.setPreferredTransports(transports);
+            } else {
+                log.debug("No preferred transports provided. Setting empty set");
+                entity.setPreferredTransports(Collections.emptySet());
+            }
             supplierRepo.save(entity);
             log.info("Supplier '{}' saved successfully with {} contacts",
                     entity.getSupplierName(),
@@ -75,7 +84,9 @@ public class SupplierServiceImpl implements SupplierService {
                     .build();
 
         } catch (DuplicateEntryException ex) {
-            log.warn("Supplier validation failed for {}", ex.getMessage());
+            log.warn("Duplicate entry while adding supplier. supplierName={}, error={}",
+                    requestDto.getSupplierName(),
+                    ex.getMessage());
             throw ex;
         }catch (Exception e) {
             log.error("Error while adding supplier '{}'", requestDto.getSupplierName(), e);
@@ -100,38 +111,6 @@ public class SupplierServiceImpl implements SupplierService {
 //        }
 
         validatorUtil.validateUniqueFields(duplicateChecks);
-    }
-
-    private SupplierEntity mapToSupplierEntity(AddSupplierRequestDto requestDto, String code) {
-        SupplierEntity entity = AddSupplierResponseDto.dtoToEntity(requestDto);
-        entity.setCode(code);
-        entity.setStatus(StatusEnum.ACTIVE);
-
-        List<ContactEntity> contactList = requestDto.getContacts().stream()
-                .map(dto -> {
-                    ContactEntity contactEntity = new ContactEntity();
-                    contactEntity.setContactPerson(dto.getContactPerson());
-                    contactEntity.setMobileNumber(dto.getMobileNumber());
-                    contactEntity.setType(dto.getType());
-                    contactEntity.setSupplier(entity); // owning side
-                    return contactEntity;
-                })
-                .toList();
-
-        entity.setContactList(contactList);
-
-        if (requestDto.getPreferredTransportIds() != null && !requestDto.getPreferredTransportIds().isEmpty()) {
-            Set<TransportEntity> transports = new HashSet<>();
-
-            for (Integer id : requestDto.getPreferredTransportIds()) {
-                TransportEntity transport = transportRepo.getReferenceById(id);
-                transports.add(transport);
-            }
-            entity.setPreferredTransports(transports);
-        } else {
-            entity.setPreferredTransports(Collections.emptySet());
-        }
-        return entity;
     }
 
     private String generateCode(){
@@ -311,12 +290,9 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public void updateSupplier(Integer id, UpdateSupplierRequestDto request) {
-
         log.info("Update request received for Supplier id={}", id);
-        log.debug("Update payload for supplier id={} : {}", id, request);
 
         try {
-
             SupplierEntity entity = supplierRepo.findById(id)
                     .orElseThrow(() -> {
                         log.warn("Supplier not found for update. id={}", id);
@@ -324,36 +300,9 @@ public class SupplierServiceImpl implements SupplierService {
                                 "Supplier not found with id: " + id);
                     });
 
-            entity.setSupplierName(request.getSupplierName());
-            entity.setEmail(request.getEmail());
-            entity.setGroupName(
-                    StringUtils.isBlank(request.getGroupName())
-                            ? request.getSupplierName()
-                            : request.getGroupName()
-            );
-            entity.setGstNo(request.getGstNo());
-            entity.setCommissionScheme(request.getCommissionScheme());
-            entity.setCommissionRate(request.getCommissionRate());
-            entity.setReferenceBy(request.getReferenceBy());
-            entity.setAddressLine1(request.getAddressLine1());
-            entity.setAddressLine2(request.getAddressLine2());
-            entity.setState(request.getState());
-            entity.setCity(request.getCity());
-            entity.setPinCode(request.getPinCode());
-            entity.setMsme(
-                    StringUtils.isBlank(request.getMsme())
-                            ? "SMALL"
-                            : request.getMsme()
-            );
-            entity.setRemark(request.getRemark());
-
-            if (request.getStatus() != null) {
-                log.debug("Updating supplier status to {}", request.getStatus());
-                entity.setStatus(request.getStatus());
-            }
+            supplierMapper.updateEntity(entity, request);
 
             if (request.getPreferredTransportIds() != null) {
-
                 log.debug("Updating preferred transports for supplier id={}", id);
 
                 Set<TransportEntity> transports = new HashSet<>();
@@ -369,31 +318,7 @@ public class SupplierServiceImpl implements SupplierService {
 
                 log.debug("Preferred transports updated. Count={}", transports.size());
             }
-
-            if (request.getContacts() != null) {
-
-                log.debug("Updating contacts for supplier id={}. New count={}",
-                        id, request.getContacts().size());
-
-                entity.getContactList().clear();
-
-                List<ContactEntity> updatedContacts = request.getContacts()
-                        .stream()
-                        .map(dto -> {
-                            ContactEntity contact = new ContactEntity();
-                            contact.setContactPerson(dto.getContactPerson());
-                            contact.setMobileNumber(dto.getMobileNumber());
-                            contact.setType(dto.getType());
-                            contact.setSupplier(entity);
-                            return contact;
-                        })
-                        .toList();
-
-                entity.getContactList().addAll(updatedContacts);
-            }
-
             supplierRepo.save(entity);
-
             log.info("Supplier updated successfully. id={}, code={}",
                     entity.getId(), entity.getCode());
 
@@ -417,57 +342,18 @@ public class SupplierServiceImpl implements SupplierService {
     public GetSupplierByIdResponseDto getSupplierById(Integer id) {
 
         log.info("Fetching supplier details for id={}", id);
-
         try {
-
             SupplierEntity entity = supplierRepo.findById(id)
                     .orElseThrow(() -> {
                         log.warn("Supplier not found with id={}", id);
                         return new SupplierException(DATA_NOT_FOUND,
                                 "Supplier not found with id: " + id);
                     });
-
-            // Contacts mapping
-            List<ContactRequestDto> contacts = ContactUtil.mapContacts(
-                    entity.getContactList(),
-                    ContactEntity::getContactPerson,
-                    ContactEntity::getMobileNumber,
-                    ContactEntity::getType
-            );
-
-            // Transport mapping
-            List<TransportDto> transportDtos = Optional.ofNullable(entity.getPreferredTransports())
-                    .orElse(Collections.emptySet())
-                    .stream()
-                    .map(t -> TransportDto.builder()
-                            .id(t.getId())
-                            .name(t.getName())
-                            .build())
-                    .toList();
+            GetSupplierByIdResponseDto response = supplierMapper.toResponse(entity);
 
             log.info("Supplier details fetched successfully for id={}", id);
 
-            return GetSupplierByIdResponseDto.builder()
-                    .id(entity.getId())
-                    .code(entity.getCode())
-                    .supplierName(entity.getSupplierName())
-                    .email(entity.getEmail())
-                    .groupName(entity.getGroupName())
-                    .gstNo(entity.getGstNo())
-                    .commissionScheme(entity.getCommissionScheme())
-                    .commissionRate(entity.getCommissionRate())
-                    .referenceBy(entity.getReferenceBy())
-                    .addressLine1(entity.getAddressLine1())
-                    .addressLine2(entity.getAddressLine2())
-                    .state(entity.getState())
-                    .city(entity.getCity())
-                    .pinCode(entity.getPinCode())
-                    .msme(entity.getMsme())
-                    .remark(entity.getRemark())
-                    .status(entity.getStatus())
-                    .contacts(contacts)
-                    .preferredTransports(transportDtos)
-                    .build();
+            return response;
 
         } catch (DataAccessException dae) {
             log.error("Database error while fetching supplier id={}", id, dae);
