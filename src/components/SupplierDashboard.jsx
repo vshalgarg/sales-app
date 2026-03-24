@@ -10,7 +10,7 @@ import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
-import { cleanText, formatDetails } from "../utils/copyFormatter";
+import { getSupplierFormattedText } from "../utils/copyFormatter";
 
 
 export default function SupplierDashboard() {
@@ -35,45 +35,6 @@ export default function SupplierDashboard() {
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [supplierToCopy, setSupplierToCopy] = useState(null);
 
-
-  const getSupplierFormattedText = (supplier) => {
-
-    const mobileNumbers = supplier?.contacts
-      ?.map(contact => {
-        const name = contact?.contactPerson || "Unknown";
-        const number = contact?.mobileNumber || "";
-        if (!name && !number) return null;
-        return `${name} - ${number}`;
-      })
-      ?.filter(Boolean)
-      ?.join(", ") || "-";
-
-    const emails = supplier?.email
-
-    const transports = supplier?.preferredTransports
-      ?.map(t => t.name)
-      ?.filter(Boolean)
-      ?.join(", ");
-
-    const fullAddress = cleanText([
-      supplier?.address,
-      supplier?.city,
-      supplier?.state,
-      supplier?.pinCode
-    ]
-      .filter(Boolean)
-      .join(", ")
-    );
-
-    return formatDetails({
-      "Firm Name": supplier?.supplierName,
-      "Address": fullAddress,
-      "Contacts": mobileNumbers,
-      "Emails": emails,
-      "Transports": transports,
-      "GST No": supplier?.supplierGstNo || "-"
-    });
-  };
 
   const handleCopyDetails = (supplier) => {
     setSupplierToCopy(supplier);
@@ -131,6 +92,11 @@ export default function SupplierDashboard() {
     state: "",
     city: "",
     pinCode: "",
+    bankName: "",
+    ifscCode: "",
+    branchName: "",
+    accountName: "",
+    accountNumber: "",
     contacts: [{ contactPerson: "", mobileNumber: "", phone: "" }],
     preferredTransportIds: [],
     remark: "",
@@ -266,7 +232,7 @@ export default function SupplierDashboard() {
           data={suppliers}
           loading={loading}
           onView={(supplier) => {
-            setSelectedSupplier(supplier);
+            setSelectedSupplier(supplier.id);
             setIsModalOpen(true);
           }}
           onEdit={(supplier) => {
@@ -289,7 +255,7 @@ export default function SupplierDashboard() {
       {/* Modals */}
       {isModalOpen && selectedSupplier && (
         <SupplierDetail
-          selectedSupplier={selectedSupplier}
+           supplierId={selectedSupplier}
           setIsModalOpen={setIsModalOpen}
         />
       )}

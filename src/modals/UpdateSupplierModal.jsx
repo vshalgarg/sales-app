@@ -70,6 +70,11 @@ const UpdateSupplierModal = ({
                     commissionScheme: data.commissionScheme || "",
                     referenceBy: data.referenceBy || "",
                     remark: data.remark || "",
+                    bankName: data.bankName || "",
+                    ifscCode: data.ifscCode || "",
+                    branchName: data.branchName || "",
+                    accountName: data.accountName || "",
+                    accountNumber: data.accountNumber || "",
                     contacts: data.contacts?.length
                         ? data.contacts
                         : [{ contactPerson: "", mobileNumber: "", type: "" }],
@@ -344,6 +349,43 @@ const UpdateSupplierModal = ({
                                     label="Reference By"
                                 />
 
+                            </div>
+                        </div>
+
+                        {/* BANK DETAILS */}
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Bank Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <CustomTextField
+                                    name="bankName"
+                                    value={form.bankName || ""}
+                                    onChange={handleChange}
+                                    label="Bank Name"
+                                />
+                                <CustomTextField
+                                    name="ifscCode"
+                                    value={form.ifscCode || ""}
+                                    onChange={handleChange}
+                                    label="IFSC Code"
+                                />
+                                <CustomTextField
+                                    name="branchName"
+                                    value={form.branchName || ""}
+                                    onChange={handleChange}
+                                    label="Branch Name"
+                                />
+                                <CustomTextField
+                                    name="accountName"
+                                    value={form.accountName || ""}
+                                    onChange={handleChange}
+                                    label="Account Holder Name"
+                                />
+                                <CustomTextField
+                                    name="accountNumber"
+                                    value={form.accountNumber || ""}
+                                    onChange={handleChange}
+                                    label="Account Number"
+                                />
                             </div>
                         </div>
 

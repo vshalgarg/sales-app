@@ -4,31 +4,38 @@ import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CopyDetailsModal from "../components/common/CopyDetailsModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import SupplierService from "../service/SupplierService";
+import { getSupplierFormattedText } from "../utils/copyFormatter";
 
-const SupplierDetail = ({ selectedSupplier, setIsModalOpen }) => {
+const SupplierDetail = ({ supplierId, setIsModalOpen }) => {
   const [copyModalOpen, setCopyModalOpen] = useState(false);
-  const getSupplierFormattedText = (supplier) => {
+  const [supplier, setSupplier] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    const mobileNumbers = supplier?.contacts
-      ?.map(contact => contact.mobileNumber)
-      ?.filter(Boolean)
-      ?.join(", ") || "-";
+  useEffect(() => {
+    const fetchSupplier = async () => {
+      try {
+        const res = await SupplierService.getSupplierById(supplierId);
+        setSupplier(res.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const fullAddress = [
-      supplier?.address,
-      supplier?.city,
-      supplier?.state,
-      supplier?.pinCode
-    ]
-      .filter(Boolean)
-      .join(", ");
+    fetchSupplier();
+  }, [supplierId]);
 
-    return `Firm Name: ${supplier?.supplierName || "-"}
-Address: ${fullAddress || "-"}
-Phone No: ${mobileNumbers}
-GST No: ${supplier?.supplierGstNo || "-"}`;
-  };
+
+  if (loading) {
+    return <div className="p-6">Loading supplier details...</div>;
+  }
+
+  if (!supplier) {
+    return <div className="p-6">No data found</div>;
+  }
 
   return (
     <>
@@ -73,7 +80,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Supplier Name
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.supplierName}
+                  {supplier.supplierName || "-"}
                 </div>
               </div>
               <div>
@@ -81,7 +88,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Group Name
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.supplierGroup}
+                  {supplier.groupName || "-"}
                 </div>
               </div>
               <div>
@@ -89,14 +96,14 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   GST Number
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-all">
-                  {selectedSupplier.supplierGstNo}
+                  {supplier.gstNo || "-"}
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">MSME</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.supplierMsme}
+                  {supplier.msme || "-"}
                 </div>
               </div>
 
@@ -105,7 +112,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Email
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
-                  {selectedSupplier.email || "-"}
+                  {supplier.email || "-"}
                 </div>
               </div>
 
@@ -114,7 +121,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Commission Scheme
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.commissionScheme}
+                  {supplier.commissionScheme || "-"}
                 </div>
               </div>
               <div>
@@ -122,7 +129,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Commission %
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.commissionRate}
+                  {supplier.commissionRate ?? "-"}
                 </div>
               </div>
 
@@ -131,7 +138,48 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Reference By
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
-                  {selectedSupplier.referenceBy || "-"}
+                  {supplier.referenceBy || "-"}
+                </div>
+              </div>
+
+            </div>
+
+            <h3 className="md:text-lg font-semibold mb-3">Bank Details</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Bank Name</label>
+                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
+                  {supplier.bankName || "-"}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">IFSC Code</label>
+                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
+                  {supplier.ifscCode || "-"}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Branch</label>
+                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
+                  {supplier.branchName || "-"}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Account Name</label>
+                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
+                  {supplier.accountName || "-"}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Account Number</label>
+                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
+                  {supplier.accountNumber || "-"}
                 </div>
               </div>
 
@@ -145,20 +193,29 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Address
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words whitespace-pre-wrap">
-                  {selectedSupplier.address || "-"}
+                  {[
+                    supplier.addressLine1,
+                    supplier.addressLine2,
+                    supplier.city ? `${supplier.city},` : "",
+                    supplier.state ? `${supplier.state} -` : "",
+                    supplier.pinCode,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim() || "-"}
                 </div>
-
               </div>
+
               <div>
                 <label className="block text-sm font-medium mb-1">State</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.state}
+                  {supplier.state || "-"}
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">City</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.city}
+                  {supplier.city || "-"}
                 </div>
               </div>
               <div>
@@ -166,7 +223,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Pin Code
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedSupplier.pinCode}
+                  {supplier.pinCode || "-"}
                 </div>
               </div>
             </div>
@@ -175,35 +232,35 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
             <h3 className="md:text-lg font-semibold mb-3">
               Contact Information
             </h3>
-            {selectedSupplier.contacts.map((c, idx) => (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4" key={idx}>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Contact Person
-                  </label>
-                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.contactPerson}
+            {supplier.contacts?.length > 0 ? (
+              supplier.contacts.map((c, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 mb-3"
+                >
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Contact Person</label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                      {c.contactPerson || "-"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Mobile No.</label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                      {c.mobileNumber || "-"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Type</label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
+                      {c.type || "-"}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Mobile No.
-                  </label>
-                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                    {c.mobileNumber}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Type
-                  </label>
-                  <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
-                    {c.type || "-"}
-                  </div>
-                </div>
-
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="text-gray-500">No contacts available</div>
+            )}
 
             {/* Section: Other Information */}
             <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
@@ -213,9 +270,9 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
                   Preferred Transport
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
-                  {selectedSupplier.preferredTransports ? (
-                    selectedSupplier.preferredTransports.length > 0 ? (
-                      selectedSupplier.preferredTransports.map(
+                  {supplier.preferredTransports ? (
+                    supplier.preferredTransports.length > 0 ? (
+                      supplier.preferredTransports.map(
                         (transport, idx) => (
                           <span
                             key={idx}
@@ -239,7 +296,7 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
               <div>
                 <label className="block text-sm font-medium mb-1">Remark</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
-                  {selectedSupplier.remark || "-"}
+                  {supplier.remark || "-"}
                 </div>
               </div>
             </div>
@@ -258,12 +315,12 @@ GST No: ${supplier?.supplierGstNo || "-"}`;
 
           </FormFooter>
 
-          {copyModalOpen && (
+          {copyModalOpen && (      
             <CopyDetailsModal
               open={copyModalOpen}
               onClose={() => setCopyModalOpen(false)}
               title="Copy Supplier Details"
-              formattedText={getSupplierFormattedText(selectedSupplier)}
+              formattedText={getSupplierFormattedText(supplier)}
             />
           )}
 
