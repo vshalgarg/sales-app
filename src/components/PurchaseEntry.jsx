@@ -51,7 +51,7 @@ const PurchaseEntry = () => {
   const [suppliers, setSuppliers] = useState(
     Array.from({ length: 5 }, () => ({
       supplierId: null,
-      amount: "",
+      remarks: "",
       images: []
     }))
   );
@@ -108,7 +108,7 @@ const PurchaseEntry = () => {
       ...prev,
       {
         supplierId: null,
-        amount: "",
+        remarks: "",
         images: []
       }
     ]);
@@ -174,7 +174,7 @@ const PurchaseEntry = () => {
           .filter(s => s.supplierId)
           .map(s => ({
             supplierId: s.supplierId,
-            amount: s.amount ? Number(s.amount) : null
+            remarks: s.remarks || null 
           }))
       };
       const formDataObj = new FormData();
@@ -226,7 +226,7 @@ const PurchaseEntry = () => {
     setSuppliers(
       Array.from({ length: 5 }, () => ({
         supplierId: null,
-        amount: "",
+        remarks: "",
         images: []
       }))
     );
@@ -412,16 +412,12 @@ const PurchaseEntry = () => {
                     }
                   />
 
-                  {/* Amount */}
+                  {/* Remarks */}
                   <CustomTextField
-                    label="Purchase Amount"
-                    value={suppliers[index].amount}
+                    label="Remarks"
+                    value={suppliers[index].remarks}
                     onChange={(e) => {
-                      const val = e.target.value;
-
-                      if (/^\d*\.?\d{0,2}$/.test(val)) {
-                        handleSupplierFieldChange(index, "amount", val);
-                      }
+                      handleSupplierFieldChange(index, "remarks", e.target.value);
                     }}
                   />
 
