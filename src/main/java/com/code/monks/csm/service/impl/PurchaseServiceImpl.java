@@ -77,7 +77,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                     requestDto.getStaffId(),
                     supplierId,
                     requestDto.getCustomerId(),
-                    supplierDto.getAmount()
+                    supplierDto.getRemarks()
             );
 
             List<MultipartFile> images = Collections.emptyList();
@@ -211,7 +211,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 req.getStaffId(),
                 req.getSupplierId(),
                 req.getCustomerId(),
-                req.getAmount()
+                req.getRemarks()
         );
 
         List<MultipartFile> newImages = Collections.emptyList();
@@ -301,7 +301,7 @@ public class PurchaseServiceImpl implements PurchaseService {
             Integer staffId,
             Integer supplierId,
             Integer customerId,
-            Double purchaseAmount
+            String remarks
     ) {
 
         if (date != null) {
@@ -312,8 +312,8 @@ public class PurchaseServiceImpl implements PurchaseService {
             entity.setStaffId(staffId);
         }
 
-        if (purchaseAmount != null) {
-            entity.setPurchaseAmount(Math.round(purchaseAmount * 100));
+        if (remarks != null) {
+            entity.setRemarks(remarks);
         }
 
         if (supplierId != null) {

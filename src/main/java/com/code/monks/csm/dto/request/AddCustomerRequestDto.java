@@ -37,6 +37,12 @@ public class AddCustomerRequestDto {
     private String city;
     private String pinCode;
 
+    private String bankName;
+    private String ifsc;
+    private String branch;
+    private String accountName;
+    private String accountNumber;
+
     private List<Integer> preferredTransportIds;
 
     private String remark;

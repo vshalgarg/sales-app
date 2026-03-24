@@ -36,11 +36,15 @@ public class UpdateCustomerRequestDto {
 
     private String msme;
 
+    private String bankName;
+    private String ifsc;
+    private String branch;
+    private String accountName;
+    private String accountNumber;
+
     private Set<Integer> preferredTransportIds;
 
     private String remark;
-
-    private StatusEnum status;
 
     private List<ContactRequestDto> contacts;
 }

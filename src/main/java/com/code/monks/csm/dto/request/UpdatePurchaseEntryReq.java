@@ -12,7 +12,7 @@ public class UpdatePurchaseEntryReq {
     private Integer staffId;
     private Integer customerId;
     private Integer supplierId;
-    private Double amount;
+    private String remarks;
 
     private List<String> existingImageKeys;
 }

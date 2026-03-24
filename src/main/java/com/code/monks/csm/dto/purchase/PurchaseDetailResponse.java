@@ -19,7 +19,7 @@ public class PurchaseDetailResponse {
     private Integer customerId;
     private String customerName;
 
-    private Double purchaseAmount;
+    private String remarks;
 
     private SupplierPurchaseDetailDto supplier;
 }

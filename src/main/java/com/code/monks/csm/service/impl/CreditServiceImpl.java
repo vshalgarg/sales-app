@@ -234,6 +234,7 @@ public class CreditServiceImpl implements CreditService {
             );
         }
         credit.setReferenceNumber(request.getReferenceNumber());
+        credit.setDate(request.getDate());
         credit.setReferenceDate(request.getReferenceDate());
         credit.setSlipNumber(request.getSlipNumber());
         if (request.getDrawType() != null) {

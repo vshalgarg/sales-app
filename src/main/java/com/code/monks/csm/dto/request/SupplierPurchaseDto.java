@@ -6,5 +6,5 @@ import lombok.Data;
 public class SupplierPurchaseDto {
 
     private Integer supplierId;
-    private Double amount;
+    private String remarks;
 }

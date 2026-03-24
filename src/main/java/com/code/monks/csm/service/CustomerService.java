@@ -12,11 +12,11 @@ import java.util.List;
 
 public interface CustomerService {
     AddCustomerResponseDto addCustomer(AddCustomerRequestDto requestDto);
-    PagedResponseDto<GetCustomersDto> getCustomers(int page, int size);
+    PagedResponseDto<CustomerListDto> getCustomers(int page, int size);
     DeleteCustomerResponseDto deleteCustomer(DeleteCustomerRequestDto requestDto);
-    PagedResponseDto<SearchCustomersResponseDto> searchCustomers(String keyword, Pageable pageable);
+    PagedResponseDto<CustomerListDto> searchCustomers(String keyword, Pageable pageable);
 
-    List<GetCustomersDto> getAllCustomers();
+    List<CustomerSummaryResponseDto> getAllCustomers();
 
     void updateCustomer(Integer id, @Valid UpdateCustomerRequestDto request);
     GetCustomerByIdResponseDto getCustomerById(Integer id);
