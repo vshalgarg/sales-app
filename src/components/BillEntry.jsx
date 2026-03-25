@@ -10,16 +10,17 @@ import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import Autocomplete from "@mui/material/Autocomplete";
 import TransportService from "../service/TransportService";
-import ImageUploader from "./common/ImageUploader";
 import { IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { roundUp } from "../utils/numberUtils";
 import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
-import CloseIcon from "@mui/icons-material/Close";
-import { FileText } from "lucide-react";
 import ImagePreviewDialog from "./common/ImagePreviewDialog";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import { Button } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import UploadDialog from "./common/UploadDialog";
 
 
 const BillEntry = () => {
@@ -54,6 +55,8 @@ const BillEntry = () => {
   const [savedItems, setSavedItems] = useState([]);
   const [billDocuments, setBillDocuments] = useState([]);
   const [previewIndex, setPreviewIndex] = useState(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [tempDocuments, setTempDocuments] = useState([]);
   const fileInputRef = useRef(null);
   const [userTouched, setUserTouched] = useState(false);
   const { setIsDirty } = useUnsaved();
@@ -439,14 +442,6 @@ const BillEntry = () => {
     }));
   };
 
-  const imageFiles = billDocuments.filter((file) =>
-    file.type?.startsWith("image/")
-  );
-
-  const pdfFiles = billDocuments.filter(
-    (file) => file.type === "application/pdf"
-  );
-
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Card */}
@@ -631,28 +626,79 @@ const BillEntry = () => {
             </div>
           </div>
 
-          {/* Add Bill Button */}
-          <div className="flex justify-end">
-            <button
-              onClick={() => setIsAddItemModalOpen(true)}
-              className="px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 transform hover:scale-[1.02] flex items-center gap-2"
-            >
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 mt-4"
+          >
+            {/* Upload */}
+            <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+              <Button
+                fullWidth
+                onClick={() => {
+                  setTempDocuments(billDocuments);
+                  setIsUploadOpen(true);
+                }}
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 500,
+                  borderRadius: "10px",
+                  px: 2.5,
+                  py: 1,
+
+                  borderColor: "#dbeafe",
+                  color: "#2563eb",
+                  backgroundColor: "#eff6ff",
+
+                  "&:hover": {
+                    borderColor: "#2563eb",
+                    backgroundColor: "#dbeafe",
+                  },
+
+                  "@media (min-width:640px)": {
+                    width: "auto",
+                  },
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+                Upload Documents
+              </Button>
+              {/* File count */}
+              <span className="text-xs text-gray-500 whitespace-nowrap">
+                {billDocuments.length} files
+              </span>
+            </div>
+
+            {/* Add Item */}
+            <Button
+              fullWidth
+              onClick={() => setIsAddItemModalOpen(true)}
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: "10px",
+                px: 2.5,
+                py: 1,
+
+                backgroundColor: "#2563eb",
+                boxShadow: "0 2px 8px rgba(37, 99, 235, 0.25)",
+
+                "&:hover": {
+                  backgroundColor: "#1d4ed8",
+                  boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
+                },
+
+                "@media (min-width:640px)": {
+                  width: "auto",
+                },
+              }}
+            >
               Add Bill Item
-            </button>
+            </Button>
+
           </div>
+
           {errors.items && (
             <div className="flex justify-end mt-2">
               <p className="text-red-600 text-sm">
@@ -773,163 +819,25 @@ const BillEntry = () => {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr className="bg-gray-100 border-t-2 border-gray-300">
+                      <td colSpan={7}></td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-700">
+                        Total
+                      </td>
+                      <td className="px-4 py-3 text-center font-semibold text-gray-900">
+                        {roundUp(taxableValue)}
+                      </td>
+                      <td className="px-4 py-3 text-center font-bold text-blue-600">
+                        {roundUp(billEntry)}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             </div>
           )}
-
-          {/* Total Bill Amount Card */}
-          <div className="border border-gray-200 p-4 md:p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-indigo-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Total Bill Amount
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-6">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-600">
-                  Taxable Value
-                </label>
-                <div className="p-2 md:p-4 bg-gray-50 border border-gray-200 rounded-lg md:text-xl font-bold text-gray-800">
-                  {roundUp(taxableValue)}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-600">
-                  Bill Amount
-                </label>
-                <div className="p-2 md:p-4 bg-gray-50 border border-gray-200 rounded-lg md:text-xl font-bold text-gray-800">
-                  {roundUp(billEntry)}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bill Docs Card */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            <div className="h-full">
-              <div className="bg-white border rounded-2xl p-4 shadow-sm h-full flex flex-col">
-
-                {/* Header */}
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-sm font-semibold text-gray-800">
-                    Images
-                  </h3>
-                  <span className="text-xs text-gray-500">
-                    {imageFiles.length}/2
-                  </span>
-                </div>
-
-                {/* Uploader */}
-                <div className="flex-1">
-                  <ImageUploader
-                    value={imageFiles}
-                    onChange={(files) => {
-                      setUserTouched(true);
-
-                      const newDocs = [
-                        ...pdfFiles,
-                        ...files
-                      ];
-
-                      setBillDocuments(newDocs);
-                    }}
-                    maxImages={2}
-                    label=""
-                    onError={(msg) => showSnackbar(msg, "error")}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  Max 2 images
-                </p>
-              </div>
-
-            </div>
-
-            <div className="bg-white border rounded-2xl p-4 shadow-sm h-full flex flex-col">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Documents (PDF)
-                </h3>
-                <span className="text-xs text-gray-500">
-                  {pdfFiles.length}
-                </span>
-              </div>
-
-              <div className="flex-1 flex flex-col">
-                {pdfFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    onClick={() => {
-                      const globalIndex = billDocuments.indexOf(file);
-                      if (file.type === "application/pdf") {
-                        const url =
-                          file instanceof File
-                            ? URL.createObjectURL(file)
-                            : file.url;
-
-                        window.open(url, "_blank");
-                      } else {
-                        setPreviewIndex(globalIndex);
-                      }
-                    }}
-                    className="flex items-center justify-between bg-gray-50 border rounded-xl px-3 py-2.5 hover:bg-gray-100 transition cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <FileText className="w-4 h-4 text-red-500" />
-                      <span className="text-sm text-gray-700 truncate">
-                        {file.name}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const updated = billDocuments.filter(
-                          (_, i) => i !== billDocuments.indexOf(file)
-                        );
-                        setBillDocuments(updated);
-                      }}
-                      className="p-1 rounded-md hover:bg-red-100 text-red-500 hover:text-red-700 transition"
-                    >
-                      <CloseIcon fontSize="small" />
-                    </button>
-                  </div>
-                ))}
-
-                {pdfFiles.length === 0 && (
-                  <div className="flex-1 flex items-center justify-center text-sm text-gray-400 border border-dashed rounded-xl py-6">
-                    No documents uploaded
-                  </div>
-                )}
-
-                <label className="mt-auto flex items-center justify-center h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition text-sm text-gray-600 font-medium">
-                  + Add PDF
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    multiple
-                    hidden
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-
-                      const updated = [
-                        ...imageFiles,
-                        ...pdfFiles,
-                        ...files
-                      ];
-
-                      setUserTouched(true);
-                      setBillDocuments(updated);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
-              </div>
-            </div>
-
-          </div>
 
           {/* Logistics & Notes */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -1334,6 +1242,23 @@ const BillEntry = () => {
           index={previewIndex || 0}
           onChangeIndex={setPreviewIndex}
           onClose={() => setPreviewIndex(null)}
+        />
+
+        <UploadDialog
+          open={isUploadOpen}
+          onClose={() => {
+            setIsUploadOpen(false);
+            setTempDocuments([]);
+          }}
+          files={tempDocuments}
+          setFiles={setTempDocuments}
+          onSave={() => {
+            setBillDocuments(tempDocuments);
+            setIsUploadOpen(false);
+          }}
+          title="Upload Bill Documents"
+          maxFiles={5}
+          onError={(msg) => showSnackbar(msg, "error")}
         />
       </div>
     </div>

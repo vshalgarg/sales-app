@@ -7,18 +7,13 @@ import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { addPurchaseEntry } from "../service/PurchaseService";
 import validate from "../validations/Validation";
-import ImageUploader from "./common/ImageUploader";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
 import { CheckCircleIcon } from "lucide-react";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { mapToOption } from "../utils/optionMapper";
 import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
-import FileUploader from "./common/FileUploader";
+import UploadDialog from "./common/UploadDialog";
 
 
 const PurchaseEntry = () => {
@@ -505,58 +500,19 @@ const PurchaseEntry = () => {
           </div>
         </div>
 
-        <Dialog
+        <UploadDialog
           open={openUploader}
           onClose={handleImageCancel}
-          maxWidth="sm"
-          fullWidth
-        >
-
-          <DialogTitle
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              pr: 1
-            }}
-          >
-            Upload Order Form
-          </DialogTitle>
-
-          <DialogContent>
-
-            <FileUploader
-              value={tempImages}
-              onChange={(files) => {
-                setUserTouched(true);
-                setTempImages(files);
-              }}
-              maxFiles={3}
-              label="Order Documents"
-              onError={(msg) => showSnackbar(msg, "error")}
-            />
-
-          </DialogContent>
-
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <button
-              type="button"
-              onClick={handleImageCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="button"
-              onClick={handleImageSave}
-              className="px-5 py-2 text-sm font-semibold text-white rounded-lg bg-blue-600 hover:bg-blue-700 shadow-sm"
-            >
-              Save
-            </button>
-          </DialogActions>
-
-        </Dialog>
+          files={tempImages}
+          setFiles={(files) => {
+            setUserTouched(true);
+            setTempImages(files);
+          }}
+          onSave={handleImageSave}
+          title="Upload Order Form"
+          maxFiles={3}
+          onError={(msg) => showSnackbar(msg, "error")}
+        />
 
       </div>
     </div>

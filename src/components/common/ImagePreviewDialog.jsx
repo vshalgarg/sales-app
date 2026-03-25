@@ -48,44 +48,55 @@ const ImagePreviewDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="lg"
-      fullWidth
+      fullScreen
+      PaperProps={{
+        sx: {
+          backgroundColor: "rgba(0,0,0,0.9)",
+        },
+      }}
     >
-      {/* Close */}
+      {/* CLOSE */}
       <IconButton
         onClick={onClose}
         sx={{
           position: "absolute",
-          top: 8,
-          right: 8,
-          zIndex: 10,
-          backgroundColor: "white",
+          top: 16,
+          right: 16,
+          color: "white",
+          zIndex: 20,
+          backgroundColor: "rgba(255,255,255,0.1)",
+          "&:hover": {
+            backgroundColor: "rgba(255,255,255,0.2)",
+          },
         }}
       >
         <CloseIcon />
       </IconButton>
 
-      {/* Left Arrow (desktop) */}
+      {/* LEFT */}
       {images.length > 1 && (
         <IconButton
           onClick={() =>
-            onChangeIndex(
-              (index - 1 + images.length) % images.length
-            )
+            onChangeIndex((index - 1 + images.length) % images.length)
           }
           sx={{
             position: "absolute",
             top: "50%",
-            left: 8,
-            zIndex: 10,
-            display: { xs: "none", sm: "flex" },
+            left: 16,
+            transform: "translateY(-50%)",
+            color: "white",
+            zIndex: 20,
+            backgroundColor: "rgba(255,255,255,0.1)",
+            "&:hover": {
+              backgroundColor: "rgba(255,255,255,0.2)",
+            },
           }}
         >
           <ChevronLeftIcon fontSize="large" />
         </IconButton>
       )}
 
-      {/* Right Arrow (desktop) */}
+      {/* RIGHT */}
       {images.length > 1 && (
         <IconButton
           onClick={() =>
@@ -94,24 +105,25 @@ const ImagePreviewDialog = ({
           sx={{
             position: "absolute",
             top: "50%",
-            right: 8,
-            zIndex: 10,
-            display: { xs: "none", sm: "flex" },
+            right: 16,
+            transform: "translateY(-50%)",
+            color: "white",
+            zIndex: 20,
+            backgroundColor: "rgba(255,255,255,0.1)",
+            "&:hover": {
+              backgroundColor: "rgba(255,255,255,0.2)",
+            },
           }}
         >
           <ChevronRightIcon fontSize="large" />
         </IconButton>
       )}
 
-      {/* Image */}
+      {/* CONTENT */}
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        style={{
-          padding: 16,
-          display: "flex",
-          justifyContent: "center",
-        }}
+        className="w-full h-full flex items-center justify-center"
       >
         {(() => {
           const isPdf =
@@ -120,27 +132,19 @@ const ImagePreviewDialog = ({
 
           if (isPdf) {
             return (
-              <div className="text-center p-6">
-                <p className="text-gray-600 mb-3">PDF Preview</p>
-                <button
-                  onClick={() => window.open(images[index], "_blank")}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-                >
-                  Open PDF
-                </button>
-              </div>
+              <iframe
+                src={images[index]}
+                title="PDF Preview"
+                className="w-[95vw] h-[90vh] rounded-lg bg-white"
+              />
             );
           }
+
           return (
             <img
               src={images[index]}
               alt="preview"
-              style={{
-                width: "100%",
-                maxHeight: "80vh",
-                objectFit: "contain",
-                borderRadius: 8,
-              }}
+              className="max-h-[90vh] max-w-[95vw] object-contain rounded-lg shadow-lg"
             />
           );
         })()}
