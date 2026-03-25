@@ -8,6 +8,7 @@ import { useRef } from "react";
 const ImagePreviewDialog = ({
   open,
   images = [],
+  files = [],
   index = 0,
   onClose,
   onChangeIndex,
@@ -112,16 +113,37 @@ const ImagePreviewDialog = ({
           justifyContent: "center",
         }}
       >
-        <img
-          src={images[index]}
-          alt="preview"
-          style={{
-            width: "100%",
-            maxHeight: "80vh",
-            objectFit: "contain",
-            borderRadius: 8,
-          }}
-        />
+        {(() => {
+          const isPdf =
+            files[index]?.type === "application/pdf" ||
+            images[index]?.endsWith(".pdf");
+
+          if (isPdf) {
+            return (
+              <div className="text-center p-6">
+                <p className="text-gray-600 mb-3">PDF Preview</p>
+                <button
+                  onClick={() => window.open(images[index], "_blank")}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                  Open PDF
+                </button>
+              </div>
+            );
+          }
+          return (
+            <img
+              src={images[index]}
+              alt="preview"
+              style={{
+                width: "100%",
+                maxHeight: "80vh",
+                objectFit: "contain",
+                borderRadius: 8,
+              }}
+            />
+          );
+        })()}
       </div>
     </Dialog>
   );

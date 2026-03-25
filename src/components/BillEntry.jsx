@@ -17,6 +17,9 @@ import { roundUp } from "../utils/numberUtils";
 import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
+import CloseIcon from "@mui/icons-material/Close";
+import { FileText } from "lucide-react";
+import ImagePreviewDialog from "./common/ImagePreviewDialog";
 
 
 const BillEntry = () => {
@@ -49,7 +52,8 @@ const BillEntry = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTransport, setSelectedTransport] = useState(null);
   const [savedItems, setSavedItems] = useState([]);
-  const [billImages, setBillImages] = useState([]);
+  const [billDocuments, setBillDocuments] = useState([]);
+  const [previewIndex, setPreviewIndex] = useState(null);
   const fileInputRef = useRef(null);
   const [userTouched, setUserTouched] = useState(false);
   const { setIsDirty } = useUnsaved();
@@ -59,7 +63,7 @@ const BillEntry = () => {
     selectedSupplier,
     selectedCustomer,
     selectedTransport,
-    billImages,
+    billDocuments,
   };
   const { isDirty: localDirty } = useUnsavedChanges(combinedData);
 
@@ -244,7 +248,7 @@ const BillEntry = () => {
     setSavedItems([]);
     setTaxableValue(null);
     setBillEntry(null);
-    setBillImages([]);
+    setBillDocuments([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -386,7 +390,7 @@ const BillEntry = () => {
         })
       );
 
-      billImages.forEach((file) => {
+      billDocuments.forEach((file) => {
         billFormObj.append("images", file);
       });
 
@@ -434,6 +438,14 @@ const BillEntry = () => {
       [name]: "",
     }));
   };
+
+  const imageFiles = billDocuments.filter((file) =>
+    file.type?.startsWith("image/")
+  );
+
+  const pdfFiles = billDocuments.filter(
+    (file) => file.type === "application/pdf"
+  );
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -794,37 +806,129 @@ const BillEntry = () => {
             </div>
           </div>
 
-          {/* Bill Images Card */}
-          <div className="
-  border border-gray-200
-  rounded-xl
-  bg-white
-  shadow-sm
-  hover:shadow-md
-  transition-shadow
-  p-3 sm:p-4 md:p-6
-">
-            <div className="flex items-center mb-4">
-              <div className="w-1 h-7 sm:h-8 bg-pink-600 rounded-full mr-3" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-800">
-                Bill Images
-              </h3>
+          {/* Bill Docs Card */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            <div className="h-full">
+              <div className="bg-white border rounded-2xl p-4 shadow-sm h-full flex flex-col">
+
+                {/* Header */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    Images
+                  </h3>
+                  <span className="text-xs text-gray-500">
+                    {imageFiles.length}/2
+                  </span>
+                </div>
+
+                {/* Uploader */}
+                <div className="flex-1">
+                  <ImageUploader
+                    value={imageFiles}
+                    onChange={(files) => {
+                      setUserTouched(true);
+
+                      const newDocs = [
+                        ...pdfFiles,
+                        ...files
+                      ];
+
+                      setBillDocuments(newDocs);
+                    }}
+                    maxImages={2}
+                    label=""
+                    onError={(msg) => showSnackbar(msg, "error")}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Max 2 images
+                </p>
+              </div>
+
             </div>
 
-            <ImageUploader
-              value={billImages}
-              onChange={(files) => {
-                setUserTouched(true);
-                setBillImages(files);
-              }}
-              maxImages={2}
-              label="Add Bill Images"
-              onError={(msg) => showSnackbar(msg, "error")}
-            />
+            <div className="bg-white border rounded-2xl p-4 shadow-sm h-full flex flex-col">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-semibold text-gray-800">
+                  Documents (PDF)
+                </h3>
+                <span className="text-xs text-gray-500">
+                  {pdfFiles.length}
+                </span>
+              </div>
 
-            <p className="mt-2 text-xs text-gray-500">
-              You can upload up to 2 images only
-            </p>
+              <div className="flex-1 flex flex-col">
+                {pdfFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      const globalIndex = billDocuments.indexOf(file);
+                      if (file.type === "application/pdf") {
+                        const url =
+                          file instanceof File
+                            ? URL.createObjectURL(file)
+                            : file.url;
+
+                        window.open(url, "_blank");
+                      } else {
+                        setPreviewIndex(globalIndex);
+                      }
+                    }}
+                    className="flex items-center justify-between bg-gray-50 border rounded-xl px-3 py-2.5 hover:bg-gray-100 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <FileText className="w-4 h-4 text-red-500" />
+                      <span className="text-sm text-gray-700 truncate">
+                        {file.name}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updated = billDocuments.filter(
+                          (_, i) => i !== billDocuments.indexOf(file)
+                        );
+                        setBillDocuments(updated);
+                      }}
+                      className="p-1 rounded-md hover:bg-red-100 text-red-500 hover:text-red-700 transition"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </button>
+                  </div>
+                ))}
+
+                {pdfFiles.length === 0 && (
+                  <div className="flex-1 flex items-center justify-center text-sm text-gray-400 border border-dashed rounded-xl py-6">
+                    No documents uploaded
+                  </div>
+                )}
+
+                <label className="mt-auto flex items-center justify-center h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition text-sm text-gray-600 font-medium">
+                  + Add PDF
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    multiple
+                    hidden
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+
+                      const updated = [
+                        ...imageFiles,
+                        ...pdfFiles,
+                        ...files
+                      ];
+
+                      setUserTouched(true);
+                      setBillDocuments(updated);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
           </div>
 
           {/* Logistics & Notes */}
@@ -1218,6 +1322,19 @@ const BillEntry = () => {
             </div>
           </div>
         )}
+
+        <ImagePreviewDialog
+          open={previewIndex !== null}
+          images={billDocuments.map((file) =>
+            file instanceof File
+              ? URL.createObjectURL(file)
+              : file.url
+          )}
+          files={billDocuments}
+          index={previewIndex || 0}
+          onChangeIndex={setPreviewIndex}
+          onClose={() => setPreviewIndex(null)}
+        />
       </div>
     </div>
   );
