@@ -808,10 +808,7 @@ const BillEntry = () => {
 
           {/* Bill Docs Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-
-            {/* LEFT → IMAGES */}
             <div className="h-full">
-
               <div className="bg-white border rounded-2xl p-4 shadow-sm h-full flex flex-col">
 
                 {/* Header */}
@@ -843,16 +840,13 @@ const BillEntry = () => {
                     onError={(msg) => showSnackbar(msg, "error")}
                   />
                 </div>
-
                 <p className="mt-2 text-xs text-gray-500">
                   Max 2 images
                 </p>
-
               </div>
 
             </div>
 
-            {/* RIGHT → PDF */}
             <div className="bg-white border rounded-2xl p-4 shadow-sm h-full flex flex-col">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-sm font-semibold text-gray-800">
@@ -910,7 +904,6 @@ const BillEntry = () => {
                   </div>
                 )}
 
-                {/* ADD PDF */}
                 <label className="mt-auto flex items-center justify-center h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition text-sm text-gray-600 font-medium">
                   + Add PDF
                   <input

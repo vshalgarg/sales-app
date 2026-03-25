@@ -85,7 +85,7 @@ const ImagePreviewDialog = ({
         </IconButton>
       )}
 
-      {/* Right Arrow */}
+      {/* Right Arrow (desktop) */}
       {images.length > 1 && (
         <IconButton
           onClick={() =>
