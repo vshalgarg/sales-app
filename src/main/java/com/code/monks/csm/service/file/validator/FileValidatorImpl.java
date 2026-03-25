@@ -12,7 +12,7 @@ import static com.code.monks.csm.enums.ResponseErrorCode.INVALID_FILE_FOUND;
 @Component
 public class FileValidatorImpl implements FileValidator{
 
-    private static final int MAX_FILES = 2;
+    private static final int MAX_FILES = 3;
 
     @Override
     public void validate(List<MultipartFile> files) {
