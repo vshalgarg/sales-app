@@ -18,6 +18,7 @@ import { mapToOption } from "../utils/optionMapper";
 import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
+import FileUploader from "./common/FileUploader";
 
 
 const PurchaseEntry = () => {
@@ -174,7 +175,7 @@ const PurchaseEntry = () => {
           .filter(s => s.supplierId)
           .map(s => ({
             supplierId: s.supplierId,
-            remarks: s.remarks || null 
+            remarks: s.remarks || null
           }))
       };
       const formDataObj = new FormData();
@@ -453,7 +454,7 @@ const PurchaseEntry = () => {
                     </svg>
 
                     <span className="hidden sm:inline">
-                      {supplier.images.length > 0 ? 'Order Form Uploaded' : 'Upload Order Form'}
+                      {supplier.images.length > 0 ? 'Files Uploaded' : 'Upload files'}
                     </span>
                     <span className="sm:hidden">
                       {supplier.images.length > 0 ? 'Uploaded' : 'Upload'}
@@ -524,14 +525,14 @@ const PurchaseEntry = () => {
 
           <DialogContent>
 
-            <ImageUploader
+            <FileUploader
               value={tempImages}
               onChange={(files) => {
                 setUserTouched(true);
                 setTempImages(files);
               }}
-              maxImages={2}
-              label="Order Form Images"
+              maxFiles={3}
+              label="Order Documents"
               onError={(msg) => showSnackbar(msg, "error")}
             />
 

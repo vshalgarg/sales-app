@@ -196,7 +196,7 @@ if (loading) {
                   {customer.accountName || "-"}
                 </div>
               </div>
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-sm font-medium mb-1">Account Number</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
                   {customer.accountNumber || "-"}

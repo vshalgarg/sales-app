@@ -22,6 +22,7 @@ import GenericAutocomplete from "../components/common/GenericAutocomplete";
 import { mapToOption } from "../utils/optionMapper";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import CloseIcon from "@mui/icons-material/Close";
 
 const EditPurchaseDetail = ({
     open,
@@ -133,7 +134,10 @@ const EditPurchaseDetail = ({
         setExistingImages(
             (detail.supplier?.images || []).map(img => ({
                 key: img.key,
-                url: img.url
+                url: img.url,
+                type: img.url.endsWith(".pdf")
+                    ? "application/pdf"
+                    : "image"
             }))
         );
 
@@ -162,12 +166,12 @@ const EditPurchaseDetail = ({
         setOpen(false);
     };
 
-   const handleChange = (field) => (e) => {
-    setFormData(p => ({
-        ...p,
-        [field]: e.target.value
-    }));
-};
+    const handleChange = (field) => (e) => {
+        setFormData(p => ({
+            ...p,
+            [field]: e.target.value
+        }));
+    };
 
     const previewImages = useMemo(() => {
         return [
@@ -366,7 +370,7 @@ const EditPurchaseDetail = ({
                             <CustomTextField
                                 label="Remarks"
                                 value={formData.remarks}
-                                 onChange={handleChange("remarks")}
+                                onChange={handleChange("remarks")}
                             />
 
                         </div>
@@ -384,7 +388,7 @@ const EditPurchaseDetail = ({
                             </h3>
 
                             <span className="text-sm text-gray-500">
-                                {existingImages.length + newImages.length}/2
+                                {existingImages.length + newImages.length}/3
                             </span>
 
                         </div>
@@ -394,9 +398,10 @@ const EditPurchaseDetail = ({
                             {[
 
                                 ...existingImages.map(img => ({
-                                    type: "existing",
+                                    type: img.type,
                                     id: img.key,
-                                    key: img.key
+                                    key: img.key,
+                                    url: img.url
                                 })),
 
                                 ...newImages.map(file => ({
@@ -410,7 +415,24 @@ const EditPurchaseDetail = ({
                                 <div key={img.id || index} className="relative group">
 
                                     <div
-                                        onClick={() => setPreviewIndex(index)}
+                                        onClick={() => {
+                                            let url;
+                                            let isPdf = false;
+
+                                            if (img.type === "new") {
+                                                url = URL.createObjectURL(img.file);
+                                                isPdf = img.file.type === "application/pdf";
+                                            } else {
+                                                url = img.url;
+                                                isPdf = img.type === "application/pdf";
+                                            }
+
+                                            if (isPdf) {
+                                                window.open(url, "_blank");
+                                            } else {
+                                                setPreviewIndex(index);
+                                            }
+                                        }}
                                         className="h-20 rounded-xl border bg-gray-50 flex items-center px-4 
           cursor-pointer hover:bg-gray-100 hover:shadow transition-all"
                                     >
@@ -418,7 +440,9 @@ const EditPurchaseDetail = ({
                                         <div className="flex-1">
 
                                             <p className="text-sm font-medium text-gray-700">
-                                                Attachment {index + 1}
+                                                {img.type === "new"
+                                                    ? img.file.name
+                                                    : img.key}
                                             </p>
 
                                             <p className="text-xs text-gray-500">
@@ -453,14 +477,14 @@ const EditPurchaseDetail = ({
                                         className="absolute -top-2 -right-2 bg-white border text-red-600 
           rounded-full w-7 h-7 flex items-center justify-center shadow"
                                     >
-                                        ✕
+                                        <CloseIcon fontSize="small" />
                                     </button>
 
                                 </div>
 
                             ))}
 
-                            {(existingImages.length + newImages.length) < 2 && (
+                            {(existingImages.length + newImages.length) < 3 && (
 
                                 <label
                                     className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
@@ -474,11 +498,21 @@ const EditPurchaseDetail = ({
 
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/*,application/pdf"
                                         hidden
                                         onChange={(e) => {
 
                                             const files = Array.from(e.target.files || []);
+                                            const validFiles = files.filter(
+                                                f =>
+                                                    f.type.startsWith("image/") ||
+                                                    f.type === "application/pdf"
+                                            );
+
+                                            if (validFiles.length !== files.length) {
+                                                showSnackbar("Only images & PDFs allowed", "error");
+                                                return;
+                                            }
 
                                             if (!files.length) return;
 
@@ -487,15 +521,14 @@ const EditPurchaseDetail = ({
                                                 newImages.length +
                                                 files.length;
 
-                                            if (total > 2) {
+                                            if (total > 3) {
 
-                                                showSnackbar("Maximum 2 images allowed", "error");
+                                                showSnackbar("Maximum  3 files allowed", "error");
                                                 return;
 
                                             }
 
-                                            setNewImages(prev => [...prev, ...files]);
-                                            e.target.value = "";
+                                            setNewImages(prev => [...prev, ...validFiles]);
 
                                         }}
                                     />
@@ -511,6 +544,10 @@ const EditPurchaseDetail = ({
                     <ImagePreviewDialog
                         open={previewIndex !== null}
                         images={previewImages}
+                        files={[
+                            ...existingImages,
+                            ...newImages
+                        ]}
                         index={previewIndex || 0}
                         onChangeIndex={setPreviewIndex}
                         onClose={() => setPreviewIndex(null)}
