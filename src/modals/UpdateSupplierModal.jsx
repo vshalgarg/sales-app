@@ -385,6 +385,7 @@ const UpdateSupplierModal = ({
                                     value={form.accountNumber || ""}
                                     onChange={handleChange}
                                     label="Account Number"
+                                    type="number"
                                 />
                             </div>
                         </div>

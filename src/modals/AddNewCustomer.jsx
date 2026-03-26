@@ -315,6 +315,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     value={form.accountNumber}
                     onChange={handleFormChange}
                     label="Account Number"
+                    type="number"
                   />
 
                 </div>
