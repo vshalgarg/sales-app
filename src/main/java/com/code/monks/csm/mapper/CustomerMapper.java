@@ -68,25 +68,7 @@ public class CustomerMapper {
         entity.setAccountNumber(StringUtils.trimToNull(dto.getAccountNumber()));
     }
 
-    public static void mapContactsForCreate(CustomerEntity entity, List<ContactRequestDto> contacts) {
-
-        if (contacts == null) return;
-
-        List<ContactEntity> contactList = contacts.stream()
-                .map(dto -> {
-                    ContactEntity contact = new ContactEntity();
-                    contact.setContactPerson(dto.getContactPerson());
-                    contact.setMobileNumber(dto.getMobileNumber());
-                    contact.setType(dto.getType());
-                    contact.setCustomer(entity);
-                    return contact;
-                })
-                .toList();
-
-        entity.setContactList(contactList);
-    }
-
-    public static void mapContactsForUpdate(CustomerEntity entity, List<ContactRequestDto> contacts) {
+    public static void mapContacts(CustomerEntity entity, List<ContactRequestDto> contacts) {
 
         if (contacts == null) return;
 
@@ -96,18 +78,15 @@ public class CustomerMapper {
             entity.getContactList().clear();
         }
 
-        List<ContactEntity> updatedContacts = contacts.stream()
-                .map(dto -> {
-                    ContactEntity contact = new ContactEntity();
-                    contact.setContactPerson(dto.getContactPerson());
-                    contact.setMobileNumber(dto.getMobileNumber());
-                    contact.setType(dto.getType());
-                    contact.setCustomer(entity);
-                    return contact;
-                })
-                .toList();
+        contacts.forEach(dto -> {
+            ContactEntity contact = new ContactEntity();
+            contact.setContactPerson(dto.getContactPerson());
+            contact.setMobileNumber(dto.getMobileNumber());
+            contact.setType(dto.getType());
+            contact.setCustomer(entity);
 
-        entity.getContactList().addAll(updatedContacts);
+            entity.getContactList().add(contact);
+        });
     }
 
     public static CustomerListDto toListDto(CustomerEntity entity) {
