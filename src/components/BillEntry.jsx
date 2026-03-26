@@ -1257,7 +1257,7 @@ const BillEntry = () => {
             setIsUploadOpen(false);
           }}
           title="Upload Bill Documents"
-          maxFiles={5}
+          maxFiles={3}
           onError={(msg) => showSnackbar(msg, "error")}
         />
       </div>
