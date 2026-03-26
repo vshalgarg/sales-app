@@ -63,7 +63,7 @@ public class CustomerServiceImpl implements CustomerService {
             // Step 2: Map DTO to entity
             CustomerEntity entity = new CustomerEntity();
             CustomerMapper.mapCommonFields(entity, requestDto);
-            CustomerMapper.mapContactsForCreate(entity, requestDto.getContacts());
+            CustomerMapper.mapContacts(entity, requestDto.getContacts());
             entity.setCode(code);
             entity.setStatus(StatusEnum.ACTIVE);
 
@@ -198,7 +198,7 @@ public class CustomerServiceImpl implements CustomerService {
                     entity.getCode(), entity.getCustomerName());
 
             CustomerMapper.mapCommonFields(entity, request);
-            CustomerMapper.mapContactsForUpdate(entity, request.getContacts());
+            CustomerMapper.mapContacts(entity, request.getContacts());
 
             if (request.getPreferredTransportIds() != null) {
 
