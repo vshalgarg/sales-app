@@ -1251,7 +1251,10 @@ const BillEntry = () => {
             setTempDocuments([]);
           }}
           files={tempDocuments}
-          setFiles={setTempDocuments}
+          setFiles={(files) => {
+            setUserTouched(true);
+            setTempDocuments(files);
+          }}
           onSave={() => {
             setBillDocuments(tempDocuments);
             setIsUploadOpen(false);
