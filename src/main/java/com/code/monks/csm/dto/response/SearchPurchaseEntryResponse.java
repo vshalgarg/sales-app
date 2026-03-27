@@ -10,13 +10,15 @@ import java.util.List;
 @Builder
 public class SearchPurchaseEntryResponse {
     private int id;
+
     private LocalDate date;
+
     private String staffName;
-    private String supplierName;
-    private Integer supplierId;
-    private List<Integer> customerIds;
-    private List<String> customerNames;
-    private Integer staffId;
+
+    private List<String> supplierNames;
+
+    private String customerName;
+
     private double purchaseAmount;
 
 }

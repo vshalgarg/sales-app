@@ -17,6 +17,7 @@ import com.code.monks.csm.repository.CreditEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.CreditService;
+import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -75,9 +77,9 @@ public class CreditServiceImpl implements CreditService {
             List<String> errorMessages = new ArrayList<>();
 
             // Bill number duplicate
-            if (billEntryRepo.existsByBillNumber(requestDto.getBillNumber())) {
-                errorMessages.add("Bill number already exists");
-            }
+//            if (billEntryRepo.existsByBillNumber(requestDto.getBillNumber())) {
+//                errorMessages.add("Bill number already exists");
+//            }
 
             // Cheque number duplicate → ONLY FOR CHEQUE
             if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE &&
@@ -146,34 +148,28 @@ public class CreditServiceImpl implements CreditService {
         log.info("SearchCreditHistory called with fromDate={}, toDate={}, supplierId={}, customerId={}, page={}, size={}",
                 fromDate, toDate, supplierId, customerId, page, size);
 
-        LocalDate startDate =
-                (fromDate != null) ? fromDate : LocalDate.of(1970, 1, 1);
+        int pageIndex = Math.max(page, 0);
 
-        LocalDate endDate =
-                (toDate != null) ? toDate : LocalDate.now();
+        Pageable pageable = PageRequest.of(
+                pageIndex,
+                size,
+                Sort.by(
+                        Sort.Order.desc("date"),
+                        Sort.Order.desc("id")
+                )
+        );
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
-        Page<CreditEntryEntity> records;
+        Specification<CreditEntryEntity> spec =
+                new GenericSpecificationBuilder<CreditEntryEntity>()
+                        .fromDate("date", fromDate)
+                        .toDate("date", toDate)
+                        .equal("supplierId", supplierId)
+                        .equal("customerId", customerId)
+                        .build();
 
-        if (supplierId != null && customerId != null) {
-            records = creditEntryRepo
-                    .findByDateBetweenAndSupplierIdAndCustomerId(
-                            startDate, endDate, supplierId, customerId, pageable);
-        }
-        else if (supplierId != null) {
-            records = creditEntryRepo
-                    .findByDateBetweenAndSupplierId(
-                            startDate, endDate, supplierId, pageable);
-        }
-        else if (customerId != null) {
-            records = creditEntryRepo
-                    .findByDateBetweenAndCustomerId(
-                            startDate, endDate, customerId, pageable);
-        }
-        else {
-            records = creditEntryRepo
-                    .findByDateBetween(startDate, endDate, pageable);
-        }
+        Page<CreditEntryEntity> records =
+                creditEntryRepo.findAll(spec, pageable);
+
         log.info("Fetched {} credit records", records.getTotalElements());
 
         List<SearchCreditEntryResponse> content = records.getContent()
@@ -245,7 +241,10 @@ public class CreditServiceImpl implements CreditService {
                     DrawTypeEnum.valueOf(request.getDrawType())
             );
         }
-        credit.setReceivedAmount(request.getReceivedAmount());
+        long amount = request.getReceivedAmount() == null
+                ? 0L
+                : Math.round(request.getReceivedAmount() * 100);
+        credit.setReceivedAmount(amount);
         credit.setRemark(request.getRemark());
 
         creditEntryRepo.save(credit);
@@ -279,16 +278,9 @@ public class CreditServiceImpl implements CreditService {
                 .date(entity.getDate())
                 .referenceNumber(entity.getReferenceNumber())
                 .referenceDate(entity.getReferenceDate())
-                .receivedAmount(entity.getReceivedAmount())
-
-                // ✅ Names only if entities exist
+                .receivedAmount(entity.getReceivedAmount() / 100.0)
                 .supplierName(supplierEntity != null ? supplierEntity.getSupplierName() : null)
                 .customerName(customerEntity != null ? customerEntity.getCustomerName() : null)
-
-                // ✅ Balances safely default to 0
-                .supplierCurrentBalance(entity.getSupplierCurrentBalance())
-                .customerCurrentBalance(entity.getCustomerCurrentBalance())
-
                 .slipNumber(entity.getSlipNumber())
                 .drawType(entity.getDrawType())
                 .remark(entity.getRemark())

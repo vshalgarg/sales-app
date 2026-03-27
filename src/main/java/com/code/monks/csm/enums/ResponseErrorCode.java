@@ -23,7 +23,9 @@ public enum ResponseErrorCode {
     PURCHASE_ENTRY_NOT_FOUND(1012,"Purchase entry not found"),
     INVALID_FILE_FOUND(1013,"Maximum 2 images allowed"),
     FILE_UPLOAD_EXCEPTION(1014,"Failed to upload bill image"),
-    FILE_STORAGE_FAILED(1015,"File storage failed");
+    FILE_STORAGE_FAILED(1015,"File storage failed"),
+    CUSTOMER_NOT_FOUND(1016, "customer not found for id "),
+    SUPPLIER_NOT_FOUND(1017, "supplier not found");
 
     private final int code;
     private final String message;

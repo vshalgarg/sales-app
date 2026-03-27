@@ -161,6 +161,25 @@ CREATE TABLE purchase (
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE purchase_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    image_url VARCHAR(500) NOT NULL,
+
+    purchase_id INT NOT NULL,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    CONSTRAINT fk_purchase_images_purchase
+        FOREIGN KEY (purchase_id)
+        REFERENCES purchase(id)
+        ON DELETE CASCADE
+);
+
 CREATE TABLE purchase_customers (
     purchase_id INT NOT NULL,
     customer_id INT NOT NULL,
@@ -521,4 +540,76 @@ MODIFY COLUMN gst_no varchar(255);
 ALTER TABLE customer
 MODIFY COLUMN gst_no varchar(255);
 
+ALTER TABLE purchase
+DROP COLUMN supplier_id;
 
+DROP TABLE purchase_customers;
+
+ALTER TABLE purchase
+ADD COLUMN customer_id INT NULL AFTER staff_id;
+
+ALTER TABLE purchase
+ADD CONSTRAINT fk_purchase_customer
+FOREIGN KEY (customer_id)
+REFERENCES customer(id)
+ON DELETE SET NULL;
+
+CREATE INDEX idx_purchase_customer ON purchase(customer_id);
+
+CREATE TABLE purchase_suppliers (
+    purchase_id INT NOT NULL,
+    supplier_id INT NOT NULL,
+
+    PRIMARY KEY (purchase_id, supplier_id),
+
+    CONSTRAINT fk_ps_purchase
+        FOREIGN KEY (purchase_id)
+        REFERENCES purchase(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ps_supplier
+        FOREIGN KEY (supplier_id)
+        REFERENCES supplier(id)
+        ON DELETE CASCADE
+);
+
+
+ALTER TABLE credit
+DROP COLUMN supplier_current_balance;
+
+ALTER TABLE credit
+DROP COLUMN customer_current_balance;
+ALTER TABLE purchase_images
+CHANGE COLUMN image_url public_url VARCHAR(500);
+
+ALTER TABLE purchase_images
+ADD COLUMN object_key VARCHAR(500) NOT NULL AFTER id;
+
+ALTER TABLE bill_images
+CHANGE COLUMN image_url public_url VARCHAR(500);
+
+ALTER TABLE bill_images
+ADD COLUMN object_key VARCHAR(500) NOT NULL AFTER id;
+
+ALTER TABLE credit
+DROP COLUMN supplier_current_balance,
+DROP COLUMN customer_current_balance;
+
+ALTER TABLE transports
+DROP INDEX uk_transports_gst_no;
+
+ALTER TABLE transports
+DROP INDEX uk_transports_email;
+
+ALTER TABLE purchase
+ADD COLUMN supplier_id INT NOT NULL;
+
+ALTER TABLE purchase
+ADD CONSTRAINT fk_purchase_supplier
+FOREIGN KEY (supplier_id)
+REFERENCES supplier(id);
+
+DROP TABLE purchase_suppliers;
+
+ALTER TABLE bill
+RENAME COLUMN orders TO invoice_no;

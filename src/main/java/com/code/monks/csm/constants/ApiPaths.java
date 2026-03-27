@@ -22,7 +22,8 @@ public class ApiPaths {
     public static final String GET_STAFF_V2 = "/staffs/get/all";
 
     public static final String SEARCH_STAFFS = "/staffs/search";
-
+    public static final String GET_STAFF_BY_ID = "/staff/{staffId}";
+    public static final String UPDATE_STAFF = "/staff/{staffId}";
     public static final String DELETE_STAFF = "/staff/delete";
 
     public static final String ADD_CUSTOMER = "/customer/add";
@@ -46,7 +47,7 @@ public class ApiPaths {
 
     public static final String GET_BILL_ENTRIES = "/bill/entries/get";
 
-    public static final String UPDATE_BILL_ENTRY = "/bill/entry/update/{billNumber}";
+    public static final String UPDATE_BILL_ENTRY = "/bill/entry/update/{id}";
 
     public static final String SEARCH_BILL_ENTRY = "bill/entries/search";
     public static final String DELETE_BILL_ENTRY = "bill/entry/delete";
@@ -72,6 +73,7 @@ public class ApiPaths {
     public static final String SEARCH_PURCHASE_ENTRIES = "/purchase/entries/search";
     public static final String UPDATE_PURCHASE_ENTRY="purchase/entry/update/{id}";
     public static final String DELETE_PURCHASE_ENTRY = "/purchase/entry/delete/{id}";
+    public static final String GET_PURCHASE_DETAILS_BY_ID ="/purchase/get/details/{id}";
 
     public static final String TRANSPORT_SEARCH ="/transports/search";
     public static final String GET_ALL = "/transports/getAll";

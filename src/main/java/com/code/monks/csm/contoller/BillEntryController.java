@@ -61,12 +61,20 @@ public class BillEntryController {
     }
 
 
-    @PatchMapping(UPDATE_BILL_ENTRY)
+    @PatchMapping(
+            value = UPDATE_BILL_ENTRY,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<EditBillEntryResponse> updateBill(
-            @PathVariable String billNumber,
-            @RequestBody BillUpdateRequest request) {
+            @PathVariable Integer id,
+            @RequestPart("data") BillUpdateRequest request,
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images
+    ) {
 
-        EditBillEntryResponse response = billService.updateBill(billNumber, request);
+        EditBillEntryResponse response =
+                billService.updateBill(id, request, images);
+
         return ResponseEntity.ok(response);
     }
 

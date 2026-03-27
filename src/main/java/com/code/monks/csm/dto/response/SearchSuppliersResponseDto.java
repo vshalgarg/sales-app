@@ -15,7 +15,7 @@ public class SearchSuppliersResponseDto {
     private String supplierGroup;
     private String supplierGstNo;
     private String commissionScheme;
-    private double commissionRate;
+    private Double commissionRate;
     private String address;
     private String state;
     private String city;
