@@ -60,6 +60,21 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "reference_by")
     private String referenceBy;
 
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "ifsc_code")
+    private String ifscCode;
+
+    @Column(name = "branch_name")
+    private String branchName;
+
+    @Column(name = "account_name")
+    private String accountName;
+
+    @Column(name = "account_number")
+    private String accountNumber;
+
     @Column(name = "address_line1")
     private String addressLine1;
 

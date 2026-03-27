@@ -39,23 +39,23 @@ public class CustomerController {
     }
 
     @GetMapping(GET_CUSTOMERS)
-    public ResponseEntity<PagedResponseDto<GetCustomersDto>> getCustomers(
+    public ResponseEntity<PagedResponseDto<CustomerListDto>> getCustomers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size
     ) {
         log.info("GET customers API called to retrieve customers (page={}, size={})", page, size);
 
-        PagedResponseDto<GetCustomersDto> response = customerService.getCustomers(page, size);
+        PagedResponseDto<CustomerListDto> response = customerService.getCustomers(page, size);
         log.info("Retrieved {} customers successfully", response.getContent().size());
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping(GET_CUSTOMERS_V2)
-    public ResponseEntity<List<GetCustomersDto>> getAllCustomers() {
+    public ResponseEntity<List<CustomerSummaryResponseDto>> getAllCustomers() {
         log.info("GET {} called to retrieve all customers", GET_CUSTOMERS_V2);
 
-        List<GetCustomersDto> response = customerService.getAllCustomers();
+        List<CustomerSummaryResponseDto> response = customerService.getAllCustomers();
 
         log.info("Retrieved {} customers successfully..", response.size());
 
@@ -74,7 +74,7 @@ public class CustomerController {
     }
 
     @GetMapping(SEARCH_CUSTOMERS)
-    public ResponseEntity<PagedResponseDto<SearchCustomersResponseDto>> searchCustomers(
+    public ResponseEntity<PagedResponseDto<CustomerListDto>> searchCustomers(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -82,7 +82,7 @@ public class CustomerController {
         log.info("Search customers API called with keyword: '{}', page: {}, size: {}",
                 keyword, page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "customerName"));
-        PagedResponseDto<SearchCustomersResponseDto> response =
+        PagedResponseDto<CustomerListDto> response =
                 customerService.searchCustomers(keyword, pageable);
 
         log.info("Search completed - returned {} customers (page {}/{})",

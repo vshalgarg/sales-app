@@ -11,7 +11,7 @@ import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.DuplicateEntryException;
-import com.code.monks.csm.repository.ContactRepo;
+import com.code.monks.csm.mapper.CustomerMapper;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.CustomerService;
@@ -41,10 +41,7 @@ import static com.code.monks.csm.enums.StatusEnum.INACTIVE;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepo customerRepo;
-
     private final ValidatorUtil validatorUtil;
-
-    private final ContactRepo contactRepo;
     private TransportRepository transportRepo;
 
     @Override
@@ -53,15 +50,10 @@ public class CustomerServiceImpl implements CustomerService {
 
         try {
             String code = generateCode();
-
-            if (requestDto.getCustomerGroup() == null ||
-                    requestDto.getCustomerGroup().trim().isEmpty()) {
-
+            if (StringUtils.isBlank(requestDto.getCustomerGroup())) {
                 requestDto.setCustomerGroup(requestDto.getCustomerName());
             }
-            if (requestDto.getCustomerMsme() == null ||
-                    requestDto.getCustomerMsme().trim().isEmpty()) {
-
+            if (StringUtils.isBlank(requestDto.getCustomerMsme())) {
                 requestDto.setCustomerMsme("SMALL");
             }
 
@@ -69,9 +61,23 @@ public class CustomerServiceImpl implements CustomerService {
             validateCustomerAndContacts(requestDto, code);
 
             // Step 2: Map DTO to entity
-            CustomerEntity entity = mapToCustomerEntity(requestDto, code);
+            CustomerEntity entity = new CustomerEntity();
+            CustomerMapper.mapCommonFields(entity, requestDto);
+            CustomerMapper.mapContacts(entity, requestDto.getContacts());
+            entity.setCode(code);
+            entity.setStatus(StatusEnum.ACTIVE);
 
-            // Step 3: Save customer
+            if (requestDto.getPreferredTransportIds() != null &&
+                    !requestDto.getPreferredTransportIds().isEmpty()) {
+                Set<TransportEntity> transports = new HashSet<>();
+                for (Integer id : requestDto.getPreferredTransportIds()) {
+                    transports.add(transportRepo.getReferenceById(id));
+                }
+                entity.setPreferredTransports(transports);
+            } else {
+                entity.setPreferredTransports(Collections.emptySet());
+            }
+
             customerRepo.save(entity);
             log.info("Customer '{}' saved successfully with {} contacts",
                     entity.getCustomerName(),
@@ -112,53 +118,7 @@ public class CustomerServiceImpl implements CustomerService {
         validatorUtil.validateUniqueFields(duplicateChecks);
     }
 
-    private CustomerEntity mapToCustomerEntity(AddCustomerRequestDto requestDto, String code) {
-        CustomerEntity entity = AddCustomerResponseDto.dtoToEntity(requestDto);
-        entity.setCode(code);
-        entity.setStatus(StatusEnum.ACTIVE);
-
-        List<ContactEntity> contactList = requestDto.getContacts().stream()
-                .map(dto -> {
-                    ContactEntity contactEntity = new ContactEntity();
-                    contactEntity.setContactPerson(dto.getContactPerson());
-                    contactEntity.setMobileNumber(dto.getMobileNumber());
-                    contactEntity.setType(dto.getType());
-                    contactEntity.setCustomer(entity); // Owning side
-                    return contactEntity;
-                })
-                .toList();
-
-        entity.setContactList(contactList);
-
-        if (requestDto.getPreferredTransportIds() != null && !requestDto.getPreferredTransportIds().isEmpty()) {
-            Set<TransportEntity> transports = new HashSet<>();
-
-            for (Integer id : requestDto.getPreferredTransportIds()) {
-                TransportEntity transport = transportRepo.getReferenceById(id);
-                transports.add(transport);
-            }
-            entity.setPreferredTransports(transports);
-        } else {
-            entity.setPreferredTransports(Collections.emptySet());
-        }
-
-        return entity;
-    }
-
-    private String generateCode(){
-        Integer maxId = customerRepo.findMaxCodeSuffix();
-        log.info("MAX customer code suffix from DB = {}", maxId);
-
-        int newId = (maxId != null ? maxId : 0) + 1;
-        log.info("New customer numeric id generated = {}", newId);
-
-        String code = String.format("C%06d", newId);
-        log.info("Final generated customer code = {}", code);
-
-        return code;
-    }
-
-    public PagedResponseDto<GetCustomersDto> getCustomers(int page, int size) {
+    public PagedResponseDto<CustomerListDto> getCustomers(int page, int size) {
         log.info("Fetching active customers with pagination...");
 
         Page<CustomerEntity> records;
@@ -175,12 +135,11 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerException(UNEXPECTED_EXCEPTION, " fetching customers");
         }
 
-        List<GetCustomersDto> dtoList = records.getContent()
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+        List<CustomerListDto> dtoList = records.getContent().stream()
+                .map(CustomerMapper::toListDto)
+                .toList();
 
-        return PagedResponseDto.<GetCustomersDto>builder()
+        return PagedResponseDto.<CustomerListDto>builder()
                 .content(dtoList)
                 .page(records.getNumber())
                 .size(records.getSize())
@@ -190,18 +149,25 @@ public class CustomerServiceImpl implements CustomerService {
                 .build();
     }
 
-    public List<GetCustomersDto> getAllCustomers() {
+    public List<CustomerSummaryResponseDto> getAllCustomers() {
         log.info("Fetching ALL customers (no filter, non-paged)...");
 
         try {
-            List<CustomerEntity> allCustomers = customerRepo.findAll(
+            List<CustomerEntity> customers = customerRepo.findAll(
                     Sort.by(Sort.Direction.DESC, "id")
             );
 
-            log.info("Successfully fetched {} customers (including active and inactive)", allCustomers.size());
+            log.info("Successfully fetched {} customers (including active and inactive)", customers.size());
 
-            return allCustomers.stream()
-                    .map(this::mapToDto)
+            return customers.stream()
+                    .map(c -> new CustomerSummaryResponseDto(
+                            c.getId(),
+                            c.getCustomerName(),
+                           c.getGroupName(),
+                            c.getGstNo(),
+                            c.getMsme(),
+                            c.getCity()
+                    ))
                     .collect(Collectors.toList());
 
         } catch (DataAccessException dae) {
@@ -231,34 +197,8 @@ public class CustomerServiceImpl implements CustomerService {
             log.debug("Existing customer found. code={}, name={}",
                     entity.getCode(), entity.getCustomerName());
 
-            entity.setCustomerName(request.getCustomerName());
-            entity.setEmail(request.getEmail());
-
-            entity.setGroupName(
-                    StringUtils.isBlank(request.getGroupName())
-                            ? request.getCustomerName()
-                            : request.getGroupName()
-            );
-
-            entity.setGstNo(request.getGstNo());
-            entity.setReferencedBy(request.getReferencedBy());
-            entity.setAddressLine1(request.getAddressLine1());
-            entity.setAddressLine2(request.getAddressLine2());
-            entity.setState(request.getState());
-            entity.setCity(request.getCity());
-            entity.setPinCode(request.getPinCode());
-
-            entity.setMsme(
-                    StringUtils.isBlank(request.getMsme())
-                            ? "SMALL"
-                            : request.getMsme()
-            );
-
-            entity.setRemark(request.getRemark());
-
-            if (request.getStatus() != null) {
-                entity.setStatus(request.getStatus());
-            }
+            CustomerMapper.mapCommonFields(entity, request);
+            CustomerMapper.mapContacts(entity, request.getContacts());
 
             if (request.getPreferredTransportIds() != null) {
 
@@ -275,28 +215,6 @@ public class CustomerServiceImpl implements CustomerService {
                 entity.getPreferredTransports().addAll(transports);
 
                 log.debug("Preferred transports updated. Count={}", transports.size());
-            }
-
-            if (request.getContacts() != null) {
-
-                log.debug("Updating contacts for customer id={}, count={}",
-                        id, request.getContacts().size());
-
-                entity.getContactList().clear();
-
-                List<ContactEntity> updatedContacts = request.getContacts()
-                        .stream()
-                        .map(dto -> {
-                            ContactEntity contact = new ContactEntity();
-                            contact.setContactPerson(dto.getContactPerson());
-                            contact.setMobileNumber(dto.getMobileNumber());
-                            contact.setType(dto.getType());
-                            contact.setCustomer(entity);
-                            return contact;
-                        })
-                        .toList();
-
-                entity.getContactList().addAll(updatedContacts);
             }
 
             customerRepo.save(entity);
@@ -366,6 +284,11 @@ public class CustomerServiceImpl implements CustomerService {
                     .status(entity.getStatus())
                     .contacts(contacts)
                     .preferredTransports(transportDtos)
+                    .bankName(entity.getBankName())
+                    .branch(entity.getBranchName())
+                    .accountName(entity.getAccountName())
+                    .accountNumber(entity.getAccountNumber())
+                    .ifsc(entity.getIfscCode())
                     .build();
 
         } catch (DataAccessException dae) {
@@ -378,46 +301,6 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerException(UNEXPECTED_EXCEPTION,
                     "Unexpected error while fetching customer");
         }
-    }
-
-
-    private GetCustomersDto mapToDto(CustomerEntity record) {
-        log.debug("Mapping CustomerEntity with code={} to DTO", record.getCode());
-
-        List<ContactRequestDto> contacts = ContactUtil.mapContacts(
-                record.getContactList(),
-                ContactEntity::getContactPerson,
-                ContactEntity::getMobileNumber,
-                ContactEntity::getType
-        );
-
-        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
-                .orElse(Collections.emptySet())
-                .stream()
-                .map(transport -> TransportDto.builder()
-                        .id(transport.getId())
-                        .name(transport.getName())
-                        .build())
-                .sorted(Comparator.comparing(TransportDto::getName)) // optional: alphabetical order
-                .toList();
-
-        return GetCustomersDto.builder()
-                .id(record.getId())
-                .code(record.getCode())
-                .customerName(record.getCustomerName())
-                .email(record.getEmail())
-                .customerGroup(record.getGroupName())
-                .customerGstNo(record.getGstNo())
-                .customerMsme(record.getMsme())
-                .referencedBy(record.getReferencedBy())
-                .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
-                .state(record.getState())
-                .city(record.getCity())
-                .pinCode(record.getPinCode())
-                .contacts(contacts)
-                .preferredTransports(transportDtos)
-                .remark(record.getRemark())
-                .build();
     }
 
     public DeleteCustomerResponseDto deleteCustomer(DeleteCustomerRequestDto requestDto) {
@@ -449,11 +332,11 @@ public class CustomerServiceImpl implements CustomerService {
         }
     }
 
-    public PagedResponseDto<SearchCustomersResponseDto> searchCustomers(String keyword, Pageable pageable){
+    public PagedResponseDto<CustomerListDto> searchCustomers(String keyword, Pageable pageable){
         log.info("Searching customers with keyword: '{}' and pageable: {}", keyword, pageable);
         if (keyword == null || keyword.trim().isEmpty()) {
             log.info("Keyword is empty or null - returning empty page");
-            return PagedResponseDto.<SearchCustomersResponseDto>builder()
+            return PagedResponseDto.<CustomerListDto>builder()
                     .content(List.of())
                     .page(pageable.getPageNumber() + 1)
                     .size(pageable.getPageSize())
@@ -469,11 +352,11 @@ public class CustomerServiceImpl implements CustomerService {
         try {
             Page<CustomerEntity> customersPage = customerRepo.searchByKeyword(trimmedKeyword, pageable);
 
-            List<SearchCustomersResponseDto> dtoList = customersPage.getContent().stream()
-                    .map(customer -> mapToDto(customer, this::mapSupplierToSearchSuppliersDto))
+            List<CustomerListDto> dtoList = customersPage.getContent().stream()
+                    .map(CustomerMapper::toListDto)
                     .toList();
 
-            return PagedResponseDto.<SearchCustomersResponseDto>builder()
+            return PagedResponseDto.<CustomerListDto>builder()
                     .content(dtoList)
                     .page(customersPage.getNumber() + 1)     // 1-based page number for UI
                     .size(customersPage.getSize())
@@ -493,38 +376,16 @@ public class CustomerServiceImpl implements CustomerService {
         return mapper.apply(record);
     }
 
-    private SearchCustomersResponseDto mapSupplierToSearchSuppliersDto(CustomerEntity record) {
-        List<ContactRequestDto> contacts = ContactUtil.mapContacts(
-                record.getContactList(),
-                ContactEntity::getContactPerson,
-                ContactEntity::getMobileNumber,
-                ContactEntity::getType
-        );
+    private String generateCode(){
+        Integer maxId = customerRepo.findMaxCodeSuffix();
+        log.info("MAX customer code suffix from DB = {}", maxId);
 
-        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
-                .orElse(Collections.emptySet())
-                .stream()
-                .map(transport -> TransportDto.builder()
-                        .id(transport.getId())
-                        .name(transport.getName())
-                        .build())
-                .sorted(Comparator.comparing(TransportDto::getName))
-                .toList();
-        return SearchCustomersResponseDto.builder()
-                .id(record.getId())
-                .code(record.getCode())
-                .customerName(record.getCustomerName())
-                .customerGroup(record.getGroupName())
-                .customerGstNo((record.getGstNo()))
-                .referencedBy(record.getReferencedBy())
-                .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
-                .state(record.getState())
-                .city(record.getCity())
-                .pinCode(record.getPinCode())
-                .customerMsme(record.getMsme())
-                .contacts(contacts)
-                .preferredTransports(transportDtos)
-                .remark(record.getRemark())
-                .build();
+        int newId = (maxId != null ? maxId : 0) + 1;
+        log.info("New customer numeric id generated = {}", newId);
+
+        String code = String.format("C%06d", newId);
+        log.info("Final generated customer code = {}", code);
+
+        return code;
     }
 }
