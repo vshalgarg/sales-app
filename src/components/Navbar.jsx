@@ -181,6 +181,17 @@ export default function Navbar({
                 <User className="w-4 h-4 mr-2" /> My Profile
               </button>
 
+              {/* External Service */}
+              <button
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  navigate("/external-service");
+                }}
+                className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-800 dark:text-white"
+              >
+                External Service
+              </button>
+
               {/*Logout */}
               <button
                 onClick={() => {

@@ -14,6 +14,7 @@ import Credit from "../components/Credit";
 import PurchaseEntry from "../components/PurchaseEntry";
 import Purchase from "../components/Purchase";
 import TransportDashboard from "../components/TransportDashboard";
+import ExternalServicePage from "../components/ExternalServicePage";
 
 
 const SupplierDashboard = lazy(() => import("../components/SupplierDashboard"));
@@ -48,6 +49,7 @@ export default function AppRoutes() {
             <Route path="/purchase-entry" element={<PurchaseEntry />} />
             <Route path="/purchase" element={<Purchase />} />
             <Route path="/transports" element={<TransportDashboard />} />
+            <Route path="/external-service" element={<ExternalServicePage />} />
           </Route>
         </Route>
 
