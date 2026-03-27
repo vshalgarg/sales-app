@@ -19,6 +19,6 @@ public class SearchPurchaseEntryResponse {
 
     private String customerName;
 
-    private double purchaseAmount;
+    private String remarks;
 
 }

@@ -65,11 +65,7 @@ public class PurchaseMapper {
                                 : null
                 )
 
-                .purchaseAmount(
-                        entity.getPurchaseAmount() != null
-                                ? entity.getPurchaseAmount() / 100.0
-                                : 0.0
-                )
+                .remarks(entity.getRemarks())
 
                 .supplier(supplier)
 
@@ -94,11 +90,7 @@ public class PurchaseMapper {
                                 ? entity.getCustomer().getCustomerName()
                                 : null
                 )
-                .purchaseAmount(
-                        entity.getPurchaseAmount() != null
-                                ? entity.getPurchaseAmount() / 100.0
-                                : 0.0
-                )
+                .remarks(entity.getRemarks())
                 .build();
     }
 }

@@ -613,3 +613,29 @@ DROP TABLE purchase_suppliers;
 
 ALTER TABLE bill
 RENAME COLUMN orders TO invoice_no;
+
+ALTER TABLE purchase
+DROP COLUMN purchase_amount;
+
+ALTER TABLE purchase
+ADD COLUMN remarks VARCHAR(255);
+
+ALTER TABLE supplier ADD COLUMN bank_name VARCHAR(255);
+
+ALTER TABLE supplier ADD COLUMN ifsc_code VARCHAR(20);
+
+ALTER TABLE supplier ADD COLUMN branch_name VARCHAR(255);
+
+ALTER TABLE supplier ADD COLUMN account_name VARCHAR(255);
+
+ALTER TABLE supplier ADD COLUMN account_number VARCHAR(100);
+
+ALTER TABLE customer ADD COLUMN bank_name VARCHAR(255);
+
+ALTER TABLE customer ADD COLUMN ifsc_code VARCHAR(20);
+
+ALTER TABLE customer ADD COLUMN branch_name VARCHAR(255);
+
+ALTER TABLE customer ADD COLUMN account_name VARCHAR(255);
+
+ALTER TABLE customer ADD COLUMN account_number VARCHAR(100);

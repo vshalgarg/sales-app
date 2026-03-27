@@ -26,6 +26,11 @@ public class GetSupplierByIdResponseDto {
     private String city;
     private String pinCode;
     private String msme;
+    private String bankName;
+    private String ifscCode;
+    private String branchName;
+    private String accountName;
+    private String accountNumber;
     private String remark;
     private StatusEnum status;
 
