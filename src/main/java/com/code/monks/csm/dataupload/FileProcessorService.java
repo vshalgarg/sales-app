@@ -1,5 +1,7 @@
 package com.code.monks.csm.dataupload;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,10 +11,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
@@ -63,6 +65,28 @@ public class FileProcessorService {
         executor.shutdown();
 
         return new ProcessingSummary(errorMap, successFiles);
+    }
+
+    public String createMetadata(String basePath) throws JsonProcessingException {
+        Map<String, Object> fileMap = new HashMap<>();
+
+        File folder = new File(basePath);
+        for (File file : Objects.requireNonNull(folder.listFiles())) {
+            if (file.isFile()) {
+
+                LocalDate modifiedDate = Instant.ofEpochMilli(file.lastModified())
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+
+                Map<String, String> data = new HashMap<>();
+                data.put("modifiedDate", modifiedDate.toString());
+                fileMap.put(file.getName(), data);
+            }
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fileMap);
+        return json;
     }
 
 }

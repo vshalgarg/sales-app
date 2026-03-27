@@ -6,17 +6,21 @@ import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.PurchaseEntryRepo;
 import com.code.monks.csm.repository.SupplierRepo;
-import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -42,6 +46,9 @@ public class XlsxReader {
             Workbook workbook = new XSSFWorkbook(fis);) {
             Sheet sheet = workbook.getSheetAt(0);
 
+            Path path = file.toPath();
+            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+
             dateModified = Instant.ofEpochMilli(file.lastModified())
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();
@@ -50,9 +57,65 @@ public class XlsxReader {
             Cell firstCell = firstRow.getCell(0);
             customerName = firstCell.getStringCellValue();
 
+            String customerGstNo = null;
+
+            for(Row row : sheet) {
+                Cell cell = row.getCell(0);
+                String cellValue = cell.getStringCellValue();
+                if(StringUtils.isNotBlank(cellValue) && StringUtils.containsIgnoreCase(cellValue, "gst")) {
+                    String[] splittedCellValue = cellValue.split(" ");
+                    customerGstNo = splittedCellValue[splittedCellValue.length - 1].trim();
+                    break;
+                }
+            }
+            String finalGstNo = customerGstNo;
+
             if(StringUtils.isBlank(customerName)) {
                 return List.of(ErrorDto.builder().errorMessage("Customer name is empty")
-                        .customerName(customerName).fileName(file.getName()).build());
+                        .customerName(customerName).gstNo(customerGstNo).fileName(file.getName()).build());
+            }
+
+
+            CustomerEntity customerEntity = null;
+            try {
+                //first find by name only
+                List<CustomerEntity> customerEntities = customerRepo.findAllByCustomerNameIgnoreCase(customerName);
+                //3 possible cases
+                if(CollectionUtils.isEmpty(customerEntities)) {
+                    //if no record found we need to fetch by gst no.
+                    List<CustomerEntity> gstCustomerEntities = customerRepo.findAllByGstNoContainingIgnoreCase(finalGstNo);
+                    if(CollectionUtils.isEmpty(gstCustomerEntities)) {
+                        if (gstCustomerEntities.isEmpty()) {
+                            return List.of(ErrorDto.builder().errorMessage("Customer Not found, Customer not found.")
+                                    .customerName(customerName).gstNo(finalGstNo).fileName(file.getName()).build());
+                        }
+                        if(gstCustomerEntities.size() > 1) {
+                            return List.of(ErrorDto.builder().errorMessage("Customer Not found, Multiple Customers found.")
+                                    .customerName(customerName).gstNo(finalGstNo).fileName(file.getName()).build());
+                        }
+                        customerEntity = gstCustomerEntities.get(0);
+                    }
+                } else if(customerEntities.size() == 1) {
+                    //if one record found, it is our data
+                    customerEntity = customerEntities.get(0);
+                } else {
+                    //if multiple records found, filter via gst No
+                    if(StringUtils.isNotBlank(finalGstNo)) {
+                        List<CustomerEntity> filteredCustomerEntities = customerEntities.stream().filter(e -> e.getGstNo().contains(finalGstNo)).toList();
+                        if (filteredCustomerEntities.isEmpty()) {
+                            return List.of(ErrorDto.builder().errorMessage("Multiple customers found, Customer not found.")
+                                    .customerName(customerName).gstNo(finalGstNo).fileName(file.getName()).build());
+                        }
+                        if (customerEntities.size() > 1) {
+                            return List.of(ErrorDto.builder().errorMessage("Multiple customers found, Multiple Customers found.")
+                                    .customerName(customerName).gstNo(finalGstNo).fileName(file.getName()).build());
+                        }
+                        customerEntity = filteredCustomerEntities.get(0);
+                    }
+                }
+            } catch (Exception ex) {
+                return List.of(ErrorDto.builder().errorMessage("Unexpected error while finding customer")
+                        .customerName(customerName).gstNo(finalGstNo).fileName(file.getName()).build());
             }
 
             boolean partySectionStarted = false;
@@ -77,45 +140,23 @@ public class XlsxReader {
                     }
                 }
             }
-            CustomerEntity customerEntity = null;
-            try {
-                List<CustomerEntity> customerEntities = customerRepo.findAllByCustomerNameIgnoreCase(customerName);
-                if (customerEntities.isEmpty()) {
-                    return List.of(ErrorDto.builder().errorMessage("Customer not found.")
-                            .customerName(customerName).fileName(file.getName()).build());
-                }
-                if (customerEntities.size() > 1) {
-                    return List.of(ErrorDto.builder().errorMessage("Multiple customers found.")
-                            .customerName(customerName).fileName(file.getName()).build());
-                }
-                customerEntity = customerEntities.get(0);
-            } catch (Exception ex) {
-                return List.of(ErrorDto.builder().errorMessage("Unexpected error while finding customer")
-                        .customerName(customerName).fileName(file.getName()).build());
-            }
             List<ErrorDto> errorDtoList = new ArrayList<>();
             for(String supplierName : supplierNameList) {
                 try {
                     List<SupplierEntity> supplierEntity = supplierRepo.findAllBySupplierNameIgnoreCase(supplierName);
                     if (supplierEntity.isEmpty()) {
                         errorDtoList.add(ErrorDto.builder().errorMessage("Supplier not found.")
-                                .customerName(customerName)
+                                .customerName(customerName).gstNo(finalGstNo)
                                 .supplierName(supplierName).fileName(file.getName()).build());
-                        continue;
-                    }
-                    if (supplierEntity.size() > 1) {
+                    }else if (supplierEntity.size() > 1) {
                         errorDtoList.add(ErrorDto.builder().errorMessage("Multiple suppliers found.")
-                                .customerName(customerName).supplierName(supplierName).fileName(file.getName()).build());
-                        continue;
+                                .customerName(customerName).gstNo(finalGstNo).supplierName(supplierName).fileName(file.getName()).build());
+                    }else {
+                        log.info("inserting: {},  {}", customerName, supplierName);
                     }
-                    PurchaseEntity purchaseEntity = new PurchaseEntity();
-                    purchaseEntity.setDate(dateModified);
-                    purchaseEntity.setCustomers(Set.of(customerEntity));
-                    purchaseEntity.setSupplierId(supplierEntity.get(0).getId());
-                    purchaseEntryRepo.save(purchaseEntity);
                 } catch (Exception e) {
                     errorDtoList.add(ErrorDto.builder().errorMessage("Unexpected error while processing supplier.")
-                            .customerName(customerName).supplierName(supplierName).fileName(file.getName()).build());
+                            .customerName(customerName).gstNo(finalGstNo).supplierName(supplierName).fileName(file.getName()).build());
                 }
             }
             return errorDtoList;

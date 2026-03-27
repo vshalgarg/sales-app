@@ -12,6 +12,7 @@ public class ErrorDto {
     private String errorMessage;
     private String supplierName;
     private String customerName;
+    private String gstNo;
 
 
 }

@@ -21,6 +21,7 @@ public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
     CustomerEntity findByCustomerName(String customerName);
 
     List<CustomerEntity> findAllByCustomerNameIgnoreCase(String customerName);
+    List<CustomerEntity> findAllByGstNoContainingIgnoreCase(String gstNo);
 
     Optional<CustomerEntity> findOneByCode(String code);
 
