@@ -7,17 +7,13 @@ import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { addPurchaseEntry } from "../service/PurchaseService";
 import validate from "../validations/Validation";
-import ImageUploader from "./common/ImageUploader";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
 import { CheckCircleIcon } from "lucide-react";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { mapToOption } from "../utils/optionMapper";
 import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
+import UploadDialog from "./common/UploadDialog";
 
 
 const PurchaseEntry = () => {
@@ -51,7 +47,7 @@ const PurchaseEntry = () => {
   const [suppliers, setSuppliers] = useState(
     Array.from({ length: 5 }, () => ({
       supplierId: null,
-      amount: "",
+      remarks: "",
       images: []
     }))
   );
@@ -108,7 +104,7 @@ const PurchaseEntry = () => {
       ...prev,
       {
         supplierId: null,
-        amount: "",
+        remarks: "",
         images: []
       }
     ]);
@@ -174,7 +170,7 @@ const PurchaseEntry = () => {
           .filter(s => s.supplierId)
           .map(s => ({
             supplierId: s.supplierId,
-            amount: s.amount ? Number(s.amount) : null
+            remarks: s.remarks || null
           }))
       };
       const formDataObj = new FormData();
@@ -226,7 +222,7 @@ const PurchaseEntry = () => {
     setSuppliers(
       Array.from({ length: 5 }, () => ({
         supplierId: null,
-        amount: "",
+        remarks: "",
         images: []
       }))
     );
@@ -412,16 +408,12 @@ const PurchaseEntry = () => {
                     }
                   />
 
-                  {/* Amount */}
+                  {/* Remarks */}
                   <CustomTextField
-                    label="Purchase Amount"
-                    value={suppliers[index].amount}
+                    label="Remarks"
+                    value={suppliers[index].remarks}
                     onChange={(e) => {
-                      const val = e.target.value;
-
-                      if (/^\d*\.?\d{0,2}$/.test(val)) {
-                        handleSupplierFieldChange(index, "amount", val);
-                      }
+                      handleSupplierFieldChange(index, "remarks", e.target.value);
                     }}
                   />
 
@@ -457,7 +449,7 @@ const PurchaseEntry = () => {
                     </svg>
 
                     <span className="hidden sm:inline">
-                      {supplier.images.length > 0 ? 'Order Form Uploaded' : 'Upload Order Form'}
+                      {supplier.images.length > 0 ? 'Files Uploaded' : 'Upload files'}
                     </span>
                     <span className="sm:hidden">
                       {supplier.images.length > 0 ? 'Uploaded' : 'Upload'}
@@ -508,58 +500,19 @@ const PurchaseEntry = () => {
           </div>
         </div>
 
-        <Dialog
+        <UploadDialog
           open={openUploader}
           onClose={handleImageCancel}
-          maxWidth="sm"
-          fullWidth
-        >
-
-          <DialogTitle
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              pr: 1
-            }}
-          >
-            Upload Order Form
-          </DialogTitle>
-
-          <DialogContent>
-
-            <ImageUploader
-              value={tempImages}
-              onChange={(files) => {
-                setUserTouched(true);
-                setTempImages(files);
-              }}
-              maxImages={2}
-              label="Order Form Images"
-              onError={(msg) => showSnackbar(msg, "error")}
-            />
-
-          </DialogContent>
-
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <button
-              type="button"
-              onClick={handleImageCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="button"
-              onClick={handleImageSave}
-              className="px-5 py-2 text-sm font-semibold text-white rounded-lg bg-blue-600 hover:bg-blue-700 shadow-sm"
-            >
-              Save
-            </button>
-          </DialogActions>
-
-        </Dialog>
+          files={tempImages}
+          setFiles={(files) => {
+            setUserTouched(true);
+            setTempImages(files);
+          }}
+          onSave={handleImageSave}
+          title="Upload Order Form"
+          maxFiles={3}
+          onError={(msg) => showSnackbar(msg, "error")}
+        />
 
       </div>
     </div>

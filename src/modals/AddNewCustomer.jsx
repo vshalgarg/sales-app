@@ -276,6 +276,51 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 </div>
               </div>
 
+              {/* Bank Details */}
+              <div>
+                <h3 className="text-lg font-medium mb-2">Bank Details</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <CustomTextField
+                    name="bankName"
+                    value={form.bankName}
+                    onChange={handleFormChange}
+                    label="Bank Name"
+                  />
+
+                  <CustomTextField
+                    name="branch"
+                    value={form.branch}
+                    onChange={handleFormChange}
+                    label="Branch"
+                  />
+
+                  <CustomTextField
+                    name="ifsc"
+                    value={form.ifsc}
+                    onChange={handleFormChange}
+                    label="IFSC Code"
+                  />
+
+                  <CustomTextField
+                    name="accountName"
+                    value={form.accountName}
+                    onChange={handleFormChange}
+                    label="Account Holder Name"
+                  />
+
+                  <CustomTextField
+                    name="accountNumber"
+                    value={form.accountNumber}
+                    onChange={handleFormChange}
+                    label="Account Number"
+                    type="number"
+                  />
+
+                </div>
+              </div>
+
               {/* Address Details */}
               <div>
                 <h3 className="text-lg font-medium mb-2">Address Details</h3>

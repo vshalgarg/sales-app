@@ -9,7 +9,7 @@ import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
-import { cleanText, formatDetails } from "../utils/copyFormatter";
+import { getCustomerFormattedText } from "../utils/copyFormatter";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -54,43 +54,12 @@ export default function CustomerDashboard() {
     contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
     preferredTransportIds: [],
     remark: "",
+    bankName: "",
+    ifsc: "",
+    branch: "",
+    accountName: "",
+    accountNumber: "",
   });
-
-const getCustomerFormattedText = (customer) => {
-
-  const mobileNumbers = customer?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.mobileNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
-
-  const fullAddress = cleanText([
-    customer?.address,
-    customer?.city,
-    customer?.state,
-    customer?.pinCode
-  ])
-    .filter(Boolean)
-    .join(", ") || "-";
-
-    const emails = customer?.email
-    const transports = customer?.preferredTransports?.map(t => t.name)
-      ?.filter(Boolean)
-      ?.join(", ");
-
-  return formatDetails({
-    "Firm Name": customer?.customerName || "-",
-    "Address": fullAddress,
-    "Contacts": mobileNumbers,
-    "GST No": customer?.customerGstNo || "-",
-    "Emails": emails,
-     "Transports": transports,
-  });
-};
 
 
   const handleCopyDetails = (customer) => {
@@ -119,7 +88,7 @@ const getCustomerFormattedText = (customer) => {
         width: "16%",
         render: (row) => row.contacts?.[0]?.contactPerson || "-",
       },
-      {
+      { 
         key: "mobile",
         label: "Mobile",
         width: "16%",
@@ -307,7 +276,7 @@ const getCustomerFormattedText = (customer) => {
       {/* Modals*/}
       {modalOpen && selectedCustomer && (
         <CustomerDetail
-          selectedCustomer={selectedCustomer}
+          customerId={selectedCustomer?.id}
           setModalOpen={setModalOpen}
         />
       )}

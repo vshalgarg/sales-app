@@ -6,7 +6,7 @@ import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
-import { cleanText, formatDetails } from "../utils/copyFormatter";
+import { cleanText, formatDetails, getTransportFormattedText } from "../utils/copyFormatter";
 import CopyDetailsModal from "./common/CopyDetailsModal";
 
 
@@ -122,36 +122,6 @@ export default function TransportDashboard() {
     [rowsPerPage],
   );
 
-  const getTransportFormattedText = (transport) => {
-    const mobileNumbers = transport?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.contactNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
-
-    const fullAddress = cleanText(
-      [
-        transport?.addressLine1,
-        transport?.addressLine2,
-        transport?.city,
-        transport?.state,
-        transport?.pinCode,
-      ]
-        .filter(Boolean)
-        .join(", ")
-    );
-
-    return formatDetails({
-      "Firm Name": transport?.name || "-",
-      "Address": fullAddress || "-",
-      "Contacts": mobileNumbers,
-      "GST No": transport?.gstNo || "-",
-    });
-  };
 
   const handleCopy = (transport) => {
     const formatted = getTransportFormattedText(transport);

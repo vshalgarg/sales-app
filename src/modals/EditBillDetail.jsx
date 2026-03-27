@@ -25,6 +25,7 @@ import AppButton from "../components/common/AppButton";
 import { roundUp } from "../utils/numberUtils";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import CloseIcon from "@mui/icons-material/Close";
 
 
 const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
@@ -173,7 +174,10 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
         (selectedBillDetail.objectKeys || []).map((key, index) => ({
           id: key,
           key: key,
-          url: selectedBillDetail.publicUrls[index]
+          url: selectedBillDetail.publicUrls[index],
+          type: selectedBillDetail.publicUrls[index]?.endsWith(".pdf")
+            ? "application/pdf"
+            : "image"
         }))
       );
       setNewImages([]);
@@ -742,7 +746,6 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
           </div>
 
           {/* ================= BILL IMAGES ================= */}
-
           <div className="bg-white border rounded-2xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-semibold text-gray-800">
@@ -757,9 +760,10 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
               {[
                 ...existingImages.map(img => ({
-                  type: "existing",
+                  type: img.type,
                   id: img.key,
-                  key: img.key
+                  key: img.key,
+                  url: img.url
                 })),
                 ...newImages.map(file => ({
                   type: "new",
@@ -770,7 +774,23 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                 <div key={img.id || index} className="relative group">
 
                   <div
-                    onClick={() => setPreviewIndex(index)}
+                    onClick={() => {
+                      let url;
+                      let isPdf = false;
+                      if (img.type === "new") {
+                        url = URL.createObjectURL(img.file);
+                        isPdf = img.file.type === "application/pdf";
+                      } else {
+                        url = img.url;
+                        isPdf = img.type === "application/pdf";
+                      }
+
+                      if (isPdf) {
+                        window.open(url, "_blank");
+                      } else {
+                        setPreviewIndex(index);
+                      }
+                    }}
                     className="h-20 rounded-xl border bg-gray-50 flex items-center px-4 
                      cursor-pointer hover:bg-gray-100 hover:shadow 
                      transition-all"
@@ -779,7 +799,9 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-700">
-                        Attachment {index + 1}
+                        {img.type === "new"
+                          ? img.file.name
+                          : img.key.split("/").pop()}
                       </p>
                       <p className="text-xs text-gray-500">
                         Click to preview
@@ -806,13 +828,13 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                      rounded-full w-7 h-7 flex items-center justify-center 
                      shadow hover:bg-red-600 hover:text-white transition"
                   >
-                    ✕
+                    <CloseIcon fontSize="small" />
                   </button>
 
                 </div>
               ))}
 
-              {(existingImages.length + newImages.length) < 2 && (
+              {(existingImages.length + newImages.length) < 3 && (
                 <label
                   className="h-20 border-2 border-dashed border-gray-300 rounded-xl 
                    flex items-center justify-center cursor-pointer 
@@ -824,23 +846,33 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,application/pdf"
                     hidden
                     onChange={(e) => {
                       const files = Array.from(e.target.files || []);
+                      const validFiles = files.filter(
+                        f =>
+                          f.type.startsWith("image/") ||
+                          f.type === "application/pdf"
+                      );
+
+                      if (validFiles.length !== files.length) {
+                        showSnackbar("Only images & PDFs allowed", "error");
+                        return;
+                      }
                       if (!files.length) return;
 
                       const total =
                         existingImages.length +
                         newImages.length +
-                        files.length;
+                        + validFiles.length;
 
-                      if (total > 2) {
-                        showSnackbar("Maximum 2 images allowed", "error");
+                      if (total > 3) {
+                        showSnackbar("Maximum 3 files allowed", "error");
                         return;
                       }
 
-                      setNewImages(prev => [...prev, ...files]);
+                      setNewImages(prev => [...prev, ...validFiles]);
                       e.target.value = "";
                     }}
                   />
@@ -855,13 +887,16 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                 ...existingImages.map(img => img.url),
                 ...newImages.map(file => URL.createObjectURL(file))
               ]}
+              files={[
+                ...existingImages,
+                ...newImages
+              ]}
               index={previewIndex || 0}
               onChangeIndex={setPreviewIndex}
               onClose={() => setPreviewIndex(null)}
             />
 
           </div>
-
 
           {/* --- Section: Transport --- */}
           <h3 className="text-lg font-semibold mb-3">

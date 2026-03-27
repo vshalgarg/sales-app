@@ -7,39 +7,51 @@ import { useState } from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Tooltip } from "@mui/material";
 import CopyDetailsModal from "../components/common/CopyDetailsModal";
+import { getCustomerFormattedText } from "../utils/copyFormatter";
+import CustomerService from "../service/CustomerService";
 
-const CustomerDetail = ({ selectedCustomer, setModalOpen }) => {
+const CustomerDetail = ({ customerId, setModalOpen }) => {
 
+  const [customer, setCustomer] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [copyModalOpen, setCopyModalOpen] = useState(false);
 
-  const getCustomerFormattedText = (customer) => {
-
-    const mobileNumbers = customer?.contacts
-      ?.map(contact => contact.mobileNumber)
-      ?.filter(Boolean)
-      ?.join(", ") || "-";
-
-    const fullAddress = [
-      customer?.address,
-      customer?.city,
-      customer?.state,
-      customer?.pinCode
-    ]
-      .filter(Boolean)
-      .join(", ");
-
-    return `Firm Name: ${customer?.customerName || "-"}
-Address: ${fullAddress || "-"}
-Phone No: ${mobileNumbers}
-GST No: ${customer?.customerGstNo || "-"}`;
-  };
-
   useEffect(() => {
-  }, [selectedCustomer]);
+    if (!customerId) return;
+
+    const fetchCustomer = async () => {
+      try {
+        setLoading(true);
+
+        const response = await CustomerService.getCustomerById(customerId);
+        const data = response.data || response;
+
+        setCustomer(data);
+      } catch (err) {
+        console.error("Failed to fetch customer details:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomer();
+  }, [customerId]);
+
+
+if (loading) {
+    return <div className="p-6">Loading supplier details...</div>;
+  }
+
+  if (!customer) {
+    return <div className="p-6">No data found</div>;
+  }
+
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:flex md:items-center md:justify-center">
         <div className="bg-white w-full h-screen  md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+
+          {/* header */}
           <div className="px-3 py-2 md:p-6 border-b border-gray-300 sticky top-0 bg-white z-10 flex items-center gap-3">
             {/*Back Arrow */}
             <IconButton
@@ -67,6 +79,8 @@ GST No: ${customer?.customerGstNo || "-"}`;
 
           </div>
 
+
+
           <div className="px-6 py-2 md:py-4 overflow-y-auto flex-1 space-y-4 md:space-y-6">
             {/* Section: Basic Information */}
             <h3 className="md:text-lg font-semibold mb-3">Basic Information</h3>
@@ -76,7 +90,7 @@ GST No: ${customer?.customerGstNo || "-"}`;
                   Customer Name
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.customerName}
+                  {customer.customerName || "-"}
                 </div>
               </div>
               <div>
@@ -84,7 +98,7 @@ GST No: ${customer?.customerGstNo || "-"}`;
                   Email
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
-                  {selectedCustomer.email || "-"}
+                  {customer.email || "-"}
                 </div>
               </div>
 
@@ -93,7 +107,7 @@ GST No: ${customer?.customerGstNo || "-"}`;
                   Group Name
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.customerGroup}
+                  {customer.groupName || "-"}
                 </div>
               </div>
               <div>
@@ -101,14 +115,14 @@ GST No: ${customer?.customerGstNo || "-"}`;
                   GST Number
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-all">
-                  {selectedCustomer.customerGstNo || "-"}
+                  {customer.gstNo || "-"}
                 </div>
 
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">MSME</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.customerMsme}
+                  {customer.msme || "-"}
                 </div>
               </div>
               <div>
@@ -116,7 +130,7 @@ GST No: ${customer?.customerGstNo || "-"}`;
                   Referenced By
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.referencedBy}
+                  {customer.referencedBy || "-"}
                 </div>
               </div>
             </div>
@@ -129,22 +143,20 @@ GST No: ${customer?.customerGstNo || "-"}`;
                   Address
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words whitespace-pre-wrap">
-                  {[
-                    selectedCustomer.address
-                  ].filter(Boolean).join(", ") || "-"}
+                  {[customer.addressLine1, customer.addressLine2].filter(Boolean).join(", ") || "-"}
                 </div>
 
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">State</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.state}
+                  {customer.state || "-"}
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">City</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.city}
+                  {customer.city || "-"}
                 </div>
               </div>
               <div>
@@ -152,56 +164,59 @@ GST No: ${customer?.customerGstNo || "-"}`;
                   Pin Code
                 </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {selectedCustomer.pinCode}
+                  {customer.pinCode || "-"}
+                </div>
+              </div>
+            </div>
+
+            {/* Bank Details */}
+            <h3 className="md:text-lg font-semibold mb-3">Bank Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Bank Name</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                  {customer.bankName || "-"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">IFSC</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                  {customer.ifsc || "-"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Branch</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                  {customer.branch || "-"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Account Name</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                  {customer.accountName || "-"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Account Number</label>
+                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                  {customer.accountNumber || "-"}
                 </div>
               </div>
             </div>
 
             {/* Section: Contact Information */}
             <h3 className="md:text-lg font-semibold mb-3">Contact Information</h3>
-            {Array.isArray(selectedCustomer.contacts) && selectedCustomer.contacts.length > 0 ? (
-              selectedCustomer.contacts.map((c, idx) => (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4" key={idx}>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Contact Person</label>
-                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                      {c.contactPerson || "-"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Mobile No.</label>
-                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                      {c.mobileNumber || "-"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Type</label>
-                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
-                      {c.type || "-"}
-                    </div>
-                  </div>
-
-                </div>
-              ))
-            ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded p-4 text-center text-gray-500">
-                No contact information available
-              </div>
-            )}
-
-            {/* ------------------ Other Information ------------------ */}
-            <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
-            <div className="grid  grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Preferred Transport</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
-                  {Array.isArray(selectedCustomer.preferredTransports) && selectedCustomer.preferredTransports.length > 0 ? (
-                    selectedCustomer.preferredTransports.map((transport, idx) => (
+                  {Array.isArray(customer.preferredTransports) && customer.preferredTransports.length > 0 ? (
+                    customer.preferredTransports.map((transport, idx) => (
                       <span
                         key={idx}
                         className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
                       >
-                        {transport.name || transport.transportName || "Unnamed"}
+                        {transport.name || "Unnamed"}
                       </span>
                     ))
                   ) : (
@@ -213,7 +228,7 @@ GST No: ${customer?.customerGstNo || "-"}`;
               <div>
                 <label className="block text-sm font-medium mb-1">Remark</label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
-                  {selectedCustomer.remark || "-"}
+                  {customer.remark || "-"}
                 </div>
               </div>
             </div>
@@ -236,7 +251,7 @@ GST No: ${customer?.customerGstNo || "-"}`;
               open={copyModalOpen}
               onClose={() => setCopyModalOpen(false)}
               title="Copy Customer Details"
-              formattedText={getCustomerFormattedText(selectedCustomer)}
+              formattedText={getCustomerFormattedText(customer)}
             />
           )}
 

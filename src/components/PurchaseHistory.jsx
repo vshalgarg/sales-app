@@ -64,11 +64,11 @@ const PurchaseHistory = ({
       },
 
       {
-        key: "purchaseAmount",
-        label: "Amount",
+        key: "remarks",
+        label: "Remarks",
         render: (r) =>
-          r.purchaseAmount != null
-            ? roundUp(r.purchaseAmount)
+          r.remarks != null
+            ? r.remarks
             : "-",
       },
     ],
@@ -86,15 +86,7 @@ const PurchaseHistory = ({
           r.supplierNames && r.supplierNames.length > 0
             ? r.supplierNames.join(", ")
             : "-",
-      },
-      {
-        key: "purchaseAmount",
-        label: "Amount",
-        render: (r) =>
-          r.purchaseAmount != null
-            ? roundUp(r.purchaseAmount)
-            : "-",
-      },
+      },  
     ],
   };
 
