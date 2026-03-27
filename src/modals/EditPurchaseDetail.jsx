@@ -442,7 +442,7 @@ const EditPurchaseDetail = ({
                                             <p className="text-sm font-medium text-gray-700">
                                                 {img.type === "new"
                                                     ? img.file.name
-                                                    : img.key}
+                                                    : img.key.split("/").pop()}
                                             </p>
 
                                             <p className="text-xs text-gray-500">

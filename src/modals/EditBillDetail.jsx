@@ -801,7 +801,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                       <p className="text-sm font-medium text-gray-700">
                         {img.type === "new"
                           ? img.file.name
-                          : img.key}
+                          : img.key.split("/").pop()}
                       </p>
                       <p className="text-xs text-gray-500">
                         Click to preview
