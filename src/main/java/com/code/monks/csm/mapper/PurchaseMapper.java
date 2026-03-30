@@ -30,6 +30,7 @@ public class PurchaseMapper {
                         PurchaseImageDto.builder()
                                 .key(image.getObjectKey())
                                 .url(image.getPublicUrl())
+                                .fileName(image.getOriginalFileName())
                                 .build()
                 );
             }

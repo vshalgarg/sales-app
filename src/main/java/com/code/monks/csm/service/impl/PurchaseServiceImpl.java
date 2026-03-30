@@ -362,18 +362,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 );
 
         List<PurchaseImageEntity> imageEntities =
-                uploadedFiles.stream()
-                        .map(response -> {
-                            PurchaseImageEntity image =
-                                    new PurchaseImageEntity();
-
-                            image.setObjectKey(response.getKey());
-                            image.setPublicUrl(response.getPublicUrl());
-                            image.setPurchase(entity);
-
-                            return image;
-                        })
-                        .toList();
+                mapToPurchaseImages(entity, images, uploadedFiles);
 
         entity.setImages(imageEntities);
         log.info("Successfully uploaded {} image(s) for Purchase entry",
@@ -421,19 +410,35 @@ public class PurchaseServiceImpl implements PurchaseService {
                             UploadModuleEnum.PURCHASE
                     );
 
-            for (FileUploadResponse response : uploadedFiles) {
+            List<PurchaseImageEntity> newImageEntities =
+                    mapToPurchaseImages(entity, newImages, uploadedFiles);
 
-                PurchaseImageEntity image = new PurchaseImageEntity();
-                image.setObjectKey(response.getKey());
-                image.setPublicUrl(response.getPublicUrl());
-                image.setPurchase(entity);
-
-                currentImages.add(image);
-                log.info("Added new image | key={}", response.getKey());
-            }
+            currentImages.addAll(newImageEntities);
         }
 
         log.info("Image update completed | finalImageCount={}",
                 currentImages.size());
+    }
+
+    private List<PurchaseImageEntity> mapToPurchaseImages(
+            PurchaseEntity entity,
+            List<MultipartFile> files,
+            List<FileUploadResponse> responses
+    ) {
+
+        List<PurchaseImageEntity> images = new ArrayList<>();
+        for (int i = 0; i < responses.size(); i++) {
+            MultipartFile file = files.get(i);
+            FileUploadResponse response = responses.get(i);
+
+            PurchaseImageEntity image = new PurchaseImageEntity();
+            image.setObjectKey(response.getKey());
+            image.setPublicUrl(response.getPublicUrl());
+            image.setOriginalFileName(file.getOriginalFilename());
+            image.setPurchase(entity);
+
+            images.add(image);
+        }
+        return images;
     }
 }

@@ -26,5 +26,8 @@ public class PurchaseImageEntity extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "purchase_id")
     private PurchaseEntity purchase;
+
+    @Column(name = "original_file_name")
+    private String originalFileName;
 }
 

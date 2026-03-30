@@ -341,11 +341,13 @@ public class BillServiceImpl implements BillService {
 
         List<String> publicImageUrls = new ArrayList<>();
         List<String> objectKeys = new ArrayList<>();
+        List<String> fileNames = new ArrayList<>();
 
         if (entity.getImages() != null) {
             for (BillImageEntity image : entity.getImages()) {
                 publicImageUrls.add(image.getPublicUrl());
                 objectKeys.add(image.getObjectKey());
+                fileNames.add(image.getOriginalFileName());
             }
         }
 
@@ -380,6 +382,7 @@ public class BillServiceImpl implements BillService {
                 .items(itemDtos)
                 .publicUrls(publicImageUrls)
                 .objectKeys(objectKeys)
+                .originalFileNames(fileNames)
                 .build();
     }
 
@@ -503,18 +506,8 @@ public class BillServiceImpl implements BillService {
                         images,
                         UploadModuleEnum.BILTY
                 );
-
         List<BillImageEntity> imageEntities =
-                uploadedFiles.stream()
-                        .map(response -> {
-                            BillImageEntity image = new BillImageEntity();
-                            image.setObjectKey(response.getKey());
-                            image.setPublicUrl(response.getPublicUrl());
-                            image.setBillEntry(entity);
-                            return image;
-                        })
-                        .toList();
-
+                mapToBillImages(entity, images, uploadedFiles);
         entity.setImages(imageEntities);
 
         log.info("Successfully uploaded {} image(s) for bill {}",
@@ -554,6 +547,7 @@ public class BillServiceImpl implements BillService {
 
                 String key = img.getObjectKey();
                 iterator.remove();
+                removeCount++;
                 log.info("Removed image reference from DB | bill={} | key={}",
                         entity.getBillNumber(),
                         key);
@@ -580,22 +574,38 @@ public class BillServiceImpl implements BillService {
                             newImages,
                             UploadModuleEnum.BILTY
                     );
+            List<BillImageEntity> newImageEntities =
+                    mapToBillImages(entity, newImages, uploadedFiles);
 
-            for (FileUploadResponse response : uploadedFiles) {
-
-                BillImageEntity image = new BillImageEntity();
-                image.setObjectKey(response.getKey());
-                image.setPublicUrl(response.getPublicUrl());
-                image.setBillEntry(entity);
-
-                currentImages.add(image);
-
-                log.info("Added new image | key={}", response.getKey());
-            }
+            currentImages.addAll(newImageEntities);
         }
 
         log.info("Image update completed for bill {} | finalImageCount={}",
                 entity.getBillNumber(),
                 currentImages.size());
+    }
+
+    private List<BillImageEntity> mapToBillImages(
+            BillEntryEntity entity,
+            List<MultipartFile> files,
+            List<FileUploadResponse> responses
+    ) {
+        List<BillImageEntity> images = new ArrayList<>();
+
+        for (int i = 0; i < responses.size(); i++) {
+
+            MultipartFile file = files.get(i);
+            FileUploadResponse response = responses.get(i);
+
+            BillImageEntity image = new BillImageEntity();
+            image.setObjectKey(response.getKey());
+            image.setPublicUrl(response.getPublicUrl());
+            image.setOriginalFileName(file.getOriginalFilename());
+            image.setBillEntry(entity);
+
+            images.add(image);
+        }
+
+        return images;
     }
 }
