@@ -639,3 +639,6 @@ ALTER TABLE customer ADD COLUMN branch_name VARCHAR(255);
 ALTER TABLE customer ADD COLUMN account_name VARCHAR(255);
 
 ALTER TABLE customer ADD COLUMN account_number VARCHAR(100);
+
+ALTER TABLE bill_images ADD COLUMN original_file_name VARCHAR(100);
+ALTER TABLE purchase_images ADD COLUMN original_file_name VARCHAR(100);
