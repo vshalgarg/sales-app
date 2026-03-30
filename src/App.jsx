@@ -4,10 +4,21 @@ import AppRoutes from "./routes/AppRoutes";
 import { SnackbarProvider } from "./context/SnackbarContext";
 import { AuthProvider } from "./context/AuthContext";
 import { UnsavedProvider } from "./context/UnsavedChangesContext";
+import { LoaderProvider, useLoader } from "./context/LoaderContext";
+import { setLoader } from "./api/api";
+import { useEffect } from "react";
+import GlobalLoader from "./components/common/GlobalLoader";
 
-function App() {
+function AppContent() {
+  const loader = useLoader();
+
+  useEffect(() => {
+    setLoader(loader); // connect interceptor with loader
+  }, [loader]);
+
   return (
-    <UnsavedProvider>
+    <>
+      {loader.loading && <GlobalLoader />} {/* GLOBAL LOADER */}
       
       <BrowserRouter>
         <SnackbarProvider>
@@ -18,9 +29,17 @@ function App() {
           </AuthProvider>
         </SnackbarProvider>
       </BrowserRouter>
+    </>
+  );
+}
 
+function App() {
+  return (
+    <UnsavedProvider>
+      <LoaderProvider>
+        <AppContent />
+      </LoaderProvider>
     </UnsavedProvider>
-
   );
 }
 

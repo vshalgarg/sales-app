@@ -175,6 +175,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
           id: key,
           key: key,
           url: selectedBillDetail.publicUrls[index],
+          fileName: selectedBillDetail.originalFileNames?.[index],
           type: selectedBillDetail.publicUrls[index]?.endsWith(".pdf")
             ? "application/pdf"
             : "image"
@@ -763,7 +764,8 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                   type: img.type,
                   id: img.key,
                   key: img.key,
-                  url: img.url
+                  url: img.url,
+                  fileName: img.fileName
                 })),
                 ...newImages.map(file => ({
                   type: "new",
@@ -801,7 +803,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
                       <p className="text-sm font-medium text-gray-700">
                         {img.type === "new"
                           ? img.file.name
-                          : img.key.split("/").pop()}
+                          : img.fileName || img.key.split("/").pop()}
                       </p>
                       <p className="text-xs text-gray-500">
                         Click to preview

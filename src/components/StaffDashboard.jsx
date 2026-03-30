@@ -12,7 +12,6 @@ export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const rowsPerPage = 10;
@@ -68,7 +67,6 @@ export default function StaffDashboard() {
 
   const fetchStaffs = useCallback(async (uiPage = 1) => {
     const backendPage = uiPage - 1;
-    setLoading(true);
     try {
       const data = await getStaffs(backendPage, rowsPerPage);
 
@@ -93,7 +91,6 @@ export default function StaffDashboard() {
       setTotalItems(0);
       showSnackbar(error.message, "error");
     } finally {
-      setLoading(false);
     }
   }, [rowsPerPage]);
 
@@ -149,6 +146,9 @@ export default function StaffDashboard() {
       }
     } catch (error) {
       showSnackbar(error.message, "error");
+    } finally {
+      setDeleteModalOpen(false);
+      setStaffToDelete(null);
     }
   };
 
@@ -173,7 +173,6 @@ export default function StaffDashboard() {
 
   const handleEditStaff = async (staffId) => {
     try {
-      setLoading(true);
 
       const data = await getStaffById(staffId);
 
@@ -191,7 +190,6 @@ export default function StaffDashboard() {
     } catch (error) {
       showSnackbar(error.message, "error");
     } finally {
-      setLoading(false);
     }
   };
 
@@ -245,7 +243,6 @@ export default function StaffDashboard() {
         <DataTable
           columns={isMobile ? columns.mobile : columns.desktop}
           data={staffs}
-          loading={loading}
           emptyMessage="No staff found"
           page={currentPage}
           totalCount={isSearchActive ? searchResults.length : totalItems}
@@ -277,11 +274,7 @@ export default function StaffDashboard() {
           setDeleteModalOpen(false);
           setStaffToDelete(null);
         }}
-        onConfirm={() => {
-          handleDelete();
-          setDeleteModalOpen(false);
-          setStaffToDelete(null);
-        }}
+        onConfirm={handleDelete}
       />
 
       {open && (

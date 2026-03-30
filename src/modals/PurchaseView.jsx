@@ -23,7 +23,7 @@ const PurchaseView = ({ data, open, onClose }) => {
         const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = blobUrl;
-        link.download = url.split("/").pop() || "download";
+        link.download = img.fileName || url.split("/").pop() || "download";
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -121,8 +121,7 @@ const PurchaseView = ({ data, open, onClose }) => {
                                 {images.map((img, index) => {
 
                                     const url = img.url;
-                                    const fileName =
-                                        url.split("/").pop() || "attachment";
+                                    const fileName = img.fileName || url.split("/").pop() || "attachment";
 
                                     return (
 
