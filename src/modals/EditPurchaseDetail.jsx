@@ -63,7 +63,7 @@ const EditPurchaseDetail = ({
             existingImages,
             newImages
         },
-        open && isLoaded
+        open && detail
     );
 
     const customerOptions = mapToOption(allCustomers, "id", "customerName");
@@ -135,6 +135,7 @@ const EditPurchaseDetail = ({
             (detail.supplier?.images || []).map(img => ({
                 key: img.key,
                 url: img.url,
+                fileName: img.fileName,
                 type: img.url.endsWith(".pdf")
                     ? "application/pdf"
                     : "image"
@@ -401,7 +402,8 @@ const EditPurchaseDetail = ({
                                     type: img.type,
                                     id: img.key,
                                     key: img.key,
-                                    url: img.url
+                                    url: img.url,
+                                    fileName: img.fileName
                                 })),
 
                                 ...newImages.map(file => ({
@@ -442,7 +444,7 @@ const EditPurchaseDetail = ({
                                             <p className="text-sm font-medium text-gray-700">
                                                 {img.type === "new"
                                                     ? img.file.name
-                                                    : img.key.split("/").pop()}
+                                                    : (img.fileName || img.key.split("/").pop())}
                                             </p>
 
                                             <p className="text-xs text-gray-500">

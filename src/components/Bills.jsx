@@ -97,7 +97,12 @@ const Bills = () => {
           toDate: filterObject.toDate || null,
         },
         page - 1,
-        rowsPerPage
+        rowsPerPage,
+        {
+          headers: {
+            skipLoader: true
+          }
+        }
       );
 
       setBillHistoryData(data?.content ?? []);

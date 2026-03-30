@@ -14,7 +14,6 @@ import { getSupplierFormattedText } from "../utils/copyFormatter";
 
 
 export default function SupplierDashboard() {
-  const [loading, setLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [open, setOpen] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
@@ -105,7 +104,6 @@ export default function SupplierDashboard() {
   const fetchSuppliers = useCallback(
     async (uiPage = 1) => {
       const backendPage = uiPage - 1;
-      setLoading(true);
       try {
         const data = await SupplierService.getSuppliers(
           backendPage,
@@ -122,7 +120,6 @@ export default function SupplierDashboard() {
         setTotalItems(0);
         showSnackbar(error.message, "error");
       } finally {
-        setLoading(false);
       }
     },
     [rowsPerPage],
@@ -230,7 +227,6 @@ export default function SupplierDashboard() {
         <DataTable
           columns={isMobile ? columns.mobile : columns.desktop}
           data={suppliers}
-          loading={loading}
           onView={(supplier) => {
             setSelectedSupplier(supplier.id);
             setIsModalOpen(true);
@@ -305,11 +301,7 @@ export default function SupplierDashboard() {
           setDeleteModalOpen(false);
           setSupplierToDelete(null);
         }}
-        onConfirm={() => {
-          onConfirm = { handleDelete }
-          setDeleteModalOpen(false);
-          setSupplierToDelete(null);
-        }}
+        onConfirm={handleDelete}
       />
 
     </div>

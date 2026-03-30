@@ -20,7 +20,6 @@ export default function CustomerDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const rowsPerPage = 10;
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
@@ -104,7 +103,6 @@ export default function CustomerDashboard() {
   const fetchCustomers = useCallback(
     async (uiPage = 1) => {
       const backendPage = uiPage - 1;
-      setLoading(true);
       try {
         const data = await CustomerService.getCustomers(
           backendPage,
@@ -121,7 +119,6 @@ export default function CustomerDashboard() {
         setTotalItems(0);
         showSnackbar(error.message, "error");
       } finally {
-        setLoading(false);
       }
     },
     [rowsPerPage],
@@ -251,7 +248,6 @@ export default function CustomerDashboard() {
         <DataTable
           columns={isMobile ? columns.mobile : columns.desktop}
           data={customers}
-          loading={loading}
           onView={(customer) => {
             setSelectedCustomer(customer);
             setModalOpen(true);
@@ -318,11 +314,7 @@ export default function CustomerDashboard() {
           setDeleteModalOpen(false);
           setCustomerToDelete(null);
         }}
-        onConfirm={() => {
-          handleDelete(customerToDelete.customerId);
-          setDeleteModalOpen(false);
-          setCustomerToDelete(null);
-        }}
+        onConfirm={handleDelete}
       />
 
       {copyModalOpen && (
