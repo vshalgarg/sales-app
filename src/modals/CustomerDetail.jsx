@@ -38,7 +38,7 @@ const CustomerDetail = ({ customerId, setModalOpen }) => {
   }, [customerId]);
 
 
-if (loading) {
+  if (loading) {
     return <div className="p-6">Loading supplier details...</div>;
   }
 
@@ -206,9 +206,50 @@ if (loading) {
 
             {/* Section: Contact Information */}
             <h3 className="md:text-lg font-semibold mb-3">Contact Information</h3>
+            {customer.contacts?.length > 0 ? (
+              customer.contacts.map((c, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 mb-3"
+                >
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Contact Person
+                    </label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                      {c.contactPerson || "-"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Mobile No.
+                    </label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                      {c.mobileNumber || "-"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Type
+                    </label>
+                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
+                      {c.type || "-"}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 mb-3">No contacts available</div>
+            )}
+
+            <h3 className="md:text-lg font-semibold mb-3">Transport & Remarks</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Preferred Transport</label>
+                <label className="block text-sm font-medium mb-1">
+                  Preferred Transport
+                </label>
                 <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
                   {Array.isArray(customer.preferredTransports) && customer.preferredTransports.length > 0 ? (
                     customer.preferredTransports.map((transport, idx) => (
@@ -231,6 +272,7 @@ if (loading) {
                   {customer.remark || "-"}
                 </div>
               </div>
+
             </div>
           </div>
 
@@ -256,7 +298,7 @@ if (loading) {
           )}
 
         </div>
-      </div>
+      </div >
     </>
   );
 };
