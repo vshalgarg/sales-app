@@ -8,4 +8,5 @@ import lombok.Data;
 public class PurchaseImageDto {
     private String key;
     private String url;
+    private String fileName;
 }

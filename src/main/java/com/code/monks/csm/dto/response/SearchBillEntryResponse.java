@@ -37,4 +37,5 @@ public class SearchBillEntryResponse {
 
     public List<String> objectKeys;
     private List<String> publicUrls;
+    private List<String> originalFileNames;
 }
