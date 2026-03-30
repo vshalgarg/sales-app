@@ -283,7 +283,6 @@ const Credit = () => {
       {/* ================= TABLE ================= */}
       <CreditHistory
         data={creditHistoryData}
-        loading={loading}
         page={currentPage}
         totalItems={totalItems}
         rowsPerPage={rowsPerPage}

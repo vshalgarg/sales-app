@@ -299,7 +299,6 @@ const Purchase = () => {
       {/* ================= TABLE ================= */}
       <PurchaseHistory
         data={purchaseHistoryData}
-        loading={loading}
         page={currentPage}
         totalItems={totalItems}
         rowsPerPage={rowsPerPage}

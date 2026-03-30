@@ -98,11 +98,6 @@ const Bills = () => {
         },
         page - 1,
         rowsPerPage,
-        {
-          headers: {
-            skipLoader: true
-          }
-        }
       );
 
       setBillHistoryData(data?.content ?? []);
@@ -311,7 +306,6 @@ const Bills = () => {
         {/* ================= TABLE ================= */}
         <BillHistory
           data={billHistoryData}
-          loading={loading}
           page={currentPage}
           totalItems={totalItems}
           rowsPerPage={rowsPerPage}
