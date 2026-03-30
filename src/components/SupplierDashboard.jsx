@@ -42,8 +42,8 @@ export default function SupplierDashboard() {
 
   const columns = {
     desktop: [
-      { key: "supplierName", label: "Name", width: "18%" },
-      { key: "supplierGstNo", label: "GST", width: "14%" },
+      { key: "supplierName", label: "Name", width: "22%" },
+      { key: "supplierGstNo", label: "GST", width: "16%" },
       {
         key: "address",
         label: "Address",
@@ -59,17 +59,12 @@ export default function SupplierDashboard() {
           </Typography>
         ),
       },
-      { key: "city", label: "City", width: "10%" },
-      {
-        key: "contactPerson",
-        label: "Contact Person",
-        width: "16%",
-        render: (row) => row.contacts?.[0]?.contactPerson || "-",
-      },
+      { key: "city", label: "City", width: "12%" },
+      
       {
         key: "mobile",
         label: "Mobile",
-        width: "16%",
+        width: "20%",
         render: (row) => row.contacts?.[0]?.mobileNumber || "-",
       },
     ],

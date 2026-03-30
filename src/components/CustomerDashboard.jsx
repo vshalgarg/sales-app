@@ -68,8 +68,8 @@ export default function CustomerDashboard() {
 
   const columns = {
     desktop: [
-      { key: "customerName", label: "Name", width: "18%" },
-      { key: "customerGstNo", label: "GST", width: "14%" },
+      { key: "customerName", label: "Name", width: "22%" },
+      { key: "customerGstNo", label: "GST", width: "16%" },
       {
         key: "address",
         label: "Address",
@@ -80,17 +80,11 @@ export default function CustomerDashboard() {
           </div>
         ),
       },
-      { key: "city", label: "City", width: "10%" },
-      {
-        key: "contactPerson",
-        label: "Contact Person",
-        width: "16%",
-        render: (row) => row.contacts?.[0]?.contactPerson || "-",
-      },
+      { key: "city", label: "City", width: "12%" },
       { 
         key: "mobile",
         label: "Mobile",
-        width: "16%",
+        width: "20%",
         render: (row) => row.contacts?.[0]?.mobileNumber || "-",
       },
     ],
