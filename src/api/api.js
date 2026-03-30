@@ -10,20 +10,8 @@ export const setLoader = (loader) => {
   loaderInstance = loader;
 };
 
-const skipLoaderUrls = [
-  "/bill/entries/search",
-  "/credit/entries/search",
-  "/purchase/entries/search",
-];
-
-const shouldSkipLoader = (url = "") => {
-  return skipLoaderUrls.some((u) => url.includes(u));
-};
-
 api.interceptors.request.use((config) => {
-  if (!shouldSkipLoader(config.url)) {
-    loaderInstance?.startLoading();
-  }
+   loaderInstance?.startLoading();
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -33,15 +21,11 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => {
-    if (!shouldSkipLoader(response.config?.url)) {
-      loaderInstance?.stopLoading();
-    }
+    loaderInstance?.stopLoading();
     return response;
   },
   async (error) => {
-    if (!shouldSkipLoader(error.config?.url)) {
-      loaderInstance?.stopLoading();
-    }
+   loaderInstance?.stopLoading();
     const status = error?.response?.status;
     if (status === 401) {
       console.warn(' Token expired or unauthorized. Logging out...');
