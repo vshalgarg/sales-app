@@ -21,6 +21,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import useResponsive from "../customHooks/useResponsive";
 
 const DataTable = ({
   columns,
@@ -40,6 +41,7 @@ const DataTable = ({
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+  const { isMobile } = useResponsive();
 
   const handleOpenMenu = (event, row) => {
     setAnchorEl(event.currentTarget);
@@ -64,13 +66,13 @@ const DataTable = ({
         sx={{
           flex: 1,
           minHeight: 0,
-          overflowX: "hidden",
+          overflowX: "auto",
           overflowY: "auto",
         }}
       >
         <Table stickyHeader size="small"
           sx={{
-            tableLayout: "fixed",
+            tableLayout: isMobile ? "auto" : "fixed",
             width: "100%",
           }}>
           {/* TABLE HEAD */}
@@ -88,13 +90,14 @@ const DataTable = ({
                     fontWeight: 600, width: col.width,
                     //  backgroundColor: '#e0e0e0',
                     bgcolor: 'inherit',
+                    px: isMobile ? 1 : 2,
 
                   }}
                 >
                   {col.label}
                 </TableCell>
               ))}
-              {actions && <TableCell sx={{ width: "80px", backgroundColor: '#e0e0e0', fontWeight: 600 }}>Actions</TableCell>}
+              {actions && <TableCell sx={{ px: isMobile ? 1 : 2, width: isMobile ? "40px" : "6%", minWidth: isMobile ? "40px" : "80px", backgroundColor: '#e0e0e0', fontWeight: 600 }}>Actions</TableCell>}
             </TableRow>
           </TableHead>
 
@@ -117,10 +120,10 @@ const DataTable = ({
                     <TableCell
                       key={col.key}
                       sx={{
-                        maxWidth: 0,
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                        overflowWrap: "anywhere",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        px: isMobile ? 1 : 2,
                       }}
                     >
                       {col.render

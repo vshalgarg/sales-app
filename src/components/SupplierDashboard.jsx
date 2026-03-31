@@ -42,29 +42,30 @@ export default function SupplierDashboard() {
 
   const columns = {
     desktop: [
-      { key: "supplierName", label: "Name", width: "22%" },
+      { key: "code", label: "Code", width: "8%" },
+      { key: "supplierName", label: "Name", width: "20%" },
       { key: "supplierGstNo", label: "GST", width: "16%" },
       {
         key: "address",
         label: "Address",
-        width: "26%",
+        width: "32%",
         render: (row) => (
           <Typography
             variant="body2"
             noWrap
             title={row.address}
-            sx={{ maxWidth: 200 }}
+            sx={{ width: "100%" }}
           >
             {row.address || "-"}
           </Typography>
         ),
       },
-      { key: "city", label: "City", width: "12%" },
-      
+      { key: "city", label: "City", width: "10%" },
+
       {
         key: "mobile",
         label: "Mobile",
-        width: "20%",
+        width: "10%",
         render: (row) => row.contacts?.[0]?.mobileNumber || "-",
       },
     ],
@@ -246,7 +247,7 @@ export default function SupplierDashboard() {
       {/* Modals */}
       {isModalOpen && selectedSupplier && (
         <SupplierDetail
-           supplierId={selectedSupplier}
+          supplierId={selectedSupplier}
           setIsModalOpen={setIsModalOpen}
         />
       )}

@@ -8,6 +8,7 @@ import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import { getTransportFormattedText } from "../utils/copyFormatter";
 import CopyDetailsModal from "./common/CopyDetailsModal";
+import { Typography } from "@mui/material";
 
 
 export default function TransportDashboard() {
@@ -43,29 +44,40 @@ export default function TransportDashboard() {
       {
         key: "contacts",
         label: "Contact",
-        width: "14%",
-        render: (row) =>
-          row.contacts?.length > 0
-            ? row.contacts.map(c => c.contactNumber).join(", ")
-            : "-",
-      },
-      {
-        key: "city",
-        label: "City",
         width: "12%",
-        render: (row) => row.city || "-",
+        render: (row) => (
+          <Typography variant="body2" noWrap>
+            {row.contacts?.length > 0
+              ? row.contacts.map(c => c.contactNumber).join(", ")
+              : "-"}
+          </Typography>
+        ),
       },
       {
         key: "addressLine1",
         label: "Address",
-        width: "22%",
-        render: (row) =>
-          `${row.addressLine1 || ""}${row.addressLine2 ? ", " + row.addressLine2 : ""}` || "-",
+        width: "30%",
+        render: (row) => {
+          const address = `${row.addressLine1 || ""}${row.addressLine2 ? ", " + row.addressLine2 : ""
+            }`;
+
+          return (
+            <Typography variant="body2" noWrap title={address}>
+              {address || "-"}
+            </Typography>
+          );
+        },
+      },
+       {
+        key: "city",
+        label: "City",
+        width: "10%",
+        render: (row) => row.city || "-",
       },
       {
         key: "status",
         label: "Status",
-        width: "10%",
+        width: "8%",
         render: (row) => {
           const isActive = row.status === "ACTIVE";
           return (
@@ -93,7 +105,6 @@ export default function TransportDashboard() {
       }
     ],
   };
-
 
   const fetchTransports = useCallback(
     async (uiPage = 1) => {
@@ -304,7 +315,7 @@ export default function TransportDashboard() {
           setDeleteModalOpen(false);
           setTransportToDelete(null);
         }}
-       onConfirm={handleDelete}
+        onConfirm={handleDelete}
       />
 
       <CopyDetailsModal

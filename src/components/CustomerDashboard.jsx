@@ -10,6 +10,7 @@ import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
 import { getCustomerFormattedText } from "../utils/copyFormatter";
+import { Typography } from "@mui/material";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -61,30 +62,37 @@ export default function CustomerDashboard() {
   });
 
 
-  const handleCopyDetails = (customer) => {
-    setCustomerToCopy(customer);
-    setCopyModalOpen(true);
-  };
+ const handleCopyDetails = async (customer) => {
+  const customerData = await CustomerService.getCustomerById(customer.id);
+  setCustomerToCopy(customerData.data || customerData);
+  setCopyModalOpen(true);
+};
 
   const columns = {
     desktop: [
-      { key: "customerName", label: "Name", width: "22%" },
+      { key: "code", label: "Code", width: "8%" },
+      { key: "customerName", label: "Name", width: "20%" },
       { key: "customerGstNo", label: "GST", width: "16%" },
       {
         key: "address",
         label: "Address",
-        width: "26%",
+        width: "32%",
         render: (row) => (
-          <div className="truncate max-w-[200px]" title={row.address}>
-            {row.address || "-"}
-          </div>
-        ),
+        <Typography
+          variant="body2"
+          noWrap
+          title={row.address}
+          sx={{ width: "100%" }}
+        >
+          {row.address || "-"}
+        </Typography>
+      ),
       },
-      { key: "city", label: "City", width: "12%" },
+      { key: "city", label: "City", width: "10%" },
       { 
         key: "mobile",
         label: "Mobile",
-        width: "20%",
+        width: "10%",
         render: (row) => row.contacts?.[0]?.mobileNumber || "-",
       },
     ],
