@@ -1,14 +1,17 @@
-export const formatDetails = (data) => {
+export const formatDetails = (data, requiredKeys = []) => {
 
   const filteredEntries = Object.entries(data)
-    .filter(([_, value]) => value !== undefined && value !== null && value !== "");
+    .filter(([key, value]) => {
+      if (requiredKeys.includes(key)) return true;
+      return value !== undefined && value !== null && value !== "";
+    });
 
   const html = filteredEntries
-    .map(([key, value]) => `<b>${key}:</b> ${value}<br/>`)
+    .map(([key, value]) => `<b>${key}:</b> ${value || ""}<br/>`)
     .join("");
 
   const text = filteredEntries
-    .map(([key, value]) => `${key}: ${value}`)
+    .map(([key, value]) => `${key}: ${value || ""}`)
     .join("\n");
 
   return { html, text };
@@ -41,16 +44,8 @@ export const convertHtmlToWhatsApp = (html) => {
 };
 
 export const getSupplierFormattedText = (supplier) => {
-  const mobileNumbers = supplier?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.mobileNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
 
+ const mobileNumbers = formatContacts(supplier?.contacts);
   const transports = supplier?.preferredTransports
     ?.map(t => t.name)
     ?.filter(Boolean)
@@ -73,23 +68,16 @@ export const getSupplierFormattedText = (supplier) => {
     "Contacts": mobileNumbers,
     "Emails": supplier?.email,
     "Transports": transports,
-    "GST No": supplier?.supplierGstNo || supplier?.gstNo || "-"
-  });
+    "GST No": supplier?.supplierGstNo || supplier?.gstNo
+  },
+  ["Firm Name", "Address", "Contacts", "GST No"]
+);
 };
 
 
 export const getCustomerFormattedText = (customer) => {
 
-  const mobileNumbers = customer?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.mobileNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
-
+  const mobileNumbers = formatContacts(customer?.contacts)
   const fullAddress = cleanText([
     customer?.addressLine1 || customer?.address,
     customer?.addressLine2,
@@ -112,22 +100,16 @@ export const getCustomerFormattedText = (customer) => {
     "Contacts": mobileNumbers,
     "Emails": customer?.email,
     "Transports": transports,
-    "GST No": customer?.customerGstNo || "-"
-  });
+    "GST No": customer?.customerGstNo
+  }
+,
+  ["Firm Name", "Address", "Contacts", "GST No"]
+);
 };
 
 export const getTransportFormattedText = (transport) => {
 
-  const mobileNumbers = transport?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.contactNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
-
+  const mobileNumbers = formatContacts(transport?.contacts, "contactNumber");
   const fullAddress = cleanText([
     transport?.addressLine1,
     transport?.addressLine2,
@@ -143,6 +125,27 @@ export const getTransportFormattedText = (transport) => {
     "Firm Name": transport?.name || "-",
     "Address": fullAddress || "-",
     "Contacts": mobileNumbers,
-    "GST No": transport?.gstNo || "-"
-  });
+    "GST No": transport?.gstNo
+  }
+,
+["Firm Name", "Address", "Contacts", "GST No"]
+);
+};
+
+export const formatContacts = (contacts, numberKey = "mobileNumber") => {
+  return contacts
+    ?.map(contact => {
+      const name = contact?.contactPerson?.trim() || "";
+      const number = contact?.[numberKey]?.trim() || "";
+
+      if (!name && !number) return null;
+
+      if (name && number) return `${name} - ${number}`;
+      if (number) return number;
+      if (name) return name;
+
+      return null;
+    })
+    ?.filter(Boolean)
+    ?.join(", ");
 };
