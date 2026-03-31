@@ -16,6 +16,4 @@ public interface StaffRepo extends JpaRepository<StaffEntity,Integer> {
     List<StaffEntity> findAllByStatus(Sort sort, StatusEnum status);
     boolean existsByPhone(String phone);
     Page<StaffEntity> findByStaffNameContainingIgnoreCaseAndStatus(String keyword, StatusEnum statusEnum, Pageable pageable);
-
-    Page<StaffEntity> findByStaffNameContainingIgnoreCase(String trimmedKeyword, Pageable pageable);
 }

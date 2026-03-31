@@ -27,5 +27,8 @@ public class BillImageEntity extends BaseEntity {
 
     @Column(name = "public_url", nullable = false, length = 500)
     private String publicUrl;
+
+    @Column(name = "original_file_name")
+    private String originalFileName;
 }
 
