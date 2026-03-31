@@ -100,7 +100,7 @@ export const getCustomerFormattedText = (customer) => {
     "Contacts": mobileNumbers,
     "Emails": customer?.email,
     "Transports": transports,
-    "GST No": customer?.customerGstNo
+    "GST No": customer?.gstNo
   }
 ,
   ["Firm Name", "Address", "Contacts", "GST No"]
