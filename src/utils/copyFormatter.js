@@ -1,17 +1,14 @@
-export const formatDetails = (data, requiredKeys = []) => {
+export const formatDetails = (data) => {
 
   const filteredEntries = Object.entries(data)
-    .filter(([key, value]) => {
-      if (requiredKeys.includes(key)) return true;
-      return value !== undefined && value !== null && value !== "";
-    });
+    .filter(([_, value]) => value !== undefined && value !== null && value !== "");
 
   const html = filteredEntries
-    .map(([key, value]) => `<b>${key}:</b> ${value || ""}<br/>`)
+    .map(([key, value]) => `<b>${key}:</b> ${value}<br/>`)
     .join("");
 
   const text = filteredEntries
-    .map(([key, value]) => `${key}: ${value || ""}`)
+    .map(([key, value]) => `${key}: ${value}`)
     .join("\n");
 
   return { html, text };
@@ -45,7 +42,7 @@ export const convertHtmlToWhatsApp = (html) => {
 
 export const getSupplierFormattedText = (supplier) => {
 
- const mobileNumbers = formatContacts(supplier?.contacts);
+  const mobileNumbers = formatContacts(supplier?.contacts);
   const transports = supplier?.preferredTransports
     ?.map(t => t.name)
     ?.filter(Boolean)
@@ -69,9 +66,8 @@ export const getSupplierFormattedText = (supplier) => {
     "Emails": supplier?.email,
     "Transports": transports,
     "GST No": supplier?.supplierGstNo || supplier?.gstNo
-  },
-  ["Firm Name", "Address", "Contacts", "GST No"]
-);
+  }
+  );
 };
 
 
@@ -95,16 +91,14 @@ export const getCustomerFormattedText = (customer) => {
     ?.join(", ");
 
   return formatDetails({
-    "Firm Name": customer?.customerName || "-",
-    "Address": fullAddress || "-",
+    "Firm Name": customer?.customerName,
+    "Address": fullAddress,
     "Contacts": mobileNumbers,
     "Emails": customer?.email,
     "Transports": transports,
     "GST No": customer?.gstNo
   }
-,
-  ["Firm Name", "Address", "Contacts", "GST No"]
-);
+  );
 };
 
 export const getTransportFormattedText = (transport) => {
@@ -122,14 +116,12 @@ export const getTransportFormattedText = (transport) => {
   );
 
   return formatDetails({
-    "Firm Name": transport?.name || "-",
-    "Address": fullAddress || "-",
+    "Firm Name": transport?.name,
+    "Address": fullAddress,
     "Contacts": mobileNumbers,
     "GST No": transport?.gstNo
   }
-,
-["Firm Name", "Address", "Contacts", "GST No"]
-);
+  );
 };
 
 export const formatContacts = (contacts, numberKey = "mobileNumber") => {
