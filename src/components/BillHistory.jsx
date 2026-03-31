@@ -20,23 +20,26 @@ const BillHistory = ({
 
   const columns = {
     desktop: [
-      { key: "invoiceNo", label: "Invoice Number" },
+      { key: "invoiceNo", width: "14%", label: "Invoice Number" },
       {
         key: "date",
         label: "Date",
+        width: "12%",
         render: (row) =>
           row.date ? dayjs(row.date).format("DD-MM-YYYY") : "-",
       },
       {
         key: "receivedDate",
         label: "Received Date",
+        width: "14%",
         render: (row) =>
           row.receivedDate ? dayjs(row.receivedDate).format("DD-MM-YYYY") : "-",
       },
-      { key: "supplierName", label: "Supplier" },
-      { key: "customerName", label: "Customer" },
+      { key: "supplierName", width: "22%", label: "Supplier" },
+      { key: "customerName", width: "22%", label: "Customer" },
       {
         key: "billAmount",
+        width: "10%",
         label: "Bill Amount",
         render: (row) =>
           row.billAmount != null

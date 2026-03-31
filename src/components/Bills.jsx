@@ -97,7 +97,7 @@ const Bills = () => {
           toDate: filterObject.toDate || null,
         },
         page - 1,
-        rowsPerPage
+        rowsPerPage,
       );
 
       setBillHistoryData(data?.content ?? []);
@@ -306,7 +306,6 @@ const Bills = () => {
         {/* ================= TABLE ================= */}
         <BillHistory
           data={billHistoryData}
-          loading={loading}
           page={currentPage}
           totalItems={totalItems}
           rowsPerPage={rowsPerPage}

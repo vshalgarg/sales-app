@@ -100,7 +100,7 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
     const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download = url.split("/").pop() || "download";
+    link.download = header.originalFileNames?.[index] || url.split("/").pop() || "download";
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -195,7 +195,7 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
               {header.publicUrls?.length ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {header.publicUrls.map((url, index) => {
-                    const fileName = url.split('/').pop() || 'attachment';
+                    const fileName = header.originalFileNames?.[index] || url.split('/').pop() || 'attachment';
                     const displayName = fileName.length > 25
                       ? fileName.substring(0, 20) + '...'
                       : fileName;

@@ -43,14 +43,16 @@ const PurchaseHistory = ({
       {
         key: "date",
         label: "Date",
+        width: "10%",
         render: (r) => (r.date ? dayjs(r.date).format("DD-MM-YYYY") : "-"),
       },
 
-      { key: "staffName", label: "Staff" },
+      { key: "staffName", width: "20%", label: "Staff" },
 
       {
         key: "supplierNames",
         label: "Suppliers",
+         width: "26%",
         render: (r) =>
           r.supplierNames && r.supplierNames.length > 0
             ? r.supplierNames.join(", ")
@@ -60,12 +62,14 @@ const PurchaseHistory = ({
       {
         key: "customerName",
         label: "Customer",
+         width: "18%",
         render: (r) => r.customerName || "-",
       },
 
       {
         key: "remarks",
         label: "Remarks",
+         width: "16%",
         render: (r) =>
           r.remarks != null
             ? r.remarks

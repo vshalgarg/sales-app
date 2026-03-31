@@ -6,13 +6,13 @@ import UniversalSearch from "../components/UniversalSearch";
 import DataTable from "./DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
-import { cleanText, formatDetails, getTransportFormattedText } from "../utils/copyFormatter";
+import { getTransportFormattedText } from "../utils/copyFormatter";
 import CopyDetailsModal from "./common/CopyDetailsModal";
+import { Typography } from "@mui/material";
 
 
 export default function TransportDashboard() {
   // throw new Error("error in transport page");
-  const [loading, setLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [open, setOpen] = useState(false);
   const [editingTransport, setEditingTransport] = useState(null);
@@ -44,29 +44,40 @@ export default function TransportDashboard() {
       {
         key: "contacts",
         label: "Contact",
-        width: "14%",
-        render: (row) =>
-          row.contacts?.length > 0
-            ? row.contacts.map(c => c.contactNumber).join(", ")
-            : "-",
-      },
-      {
-        key: "city",
-        label: "City",
         width: "12%",
-        render: (row) => row.city || "-",
+        render: (row) => (
+          <Typography variant="body2" noWrap>
+            {row.contacts?.length > 0
+              ? row.contacts.map(c => c.contactNumber).join(", ")
+              : "-"}
+          </Typography>
+        ),
       },
       {
         key: "addressLine1",
         label: "Address",
-        width: "22%",
-        render: (row) =>
-          `${row.addressLine1 || ""}${row.addressLine2 ? ", " + row.addressLine2 : ""}` || "-",
+        width: "30%",
+        render: (row) => {
+          const address = `${row.addressLine1 || ""}${row.addressLine2 ? ", " + row.addressLine2 : ""
+            }`;
+
+          return (
+            <Typography variant="body2" noWrap title={address}>
+              {address || "-"}
+            </Typography>
+          );
+        },
+      },
+       {
+        key: "city",
+        label: "City",
+        width: "10%",
+        render: (row) => row.city || "-",
       },
       {
         key: "status",
         label: "Status",
-        width: "10%",
+        width: "8%",
         render: (row) => {
           const isActive = row.status === "ACTIVE";
           return (
@@ -95,11 +106,9 @@ export default function TransportDashboard() {
     ],
   };
 
-
   const fetchTransports = useCallback(
     async (uiPage = 1) => {
       const backendPage = uiPage - 1;
-      setLoading(true);
       try {
         const data = await TransportService.getTransports(
           backendPage,
@@ -116,7 +125,6 @@ export default function TransportDashboard() {
         setTotalItems(0);
         showSnackbar(error.message, "error");
       } finally {
-        setLoading(false);
       }
     },
     [rowsPerPage],
@@ -265,7 +273,6 @@ export default function TransportDashboard() {
         <DataTable
           columns={isMobile ? columns.mobile : columns.desktop}
           data={transports}
-          loading={loading}
           onEdit={(transport) => handleEdit(transport)}
           onDelete={(transport) => {
             setTransportToDelete(transport);
@@ -308,11 +315,7 @@ export default function TransportDashboard() {
           setDeleteModalOpen(false);
           setTransportToDelete(null);
         }}
-        onConfirm={() => {
-          handleDelete();
-          setDeleteModalOpen(false);
-          setTransportToDelete(null);
-        }}
+        onConfirm={handleDelete}
       />
 
       <CopyDetailsModal

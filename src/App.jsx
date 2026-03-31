@@ -1,26 +1,62 @@
 import { BrowserRouter } from "react-router-dom";
 import "./App.css";
 import AppRoutes from "./routes/AppRoutes";
+
 import { SnackbarProvider } from "./context/SnackbarContext";
 import { AuthProvider } from "./context/AuthContext";
 import { UnsavedProvider } from "./context/UnsavedChangesContext";
+import { LoaderProvider, useLoader } from "./context/LoaderContext";
 
-function App() {
+import { setLoader } from "./api/api";
+import { useEffect } from "react";
+import GlobalLoader from "./components/common/GlobalLoader";
+
+
+// handles loader + interceptor
+function AppInitializer({ children }) {
+  const loader = useLoader();
+
+  useEffect(() => {
+    setLoader(loader);
+  }, [loader]);
+
+  return (
+    <>
+      {loader.loading && <GlobalLoader />}
+      {children}
+    </>
+  );
+}
+
+
+// All providers
+function AppProviders({ children }) {
   return (
     <UnsavedProvider>
-      
-      <BrowserRouter>
+      <LoaderProvider>
         <SnackbarProvider>
           <AuthProvider>
-            <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white transition-colors">
-              <AppRoutes />
-            </div>
+            {children}
           </AuthProvider>
         </SnackbarProvider>
-      </BrowserRouter>
-
+      </LoaderProvider>
     </UnsavedProvider>
+  );
+}
 
+
+// App
+function App() {
+  return (
+    <BrowserRouter>
+      <AppProviders>
+        <AppInitializer>
+          <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white transition-colors">
+            <AppRoutes />
+          </div>
+        </AppInitializer>
+      </AppProviders>
+    </BrowserRouter>
   );
 }
 

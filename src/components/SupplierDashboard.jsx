@@ -14,7 +14,6 @@ import { getSupplierFormattedText } from "../utils/copyFormatter";
 
 
 export default function SupplierDashboard() {
-  const [loading, setLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [open, setOpen] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
@@ -43,34 +42,30 @@ export default function SupplierDashboard() {
 
   const columns = {
     desktop: [
-      { key: "supplierName", label: "Name", width: "18%" },
-      { key: "supplierGstNo", label: "GST", width: "14%" },
+      { key: "code", label: "Code", width: "8%" },
+      { key: "supplierName", label: "Name", width: "20%" },
+      { key: "supplierGstNo", label: "GST", width: "16%" },
       {
         key: "address",
         label: "Address",
-        width: "26%",
+        width: "32%",
         render: (row) => (
           <Typography
             variant="body2"
             noWrap
             title={row.address}
-            sx={{ maxWidth: 200 }}
+            sx={{ width: "100%" }}
           >
             {row.address || "-"}
           </Typography>
         ),
       },
       { key: "city", label: "City", width: "10%" },
-      {
-        key: "contactPerson",
-        label: "Contact Person",
-        width: "16%",
-        render: (row) => row.contacts?.[0]?.contactPerson || "-",
-      },
+
       {
         key: "mobile",
         label: "Mobile",
-        width: "16%",
+        width: "10%",
         render: (row) => row.contacts?.[0]?.mobileNumber || "-",
       },
     ],
@@ -105,7 +100,6 @@ export default function SupplierDashboard() {
   const fetchSuppliers = useCallback(
     async (uiPage = 1) => {
       const backendPage = uiPage - 1;
-      setLoading(true);
       try {
         const data = await SupplierService.getSuppliers(
           backendPage,
@@ -122,7 +116,6 @@ export default function SupplierDashboard() {
         setTotalItems(0);
         showSnackbar(error.message, "error");
       } finally {
-        setLoading(false);
       }
     },
     [rowsPerPage],
@@ -230,7 +223,6 @@ export default function SupplierDashboard() {
         <DataTable
           columns={isMobile ? columns.mobile : columns.desktop}
           data={suppliers}
-          loading={loading}
           onView={(supplier) => {
             setSelectedSupplier(supplier.id);
             setIsModalOpen(true);
@@ -255,7 +247,7 @@ export default function SupplierDashboard() {
       {/* Modals */}
       {isModalOpen && selectedSupplier && (
         <SupplierDetail
-           supplierId={selectedSupplier}
+          supplierId={selectedSupplier}
           setIsModalOpen={setIsModalOpen}
         />
       )}
@@ -305,11 +297,7 @@ export default function SupplierDashboard() {
           setDeleteModalOpen(false);
           setSupplierToDelete(null);
         }}
-        onConfirm={() => {
-          onConfirm = { handleDelete }
-          setDeleteModalOpen(false);
-          setSupplierToDelete(null);
-        }}
+        onConfirm={handleDelete}
       />
 
     </div>

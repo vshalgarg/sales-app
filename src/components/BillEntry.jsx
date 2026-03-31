@@ -21,6 +21,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import UploadDialog from "./common/UploadDialog";
+import CloseIcon from "@mui/icons-material/Close";
 
 
 const BillEntry = () => {
@@ -988,19 +989,31 @@ const BillEntry = () => {
               className="bg-white w-full h-full md:h-auto md:max-h-[80vh] md:max-w-4xl md:rounded-lg relative overflow-y-auto"
             >
 
-              <div className="flex items-center px-4 py-3 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 sticky top-0 bg-white z-10">
+
+                <div className="flex items-center">
+
+                  <IconButton
+                    onClick={handleAddItemModalClose}
+                    size="small"
+                    className="mr-2 md:!hidden"
+                  >
+                    <ArrowBackIcon />
+                  </IconButton>
+
+                  <h2 className="text-base font-semibold text-gray-800">
+                    {isEditing ? "Edit Bill Item" : "Add Bill Item"}
+                  </h2>
+
+                </div>
 
                 <IconButton
                   onClick={handleAddItemModalClose}
                   size="small"
-                  className="mr-2"
+                  className="!hidden md:!flex"
                 >
-                  <ArrowBackIcon />
+                  <CloseIcon />
                 </IconButton>
-
-                <h2 className="text-base font-semibold text-gray-800">
-                  {isEditing ? "Edit Bill Item" : "Add Bill Item"}
-                </h2>
 
               </div>
 

@@ -10,6 +10,7 @@ import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
 import { getCustomerFormattedText } from "../utils/copyFormatter";
+import { Typography } from "@mui/material";
 
 export default function CustomerDashboard() {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
@@ -20,7 +21,6 @@ export default function CustomerDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const rowsPerPage = 10;
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
@@ -62,36 +62,37 @@ export default function CustomerDashboard() {
   });
 
 
-  const handleCopyDetails = (customer) => {
-    setCustomerToCopy(customer);
-    setCopyModalOpen(true);
-  };
+ const handleCopyDetails = async (customer) => {
+  const customerData = await CustomerService.getCustomerById(customer.id);
+  setCustomerToCopy(customerData.data || customerData);
+  setCopyModalOpen(true);
+};
 
   const columns = {
     desktop: [
-      { key: "customerName", label: "Name", width: "18%" },
-      { key: "customerGstNo", label: "GST", width: "14%" },
+      { key: "code", label: "Code", width: "8%" },
+      { key: "customerName", label: "Name", width: "20%" },
+      { key: "customerGstNo", label: "GST", width: "16%" },
       {
         key: "address",
         label: "Address",
-        width: "26%",
+        width: "32%",
         render: (row) => (
-          <div className="truncate max-w-[200px]" title={row.address}>
-            {row.address || "-"}
-          </div>
-        ),
+        <Typography
+          variant="body2"
+          noWrap
+          title={row.address}
+          sx={{ width: "100%" }}
+        >
+          {row.address || "-"}
+        </Typography>
+      ),
       },
       { key: "city", label: "City", width: "10%" },
-      {
-        key: "contactPerson",
-        label: "Contact Person",
-        width: "16%",
-        render: (row) => row.contacts?.[0]?.contactPerson || "-",
-      },
       { 
         key: "mobile",
         label: "Mobile",
-        width: "16%",
+        width: "10%",
         render: (row) => row.contacts?.[0]?.mobileNumber || "-",
       },
     ],
@@ -104,7 +105,6 @@ export default function CustomerDashboard() {
   const fetchCustomers = useCallback(
     async (uiPage = 1) => {
       const backendPage = uiPage - 1;
-      setLoading(true);
       try {
         const data = await CustomerService.getCustomers(
           backendPage,
@@ -121,7 +121,6 @@ export default function CustomerDashboard() {
         setTotalItems(0);
         showSnackbar(error.message, "error");
       } finally {
-        setLoading(false);
       }
     },
     [rowsPerPage],
@@ -251,7 +250,6 @@ export default function CustomerDashboard() {
         <DataTable
           columns={isMobile ? columns.mobile : columns.desktop}
           data={customers}
-          loading={loading}
           onView={(customer) => {
             setSelectedCustomer(customer);
             setModalOpen(true);
@@ -318,11 +316,7 @@ export default function CustomerDashboard() {
           setDeleteModalOpen(false);
           setCustomerToDelete(null);
         }}
-        onConfirm={() => {
-          handleDelete(customerToDelete.customerId);
-          setDeleteModalOpen(false);
-          setCustomerToDelete(null);
-        }}
+        onConfirm={handleDelete}
       />
 
       {copyModalOpen && (

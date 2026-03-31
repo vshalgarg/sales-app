@@ -20,19 +20,21 @@ const CreditHistory = ({
 
   const columns = {
     desktop: [
-      { key: "billNumber", label: "Invoice Number" },
+      { key: "billNumber", width: "12%", label: "Invoice Number" },
       {
         key: "date",
         label: "Date",
+        width: "10%",
         render: (row) =>
           row.date ? dayjs(row.date).format("DD-MM-YYYY") : "-",
       },
-      { key: "paymentType", label: "Payment Type" },
+      { key: "paymentType",width: "12%", label: "Payment Type" },
       { key: "supplierName", label: "Supplier" },
       { key: "customerName", label: "Customer" },
-      { key: "referenceNumber", label: "Reference No" },
+      { key: "referenceNumber", width: "16%", label: "Reference No" },
       {
         key: "receivedAmount",
+        width: "8%",
         label: "Amount",
         render: (row) =>
           row.receivedAmount != null

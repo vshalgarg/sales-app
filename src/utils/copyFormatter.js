@@ -41,16 +41,8 @@ export const convertHtmlToWhatsApp = (html) => {
 };
 
 export const getSupplierFormattedText = (supplier) => {
-  const mobileNumbers = supplier?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.mobileNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
 
+  const mobileNumbers = formatContacts(supplier?.contacts);
   const transports = supplier?.preferredTransports
     ?.map(t => t.name)
     ?.filter(Boolean)
@@ -73,23 +65,15 @@ export const getSupplierFormattedText = (supplier) => {
     "Contacts": mobileNumbers,
     "Emails": supplier?.email,
     "Transports": transports,
-    "GST No": supplier?.supplierGstNo || supplier?.gstNo || "-"
-  });
+    "GST No": supplier?.supplierGstNo || supplier?.gstNo
+  }
+  );
 };
 
 
 export const getCustomerFormattedText = (customer) => {
 
-  const mobileNumbers = customer?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.mobileNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
-
+  const mobileNumbers = formatContacts(customer?.contacts)
   const fullAddress = cleanText([
     customer?.addressLine1 || customer?.address,
     customer?.addressLine2,
@@ -107,27 +91,19 @@ export const getCustomerFormattedText = (customer) => {
     ?.join(", ");
 
   return formatDetails({
-    "Firm Name": customer?.customerName || "-",
-    "Address": fullAddress || "-",
+    "Firm Name": customer?.customerName,
+    "Address": fullAddress,
     "Contacts": mobileNumbers,
     "Emails": customer?.email,
     "Transports": transports,
-    "GST No": customer?.customerGstNo || "-"
-  });
+    "GST No": customer?.gstNo
+  }
+  );
 };
 
 export const getTransportFormattedText = (transport) => {
 
-  const mobileNumbers = transport?.contacts
-    ?.map(contact => {
-      const name = contact?.contactPerson || "Unknown";
-      const number = contact?.contactNumber || "";
-      if (!name && !number) return null;
-      return `${name} - ${number}`;
-    })
-    ?.filter(Boolean)
-    ?.join(", ") || "-";
-
+  const mobileNumbers = formatContacts(transport?.contacts, "contactNumber");
   const fullAddress = cleanText([
     transport?.addressLine1,
     transport?.addressLine2,
@@ -140,9 +116,28 @@ export const getTransportFormattedText = (transport) => {
   );
 
   return formatDetails({
-    "Firm Name": transport?.name || "-",
-    "Address": fullAddress || "-",
+    "Firm Name": transport?.name,
+    "Address": fullAddress,
     "Contacts": mobileNumbers,
-    "GST No": transport?.gstNo || "-"
-  });
+    "GST No": transport?.gstNo
+  }
+  );
+};
+
+export const formatContacts = (contacts, numberKey = "mobileNumber") => {
+  return contacts
+    ?.map(contact => {
+      const name = contact?.contactPerson?.trim() || "";
+      const number = contact?.[numberKey]?.trim() || "";
+
+      if (!name && !number) return null;
+
+      if (name && number) return `${name} - ${number}`;
+      if (number) return number;
+      if (name) return name;
+
+      return null;
+    })
+    ?.filter(Boolean)
+    ?.join(", ");
 };

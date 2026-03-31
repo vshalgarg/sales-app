@@ -76,7 +76,7 @@ export default function Navbar({
        p-3 w-full bg-white dark:bg-zinc-900 
        shadow border-b border-gray-300 dark:border-gray-700 
         transition-colors
-    relative z-50
+    relative z-40
 "
       >
         {/* Left: App Title + Section Buttons */}
