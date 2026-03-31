@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -30,28 +29,13 @@ public interface TransportRepository extends JpaRepository<TransportEntity, Inte
           Pageable pageable
   );
 
-  // List<TransportEntity> findAllByIsActiveTrueOrderByNameAsc();
   // Exact match (case-insensitive)
   boolean existsByNameIgnoreCase(String name);
 
   Optional<TransportEntity> findByNameIgnoreCase(String name);
 
   // only ACTIVE + INACTIVE (DELETE exclude)
-    Page<TransportEntity> findAllByStatusNot(StatusEnum statusEnum, Pageable pageable);
-
-
-  boolean existsByGstNoIgnoreCase(String gst);
-
+  Page<TransportEntity> findAllByStatusNot(StatusEnum statusEnum, Pageable pageable);
 
   boolean existsByNameIgnoreCaseAndIdNot(String name, Integer excludeId);
-
-  boolean existsByGstNoIgnoreCaseAndIdNot(String gst, Integer excludeId);
-
-    boolean existsByEmail(String email);
-
-  boolean existsByEmailAndIdNot(String email, Integer excludeId);
-
-  boolean existsByGstNo(String gst);
-
-  boolean existsByGstNoAndIdNot(String gst, Integer excludeId);
 }
