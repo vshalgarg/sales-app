@@ -38,8 +38,6 @@ export default function CreditEntryForm() {
 
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
-  const [supplierLoading, setSupplierLoading] = useState(true);
-  const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [userTouched, setUserTouched] = useState(false);
   const { setIsDirty } = useUnsaved();
@@ -61,20 +59,14 @@ export default function CreditEntryForm() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setSupplierLoading(true);
         const suppliers = await SupplierService.getAllSuppliers();
         setAllSuppliers(suppliers || []);
-        setSupplierLoading(false);
 
-        setCustomerLoading(true);
         const customers = await CustomerService.getAllCustomers();
         setAllCustomers(customers || []);
-        setCustomerLoading(false);
       } catch (err) {
         console.error(err);
         showSnackbar("Error loading suppliers/customers", "error");
-        setSupplierLoading(false);
-        setCustomerLoading(false);
       }
     };
 
@@ -321,7 +313,6 @@ export default function CreditEntryForm() {
               <GenericAutocomplete
                 options={customerOptions}
                 value={customerOptions.find(c => c.id === formData.customerId) || null}
-                loading={customerLoading}
                 label="Customer"
                 required={true}
                 error={!!errors.customerName}
@@ -341,7 +332,6 @@ export default function CreditEntryForm() {
               <GenericAutocomplete
                 options={supplierOptions}
                 value={supplierOptions.find(s => s.id === formData.supplierId) || null}
-                loading={supplierLoading}
                 label="Supplier"
                 required={true}
                 error={!!errors.supplierName}

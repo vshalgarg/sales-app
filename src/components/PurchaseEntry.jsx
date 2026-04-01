@@ -23,9 +23,6 @@ const PurchaseEntry = () => {
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
 
-  const [staffLoading, setStaffLoading] = useState(true);
-  const [supplierLoading, setSupplierLoading] = useState(true);
-  const [customerLoading, setCustomerLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [openUploader, setOpenUploader] = useState(false);
   const [activeSupplierIndex, setActiveSupplierIndex] = useState(null);
@@ -72,28 +69,18 @@ const PurchaseEntry = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        setStaffLoading(true);
         const staffs = await getAllActiveStaffs();
         setAllStaffs(staffs || []);
-        setStaffLoading(false);
 
-        setSupplierLoading(true);
         const suppliers = await SupplierService.getAllSuppliers();
         setAllSuppliers(suppliers || []);
-        setSupplierLoading(false);
 
-        setCustomerLoading(true);
         const customers = await CustomerService.getAllCustomers();
         setAllCustomers(customers || []);
-        setCustomerLoading(false);
       } catch (err) {
         console.error("Error loading data:", err);
         showSnackbar("Failed to load data", "error");
-      } finally {
-        setStaffLoading(false);
-        setSupplierLoading(false);
-        setCustomerLoading(false);
-      }
+      } 
     };
 
     fetchAllData();
@@ -307,7 +294,6 @@ const PurchaseEntry = () => {
               <GenericAutocomplete
                 options={customerOptions}
                 value={customerOptions.find(c => c.id === formData.customerId) || null}
-                loading={customerLoading}
                 label="Customer"
                 required={true}
                 error={!!errors.customerId}
@@ -326,7 +312,6 @@ const PurchaseEntry = () => {
               <GenericAutocomplete
                 options={staffOptions}
                 value={staffOptions.find(s => s.id === formData.staffId) || null}
-                loading={staffLoading}
                 label="Staff"
                 error={!!errors.staff}
                 helperText={errors.staff || ""}
@@ -398,7 +383,6 @@ const PurchaseEntry = () => {
                         s => s.id === suppliers[index]?.supplierId
                       ) || null
                     }
-                    loading={supplierLoading}
                     label="Supplier"
                     required={index === 0}
                     error={index === 0 && !!errors.supplierIds}
