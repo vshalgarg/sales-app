@@ -1,25 +1,19 @@
 package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.request.AddStaffRequestDto;
-import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.DeleteStaffRequestDto;
 import com.code.monks.csm.dto.request.UpdateStaffRequestDto;
 import com.code.monks.csm.dto.response.*;
-import com.code.monks.csm.entity.ContactEntity;
-import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.StaffEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.DuplicateEntryException;
-import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.exception.StaffException;
 import com.code.monks.csm.repository.StaffRepo;
 import com.code.monks.csm.service.StaffService;
-import com.code.monks.csm.utils.ContactUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

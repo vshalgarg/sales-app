@@ -4,6 +4,8 @@ import com.code.monks.csm.dto.request.AddSupplierRequestDto;
 import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.GetSupplierByIdResponseDto;
+import com.code.monks.csm.dto.response.SupplierListResponseDto;
+import com.code.monks.csm.dto.response.SupplierSummaryDto;
 import com.code.monks.csm.dto.response.TransportDto;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.SupplierEntity;
@@ -14,8 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class SupplierMapper {
@@ -181,5 +185,32 @@ public class SupplierMapper {
                 .contacts(contacts)
                 .preferredTransports(transportDtos)
                 .build();
+    }
+
+    public SupplierListResponseDto toListDto(SupplierEntity record) {
+
+        String mobile = Optional.ofNullable(record.getContactList())
+                .orElse(Collections.emptyList())
+                .stream()
+                .findFirst()
+                .map(ContactEntity::getMobileNumber)
+                .orElse(null);
+
+        return new SupplierListResponseDto(
+                record.getId(),
+                record.getCode(),
+                record.getSupplierName(),
+                record.getGstNo(),
+                formatAddress(record),
+                record.getCity(),
+                mobile
+        );
+    }
+
+    private String formatAddress(SupplierEntity record) {
+        return Stream.of(record.getAddressLine1(), record.getAddressLine2())
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.joining(" "));
     }
 }

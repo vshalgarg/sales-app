@@ -12,12 +12,10 @@ import java.util.List;
 
 public interface SupplierService {
     AddSupplierResponseDto addSupplier(AddSupplierRequestDto requestDto);
-    PagedResponseDto<GetSuppliersDto> getSuppliers(int page, int size);
+    PagedResponseDto<SupplierListResponseDto> getSuppliers(int page, int size);
     DeleteSupplierResponseDto deleteSupplier(DeleteSupplierRequestDto requestDto);
-    List<SearchSuppliersResponseDto> searchSuppliers(String keyword);
-    Page<SearchSuppliersResponseDto> searchSuppliers(String keyword, Pageable pageable);
-
-    List<GetSuppliersDto> getAllSuppliers();
+    PagedResponseDto<SupplierListResponseDto> searchSuppliers(String keyword, Pageable pageable);
+    List<SupplierSummaryDto> getAllSuppliers();
     void updateSupplier(Integer id, UpdateSupplierRequestDto request);
     GetSupplierByIdResponseDto getSupplierById(Integer id);
 

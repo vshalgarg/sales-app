@@ -4,7 +4,6 @@ import com.code.monks.csm.client.AuthRestClient;
 import com.code.monks.csm.dto.auth.request.AuthChangePasswordReqDTO;
 import com.code.monks.csm.dto.auth.response.AuthChangePasswordResponseDTO;
 import com.code.monks.csm.dto.request.ChangePasswordRequestDTO;
-import com.code.monks.csm.dto.response.LoginResponseDto;
 import com.code.monks.csm.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
