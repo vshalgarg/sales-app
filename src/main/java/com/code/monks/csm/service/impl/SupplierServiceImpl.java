@@ -127,8 +127,13 @@ public class SupplierServiceImpl implements SupplierService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
-        Page<SupplierListResponseDto> records =
+        Page<SupplierEntity> records =
                 supplierRepo.findSupplierList(StatusEnum.ACTIVE, pageable);
+
+        List<SupplierListResponseDto> content = records.getContent()
+                .stream()
+                .map(supplierMapper::toListDto)
+                .toList();
 
         log.info("[SUPPLIER LIST] Fetch successful | page={} | size={} | fetchedRecords={} | totalRecords={}",
                 page,
@@ -138,7 +143,7 @@ public class SupplierServiceImpl implements SupplierService {
         );
 
         return PagedResponseDto.<SupplierListResponseDto>builder()
-                .content(records.getContent())
+                .content(content)
                 .page(records.getNumber() + 1)
                 .size(records.getSize())
                 .totalElements(records.getTotalElements())

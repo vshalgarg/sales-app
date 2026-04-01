@@ -80,23 +80,11 @@ ORDER BY s.supplierName
 """)
     List<SupplierSummaryDto> findAllSummary();
 
+    @EntityGraph(attributePaths = {"contactList"})
     @Query("""
-SELECT new com.code.monks.csm.dto.response.SupplierListResponseDto(
-    s.id,
-    s.code,
-    s.supplierName,
-    s.gstNo,
-    CONCAT(s.addressLine1, ' ', s.addressLine2),
-    s.city,
-    c.mobileNumber
-)
-FROM SupplierEntity s
-LEFT JOIN s.contactList c
+SELECT s FROM SupplierEntity s
 WHERE s.status = :status
-AND c.id = (
-    SELECT MIN(c2.id) FROM ContactEntity c2 WHERE c2.supplier = s
-)
 """)
-    Page<SupplierListResponseDto> findSupplierList(StatusEnum status, Pageable pageable);
+    Page<SupplierEntity> findSupplierList(StatusEnum status, Pageable pageable);
 
 }
