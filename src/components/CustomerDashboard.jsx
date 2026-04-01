@@ -62,11 +62,16 @@ export default function CustomerDashboard() {
   });
 
 
- const handleCopyDetails = async (customer) => {
-  const customerData = await CustomerService.getCustomerById(customer.id);
-  setCustomerToCopy(customerData.data || customerData);
-  setCopyModalOpen(true);
-};
+  const handleCopyDetails = async (customer) => {
+    try {
+      const customerData = await CustomerService.getCustomerById(customer.id);
+      setCustomerToCopy(customerData.data || customerData);
+      setCopyModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching customer details:", error);
+      showSnackbar(error.message, "error");
+    }
+  };
 
   const columns = {
     desktop: [
@@ -78,18 +83,18 @@ export default function CustomerDashboard() {
         label: "Address",
         width: "32%",
         render: (row) => (
-        <Typography
-          variant="body2"
-          noWrap
-          title={row.address}
-          sx={{ width: "100%" }}
-        >
-          {row.address || "-"}
-        </Typography>
-      ),
+          <Typography
+            variant="body2"
+            noWrap
+            title={row.address}
+            sx={{ width: "100%" }}
+          >
+            {row.address || "-"}
+          </Typography>
+        ),
       },
       { key: "city", label: "City", width: "10%" },
-      { 
+      {
         key: "mobile",
         label: "Mobile",
         width: "10%",

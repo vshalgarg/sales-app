@@ -35,10 +35,16 @@ export default function SupplierDashboard() {
   const [supplierToCopy, setSupplierToCopy] = useState(null);
 
 
-  const handleCopyDetails = (supplier) => {
-    setSupplierToCopy(supplier);
+  const handleCopyDetails = async (supplier) => {
+  try {
+    const response = await SupplierService.getSupplierById(supplier.id);
+    setSupplierToCopy(response.data);
     setCopyModalOpen(true);
-  };
+  } catch (error) {
+    console.error("Error fetching supplier details:", error);
+    showSnackbar(error.message, "error");
+  }
+};
 
   const columns = {
     desktop: [
@@ -66,7 +72,7 @@ export default function SupplierDashboard() {
         key: "mobile",
         label: "Mobile",
         width: "10%",
-        render: (row) => row.contacts?.[0]?.mobileNumber || "-",
+        render: (row) => row.mobile || "-",
       },
     ],
     mobile: [
@@ -235,14 +241,14 @@ export default function SupplierDashboard() {
             setSupplierToDelete(supplier);
             setDeleteModalOpen(true);
           }}
-          onCopy={handleCopyDetails}
-          emptyMessage="No suppliers found"
-          page={currentPage}
-          totalCount={totalItems}
-          rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
-        />
-      </div>
+            onCopy={handleCopyDetails}
+            emptyMessage="No suppliers found"
+            page={currentPage}
+            totalCount={totalItems}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handleChangePage}
+          />
+        </div>
 
       {/* Modals */}
       {isModalOpen && selectedSupplier && (

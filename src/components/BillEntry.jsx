@@ -41,11 +41,8 @@ const BillEntry = () => {
   const [billEntry, setBillEntry] = useState();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [transportLoading, setTransportLoading] = useState(false);
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
-  const [supplierLoading, setSupplierLoading] = useState(true);
-  const [customerLoading, setCustomerLoading] = useState(true);
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentEditIndex, setCurrentEditIndex] = useState(null);
@@ -83,25 +80,17 @@ const BillEntry = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setSupplierLoading(true);
         const suppliers = await SupplierService.getAllSuppliers();
         setAllSuppliers(suppliers || []);
-        setSupplierLoading(false);
 
-        setCustomerLoading(true);
         const customers = await CustomerService.getAllCustomers();
         setAllCustomers(customers || []);
-        setCustomerLoading(false);
 
-        setTransportLoading(true);
         const transports = await TransportService.getAllTransports();
         setAllTransports(transports || []);
-        setTransportLoading(false);
       } catch (err) {
         console.error(err);
         showSnackbar("Error loading  data", "error");
-        setSupplierLoading(false);
-        setCustomerLoading(false);
       }
     };
     fetchData();
