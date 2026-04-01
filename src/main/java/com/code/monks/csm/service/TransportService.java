@@ -3,6 +3,7 @@ package com.code.monks.csm.service;
 import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
 import com.code.monks.csm.dto.response.CommonTransportResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
+import com.code.monks.csm.dto.response.TransportLiteResponseDto;
 import com.code.monks.csm.dto.response.TransportResponseDto;
 import com.code.monks.csm.entity.TransportEntity;
 import org.springframework.data.domain.Page;
@@ -15,8 +16,8 @@ public interface TransportService {
 
     PagedResponseDto<TransportResponseDto> searchTransports(String query, Pageable pageable);
     TransportEntity getOrCreateTransport(String transportName);
-    List<TransportResponseDto> getAll();
-    Page<TransportResponseDto> getAllTransports(int page, int size);
+    List<TransportLiteResponseDto> getAll();
+    PagedResponseDto<TransportResponseDto> getAllTransports(int page, int size);
 
     CommonTransportResponseDto update(Integer id, CreateAndUpdateTransportRequest request);
     CommonTransportResponseDto add(CreateAndUpdateTransportRequest request);

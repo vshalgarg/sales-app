@@ -1,10 +1,7 @@
 package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
-import com.code.monks.csm.dto.response.CommonTransportResponseDto;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.TransportContactResponseDto;
-import com.code.monks.csm.dto.response.TransportResponseDto;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.TransportContactEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
@@ -216,28 +213,16 @@ public class TransportServiceImpl implements TransportService {
     }
 
     @Override
-    public List<TransportResponseDto> getAll() {
+    public List<TransportLiteResponseDto> getAll() {
 
         log.info("Fetching all transport records...");
-
-        List<TransportEntity> transportList =
-                transportRepository.findAll(
-                        Sort.by(Sort.Direction.DESC, "id")
-                );
-
+        List<TransportLiteResponseDto> transportList  = transportRepository.findAllLite();
         log.info("Successfully fetched {} transport records", transportList.size());
-
-        List<TransportResponseDto> result =
-                transportList.stream()
-                        .map(this::convertToResponseDto)
-                        .toList();
-
-        log.info("Successfully mapped {} transport records", result.size());
-        return result;
+        return transportList;
     }
 
     @Override
-    public Page<TransportResponseDto> getAllTransports(int page, int size) {
+    public PagedResponseDto<TransportResponseDto> getAllTransports(int page, int size) {
 
         log.info("Fetching transports with pagination (page={}, size={})", page, size);
 
@@ -247,18 +232,25 @@ public class TransportServiceImpl implements TransportService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
-        Page<TransportEntity> transportPage =
-                transportRepository.findAllByStatusNot(
-                        StatusEnum.DELETE,
-                        pageable
-                );
+        Page<TransportEntity> transportList =
+                transportRepository.findAllActive(StatusEnum.ACTIVE, pageable);
 
-        log.info("Found {} transports", transportPage.getTotalElements());
+        List<TransportResponseDto> content = transportList.getContent()
+                .stream()
+                .map(this::convertToResponseDto)
+                .toList();
 
-        return transportPage.map(this::convertToResponseDto);
+        log.info("Found {} transports", transportList.getTotalElements());
+
+        return PagedResponseDto.<TransportResponseDto>builder()
+                .content(content)
+                .page(transportList.getNumber() + 1)
+                .size(transportList.getSize())
+                .totalElements(transportList.getTotalElements())
+                .totalPages(transportList.getTotalPages())
+                .last(transportList.isLast())
+                .build();
     }
-
-
 
     private TransportResponseDto convertToResponseDto(TransportEntity t) {
 

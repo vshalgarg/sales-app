@@ -4,6 +4,7 @@ import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +25,7 @@ public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
 
     Page<CustomerEntity> findAllByStatus(Pageable pageable, StatusEnum status);
 
+    @EntityGraph(attributePaths = {"contactList"})
     @Query(
             value = """
         SELECT DISTINCT c FROM CustomerEntity c

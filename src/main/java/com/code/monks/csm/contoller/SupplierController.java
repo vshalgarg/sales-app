@@ -40,24 +40,20 @@ public class SupplierController {
   }
 
   @GetMapping(GET_SUPPLIERS)
-  public ResponseEntity<PagedResponseDto<GetSuppliersDto>> getSuppliers(
+  public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> getSuppliers(
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "8") int size
   ) {
-    log.info("GET {} called to retrieve suppliers", GET_SUPPLIERS);
-
-      PagedResponseDto<GetSuppliersDto> response = supplierService.getSuppliers(page, size);
-
-    log.info("Retrieved {} suppliers successfully", response.getContent().size());
+      PagedResponseDto<SupplierListResponseDto> response = supplierService.getSuppliers(page, size);
     return ResponseEntity.ok(response);
   }
 
     @GetMapping(GET_SUPPLIERS_V2)
-    public ResponseEntity<List<GetSuppliersDto>> getAllSuppliers(
+    public ResponseEntity<List<SupplierSummaryDto>> getAllSuppliers(
     ) {
         log.info("GET {} called to retrieve suppliers.", GET_SUPPLIERS);
 
-        List<GetSuppliersDto> response = supplierService.getAllSuppliers();
+        List<SupplierSummaryDto> response = supplierService.getAllSuppliers();
 
         log.info("Retrieved {} suppliers successfully.", response.size());
         return ResponseEntity.ok(response);
@@ -75,7 +71,7 @@ public class SupplierController {
   }
 
       @GetMapping(SEARCH_SUPPLIERS_V2)
-      public ResponseEntity<Page<SearchSuppliersResponseDto>> searchSuppliers(
+      public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> searchSuppliers(
               @RequestParam(required = false) String keyword,
               @RequestParam(defaultValue = "0") int page,
               @RequestParam(defaultValue = "10") int size,
@@ -85,15 +81,9 @@ public class SupplierController {
       ){
           Pageable pageable = PageRequest.of(page, size,
                   Sort.Direction.fromString(sortDir), sortBy);
-          Page<SearchSuppliersResponseDto> response = supplierService.searchSuppliers(keyword, pageable);
+          PagedResponseDto<SupplierListResponseDto> response = supplierService.searchSuppliers(keyword, pageable);
           return ResponseEntity.ok(response);
       }
-
-    @GetMapping(SEARCH_SUPPLIERS)
-    public ResponseEntity<List<SearchSuppliersResponseDto>> searchSuppliers(@RequestParam String keyword){
-        List<SearchSuppliersResponseDto> response = supplierService.searchSuppliers(keyword);
-        return ResponseEntity.ok(response);
-    }
 
     @PutMapping(UPDATE_SUPPLIER)
     public ResponseEntity<ApiResponse<?>> update(
