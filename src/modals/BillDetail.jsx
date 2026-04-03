@@ -2,18 +2,36 @@ import DataTable from "../components/DataTable";
 import useResponsive from "../customHooks/useResponsive";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
 import { roundUp } from "../utils/numberUtils";
+import { getBillDetails } from "../service/BillService";
 
-const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
+const BillDetail = ({ billNumber, setIsModalOpen }) => {
 
+  const [selectedBillDetail, setSelectedBillDetail] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
+
+  useEffect(() => {
+  const fetchBillDetails = async () => {
+    if (!billNumber) return;
+
+    try {
+      const data = await getBillDetails(billNumber);
+      setSelectedBillDetail(data);
+    } catch (err) {
+      console.error("Error fetching bill details:", err.message);
+    }
+  };
+
+  fetchBillDetails();
+}, [billNumber]);
+
 
   const Section = ({ title, children }) => (
     <div>
@@ -40,9 +58,7 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
   );
 
 
-  if (!selectedBillDetail) return null;
-
-  const { items = [], ...header } = selectedBillDetail;
+ const { items = [], ...header } = selectedBillDetail || {};
 
   const { isMobile } = useResponsive();
 
@@ -106,6 +122,8 @@ const BillDetail = ({ selectedBillDetail, setIsModalOpen }) => {
     link.remove();
     window.URL.revokeObjectURL(blobUrl);
   };
+
+  if (!selectedBillDetail) return <div className="p-6">No data found</div>;
 
   return (
     <>

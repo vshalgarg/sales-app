@@ -35,7 +35,6 @@ const UpdateCustomerModal = ({
     const [errors, setErrors] = useState({ contacts: [{}] });
     const [allTransports, setAllTransports] = useState([]);
     const [selectedTransports, setSelectedTransports] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
     const { isDirty } = useUnsavedChanges(form, open && isLoaded);
@@ -48,8 +47,6 @@ const UpdateCustomerModal = ({
 
         const fetchCustomer = async () => {
             try {
-                setLoading(true);
-
                 const response = await CustomerService.getCustomerById(customerId);
                 const data = response.data || response;
 
@@ -80,9 +77,7 @@ const UpdateCustomerModal = ({
                 setIsLoaded(true);
 
             } catch (err) {
-                showSnackbar("Failed to load customer", "error");
-            } finally {
-                setLoading(false);
+                showSnackbar(err.message || "Failed to load customer", "error");
             }
         };
 
@@ -178,6 +173,7 @@ const UpdateCustomerModal = ({
     };
 
     if (!open) return null;
+    if (!isLoaded) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -199,12 +195,6 @@ const UpdateCustomerModal = ({
                 </div>
 
                 {/* BODY */}
-                {loading ? (
-                    <div className="flex-1 flex items-center justify-center">
-                        <CircularProgress />
-                    </div>
-                ) : (
-
                     <div className="px-6 py-4 overflow-y-auto flex-1 space-y-8">
 
                         {/* ================= BASIC INFORMATION ================= */}
@@ -499,8 +489,6 @@ const UpdateCustomerModal = ({
                         </div>
 
                     </div>
-                )}
-
                 {/* FOOTER */}
                 <FormFooter>
                     {/* Update */}

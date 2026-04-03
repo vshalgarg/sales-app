@@ -9,42 +9,32 @@ import { Tooltip } from "@mui/material";
 import CopyDetailsModal from "../components/common/CopyDetailsModal";
 import { getCustomerFormattedText } from "../utils/copyFormatter";
 import CustomerService from "../service/CustomerService";
+import { useSnackbar } from "../context/SnackbarContext";
 
 const CustomerDetail = ({ customerId, setModalOpen }) => {
 
   const [customer, setCustomer] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     if (!customerId) return;
 
     const fetchCustomer = async () => {
       try {
-        setLoading(true);
-
         const response = await CustomerService.getCustomerById(customerId);
         const data = response.data || response;
 
         setCustomer(data);
       } catch (err) {
         console.error("Failed to fetch customer details:", err);
-      } finally {
-        setLoading(false);
+        showSnackbar(err?.message || "Failed to load customer", "error");
       }
     };
-
     fetchCustomer();
   }, [customerId]);
 
-
-  if (loading) {
-    return <div className="p-6">Loading supplier details...</div>;
-  }
-
-  if (!customer) {
-    return <div className="p-6">No data found</div>;
-  }
+  if (!customer) return null;
 
   return (
     <>
@@ -78,8 +68,6 @@ const CustomerDetail = ({ customerId, setModalOpen }) => {
             </div>
 
           </div>
-
-
 
           <div className="px-6 py-2 md:py-4 overflow-y-auto flex-1 space-y-4 md:space-y-6">
             {/* Section: Basic Information */}

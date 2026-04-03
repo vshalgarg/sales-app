@@ -330,7 +330,7 @@ const Bills = () => {
       {/* ================= VIEW BILL MODAL ================= */}
       {isModalOpen && selectedBillDetail && (
         <BillDetail
-          selectedBillDetail={selectedBillDetail}
+          billNumber={selectedBillDetail.billNumber}
           setIsModalOpen={setIsModalOpen}
         />
       )}
@@ -339,7 +339,7 @@ const Bills = () => {
       {open && selectedBillDetail && (
         <EditBillDetail
           open={open}
-          selectedBillDetail={selectedBillDetail}
+          billNumber={selectedBillDetail.billNumber}
           setOpen={setOpen}
           onUpdateSuccess={() => {
             setOpen(false);
