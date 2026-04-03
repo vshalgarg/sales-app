@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class SearchBillEntryResponse {
+public class BillDetailResponseDto {
     private Integer id;
     private String billNumber;
     private LocalDate date;
