@@ -8,13 +8,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public interface BillService {
     BillEntryResponseDto addBill(BillEntryRequestDto requestDto, List<MultipartFile> images);
-    List<GetBillEntries> getBillEntries();
     EditBillEntryResponse updateBill(Integer id, BillUpdateRequest request, List<MultipartFile> images);
-    PagedResponseDto<SearchBillEntryResponse> searchBillHistory(
+    PagedResponseDto<BillListResponseDto> searchBillHistory(
             LocalDate fromDate,
             LocalDate toDate,
             Integer supplierId,
@@ -23,4 +21,5 @@ public interface BillService {
             int size);
 
     Map<String, Object> deleteBillEntry(String billNumber);
+    BillDetailResponseDto getBillDetail(String findByBillNumber);
 }

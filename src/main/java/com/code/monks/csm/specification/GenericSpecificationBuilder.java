@@ -1,5 +1,6 @@
 package com.code.monks.csm.specification;
 
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -39,7 +40,7 @@ public class GenericSpecificationBuilder<T> {
     public GenericSpecificationBuilder<T> joinEqual(String joinField, String field, Object value) {
         if (value != null) {
             spec = spec.and((root, query, cb) ->
-                    cb.equal(root.join(joinField).get(field), value));
+                    cb.equal(root.join(joinField, JoinType.LEFT).get(field), value));
         }
         return this;
     }

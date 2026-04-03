@@ -49,18 +49,6 @@ public class BillEntryController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(GET_BILL_ENTRIES)
-    public ResponseEntity<List<GetBillEntries>> getBillEntries() {
-        log.info("Received request to get all bill entries");
-
-        List<GetBillEntries> billEntries = billService.getBillEntries();
-
-        log.info("Fetched {} bill entries", billEntries.size());
-
-        return ResponseEntity.ok(billEntries);
-    }
-
-
     @PatchMapping(
             value = UPDATE_BILL_ENTRY,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -79,7 +67,7 @@ public class BillEntryController {
     }
 
     @GetMapping(SEARCH_BILL_ENTRY)
-    public ResponseEntity<PagedResponseDto<SearchBillEntryResponse>> getBillHistory(
+    public ResponseEntity<PagedResponseDto<BillListResponseDto>> getBillHistory(
             @RequestParam(required = false)
             @DateTimeFormat(pattern = "yyyy-MM-dd")
             LocalDate fromDate,
@@ -97,7 +85,7 @@ public class BillEntryController {
             return ResponseEntity.badRequest().build();
         }
 
-        PagedResponseDto<SearchBillEntryResponse> history = billService.searchBillHistory(
+        PagedResponseDto<BillListResponseDto> history = billService.searchBillHistory(
                 fromDate,
                 toDate,
                 supplierId,
@@ -116,4 +104,9 @@ public class BillEntryController {
        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping(GET_BILL_DETAILS)
+    public ResponseEntity<BillDetailResponseDto> getBillDetail(@PathVariable String billNumber) {
+        BillDetailResponseDto response = billService.getBillDetail(billNumber);
+        return ResponseEntity.ok(response);
+    }
 }
