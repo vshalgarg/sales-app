@@ -7,7 +7,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import validate from "../validations/Validation";
 import { useSnackbar } from "../context/SnackbarContext";
-import { updateBillApi } from "../service/BillService";
+import { getBillDetails, updateBillApi } from "../service/BillService";
 import { Trash2 } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
@@ -28,7 +28,7 @@ import ConfirmDialog from "../components/common/ConfirmDialog";
 import CloseIcon from "@mui/icons-material/Close";
 
 
-const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) => {
+const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
   const { showSnackbar } = useSnackbar();
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [pendingTransportName, setPendingTransportName] = useState("");
@@ -41,6 +41,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTransport, setSelectedTransport] = useState(null);
+  const [selectedBillDetail, setSelectedBillDetail] = useState(null);
 
   // ===== LOADING =====
   const [loading, setLoading] = useState({
@@ -98,6 +99,23 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
     loadMasterData();
   }, []);
+
+  useEffect(() => {
+    const fetchBill = async () => {
+      try {
+        const data = await getBillDetails(billNumber);
+        setSelectedBillDetail(data);
+
+      } catch (err) {
+        showSnackbar(err.message || "Failed to load bill details", "error");
+        setOpen(false);
+      }
+    };
+
+    if (open && billNumber) {
+      fetchBill();
+    }
+  }, [open, billNumber]);
 
   useEffect(() => {
     if (isMobile && itemAdded && lastItemRef.current) {
@@ -170,20 +188,23 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
 
   useEffect(() => {
     if (open && selectedBillDetail) {
-      setExistingImages(
-        (selectedBillDetail.objectKeys || []).map((key, index) => ({
-          id: key,
-          key: key,
-          url: selectedBillDetail.publicUrls[index],
-          fileName: selectedBillDetail.originalFileNames?.[index],
-          type: selectedBillDetail.publicUrls[index]?.endsWith(".pdf")
-            ? "application/pdf"
-            : "image"
-        }))
-      );
+
+      const keys = selectedBillDetail.objectKeys || [];
+      const urls = selectedBillDetail.publicUrls || [];
+      const names = selectedBillDetail.originalFileNames || [];
+      const mappedImages = keys.map((key, index) => ({
+        id: key,
+        key: key,
+        url: urls[index] || "",
+        fileName: names[index] || "",
+        type: urls[index]?.endsWith(".pdf")
+          ? "application/pdf"
+          : "image"
+      }));
+      setExistingImages(mappedImages);
       setNewImages([]);
     }
-  }, [open]);
+  }, [open, selectedBillDetail]);
 
   // Recalculate totals live
   useEffect(() => {
@@ -321,6 +342,7 @@ const EditBillDetail = ({ open, selectedBillDetail, setOpen, onUpdateSuccess }) 
     w-full
     ${isMobile
             ? "h-full rounded-none"
+
             : "max-w-6xl max-h-[90vh] rounded-lg"}
   `}
       >

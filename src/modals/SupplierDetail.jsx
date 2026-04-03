@@ -7,11 +7,12 @@ import CopyDetailsModal from "../components/common/CopyDetailsModal";
 import { useState, useEffect } from "react";
 import SupplierService from "../service/SupplierService";
 import { getSupplierFormattedText } from "../utils/copyFormatter";
+import { useSnackbar } from "../context/SnackbarContext";
 
 const SupplierDetail = ({ supplierId, setIsModalOpen }) => {
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [supplier, setSupplier] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     const fetchSupplier = async () => {
@@ -20,22 +21,14 @@ const SupplierDetail = ({ supplierId, setIsModalOpen }) => {
         setSupplier(res.data);
       } catch (error) {
         console.error(error);
-      } finally {
-        setLoading(false);
-      }
+        showSnackbar( err?.message ||"Failed to load supplier", "error");
+      } 
     };
 
     fetchSupplier();
   }, [supplierId]);
 
-
-  if (loading) {
-    return <div className="p-6">Loading supplier details...</div>;
-  }
-
-  if (!supplier) {
-    return <div className="p-6">No data found</div>;
-  }
+  if (!supplier) return null;
 
   return (
     <>
