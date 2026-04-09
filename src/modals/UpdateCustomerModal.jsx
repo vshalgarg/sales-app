@@ -116,7 +116,7 @@ const UpdateCustomerModal = ({
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
+        if (name === "pinCode" && !/^\d{0,6}$/.test(value)) return;
         setForm(prev => ({ ...prev, [name]: value }));
         setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
     };
