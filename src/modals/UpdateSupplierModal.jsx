@@ -160,6 +160,14 @@ const UpdateSupplierModal = ({
         }));
     };
 
+    const handleMobileChange = (index, e) => {
+        const value = e.target.value;
+
+        if (/^[0-9-\s]*$/.test(value)) {
+        handleContactChange(index, e);
+        }
+    };
+
     const addContact = () => {
         setForm(prev => ({
             ...prev,
@@ -464,7 +472,7 @@ const UpdateSupplierModal = ({
                                         <CustomTextField
                                             name="mobileNumber"
                                             value={contact.mobileNumber || ""}
-                                            onChange={(e) => handleContactChange(index, e)}
+                                            onChange={(e) => handleMobileChange(index, e)}
                                             label="Mobile Number"
                                         />
 
@@ -492,7 +500,7 @@ const UpdateSupplierModal = ({
                                             <CustomTextField
                                                 name="mobileNumber"
                                                 value={contact.mobileNumber || ""}
-                                                onChange={(e) => handleContactChange(index, e)}
+                                                onChange={(e) => handleMobileChange(index, e)}
                                                 label="Mobile Number"
                                             />
                                         </div>
