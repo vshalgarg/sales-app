@@ -116,7 +116,7 @@ const UpdateCustomerModal = ({
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
+        if (name === "pinCode" && !/^\d{0,6}$/.test(value)) return;
         setForm(prev => ({ ...prev, [name]: value }));
         setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
     };
@@ -127,6 +127,13 @@ const UpdateCustomerModal = ({
         updated[index][name] = value;
         setForm(prev => ({ ...prev, contacts: updated }));
     };
+
+    const handleMobileChange = (index, e) => {
+          const value = e.target.value;
+           if (/^[0-9-\s]*$/.test(value)) {
+                handleContactChange(index, e);
+            }
+     };
 
     const addContact = () => {
         setForm(prev => ({
@@ -377,7 +384,7 @@ const UpdateCustomerModal = ({
                                         <CustomTextField
                                             name="mobileNumber"
                                             value={contact.mobileNumber || ""}
-                                            onChange={(e) => handleContactChange(index, e)}
+                                            onChange={(e) => handleMobileChange(index, e)}
                                             label="Mobile Number"
                                         />
 
@@ -405,7 +412,7 @@ const UpdateCustomerModal = ({
                                             <CustomTextField
                                                 name="mobileNumber"
                                                 value={contact.mobileNumber || ""}
-                                                onChange={(e) => handleContactChange(index, e)}
+                                                onChange={(e) => handleMobileChange(index, e)}
                                                 label="Mobile Number"
                                             />
                                         </div>
