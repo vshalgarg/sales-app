@@ -9,8 +9,23 @@ class SupplierContainer extends StatelessWidget {
   final String? city;
   final String? gst;
   final String? code;
-  const SupplierContainer({super.key, this.elevation,
-  this.name,this.city,this.gst,this.code});
+  final VoidCallback eyeIconTap;
+  final VoidCallback trashIconTap;
+  final VoidCallback copyIconTap;
+  final VoidCallback editIconTap;
+
+  const SupplierContainer({
+    super.key,
+    this.elevation,
+    this.name,
+    this.city,
+    this.gst,
+    this.code,
+    required this.eyeIconTap,
+    required this.trashIconTap,
+    required this.copyIconTap,
+    required this.editIconTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,94 +48,113 @@ class SupplierContainer extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name??"",
-          
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w200,
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name ?? "",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w200,
+                        ),
                       ),
-                    ),
-                    SizedBox(height:5),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                        color: AppColors.primaryPurpleLight,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: Text(
-                          code??"",
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: AppColors.primaryPurple,
+                      SizedBox(height: 5),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: AppColors.primaryPurpleLight,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: Text(
+                            code ?? "",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.primaryPurple,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(height:5),
-                    Row(
-                      children: [
-                        Text(
-                          "GST:",
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
-                        ),Text(
-                         gst??"",
-                          style: TextStyle(fontSize: 10, color: AppColors.primaryPurple,)
-                        ),
-                      ],
-                    ),
-                    SizedBox(height:5),
-                    Row(
-                      children: [
-                        Text(
-                          "City:",
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
-                        ),
-                        Text(
-                        city??"",
-                          style: TextStyle(fontSize: 10, color:  AppColors.primaryPurple),
-                        ),
-                      ],
-                    ),
-                  ],
+                      SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Text(
+                            "GST:",
+                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                          Text(
+                            gst ?? "",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.primaryPurple,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Text(
+                            "City:",
+                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                          Text(
+                            city ?? "",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.primaryPurple,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-          
-                VerticalDivider(
-                  color: Colors.grey.shade300,
-                  thickness: 0.5,
 
-                ),
+                VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    customIcon(
-                      icon: Iconsax.eye,
-                      iconColor: AppColors.primaryPurple,
-                      bgColor: AppColors.primaryPurpleLight,
+                    GestureDetector(
+                      onTap: eyeIconTap,
+                      child: customIcon(
+                        icon: Iconsax.eye,
+                        iconColor: AppColors.primaryPurple,
+                        bgColor: AppColors.primaryPurpleLight,
+                      ),
                     ),
                     SizedBox(width: 10),
-                    customIcon(
-                      icon: Iconsax.trash,
-                      iconColor: Color(0xFFFF4D4F),
-                      bgColor: Color(0xFFFFE9E9),
+                    GestureDetector(
+                      onTap: trashIconTap,
+                      child: customIcon(
+                        icon: Iconsax.trash,
+                        iconColor: Color(0xFFFF4D4F),
+                        bgColor: Color(0xFFFFE9E9),
+                      ),
                     ),
                     SizedBox(width: 10),
-                    customIcon(
-                      icon: Iconsax.copy,
-                      iconColor: Color(0xFF2F80ED),
-                      bgColor: Color(0xFFEAF2FF),
+                    GestureDetector(
+                      onTap: copyIconTap,
+                      child: customIcon(
+                        icon: Iconsax.copy,
+                        iconColor: Color(0xFF2F80ED),
+                        bgColor: Color(0xFFEAF2FF),
+                      ),
                     ),
                     SizedBox(width: 10),
-                    customIcon(
-                      icon: Iconsax.edit,
-                      iconColor: Color(0xFF00B894),
-                      bgColor: Color(0xFFE6FAF5),
+                    GestureDetector(
+                      onTap: editIconTap,
+                      child: customIcon(
+                        icon: Iconsax.edit,
+                        iconColor: Color(0xFF00B894),
+                        bgColor: Color(0xFFE6FAF5),
+                      ),
                     ),
                   ],
                 ),

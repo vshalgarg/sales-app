@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/enums/supplier_mode.dart';
 
 class BankDetailsSection extends StatelessWidget {
+  final SupplierMode mode;
   final TextEditingController accountNumber;
   final TextEditingController ifscCode;
   final TextEditingController bankName;
@@ -9,6 +11,7 @@ class BankDetailsSection extends StatelessWidget {
 
   const BankDetailsSection({
     super.key,
+    required this.mode,
     required this.accountNumber,
     required this.ifscCode,
     required this.bankName,
@@ -28,6 +31,8 @@ class BankDetailsSection extends StatelessWidget {
 
         SizedBox(height: 15),
         TextFormField(  keyboardType: TextInputType.number,
+          enabled: mode != SupplierMode.view,
+
           controller: accountNumber,
           decoration: InputDecoration(
             labelText: "Account Number",
@@ -36,6 +41,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
+          enabled: mode != SupplierMode.view,
           controller: ifscCode,
           decoration: InputDecoration(
             labelText: "IFSC Code",
@@ -44,6 +50,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
+          enabled: mode != SupplierMode.view,
           controller: bankName,
           decoration: InputDecoration(
             labelText: "Bank Name",
@@ -52,6 +59,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
+          enabled: mode != SupplierMode.view,
           controller: branchName,
           decoration: InputDecoration(
             labelText: "Branch Name",
@@ -60,6 +68,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
+          enabled: mode != SupplierMode.view,
           controller: accountHolderName,
           decoration: InputDecoration(
             labelText: "Account Holder Name",

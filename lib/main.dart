@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/provider/add_newsupplier.dart';
+import 'package:hisabio/provider/delete_supplier_provider.dart';
 import 'package:hisabio/provider/get_supplier_provider.dart';
+import 'package:hisabio/provider/get_suppliers_byid_provider.dart';
 import 'package:hisabio/provider/get_transport_provider.dart';
 
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hisabio/provider/login_provider.dart';
+import 'package:hisabio/provider/update_supplier_provider.dart';
 import 'package:hisabio/screens/login_screen.dart';
 //import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +24,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SupplierProvider()),
         ChangeNotifierProvider(create: (_) => TransportProvider()),
         ChangeNotifierProvider(create: (_) =>AddSupplierProvider()),
+        ChangeNotifierProvider(create: (_)=>DeleteSupplierProvider ()),
+        ChangeNotifierProvider(create: (_) => UpdateSupplierProvider()),
+        ChangeNotifierProvider(create: (_) => GetSupplierByIdProvider()),
       ],
       child: const MyApp(),
     ),

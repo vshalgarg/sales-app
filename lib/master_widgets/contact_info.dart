@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
+import 'package:hisabio/enums/supplier_mode.dart';
 
 class ContactInfo extends StatefulWidget {
   final List<Map<String, TextEditingController>> contacts;
   final VoidCallback onAdd;
   final Function(int) onDelete;
+  final SupplierMode mode;
 
   const ContactInfo({
     super.key,
+    required this.mode,
     required this.contacts,
     required this.onAdd,
     required this.onDelete,
@@ -59,16 +62,16 @@ class _ContactInfoState extends State<ContactInfo> {
         SizedBox(height: 15),
 
         Column(
-          children: List.generate(contacts.length, (index) {
+          children: List.generate(  contacts.isEmpty ? 1 : contacts.length, (index) {
             final contact = contacts[index];
             return Padding(
-              padding: const EdgeInsets.only(bottom:15.0),
+              padding: const EdgeInsets.only(bottom: 15.0),
               child: Container(
                 // margin: const EdgeInsets.all(10),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Colors.grey.shade200,
+                  color: Colors.white,
                   border: Border.all(color: Colors.grey),
                 ),
                 child: Column(
@@ -90,6 +93,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     ),
                     SizedBox(height: 15),
                     TextFormField(
+                      enabled: widget.mode != SupplierMode.view,
                       controller: contact["name"],
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -99,7 +103,9 @@ class _ContactInfoState extends State<ContactInfo> {
                       ),
                     ),
                     SizedBox(height: 15),
-                    TextFormField(  keyboardType: TextInputType.number,
+                    TextFormField(
+                      keyboardType: TextInputType.number,
+                      enabled: widget.mode != SupplierMode.view,
                       controller: contact["mobile"],
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -110,6 +116,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     ),
                     SizedBox(height: 15),
                     TextFormField(
+                      enabled: widget.mode != SupplierMode.view,
                       controller: contact["type"],
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -126,19 +133,24 @@ class _ContactInfoState extends State<ContactInfo> {
           }).toList(),
         ),
         SizedBox(height: 20),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: AppColors.primaryPurple),
-          ),
-          child: TextButton(
-            onPressed: widget.onAdd,
-            child: const Text(
-              "+ ADD CONTACT",
-              style: TextStyle(color: AppColors.primaryPurple, fontSize: 15),
-            ),
-          ),
-        ),
+        widget.mode == SupplierMode.view
+            ? SizedBox()
+            : Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: AppColors.primaryPurple),
+                ),
+                child: TextButton(
+                  onPressed: widget.onAdd,
+                  child: const Text(
+                    "+ ADD CONTACT",
+                    style: TextStyle(
+                      color: AppColors.primaryPurple,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
       ],
     );
   }

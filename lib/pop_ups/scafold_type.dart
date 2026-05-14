@@ -13,7 +13,7 @@ class ScaffoldSnackBar {
       SnackBar(
         content: Text(message),
         backgroundColor: backgroundColor,
-        behavior: SnackBarBehavior.floating,
+        //behavior: SnackBarBehavior.floating,
       ),
 
     );
