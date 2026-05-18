@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
@@ -12,9 +14,8 @@ import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
 import 'package:hisabio/provider/get_supplier_provider.dart';
 import 'package:hisabio/provider/get_suppliers_byid_provider.dart';
+import 'package:hisabio/provider/search_supplier_provider.dart';
 import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
-
-//import 'package:http/http.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +27,9 @@ class Supplier extends StatefulWidget {
 }
 
 class _SupplierState extends State<Supplier> {
+  final searchController = TextEditingController();
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +41,15 @@ class _SupplierState extends State<Supplier> {
 
   @override
   Widget build(BuildContext context) {
+    final searchProvider = context.watch<SearchSupplierProvider>();
+
     final provider = context.watch<SupplierProvider>();
+
+    final isSearching = searchController.text.trim().isNotEmpty;
+
+    final List<dynamic> suppliers = isSearching
+        ? searchProvider.searchSupplier?.content ?? []
+        : provider.data?.content ?? [];
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
@@ -62,25 +74,50 @@ class _SupplierState extends State<Supplier> {
               height: 40,
               width: double.infinity,
               child: SearchBar(
+                controller: searchController,
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search suppliers...",
                 leading: Icon(Icons.search_outlined, size: 30),
                 backgroundColor: WidgetStatePropertyAll(Colors.white),
+                onChanged: (value) {
+                  if (_debounce?.isActive ?? false) {
+                    _debounce!.cancel();
+                  }
+
+                  _debounce = Timer(const Duration(milliseconds: 500), () {
+                    if (value.trim().isEmpty) {
+                      setState(() {});
+                      return;
+                    }
+
+                    context.read<SearchSupplierProvider>().searchSuppliers(
+                      value,
+                    );
+                  });
+                },
               ),
             ),
             SizedBox(height: 25),
+
             Expanded(
-              child: provider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : provider.error != null
-                  ? Center(child: Text(provider.error!))
+              child: suppliers.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "No Data Found",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
                   : ListView.separated(
-                      itemCount: provider.data?.content?.length ?? 0,
+                      itemCount: suppliers.length,
+
                       separatorBuilder: (context, index) {
                         return SizedBox(height: 8);
                       },
                       itemBuilder: (context, index) {
-                        final item = provider.data!.content![index];
+                        final item = suppliers[index];
                         return SupplierContainer(
                           elevation: 1,
                           name: item.supplierName,
@@ -127,8 +164,9 @@ class _SupplierState extends State<Supplier> {
                               },
                             );
                           },
-                          copyIconTap: ()async {
-                            final provider = context.read<GetSupplierByIdProvider>();
+                          copyIconTap: () async {
+                            final provider = context
+                                .read<GetSupplierByIdProvider>();
                             await provider.fetchSupplierById(item.id!.toInt());
                             final data = provider.supplier;
 
@@ -136,22 +174,25 @@ class _SupplierState extends State<Supplier> {
 
                             String contactNumber = "";
 
-                            if (data.contacts != null && data.contacts!.isNotEmpty) {
+                            if (data.contacts != null &&
+                                data.contacts!.isNotEmpty) {
                               final firstContact = data.contacts![0];
 
                               if (firstContact is Map) {
-                                contactNumber = firstContact['mobileNumber'] ?? "";
+                                contactNumber =
+                                    firstContact['mobileNumber'] ?? "";
                               }
                             }
                             showDialog(
                               context: context,
                               builder: (context) {
                                 return CustomCopyDetailsDialog(
-                                  firmName: provider.supplier?.supplierName??"",
+                                  firmName:
+                                      provider.supplier?.supplierName ?? "",
                                   contact: contactNumber,
-                                  address:  provider.supplier?.addressLine1??"" ,
-                                  gstNo:  provider.supplier?.gstNo??"",
-
+                                  address:
+                                      provider.supplier?.addressLine1 ?? "",
+                                  gstNo: provider.supplier?.gstNo ?? "",
                                 );
                               },
                             );
@@ -189,5 +230,13 @@ class _SupplierState extends State<Supplier> {
         child: Icon(Iconsax.add, color: Colors.white, size: 40),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    _debounce?.cancel();
+
+    super.dispose();
   }
 }

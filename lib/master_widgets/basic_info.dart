@@ -11,11 +11,11 @@ class SupplierBasicInfo extends StatefulWidget {
   final TextEditingController? commissionSchemeController;
   final TextEditingController? commissionRateController;
   final TextEditingController? referenceController;
-  final SupplierMode mode;
+  final SupplierMode? mode;
 
   const SupplierBasicInfo({
     super.key,
-    required this.mode,
+     this.mode,
     required this.nameController,
     this.emailController,
     this.groupController,

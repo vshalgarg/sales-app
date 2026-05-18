@@ -4,8 +4,9 @@ import 'package:hisabio/constants/colors_used.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSize {
   final String title;
   final TextStyle? textStyle;
+  final Icon? icon;
 
-  const CustomAppBar({super.key, required this.title, this.textStyle});
+  const CustomAppBar({super.key, required this.title, this.textStyle,this.icon});
 
   @override
   Widget build(BuildContext context) {

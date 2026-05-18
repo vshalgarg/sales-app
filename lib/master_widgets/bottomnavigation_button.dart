@@ -7,7 +7,7 @@ class BottomNavigationButton extends StatelessWidget {
   final VoidCallback saveAndAddNew;
   final VoidCallback cancel;
   final VoidCallback update;
-  final SupplierMode mode;
+  final SupplierMode? mode;
 
   const BottomNavigationButton({
     super.key,
@@ -15,7 +15,7 @@ class BottomNavigationButton extends StatelessWidget {
     required this.saveAndAddNew,
     required this.cancel,
     required this.update,
-    required this.mode,
+    this.mode,
   });
 
   @override
@@ -38,7 +38,7 @@ class BottomNavigationButton extends StatelessWidget {
               ),
               onPressed: saveSupplier,
               child: const Text(
-                "Save Supplier",
+                "Save Details",
                 style: TextStyle(color: Colors.white),
               ),
             ),

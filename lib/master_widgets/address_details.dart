@@ -3,7 +3,7 @@ import 'package:hisabio/constants/list_items.dart';
 import 'package:hisabio/enums/supplier_mode.dart';
 
 class AddressDetails extends StatefulWidget {
-  final SupplierMode mode;
+  final SupplierMode? mode;
   final TextEditingController addressLine1;
   final TextEditingController addressLine2;
   final TextEditingController state;
@@ -12,7 +12,7 @@ class AddressDetails extends StatefulWidget {
 
   const AddressDetails({
     super.key,
-    required this.mode,
+    this.mode,
     required this.addressLine1,
     required this.addressLine2,
     required this.state,

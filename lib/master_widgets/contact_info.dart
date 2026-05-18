@@ -6,11 +6,11 @@ class ContactInfo extends StatefulWidget {
   final List<Map<String, TextEditingController>> contacts;
   final VoidCallback onAdd;
   final Function(int) onDelete;
-  final SupplierMode mode;
+  final SupplierMode? mode;
 
   const ContactInfo({
     super.key,
-    required this.mode,
+    this.mode,
     required this.contacts,
     required this.onAdd,
     required this.onDelete,

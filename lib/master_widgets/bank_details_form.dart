@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hisabio/enums/supplier_mode.dart';
 
 class BankDetailsSection extends StatelessWidget {
-  final SupplierMode mode;
+  final SupplierMode? mode;
   final TextEditingController accountNumber;
   final TextEditingController ifscCode;
   final TextEditingController bankName;
@@ -11,7 +11,7 @@ class BankDetailsSection extends StatelessWidget {
 
   const BankDetailsSection({
     super.key,
-    required this.mode,
+    this.mode,
     required this.accountNumber,
     required this.ifscCode,
     required this.bankName,

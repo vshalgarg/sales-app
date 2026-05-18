@@ -9,10 +9,10 @@ class SupplierContainer extends StatelessWidget {
   final String? city;
   final String? gst;
   final String? code;
-  final VoidCallback eyeIconTap;
-  final VoidCallback trashIconTap;
-  final VoidCallback copyIconTap;
-  final VoidCallback editIconTap;
+  final VoidCallback? eyeIconTap;
+  final VoidCallback? trashIconTap;
+  final VoidCallback? copyIconTap;
+  final VoidCallback? editIconTap;
 
   const SupplierContainer({
     super.key,
@@ -21,10 +21,10 @@ class SupplierContainer extends StatelessWidget {
     this.city,
     this.gst,
     this.code,
-    required this.eyeIconTap,
-    required this.trashIconTap,
-    required this.copyIconTap,
-    required this.editIconTap,
+    this.eyeIconTap,
+     this.trashIconTap,
+    this.copyIconTap,
+     this.editIconTap,
   });
 
   @override
@@ -82,20 +82,22 @@ class SupplierContainer extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 5),
-                      Row(
-                        children: [
-                          Text(
-                            "GST:",
-                            style: TextStyle(fontSize: 10, color: Colors.grey),
-                          ),
-                          Text(
-                            gst ?? "",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.primaryPurple,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Text(
+                              "GST:",
+                              style: TextStyle(fontSize: 10, color: Colors.grey),
                             ),
-                          ),
-                        ],
+                            Text(
+                              gst ?? "",
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppColors.primaryPurple,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(height: 5),
                       Row(
