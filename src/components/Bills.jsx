@@ -61,12 +61,12 @@ const Bills = () => {
         ]);
         const supplierOptions = (suppliers || []).map((s) => ({
           id: s.id,
-          label: s.supplierName,
+          label: `${s.supplierName}${s.city ? ` - ${s.city}` : ""}`,
         }));
 
         const customerOptions = (customers || []).map((c) => ({
           id: c.id,
-          label: c.customerName,
+          label: `${c.customerName}${c.city ? ` - ${c.city}` : ""}`,
         }));
 
         setAllSuppliers(supplierOptions || []);

@@ -58,7 +58,7 @@ const DataTable = ({
     onPageChange?.(newPage + 1);
   };
 
-  const showPagination = !disablePagination && totalCount > 0 && totalCount > rowsPerPage;
+  const showPagination = !disablePagination && totalCount > 0;
 
   return (
     <Paper elevation={3} sx={{ borderRadius: 2, display: "flex", flexDirection: "column", height: "100%" }}>
