@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/enums/supplier_mode.dart';
 import 'package:hisabio/master_widgets/address_details.dart';
@@ -60,7 +61,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
   final addressLine1Controller = TextEditingController();
 
-   final addressLine2Controller = TextEditingController();
+  final addressLine2Controller = TextEditingController();
 
   final stateController = TextEditingController();
 
@@ -125,41 +126,36 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
         final s = provider.supplier;
         if (s != null) {
-
           nameController.text = s.supplierName ?? "";
           emailController.text = s.email ?? "";
           groupController.text = s.groupName ?? "";
           gstController.text = s.gstNo ?? "";
           msmeController.text = s.msme ?? "";
           commissionSchemeController.text = s.commissionScheme ?? "";
-          commissionRateController.text =
-              s.commissionRate?.toString() ?? "";
+          commissionRateController.text = s.commissionRate?.toString() ?? "";
           referenceController.text = s.referenceBy ?? "";
 
-          accountholderNameController.text =
-              s.accountName ?? "";
+          accountholderNameController.text = s.accountName ?? "";
 
           ifscController.text = s.ifscCode ?? "";
 
-          accountNumberController.text =
-              s.accountNumber ?? "";
+          accountNumberController.text = s.accountNumber ?? "";
 
           bankNameController.text = s.bankName ?? "";
 
           branchNameController.text = s.branchName ?? "";
-          addressLine1Controller.text=s.addressLine1??"";
-          addressLine2Controller.text=s.addressLine2??"";
+          addressLine1Controller.text = s.addressLine1 ?? "";
+          addressLine2Controller.text = s.addressLine2 ?? "";
           stateController.text = (s.state ?? "").trim();
-       //  widget.state.text = s.state ?? "";
+          //  widget.state.text = s.state ?? "";
 
-          cityController.text=s.city??"";
-          pinCodeController.text=s.pinCode??"";
-          remarksController.text=s.remark??"";
+          cityController.text = s.city ?? "";
+          pinCodeController.text = s.pinCode ?? "";
+          remarksController.text = s.remark ?? "";
 
+          // preferredTransportController.text=s.preferredTransports?.toString()??"";
 
-         // preferredTransportController.text=s.preferredTransports?.toString()??"";
-
-         /* selectedTransportId =
+          /* selectedTransportId =
           (s.preferredTransports != null &&
               s.preferredTransports!.isNotEmpty)
               ? s.preferredTransports!.first.toString()
@@ -170,12 +166,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
           if ((s.contacts ?? []).isNotEmpty) {
             for (var c in s.contacts!) {
               contacts.add({
-                "name":
-                TextEditingController(text: c.name ?? ""),
-                "mobile":
-                TextEditingController(text: c.mobile ?? ""),
-                "type":
-                TextEditingController(text: c.type ?? ""),
+                "name": TextEditingController(text: c.name ?? ""),
+                "mobile": TextEditingController(text: c.mobile ?? ""),
+                "type": TextEditingController(text: c.type ?? ""),
               });
             }
           } else {
@@ -188,8 +181,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
           setState(() {});
         }
-
-              });
+      });
     }
 
     if (widget.mode == SupplierMode.add) {
@@ -204,325 +196,328 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       Provider.of<TransportProvider>(context, listen: false).fetchTransports();
     });
   }
-      void deleteContact(int index) {
-        setState(() {
-          contacts.removeAt(index);
-        });
-      }
 
-      void addContact() {
-        setState(() {
-          contacts.add({
-            "name": TextEditingController(),
-            "mobile": TextEditingController(),
-            "type": TextEditingController(),
-          });
-        });
-      }
+  void deleteContact(int index) {
+    setState(() {
+      contacts.removeAt(index);
+    });
+  }
 
+  void addContact() {
+    setState(() {
+      contacts.add({
+        "name": TextEditingController(),
+        "mobile": TextEditingController(),
+        "type": TextEditingController(),
+      });
+    });
+  }
 
-      void clearForm() {
-        nameController.clear();
-        emailController.clear();
-        groupController.clear();
-        gstController.clear();
-        msmeController.clear();
-        commissionSchemeController.clear();
-        commissionRateController.clear();
-        referenceController.clear();
+  void clearForm() {
+    nameController.clear();
+    emailController.clear();
+    groupController.clear();
+    gstController.clear();
+    msmeController.clear();
+    commissionSchemeController.clear();
+    commissionRateController.clear();
+    referenceController.clear();
 
-        bankNameController.clear();
-        ifscController.clear();
-        branchNameController.clear();
-        accountholderNameController.clear();
-        accountNumberController.clear();
+    bankNameController.clear();
+    ifscController.clear();
+    branchNameController.clear();
+    accountholderNameController.clear();
+    accountNumberController.clear();
 
-        addressLine1Controller.clear();
-        addressLine2Controller.clear();
-        stateController.clear();
-        cityController.clear();
-        pinCodeController.clear();
+    addressLine1Controller.clear();
+    addressLine2Controller.clear();
+    stateController.clear();
+    cityController.clear();
+    pinCodeController.clear();
 
-        preferredTransportController.clear();
-        remarksController.clear();
+    preferredTransportController.clear();
+    remarksController.clear();
 
-        for (var c in contacts) {
-          c["name"]!.clear();
-          c["mobile"]!.clear();
-          c["type"]!.clear();
-        }
+    for (var c in contacts) {
+      c["name"]!.clear();
+      c["mobile"]!.clear();
+      c["type"]!.clear();
+    }
 
-        setState(() {
-          selectedTransportId = null;
+    setState(() {
+      selectedTransportId = null;
 
-          contacts = [
-            {
-              "name": TextEditingController(),
-              "mobile": TextEditingController(),
-              "type": TextEditingController(),
-            },
-          ];
-        });
-      }
+      contacts = [
+        {
+          "name": TextEditingController(),
+          "mobile": TextEditingController(),
+          "type": TextEditingController(),
+        },
+      ];
+    });
+  }
 
-      @override
-      void dispose() {
-        nameController.dispose();
-        emailController.dispose();
-        groupController.dispose();
-        gstController.dispose();
-        msmeController.dispose();
-        commissionSchemeController.dispose();
-        commissionRateController.dispose();
-        referenceController.dispose();
-        bankNameController.dispose();
-        ifscController.dispose();
-        branchNameController.dispose();
-        accountholderNameController.dispose();
-        accountNumberController.dispose();
-        addressLine1Controller.dispose();
-        addressLine2Controller.dispose();
-        stateController.dispose();
-        cityController.dispose();
-        pinCodeController.dispose();
-        preferredTransportController.dispose();
-        remarksController.dispose();
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    groupController.dispose();
+    gstController.dispose();
+    msmeController.dispose();
+    commissionSchemeController.dispose();
+    commissionRateController.dispose();
+    referenceController.dispose();
+    bankNameController.dispose();
+    ifscController.dispose();
+    branchNameController.dispose();
+    accountholderNameController.dispose();
+    accountNumberController.dispose();
+    addressLine1Controller.dispose();
+    addressLine2Controller.dispose();
+    stateController.dispose();
+    cityController.dispose();
+    pinCodeController.dispose();
+    preferredTransportController.dispose();
+    remarksController.dispose();
 
-        for (var c in contacts) {
-          c["name"]!.dispose();
-          c["mobile"]!.dispose();
-          c["type"]!.dispose();
-        }
+    for (var c in contacts) {
+      c["name"]!.dispose();
+      c["mobile"]!.dispose();
+      c["type"]!.dispose();
+    }
 
-        super.dispose();
-      }
+    super.dispose();
+  }
 
-      @override
-      Widget build(BuildContext context) {
-        return Scaffold(
-            appBar: CustomAppBar(
-              title: widget.mode == SupplierMode.add
-                  ? "Add New Supplier"
-                  : widget.mode == SupplierMode.edit
-                  ? "Edit Supplier"
-                  : "View Supplier",
-              textStyle: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 25,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        title: widget.mode == SupplierMode.add
+            ? "Add New Supplier"
+            : widget.mode == SupplierMode.edit
+            ? "Edit Supplier"
+            : "View Supplier",
+        textStyle: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 25,
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SupplierBasicInfo(
+                showCommissionRate: true,
+                showCommissionScheme: true,
+                mode: widget.mode,
+                nameController: nameController,
+                emailController: emailController,
+                groupController: groupController,
+                gstNoController: gstController,
+                msmeController: msmeController,
+                commissionSchemeController: commissionSchemeController,
+                commissionRateController: commissionRateController,
+                referenceController: referenceController,
               ),
-            ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SupplierBasicInfo(
 
-                      mode: widget.mode,
-                      nameController: nameController,
-                      emailController: emailController,
-                      groupController: groupController,
-                      gstNoController: gstController,
-                      msmeController: msmeController,
-                      commissionSchemeController: commissionSchemeController,
-                      commissionRateController: commissionRateController,
-                      referenceController: referenceController,
+              SizedBox(height: 15),
+              BankDetailsSection(
+                mode: widget.mode,
+                bankName: bankNameController,
+                ifscCode: ifscController,
+                branchName: branchNameController,
+                accountHolderName: accountholderNameController,
+                accountNumber: accountNumberController,
+              ),
+              SizedBox(height: 15),
+              AddressDetails(
+                mode: widget.mode,
+                addressLine1: addressLine1Controller,
+                addressLine2: addressLine2Controller,
+                state: stateController,
+                city: cityController,
+                pinCode: pinCodeController,
+              ),
+              SizedBox(height: 15),
+              ContactInfo(
+                mode: widget.mode,
+                contacts: contacts,
+                onAdd: addContact,
+                onDelete: deleteContact,
+              ),
+              SizedBox(height: 15),
+              Text(
+                "Preferred Transports",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 15),
+              Consumer<TransportProvider>(
+                builder: (context, provider, child) {
+                  //  if (provider.isLoading) {
+                  //  return CircularProgressIndicator();
+                  //}
+                  return DropdownButtonFormField<String>(
+                    value: selectedTransportId,
+                    isExpanded: true,
+                    // controller: preferredTransportController,
+                    decoration: InputDecoration(
+                      enabled: widget.mode != SupplierMode.view,
+                      labelText: "Preferred Transport",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
+                    items: provider.transports.map((t) {
+                      return DropdownMenuItem<String>(
+                        value: t.id.toString(),
+                        child: Text(t.name ?? ""),
+                      );
+                    }).toList(),
 
-                    SizedBox(height: 15),
-                    BankDetailsSection(
-
-                      mode: widget.mode,
-                      bankName: bankNameController,
-                      ifscCode: ifscController,
-                      branchName: branchNameController,
-                      accountHolderName: accountholderNameController,
-                      accountNumber: accountNumberController,
-                    ),
-                    SizedBox(height: 15),
-                    AddressDetails(
-                      mode: widget.mode,
-                      addressLine1: addressLine1Controller,
-                      addressLine2: addressLine2Controller,
-                      state: stateController,
-                      city: cityController,
-                      pinCode: pinCodeController,
-                    ),
-                    SizedBox(height: 15),
-                    ContactInfo(
-                      mode: widget.mode,
-                      contacts: contacts,
-                      onAdd: addContact,
-                      onDelete: deleteContact,
-                    ),
-                    SizedBox(height: 15),
-                    Text(
-                      "Preferred Transports",
-                      style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 15),
-                    Consumer<TransportProvider>(
-                      builder: (context, provider, child) {
-                        //  if (provider.isLoading) {
-                        //  return CircularProgressIndicator();
-                        //}
-                        return DropdownButtonFormField<String>(
-                          value: selectedTransportId,
-                          isExpanded: true,
-                          // controller: preferredTransportController,
-                          decoration: InputDecoration(
-                            enabled: widget.mode != SupplierMode.view,
-                            labelText: "Preferred Transport",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          items: provider.transports.map((t) {
-                            return DropdownMenuItem<String>(
-                              value: t.id.toString(),
-                              child: Text(t.name ?? ""),
-                            );
-                          }).toList(),
-
-                          onChanged: widget.mode == SupplierMode.view
-                              ? null
-                              : (value) {
+                    onChanged: widget.mode == SupplierMode.view
+                        ? null
+                        : (value) {
                             setState(() {
                               selectedTransportId = value;
                             });
                           },
-                        );
-                      },
-                    ),
-                    SizedBox(height: 15),
-                    TextFormField(
-                      enabled: widget.mode != SupplierMode.view,
-                      controller: remarksController,
-                      decoration: InputDecoration(
-                        labelText: "Remarks (optional)",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
+                  );
+                },
+              ),
+              SizedBox(height: 15),
+              TextFormField(
+                enabled: widget.mode != SupplierMode.view,
+                controller: remarksController,
+                decoration: InputDecoration(
+                  labelText: "Remarks (optional)",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
 
-            bottomNavigationBar: Consumer<AddSupplierProvider>(
-                builder: (context, provider, child) {
-                  return BottomNavigationButton(
-                      mode: widget.mode,
-                      update: () async {
-                        try {
-                          final body = submitSupplier();
+      bottomNavigationBar: Consumer<AddSupplierProvider>(
+        builder: (context, provider, child) {
+          return BottomNavigationButton(
+            mode: widget.mode,
+            update: () async {
+              try {
 
-                          final updateProvider =
-                          context.read<UpdateSupplierProvider>();
+                final body = submitSupplier();
 
-                          await updateProvider.updateSupplier(
-                            id: widget.id!.toInt(),
-                            body: body,
-                          );
+                final updateProvider = context.read<UpdateSupplierProvider>();
 
-                          if (updateProvider.error != null) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              updateProvider.error!,
-                              backgroundColor: Colors.red,
-                            );
-                          } else {
-                            ScaffoldSnackBar.show(
-                              context,
-                              updateProvider.response?.message ??
-                                  "Supplier Updated Successfully",
-                            );
+                await updateProvider.updateSupplier(
+                  id: widget.id!.toInt(),
+                  body: body,
+                );
 
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => Supplier(),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          print("something went wrong $e");
-                          ScaffoldSnackBar.show(
-                              context, "Something Went wrong $e");
-                        }
-                      },
-                        saveAndAddNew:
-                        provider.isLoading
-                            ? () {}
-                            : () async {
-                          if (nameController.text.isEmpty) {
-                            ScaffoldSnackBar.show(
-                                context, "Supplier name is required");
-                            return;
-                          }
-                          final body = submitSupplier();
+                if (updateProvider.error != null) {
+                  ScaffoldSnackBar.show(
+                    context,
+                    updateProvider.error!,
+                    backgroundColor: Colors.red,
+                  );
+                } else {
+                  ScaffoldSnackBar.show(
+                    context,
+                    updateProvider.response?.message ??
+                        "Supplier Updated Successfully",
+                    backgroundColor: AppColors.primaryPurpleLight
+                  );
 
-                          await provider.addSupplier(body);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => Supplier()),
+                  );
+                }
+              } catch (e) {
+                print("something went wrong $e");
+                ScaffoldSnackBar.show(context, "Something Went wrong $e");
+              }
+            },
+            saveAndAddNew: provider.isLoading
+                ? () {}
+                : () async {
+                    if (nameController.text.isEmpty) {
+                      ScaffoldSnackBar.show(
+                        context,
+                        "Supplier name is required",
+                      );
+                      return;
+                    }
+                    final body = submitSupplier();
 
-                          if (provider.error != null) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              provider.error!,
-                              backgroundColor: Colors.red,
-                            );
-                          } else {
-                            ScaffoldSnackBar.show(
-                              context,
-                              provider.response!.message ??
-                                  "Supplier Added Successfully by text",
-                            );
-                            context.read<SupplierProvider>().fetchSuppliers();
-                            clearForm();
-                          }
-                        },
-                        saveSupplier: provider.isLoading
-                        ? () {}
-                            : () async{
-                        try {
-                        if (nameController.text.isEmpty) {
-                        ScaffoldSnackBar.show(context, "Supplier name is required");
-                        return;
-                        }
+                    await provider.addSupplier(body);
 
-
-                        final body = submitSupplier();
-                        await provider.addSupplier(body);
-                        if (provider.error != null) {
-                        ScaffoldSnackBar.show(
+                    if (provider.error != null) {
+                      ScaffoldSnackBar.show(
                         context,
                         provider.error!,
                         backgroundColor: Colors.red,
-                        );
-                        } else {
-                        ScaffoldSnackBar.show(
+                      );
+                    } else {
+                      ScaffoldSnackBar.show(
                         context,
                         provider.response!.message ??
-                        "Supplier Added Successfully",
+                            "Supplier Added Successfully by text",
+                      );
+                      context.read<SupplierProvider>().fetchSuppliers();
+                      clearForm();
+                    }
+                  },
+            saveSupplier: provider.isLoading
+                ? () {}
+                : () async {
+                    try {
+                      if (nameController.text.isEmpty) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          "Supplier name is required",
+                          backgroundColor: AppColors.primaryPurpleLight
+                        );
+                        return;
+                      }
+
+                      final body = submitSupplier();
+                      await provider.addSupplier(body);
+                      if (provider.error != null) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          provider.error!,
+                          backgroundColor: Colors.red,
+                        );
+                      } else {
+                        ScaffoldSnackBar.show(
+                          context,
+                          provider.response!.message ??
+                              "Supplier Added Successfully",
                         );
 
                         Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                        builder: (_) => Supplier(),
-                        ),
+                          context,
+                          MaterialPageRoute(builder: (_) => Supplier()),
                         );
-                        }
-                        }catch(e){
-                        ScaffoldSnackBar.show(context, "Something went wrong$e");
-                        }},
-                        cancel: () {
-                          Navigator.pop(context);
-                        });
-                        }
-                        ),
-                        );
-                        }}
+                      }
+                    } catch (e) {
+                      ScaffoldSnackBar.show(context, "Something went wrong$e");
+                    }
+                  },
+            cancel: () {
+              Navigator.pop(context);
+            },
+          );
+        },
+      ),
+    );
+  }
+}

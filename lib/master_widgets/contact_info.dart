@@ -132,7 +132,7 @@ class _ContactInfoState extends State<ContactInfo> {
             );
           }).toList(),
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 10),
         widget.mode == SupplierMode.view
             ? SizedBox()
             : Container(

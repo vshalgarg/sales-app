@@ -15,6 +15,12 @@ class AddNewCustomer extends StatefulWidget {
 }
 
 class _AddNewCustomerState extends State<AddNewCustomer> {
+  @override
+  void initState() {
+    super.initState();
+    addContact();
+  }
+
   final nameController = TextEditingController();
 
   final emailController = TextEditingController();
@@ -74,7 +80,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: "Add New Customer",
         textStyle: TextStyle(
@@ -87,44 +93,48 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SupplierBasicInfo(
+                showCommissionRate: false,
+                showCommissionScheme: false,
                 nameController: nameController,
                 emailController: emailController,
                 groupController: groupController,
                 gstNoController: gstController,
                 msmeController: msmeController,
                 referenceController: referenceController,
-              ),
+              ),   SizedBox(height: 15),
               BankDetailsSection(
                 accountNumber: accountNumberController,
                 ifscCode: ifscController,
                 bankName: bankNameController,
                 branchName: branchNameController,
                 accountHolderName: accountholderNameController,
-              ),
+              ),   SizedBox(height: 15),
               AddressDetails(
                 addressLine1: addressLine1Controller,
                 addressLine2: addressLine2Controller,
                 state: stateController,
                 city: cityController,
                 pinCode: pinCodeController,
-              ),
+              ),   SizedBox(height: 15),
               ContactInfo(
                 contacts: contacts,
                 onAdd: addContact,
                 onDelete: deleteContact,
               ),
+              SizedBox(height:15),
               Text(
                 "Financial and Logistics",
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height:15),
+
+              SizedBox(height: 15),
               TextFormField(
                 controller: preferredTransportController,
                 decoration: InputDecoration(
@@ -133,7 +143,8 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              ),   SizedBox(height:15),
+              ),
+              SizedBox(height: 15),
               TextFormField(
                 controller: remarksController,
                 decoration: InputDecoration(
@@ -147,10 +158,12 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationButton(update:(){},
-      saveSupplier: (){},
-      saveAndAddNew: (){},
-      cancel: (){},),
+      bottomNavigationBar: BottomNavigationButton(
+        update: () {},
+        saveSupplier: () {},
+        saveAndAddNew: () {},
+        cancel: () {Navigator.pop(context);},
+      ),
     );
   }
 }

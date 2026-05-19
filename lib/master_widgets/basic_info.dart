@@ -12,10 +12,14 @@ class SupplierBasicInfo extends StatefulWidget {
   final TextEditingController? commissionRateController;
   final TextEditingController? referenceController;
   final SupplierMode? mode;
+  final bool showCommissionScheme;
+  final bool showCommissionRate;
 
   const SupplierBasicInfo({
     super.key,
      this.mode,
+     required this.showCommissionScheme,
+    required this.showCommissionRate,
     required this.nameController,
     this.emailController,
     this.groupController,
@@ -99,7 +103,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
         TextFormField(enabled: widget.mode != SupplierMode.view,
           controller: widget.groupController,
           decoration: InputDecoration(
-            hintText: "Group",
+            hintText: "Group Name",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
 
@@ -138,6 +142,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
             });
           },
         ),
+        if(widget.showCommissionScheme)...[
         SizedBox(height: 15),
         DropdownButtonFormField<String>(
           value: ListItems.commissionScheme.contains(selectedCommissionScheme)
@@ -165,7 +170,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               widget.commissionSchemeController!.text = value ?? "";
             });
           },
-        ),
+        ),],
+        if(widget.showCommissionRate)...[
         SizedBox(height: 15),
         TextFormField(  keyboardType: TextInputType.number,
           enabled: widget.mode != SupplierMode.view,
@@ -175,7 +181,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
 
-        ),
+        ),],
         SizedBox(height: 15),
         TextFormField(enabled: widget.mode != SupplierMode.view,
           controller: widget.referenceController,
