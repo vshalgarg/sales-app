@@ -36,7 +36,6 @@ const UpdateSupplierModal = ({
     const [errors, setErrors] = useState({ contacts: [{}] });
     const [allTransports, setAllTransports] = useState([]);
     const [selectedTransports, setSelectedTransports] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
     const { isDirty } = useUnsavedChanges(form, open && isLoaded);
@@ -49,8 +48,6 @@ const UpdateSupplierModal = ({
 
         const fetchSupplier = async () => {
             try {
-                setLoading(true);
-
                 const response = await SupplierService.getSupplierById(supplierId);
                 const data = response.data || response;
 
@@ -86,8 +83,6 @@ const UpdateSupplierModal = ({
 
             } catch (err) {
                 showSnackbar("Failed to load supplier", "error");
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -141,7 +136,7 @@ const UpdateSupplierModal = ({
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
+        if (name === "pinCode" && !/^\d{0,6}$/.test(value)) return;
         setForm(prev => ({
             ...prev,
             [name]: value,
@@ -163,6 +158,14 @@ const UpdateSupplierModal = ({
             ...prev,
             contacts: updatedContacts,
         }));
+    };
+
+    const handleMobileChange = (index, e) => {
+        const value = e.target.value;
+
+        if (/^[0-9-\s]*$/.test(value)) {
+        handleContactChange(index, e);
+        }
     };
 
     const addContact = () => {
@@ -223,6 +226,7 @@ const UpdateSupplierModal = ({
     };
 
     if (!open) return null;
+    if (!isLoaded) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -253,13 +257,7 @@ const UpdateSupplierModal = ({
                     </h2>
                 </div>
 
-                {/* Body */}
-                {loading ? (
-                    <div className="flex-1 flex items-center justify-center">
-                        <CircularProgress />
-                    </div>
-                ) : (
-
+                    {/* Body */}
                     <div className="px-6 py-4 overflow-y-auto flex-1 space-y-8">
 
                         {/* ================= BASIC INFORMATION ================= */}
@@ -474,7 +472,7 @@ const UpdateSupplierModal = ({
                                         <CustomTextField
                                             name="mobileNumber"
                                             value={contact.mobileNumber || ""}
-                                            onChange={(e) => handleContactChange(index, e)}
+                                            onChange={(e) => handleMobileChange(index, e)}
                                             label="Mobile Number"
                                         />
 
@@ -502,7 +500,7 @@ const UpdateSupplierModal = ({
                                             <CustomTextField
                                                 name="mobileNumber"
                                                 value={contact.mobileNumber || ""}
-                                                onChange={(e) => handleContactChange(index, e)}
+                                                onChange={(e) => handleMobileChange(index, e)}
                                                 label="Mobile Number"
                                             />
                                         </div>
@@ -588,8 +586,6 @@ const UpdateSupplierModal = ({
 
 
                     </div>
-
-                )}
 
                 {/* Footer */}
                 <FormFooter>

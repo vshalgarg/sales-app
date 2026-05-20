@@ -15,9 +15,9 @@ export const addBill = async (billData) => {
   }
 };
 
-export const getBillHistory = async () => {
+export const getBillDetails = async (billNumber) => {
   try {
-    const response = await api.get(`/bill/entries/get`);
+    const response = await api.get(`/bill/${billNumber}`);
     const result = checkLogicalError(response.data);
     return result;
   } catch (error) {
