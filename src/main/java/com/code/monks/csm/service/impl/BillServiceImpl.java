@@ -4,10 +4,14 @@ import com.code.monks.csm.common.BillItemCommon;
 import com.code.monks.csm.dto.request.BillEntryRequestDto;
 import com.code.monks.csm.dto.request.BillUpdateRequest;
 import com.code.monks.csm.dto.response.*;
-import com.code.monks.csm.entity.*;
+import com.code.monks.csm.entity.BillDetailEntity;
+import com.code.monks.csm.entity.BillEntryEntity;
+import com.code.monks.csm.entity.BillImageEntity;
+import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.BillException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
+import com.code.monks.csm.mapper.BillMapper;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
@@ -16,11 +20,9 @@ import com.code.monks.csm.service.TransportService;
 import com.code.monks.csm.service.file.FileService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import com.code.monks.csm.utils.MoneyUtil;
-import com.code.monks.csm.utils.ValidatorUtil;  
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,12 +43,11 @@ import static com.code.monks.csm.enums.ResponseErrorCode.*;
 public class BillServiceImpl implements BillService {
 
     private final BillEntryRepo billRepo;
-    private final ValidatorUtil validatorUtil;
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final TransportService transportService;
     private final FileService fileService;
-
+    private final BillMapper billMapper;
 
     @Transactional
     public BillEntryResponseDto addBill(
@@ -142,7 +143,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public PagedResponseDto<SearchBillEntryResponse> searchBillHistory(
+    public PagedResponseDto<BillListResponseDto> searchBillHistory(
             LocalDate fromDate,
             LocalDate toDate,
             Integer supplierId,
@@ -168,17 +169,17 @@ public class BillServiceImpl implements BillService {
                 new GenericSpecificationBuilder<BillEntryEntity>()
                         .fromDate("date", fromDate)
                         .toDate("date", toDate)
-                        .equal("supplierId", supplierId)
-                        .equal("customerId", customerId)
+                        .joinEqual("supplier", "id", supplierId)
+                        .joinEqual("customer", "id", customerId)
                         .build();
 
         Page<BillEntryEntity> billRecords =
                 billRepo.findAll(spec, pageable);
 
-        List<SearchBillEntryResponse> content =
+        List<BillListResponseDto> content =
                 billRecords.getContent()
                         .stream()
-                        .map(this::convertToResponseDto)
+                        .map(billMapper::toListDto)
                         .toList();
 
         log.info("Search result fetched | totalRecords={} | page={}",
@@ -194,45 +195,19 @@ public class BillServiceImpl implements BillService {
         );
     }
 
-    public List<GetBillEntries> getBillEntries() {
-        log.info("Fetching all bill entries from database...");
+    @Override
+    public BillDetailResponseDto getBillDetail(String billNumber) {
 
-        try {
-            // Fetch all bills
-            List<BillEntryEntity> bills = billRepo.findAll();
-            log.info("Fetched {} bill entries from database", bills.size());
-
-            // Map bill entries to DTO
-            List<GetBillEntries> result = bills.stream().map(bill -> {
-                GetBillEntries dto = GetBillEntries.convertToGetBillEntries(bill);
-
-                CustomerEntity customerEntity = customerRepo.findById(bill.getCustomerId()).orElseThrow();
-                dto.setCustomerName(customerEntity.getCustomerName());
-                dto.setCustomerGroup(customerEntity.getGroupName());
-                dto.setCustomerMsme(customerEntity.getMsme());
-                dto.setCustomerGstNo(customerEntity.getGstNo());
-
-                SupplierEntity supplierEntity = supplierRepo.findById(bill.getSupplierId()).orElseThrow();
-                dto.setSupplierName(supplierEntity.getSupplierName());
-                dto.setSupplierGroup(supplierEntity.getGroupName());
-                dto.setSupplierMsme(supplierEntity.getMsme());
-                dto.setSupplierGstNo(supplierEntity.getGstNo());
-
-                return dto;
-            }).toList();
-
-            log.info("Successfully mapped {} bill entries with customer & supplier names", result.size());
-            return result;
-
-        } catch (DataAccessException dae) {
-            log.error("Database access error while fetching bill entries", dae);
-            throw new BillException(DATA_ACCESS_ERROR, dae.getMessage());
-        } catch (Exception ex) {
-            log.error("Unexpected error occurred while fetching bill entries", ex);
-            throw new BillException(UNEXPECTED_EXCEPTION, " fetching bill entries");
-        }
+        log.info("Fetching bill detail | billNumber={}", billNumber);
+        BillEntryEntity entity = billRepo.findByBillNumber(billNumber)
+                .orElseThrow(() -> {
+                    log.warn("Bill not found | billNumber={}", billNumber);
+                    return new ResourceNotFoundException(BILL_NOT_FOUND, billNumber);
+                });
+        BillDetailResponseDto response = billMapper.toDetailDto(entity);
+        log.info("Bill detail mapped successfully | billNumber={}", billNumber);
+        return response;
     }
-
 
     private void checkLrNumberDuplicate(String lrNumber) {
         if (StringUtils.isNotBlank(lrNumber) && billRepo.existsByLrNumber(lrNumber)) {
@@ -263,17 +238,6 @@ public class BillServiceImpl implements BillService {
         return String.format("INV-%05d", nextNumber);
     }
 
-
-    private void validateBill(String billNumber) {
-        List<ValidatorUtil.DuplicateCheck> duplicateChecks = new ArrayList<>();
-
-        duplicateChecks.add(new ValidatorUtil.DuplicateCheck(
-                "billNumber", () -> billRepo.existsByBillNumber(billNumber)
-        ));
-        validatorUtil.validateUniqueFields(duplicateChecks);
-    }
-
-
     @Override
     public Map<String, Object> deleteBillEntry(String billNumber) {
 
@@ -295,95 +259,6 @@ public class BillServiceImpl implements BillService {
                 "message", "Bill deleted successfully",
                 "billNumber", billNumber
         );
-    }
-
-    private SearchBillEntryResponse convertToResponseDto(BillEntryEntity entity) {
-
-        CustomerEntity customerEntity = null;
-        SupplierEntity supplierEntity = null;
-
-        if (entity.getCustomerId() != null) {
-            customerEntity = customerRepo.findById(entity.getCustomerId()).orElse(null);
-        }
-
-        if (entity.getSupplierId() != null) {
-            supplierEntity = supplierRepo.findById(entity.getSupplierId()).orElse(null);
-        }
-
-        List<BillItemDto> itemDtos = new ArrayList<>();
-
-        for (BillDetailEntity detail : entity.getBillDetails()) {
-
-            log.info("Converting Detail To Response | storedGstBP={} | storedDiscountBP={}",
-                    detail.getGstPercent(),
-                    detail.getDiscountPercent());
-
-            BillItemDto dto = BillItemDto.builder()
-                    .pieces(detail.getPieces())
-                    .grossAmount(MoneyUtil.toRupee(detail.getGrossAmount()))
-                    .discountAmount(MoneyUtil.toRupee(detail.getDiscountAmount()))
-                    .addOnAmount(MoneyUtil.toRupee(detail.getAddOnAmount()))
-                    .ecrAmount(MoneyUtil.toRupee(detail.getEcrAmount()))
-                    .gstAmount(MoneyUtil.toRupee(detail.getGstAmount()))
-                    .discountPercent(
-                            MoneyUtil.basisPointToPercent(detail.getDiscountPercent()))
-                    .gstPercent(
-                            MoneyUtil.basisPointToPercent(detail.getGstPercent()))
-                    .build();
-
-            itemDtos.add(dto);
-        }
-
-
-        String transportName = entity.getTransportEntity() != null
-                ? entity.getTransportEntity().getName()
-                : null;
-
-        List<String> publicImageUrls = new ArrayList<>();
-        List<String> objectKeys = new ArrayList<>();
-        List<String> fileNames = new ArrayList<>();
-
-        if (entity.getImages() != null) {
-            for (BillImageEntity image : entity.getImages()) {
-                publicImageUrls.add(image.getPublicUrl());
-                objectKeys.add(image.getObjectKey());
-                fileNames.add(image.getOriginalFileName());
-            }
-        }
-
-        return SearchBillEntryResponse.builder()
-                .id(entity.getId())
-                .billNumber(entity.getBillNumber())
-                .date(entity.getDate())
-                .receivedDate(entity.getReceivedDate())
-                .invoiceNo(entity.getInvoiceNo())
-
-                .billAmount(MoneyUtil.toRupee(entity.getBillAmount()))
-                .taxableValue(MoneyUtil.toRupee(entity.getTaxableValue()))
-
-                .transport(transportName)
-                .lrNumber(entity.getLrNumber())
-                .remarks(entity.getRemarks())
-
-                // Supplier
-                .supplierId(supplierEntity != null ? supplierEntity.getId() : null)
-                .supplierName(supplierEntity != null ? supplierEntity.getSupplierName() : null)
-                .supplierGroup(supplierEntity != null ? supplierEntity.getGroupName() : null)
-                .supplierGstNo(supplierEntity != null ? supplierEntity.getGstNo() : null)
-                .supplierMsme(supplierEntity != null ? supplierEntity.getMsme() : null)
-
-                // Customer
-                .customerId(customerEntity != null ? customerEntity.getId() : null)
-                .customerName(customerEntity != null ? customerEntity.getCustomerName() : null)
-                .customerGroup(customerEntity != null ? customerEntity.getGroupName() : null)
-                .customerGstNo(customerEntity != null ? customerEntity.getGstNo() : null)
-                .customerMsme(customerEntity != null ? customerEntity.getMsme() : null)
-
-                .items(itemDtos)
-                .publicUrls(publicImageUrls)
-                .objectKeys(objectKeys)
-                .originalFileNames(fileNames)
-                .build();
     }
 
     private List<BillDetailEntity> mapToBillDetails(
@@ -432,8 +307,13 @@ public class BillServiceImpl implements BillService {
         bill.setDate(dto.getDate());
         bill.setReceivedDate(dto.getReceivedDate());
         bill.setInvoiceNo(dto.getOrder());
-        bill.setSupplierId(dto.getSupplierId());
-        bill.setCustomerId(dto.getCustomerId());
+        bill.setSupplier(
+                supplierRepo.getReferenceById(dto.getSupplierId())
+        );
+
+        bill.setCustomer(
+                customerRepo.getReferenceById(dto.getCustomerId())
+        );
         bill.setLrNumber(dto.getLrNumber());
         bill.setRemarks(dto.getRemarks());
 
@@ -460,8 +340,16 @@ public class BillServiceImpl implements BillService {
                 .ifPresent(bill::setReceivedDate);
 
         bill.setInvoiceNo(dto.getOrder());
-        bill.setSupplierId(dto.getSupplierId());
-        bill.setCustomerId(dto.getCustomerId());
+        if (dto.getSupplierId() != null) {
+            bill.setSupplier(
+                    supplierRepo.getReferenceById(dto.getSupplierId())
+            );
+        }
+        if (dto.getCustomerId() != null) {
+            bill.setCustomer(
+                    customerRepo.getReferenceById(dto.getCustomerId())
+            );
+        }
         bill.setLrNumber(dto.getLrNumber());
         bill.setRemarks(dto.getRemarks());
 

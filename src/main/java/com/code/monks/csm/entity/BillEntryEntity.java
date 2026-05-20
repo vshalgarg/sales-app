@@ -30,10 +30,10 @@ public class BillEntryEntity extends BaseEntity{
     private String invoiceNo;
 
     @Column(name = "taxable_value")
-    private long taxableValue;
+    private Long taxableValue;
 
     @Column(name = "bill_amount")
-    private long billAmount;
+    private Long billAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transport_id")
@@ -42,11 +42,13 @@ public class BillEntryEntity extends BaseEntity{
     private String lrNumber;
     private String remarks;
 
-    @Column(name = "supplier_id")
-    private Integer supplierId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private SupplierEntity supplier;
 
-    @Column(name = "customer_id")
-    private Integer customerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private CustomerEntity customer;
 
     // One bill header has many items
     @OneToMany(mappedBy = "billEntry", cascade = ALL, orphanRemoval = true)

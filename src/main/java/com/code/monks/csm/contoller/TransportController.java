@@ -3,6 +3,7 @@ package com.code.monks.csm.contoller;
 import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
 import com.code.monks.csm.dto.response.CommonTransportResponseDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
+import com.code.monks.csm.dto.response.TransportLiteResponseDto;
 import com.code.monks.csm.dto.response.TransportResponseDto;
 import com.code.monks.csm.service.TransportService;
 import jakarta.validation.Valid;
@@ -47,16 +48,16 @@ public class TransportController {
     }
 
     @GetMapping(GET_ALL)
-    public ResponseEntity<List<TransportResponseDto>> getAll(){
+    public ResponseEntity<List<TransportLiteResponseDto>> getAll(){
         return ResponseEntity.ok(transportService.getAll());
     }
 
     @GetMapping(GET_ALL_TRANSPORT)
-    public ResponseEntity<Page<TransportResponseDto>> getAllTransports(
+    public ResponseEntity<PagedResponseDto<TransportResponseDto>> getAllTransports(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        Page<TransportResponseDto> transportPage = transportService.getAllTransports(page, size);
+        PagedResponseDto<TransportResponseDto> transportPage = transportService.getAllTransports(page, size);
         return ResponseEntity.ok(transportPage);
     }
 

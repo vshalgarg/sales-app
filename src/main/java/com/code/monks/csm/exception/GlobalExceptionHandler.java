@@ -1,6 +1,8 @@
 package com.code.monks.csm.exception;
 
+import com.code.monks.csm.enums.ResponseErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -123,6 +125,23 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleDataAccessException(DataAccessException ex) {
+
+        log.error("[DATABASE ERROR] {}", ex.getMessage(), ex);
+
+        ResponseErrorCode errorCode = ResponseErrorCode.DB_ERROR;
+        ErrorResponse errorResponse = new ErrorResponse(
+                errorCode.getCode(),
+                errorCode.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse);
     }
 
 }

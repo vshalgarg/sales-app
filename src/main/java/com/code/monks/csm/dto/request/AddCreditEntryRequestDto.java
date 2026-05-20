@@ -2,7 +2,6 @@ package com.code.monks.csm.dto.request;
 
 import com.code.monks.csm.enums.CreditEntryEnum;
 import com.code.monks.csm.enums.DrawTypeEnum;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -15,7 +14,6 @@ public class AddCreditEntryRequestDto {
 
     private String billNumber;
 
-    @NotNull(message = "Date is required")
     private LocalDate date;
 
     private String referenceNumber;

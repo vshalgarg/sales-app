@@ -1,11 +1,9 @@
 package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.request.AddSupplierRequestDto;
-import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.DeleteSupplierRequestDto;
 import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
-import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
@@ -16,7 +14,6 @@ import com.code.monks.csm.mapper.SupplierMapper;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.SupplierService;
-import com.code.monks.csm.utils.ContactUtil;
 import com.code.monks.csm.utils.ValidatorUtil;
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
@@ -30,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 import static com.code.monks.csm.enums.StatusEnum.INACTIVE;
@@ -122,83 +118,37 @@ public class SupplierServiceImpl implements SupplierService {
         return code;
     }
 
-    public PagedResponseDto<GetSuppliersDto> getSuppliers(int page, int size) {
-        log.info("Fetching active suppliers...");
+    public PagedResponseDto<SupplierListResponseDto> getSuppliers(int page, int size) {
+        log.info("[SUPPLIER LIST] Fetch request received | page={} | size={}", page, size);
 
-        Page<SupplierEntity> records;
-        try {
-            // ✅ Add sorting by latest (descending order of ID)
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
 
-            // ✅ Fetch only active suppliers with sorting
-            records = supplierRepo.findAllByStatus(
-                    StatusEnum.ACTIVE, pageable
-            );
+        Page<SupplierEntity> records =
+                supplierRepo.findSupplierList(StatusEnum.ACTIVE, pageable);
 
-            log.debug("Fetched {} active supplier records (page {}/{})",
-                    records.getNumberOfElements(), page, records.getTotalPages());
-        } catch (DataAccessException dae) {
-            log.error("Database error while fetching suppliers", dae);
-            throw new SupplierException(DATA_ACCESS_ERROR, "while fetching suppliers");
-        } catch (Exception e) {
-            log.error("Unexpected error while fetching suppliers", e);
-            throw new SupplierException(UNEXPECTED_EXCEPTION, "while fetching suppliers");
-        }
-
-        // ✅ Map entities to DTOs
-        List<GetSuppliersDto> dtoList = records.getContent()
+        List<SupplierListResponseDto> content = records.getContent()
                 .stream()
-                .map(this::mapSupplierToGetSuppliersDto)
-                .collect(Collectors.toList());
+                .map(supplierMapper::toListDto)
+                .toList();
 
-        // ✅ Build and return paged response
-        return PagedResponseDto.<GetSuppliersDto>builder()
-                .content(dtoList)
-                .page(records.getNumber() + 1) // (optional: +1 to make it user-friendly)
+        log.info("[SUPPLIER LIST] Fetch successful | page={} | size={} | fetchedRecords={} | totalRecords={}",
+                page,
+                size,
+                records.getNumberOfElements(),
+                records.getTotalElements()
+        );
+
+        return PagedResponseDto.<SupplierListResponseDto>builder()
+                .content(content)
+                .page(records.getNumber() + 1)
                 .size(records.getSize())
                 .totalElements(records.getTotalElements())
                 .totalPages(records.getTotalPages())
                 .last(records.isLast())
-                .build();
-    }
-
-    private GetSuppliersDto mapSupplierToGetSuppliersDto(SupplierEntity record) {
-        List<ContactRequestDto> contacts = ContactUtil.mapContacts(
-                record.getContactList(),
-                ContactEntity::getContactPerson,
-                ContactEntity::getMobileNumber,
-                ContactEntity::getType
-        );
-
-        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
-                .orElse(Collections.emptySet())
-                .stream()
-                .map(t -> TransportDto.builder()
-                        .id(t.getId())
-                        .name(t.getName())
-                        .build())
-                .sorted(Comparator.comparing(TransportDto::getName))
-                .toList();
-
-        return GetSuppliersDto.builder()
-                .id(record.getId())
-                .code(record.getCode())
-                .supplierName(record.getSupplierName())
-                .supplierGroup(record.getGroupName())
-                .supplierGstNo(record.getGstNo())
-                .email(record.getEmail())
-                .referenceBy(record.getReferenceBy())
-                .commissionScheme(record.getCommissionScheme())
-                .commissionRate(record.getCommissionRate())
-                .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
-                .state(record.getState())
-                .city(record.getCity())
-                .pinCode(record.getPinCode())
-                .contacts(contacts)
-                .supplierMsme(record.getMsme())
-                .preferredTransports(transportDtos)
-                //.preferredTransport(record.getPreferredTransport())
-                .remark(record.getRemark())
                 .build();
     }
 
@@ -240,52 +190,58 @@ public class SupplierServiceImpl implements SupplierService {
         }
     }
 
-    public Page<SearchSuppliersResponseDto> searchSuppliers(String keyword, Pageable pageable) {
+    @Override
+    public PagedResponseDto<SupplierListResponseDto> searchSuppliers(String keyword, Pageable pageable) {
 
-        log.info("Search suppliers called with keyword: '{}' and pageable: {}",
-                keyword, pageable);
+        log.info("SUPPLIER SEARCH Request | keyword='{}' | page={} | size={}",
+                keyword,
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
 
         if (keyword == null || keyword.trim().isEmpty()) {
-            log.info("Search keyword is null or empty - returning empty page");
-            return Page.empty(pageable);
+            return PagedResponseDto.<SupplierListResponseDto>builder()
+                    .content(List.of())
+                    .page(pageable.getPageNumber() + 1)
+                    .size(pageable.getPageSize())
+                    .totalElements(0)
+                    .totalPages(0)
+                    .last(true)
+                    .build();
         }
 
         String trimmedKeyword = keyword.trim();
         log.debug("Searching suppliers with trimmed keyword: '{}'", trimmedKeyword);
 
-        try {
-            Page<SupplierEntity> suppliersPage = supplierRepo.searchByKeyword(trimmedKeyword, pageable);
-            log.info("Search completed successfully - found {} suppliers (page {}/{}, total elements: {})",
-                    suppliersPage.getNumberOfElements(),
-                    suppliersPage.getNumber() + 1,
-                    suppliersPage.getTotalPages(),
-                    suppliersPage.getTotalElements());
+        Page<SupplierEntity> suppliersPage =
+                supplierRepo.searchByKeyword(trimmedKeyword, pageable);
+        List<SupplierListResponseDto> content = suppliersPage.getContent()
+                .stream()
+                .map(supplierMapper::toListDto)
+                .toList();
+        log.info("SUPPLIER SEARCH Success | fetched={} | total={}",
+                suppliersPage.getNumberOfElements(),
+                suppliersPage.getTotalElements()
+        );
 
-            return suppliersPage.map(s -> mapToDto(s, this::mapSupplierToSearchSuppliersDto));
-        }
-        catch (Exception e) {
-                log.error("Unexpected error while searching suppliers with keyword: '{}'", trimmedKeyword, e);
-                throw new SupplierException(UNEXPECTED_EXCEPTION, "Unexpected error during supplier search");
-            }
+        return PagedResponseDto.<SupplierListResponseDto>builder()
+                .content(content)
+                .page(suppliersPage.getNumber() + 1)
+                .size(suppliersPage.getSize())
+                .totalElements(suppliersPage.getTotalElements())
+                .totalPages(suppliersPage.getTotalPages())
+                .last(suppliersPage.isLast())
+                .build();
+
     }
 
     @Override
-    public List<GetSuppliersDto> getAllSuppliers() {
+    public List<SupplierSummaryDto> getAllSuppliers() {
 
-        log.info("Fetching all active suppliers (non-paged)...");
-        try {
-       List<SupplierEntity> supplierEntityList =  supplierRepo.findAll();
-        return supplierEntityList.stream()
-                .map(this::mapSupplierToGetSuppliersDto)
-                .collect(Collectors.toList());
-
-        } catch (DataAccessException dae) {
-            log.error("Database error while fetching all suppliers", dae);
-            throw new SupplierException(DATA_ACCESS_ERROR, dae.getMessage());
-        } catch (Exception e) {
-            log.error("Unexpected error while fetching all suppliers", e);
-            throw new SupplierException(UNEXPECTED_EXCEPTION, e.getMessage());
-        }
+        log.info("[SUPPLIER - ALL] Fetch request received");
+        List<SupplierSummaryDto> suppliers = supplierRepo.findAllSummary();
+        log.info("[SUPPLIER - ALL] Fetch successful | totalRecords={}", suppliers.size());
+        return suppliers;
     }
 
     @Override
@@ -367,57 +323,4 @@ public class SupplierServiceImpl implements SupplierService {
         }
     }
 
-    public List<SearchSuppliersResponseDto> searchSuppliers(String keyword) {
-
-        log.info("Search suppliers called with keyword: '{}' ",
-                keyword);
-
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return List.of();
-        }
-
-        List<SupplierEntity> suppliers = supplierRepo.searchByKeyword(keyword.trim());
-        log.info("Search completed successfully");
-
-        return suppliers.stream()
-                .map(s -> mapToDto(s, this::mapSupplierToSearchSuppliersDto))
-                .toList();
-    }
-
-    private SearchSuppliersResponseDto mapSupplierToSearchSuppliersDto(SupplierEntity record) {
-        List<ContactRequestDto> contacts = ContactUtil.mapContacts(
-                record.getContactList(),
-                ContactEntity::getContactPerson,
-                ContactEntity::getMobileNumber,
-                ContactEntity::getType
-        );
-
-        List<TransportDto> transportDtos = Optional.ofNullable(record.getPreferredTransports())
-                .orElse(Collections.emptySet())
-                .stream()
-                .map(t -> TransportDto.builder()
-                        .id(t.getId())
-                        .name(t.getName())
-                        .build())
-                .sorted(Comparator.comparing(TransportDto::getName))
-                .toList();
-
-        return SearchSuppliersResponseDto.builder()
-                .id(record.getId())
-                .code(record.getCode())
-                .supplierName(record.getSupplierName())
-                .supplierGroup(record.getGroupName())
-                .supplierGstNo(record.getGstNo())
-                .commissionScheme(record.getCommissionScheme())
-                .commissionRate(record.getCommissionRate())
-                .address(ContactUtil.formatAddress(record.getAddressLine1(), record.getAddressLine2()))
-                .state(record.getState())
-                .city(record.getCity())
-                .pinCode(record.getPinCode())
-                .contacts(contacts)
-                .supplierMsme(record.getMsme())
-                .preferredTransports(transportDtos)
-                .remark(record.getRemark())
-                .build();
-    }
 }

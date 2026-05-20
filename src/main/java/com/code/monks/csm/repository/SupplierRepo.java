@@ -1,9 +1,11 @@
 package com.code.monks.csm.repository;
 
-import com.code.monks.csm.enums.StatusEnum;
+import com.code.monks.csm.dto.response.SupplierSummaryDto;
 import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.enums.StatusEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -51,6 +53,7 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
     Page<SupplierEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
 
+    @EntityGraph(attributePaths = {"contactList"})
     @Query("SELECT DISTINCT s FROM SupplierEntity s " +
             "LEFT JOIN s.contactList c " +
             "WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE AND (" +
@@ -61,5 +64,26 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
             ")")
     List<SupplierEntity> searchByKeyword(@Param("keyword") String keyword);
 
+    @Query("""
+SELECT new com.code.monks.csm.dto.response.SupplierSummaryDto(
+    s.id,
+    s.supplierName,
+    s.groupName,
+    s.gstNo,
+    s.msme,
+    s.city
+)
+FROM SupplierEntity s
+WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE
+ORDER BY s.supplierName
+""")
+    List<SupplierSummaryDto> findAllSummary();
+
+    @EntityGraph(attributePaths = {"contactList"})
+    @Query("""
+SELECT s FROM SupplierEntity s
+WHERE s.status = :status
+""")
+    Page<SupplierEntity> findSupplierList(StatusEnum status, Pageable pageable);
 
 }

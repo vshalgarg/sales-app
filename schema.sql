@@ -642,3 +642,13 @@ ALTER TABLE customer ADD COLUMN account_number VARCHAR(100);
 
 ALTER TABLE bill_images ADD COLUMN original_file_name VARCHAR(100);
 ALTER TABLE purchase_images ADD COLUMN original_file_name VARCHAR(100);
+
+ALTER TABLE bill
+ADD CONSTRAINT fk_bill_supplier
+FOREIGN KEY (supplier_id)
+REFERENCES supplier(id);
+
+ALTER TABLE bill
+ADD CONSTRAINT fk_bill_customer
+FOREIGN KEY (customer_id)
+REFERENCES customer(id);
