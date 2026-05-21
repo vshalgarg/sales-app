@@ -26,6 +26,7 @@ import { roundUp } from "../utils/numberUtils";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import CloseIcon from "@mui/icons-material/Close";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
 
 const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
@@ -454,7 +455,7 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
                 loading={loading.supplier}
                 isOptionEqualToValue={(o, v) => o.id === v?.id}
                 getOptionLabel={(o) =>
-                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                  o?.supplierName ? `${o.supplierName}${o.city ? ` - ${o.city}` : ""}` : ""
                 }
                 onChange={(e, value) => {
                   setSelectedSupplier(value);
@@ -518,7 +519,7 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
                 loading={loading.customer}
                 isOptionEqualToValue={(o, v) => o.id === v?.id}
                 getOptionLabel={(o) =>
-                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+                  o?.customerName ? `${o.customerName}${o.city ? ` - ${o.city}` : ""}` : ""
                 }
                 onChange={(e, value) => {
                   setSelectedCustomer(value);
@@ -759,11 +760,11 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
             {/* Final Totals */}
             <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-base sm:text-lg font-semibold">
               <div className="flex justify-between sm:justify-end items-center bg-gray-100 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md">
-                <span className="text-gray-600">Taxable Value:</span> ₹{roundUp(formData.taxableValue)}
+                <span className="text-gray-600">Taxable Value:</span> ₹{formatIndianCurrency(roundUp(formData.taxableValue))}
               </div>
 
               <div className="flex justify-between sm:justify-end items-center bg-blue-50 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md text-blue-700 font-bold">
-                <span className="text-gray-600">Bill Amount:</span> ₹{roundUp(formData.billAmount)}
+                <span className="text-gray-600">Bill Amount:</span> ₹{formatIndianCurrency(roundUp(formData.billAmount))}
               </div>
             </div>
           </div>

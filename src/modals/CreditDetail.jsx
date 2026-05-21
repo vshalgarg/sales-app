@@ -3,6 +3,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
 const CreditDetail = ({ selectedCreditDetail, setIsModalOpen }) => {
 
@@ -67,7 +68,7 @@ const CreditDetail = ({ selectedCreditDetail, setIsModalOpen }) => {
               <Info label="Invoice Number" value={selectedCreditDetail.billNumber} />
               <Info label="Transaction Date" value={selectedCreditDetail.date} />
               <Info label="Payment Type" value={selectedCreditDetail.paymentType} />
-              <Info label="Received Amount" value={selectedCreditDetail.receivedAmount} />
+              <Info label="Received Amount" value={formatIndianCurrency(selectedCreditDetail.receivedAmount)} />
             </InfoGrid>
           </Section>
 
