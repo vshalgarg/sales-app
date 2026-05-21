@@ -22,6 +22,7 @@ import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import UploadDialog from "./common/UploadDialog";
 import CloseIcon from "@mui/icons-material/Close";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
 
 const BillEntry = () => {
@@ -1154,19 +1155,19 @@ const BillEntry = () => {
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Taxable Value</p>
                     <p className="md:text-lg font-medium text-blue-600 mt-1">
-                      {roundUp(billForm.taxableValue)}
+                      {formatIndianCurrency(roundUp(billForm.taxableValue))}
                     </p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500">GST Amount</p>
                     <p className="md:text-lg font-medium text-green-600 mt-1">
-                      {roundUp(billForm.gstAmount)}
+                      {formatIndianCurrency(roundUp(billForm.gstAmount))}
                     </p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Bill Amount</p>
                     <p className="md:text-xl font-medium text-indigo-600 mt-1">
-                      {roundUp(billForm.billAmount)}
+                      {formatIndianCurrency(roundUp(billForm.billAmount))}
                     </p>
                   </div>
                 </div>
