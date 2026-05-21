@@ -23,16 +23,16 @@ const PurchaseHistory = ({
   const [viewData, setViewData] = useState(null);
 
   const handleView = async (row) => {
-  try {
+    try {
 
-    const detail = await getPurchaseDetailsById(row.id);
+      const detail = await getPurchaseDetailsById(row.id);
 
-    setViewData(detail);
+      setViewData(detail);
 
-  } catch {
-    showSnackbar("Failed to load purchase details", "error");
-  }
-};
+    } catch {
+      showSnackbar("Failed to load purchase details", "error");
+    }
+  };
 
   const handleCloseView = () => {
     setViewData(null);
@@ -50,26 +50,37 @@ const PurchaseHistory = ({
       { key: "staffName", width: "20%", label: "Staff" },
 
       {
-        key: "supplierNames",
-        label: "Suppliers",
-         width: "26%",
-        render: (r) =>
-          r.supplierNames && r.supplierNames.length > 0
-            ? r.supplierNames.join(", ")
-            : "-",
+        key: "supplierName",
+        label: "Supplier",
+        width: "22%",
+        render: (r) => (
+          <div className="flex flex-col">
+            <span>{r.supplierName || "-"}</span>
+            <span className="text-xs text-gray-500">
+              {r.supplierCity || "-"}
+            </span>
+          </div>
+        ),
       },
 
       {
         key: "customerName",
         label: "Customer",
-         width: "18%",
-        render: (r) => r.customerName || "-",
+        width: "18%",
+        render: (r) => (
+          <div className="flex flex-col">
+            <span>{r.customerName || "-"}</span>
+            <span className="text-xs text-gray-500">
+              {r.customerCity || "-"}
+            </span>
+          </div>
+        ),
       },
 
       {
         key: "remarks",
         label: "Remarks",
-         width: "16%",
+        width: "16%",
         render: (r) =>
           r.remarks != null
             ? r.remarks
@@ -84,13 +95,17 @@ const PurchaseHistory = ({
         render: (r) => (r.date ? dayjs(r.date).format("DD-MM-YYYY") : "-"),
       },
       {
-        key: "supplierNames",
-        label: "Suppliers",
-        render: (r) =>
-          r.supplierNames && r.supplierNames.length > 0
-            ? r.supplierNames.join(", ")
-            : "-",
-      },  
+        key: "supplierName",
+        label: "Supplier",
+        render: (r) => (
+          <div className="flex flex-col">
+            <span>{r.supplierName || "-"}</span>
+            <span className="text-xs text-gray-500">
+              {r.supplierCity || "-"}
+            </span>
+          </div>
+        ),
+      },
     ],
   };
 
