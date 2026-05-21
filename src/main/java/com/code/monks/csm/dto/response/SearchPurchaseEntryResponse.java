@@ -15,10 +15,12 @@ public class SearchPurchaseEntryResponse {
 
     private String staffName;
 
-    private List<String> supplierNames;
+    private String supplierName;
 
     private String customerName;
 
     private String remarks;
+    private String customerCity;
+    private String supplierCity;
 
 }

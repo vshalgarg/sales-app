@@ -17,4 +17,6 @@ public class BillListResponseDto {
     private String supplierName;
     private String customerName;
     private BigDecimal billAmount;
+    private String supplierCity;
+    private String customerCity;
 }

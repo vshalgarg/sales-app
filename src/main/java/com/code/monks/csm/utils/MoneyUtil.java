@@ -15,7 +15,10 @@ public class MoneyUtil {
                 .longValue();
     }
 
-    public static BigDecimal toRupee(long paisa) {
+    public static BigDecimal toRupee(Long paisa) {
+        if (paisa == null) {
+            return null;
+        }
         return BigDecimal.valueOf(paisa)
                 .divide(HUNDRED, 2, RoundingMode.HALF_UP);
     }
