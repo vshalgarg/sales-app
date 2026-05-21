@@ -1,4 +1,5 @@
 import useResponsive from "../customHooks/useResponsive";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 import { roundUp } from "../utils/numberUtils";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
@@ -35,15 +36,38 @@ const BillHistory = ({
         render: (row) =>
           row.receivedDate ? dayjs(row.receivedDate).format("DD-MM-YYYY") : "-",
       },
-      { key: "supplierName", width: "22%", label: "Supplier" },
-      { key: "customerName", width: "22%", label: "Customer" },
+      {
+        key: "supplierName", width: "22%", label: "Supplier",
+        render: (row) => (
+          <div className="flex flex-col">
+            <span>{row.supplierName || "-"}</span>
+
+            <span className="text-xs text-gray-500">
+              {row.supplierCity || "-"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "customerName", width: "22%", label: "Customer",
+        render: (row) => (
+          <div className="flex flex-col">
+            <span>{row.customerName || "-"}</span>
+
+            <span className="text-xs text-gray-500">
+              {row.customerCity || "-"}
+            </span>
+          </div>
+        ),
+
+      },
       {
         key: "billAmount",
         width: "10%",
         label: "Bill Amount",
         render: (row) =>
           row.billAmount != null
-            ? roundUp(row.billAmount)
+            ? formatIndianCurrency(roundUp(row.billAmount))
             : "-"
       },
     ],
@@ -60,7 +84,7 @@ const BillHistory = ({
         label: "Amount",
         render: (row) =>
           row.billAmount != null
-            ? roundUp(row.billAmount)
+            ? formatIndianCurrency(roundUp(row.billAmount))
             : "-"
       },
     ],

@@ -1,4 +1,5 @@
 import useResponsive from "../customHooks/useResponsive";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 import { roundUp } from "../utils/numberUtils";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
@@ -28,17 +29,41 @@ const CreditHistory = ({
         render: (row) =>
           row.date ? dayjs(row.date).format("DD-MM-YYYY") : "-",
       },
-      { key: "paymentType",width: "12%", label: "Payment Type" },
-      { key: "supplierName", label: "Supplier" },
-      { key: "customerName", label: "Customer" },
+      { key: "paymentType", width: "12%", label: "Payment Type" },
+      {
+        key: "supplierName",
+        label: "Supplier",
+        render: (row) => (
+          <div className="flex flex-col">
+            <span>{row.supplierName || "-"}</span>
+
+            <span className="text-xs text-gray-500">
+              {row.supplierCity || "-"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "customerName",
+        label: "Customer",
+        render: (row) => (
+          <div className="flex flex-col">
+            <span>{row.customerName || "-"}</span>
+
+            <span className="text-xs text-gray-500">
+              {row.customerCity || "-"}
+            </span>
+          </div>
+        ),
+      },
       { key: "referenceNumber", width: "16%", label: "Reference No" },
       {
         key: "receivedAmount",
-        width: "8%",
+        width: "10%",
         label: "Amount",
         render: (row) =>
           row.receivedAmount != null
-            ? roundUp(row.receivedAmount)
+            ? formatIndianCurrency(roundUp(row.receivedAmount))
             : "-"
       },
     ],

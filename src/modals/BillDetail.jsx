@@ -10,6 +10,7 @@ import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
 import { roundUp } from "../utils/numberUtils";
 import { getBillDetails } from "../service/BillService";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
 const BillDetail = ({ billNumber, setIsModalOpen }) => {
 
@@ -194,8 +195,8 @@ const BillDetail = ({ billNumber, setIsModalOpen }) => {
 
               {/* Totals */}
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-right font-semibold">
-                <div>Taxable Value: ₹{roundUp(header.taxableValue)}</div>
-                <div>Bill Amount: ₹{roundUp(header.billAmount)}</div>
+                <div>Taxable Value: ₹{formatIndianCurrency(roundUp(header.taxableValue))}</div>
+                <div>Bill Amount: ₹{formatIndianCurrency(roundUp(header.billAmount))}</div>
               </div>
             </Section>
 
