@@ -37,5 +37,8 @@ public class SearchCreditEntryResponse {
     private int supplierId;
     private int customerId;
 
+    private String supplierCity;
+    private String customerCity;
+
 
 }

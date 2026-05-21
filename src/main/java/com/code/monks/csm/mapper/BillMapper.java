@@ -31,11 +31,9 @@ public class BillMapper {
                                 ? entity.getCustomer().getCustomerName()
                                 : null
                 )
-                .billAmount(
-                        entity.getBillAmount() != null
-                                ? new BigDecimal(entity.getBillAmount())
-                                : null
-                )
+                .billAmount(MoneyUtil.toRupee(entity.getBillAmount()))
+                .supplierCity(entity.getSupplier().getCity())
+                .customerCity(entity.getCustomer().getCity())
                 .build();
     }
 
