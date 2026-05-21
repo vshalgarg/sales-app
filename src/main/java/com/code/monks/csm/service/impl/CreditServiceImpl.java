@@ -283,6 +283,8 @@ public class CreditServiceImpl implements CreditService {
                 .receivedAmount(entity.getReceivedAmount() / 100.0)
                 .supplierName(supplierEntity != null ? supplierEntity.getSupplierName() : null)
                 .customerName(customerEntity != null ? customerEntity.getCustomerName() : null)
+                .customerCity(customerEntity.getCity())
+                .supplierCity(supplierEntity.getCity())
                 .slipNumber(entity.getSlipNumber())
                 .drawType(entity.getDrawType())
                 .remark(entity.getRemark())

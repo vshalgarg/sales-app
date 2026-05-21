@@ -75,20 +75,28 @@ public class PurchaseMapper {
 
     public SearchPurchaseEntryResponse toSearch(PurchaseEntity entity, String staffName) {
 
-        List<String> supplierNames = new ArrayList<>();
-
-        if (entity.getSupplier() != null) {
-            supplierNames.add(entity.getSupplier().getSupplierName());
-        }
-
         return SearchPurchaseEntryResponse.builder()
                 .id(entity.getId())
                 .date(entity.getDate())
                 .staffName(staffName)
-                .supplierNames(supplierNames)
+                .supplierName(
+                        entity.getSupplier() != null
+                                ? entity.getSupplier().getSupplierName()
+                                : null
+                )
                 .customerName(
                         entity.getCustomer() != null
                                 ? entity.getCustomer().getCustomerName()
+                                : null
+                )
+                .customerCity(
+                        entity.getCustomer() != null
+                                ? entity.getCustomer().getCity()
+                                : null
+                )
+                .supplierCity(
+                        entity.getSupplier() != null
+                                ? entity.getSupplier().getCity()
                                 : null
                 )
                 .remarks(entity.getRemarks())
