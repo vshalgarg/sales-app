@@ -266,7 +266,7 @@ const EditCreditDetail = ({
               value={selectedSupplier}
               isOptionEqualToValue={(o, v) => o.id === v?.id}
               getOptionLabel={(o) =>
-                o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                o?.supplierName ? `${o.supplierName}${o.city ? ` - ${o.city}` : ""}`: ""
               }
               onChange={(e, v) => setSelectedSupplier(v)}
               renderInput={(params) => (
@@ -279,7 +279,7 @@ const EditCreditDetail = ({
               value={selectedCustomer}
               isOptionEqualToValue={(o, v) => o.id === v?.id}
               getOptionLabel={(o) =>
-                o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+                o?.customerName ? `${o.customerName}${o.city ? ` - ${o.city}` : ""}`: ""
               }
               onChange={(e, v) => setSelectedCustomer(v)}
               renderInput={(params) => (

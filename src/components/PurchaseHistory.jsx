@@ -56,9 +56,11 @@ const PurchaseHistory = ({
         render: (r) => (
           <div className="flex flex-col">
             <span>{r.supplierName || "-"}</span>
-            <span className="text-xs text-gray-500">
-              {r.supplierCity || "-"}
-            </span>
+            {r.supplierCity && (
+              <span className="text-xs text-gray-500">
+                {r.supplierCity}
+              </span>
+            )}
           </div>
         ),
       },
@@ -70,9 +72,11 @@ const PurchaseHistory = ({
         render: (r) => (
           <div className="flex flex-col">
             <span>{r.customerName || "-"}</span>
-            <span className="text-xs text-gray-500">
-              {r.customerCity || "-"}
-            </span>
+            {r.customerCity && (
+              <span className="text-xs text-gray-500">
+                {r.customerCity}
+              </span>
+            )}
           </div>
         ),
       },

@@ -455,7 +455,7 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
                 loading={loading.supplier}
                 isOptionEqualToValue={(o, v) => o.id === v?.id}
                 getOptionLabel={(o) =>
-                  o?.supplierName ? `${o.supplierName} - ${o.city || ""}` : ""
+                  o?.supplierName ? `${o.supplierName}${o.city ? ` - ${o.city}` : ""}` : ""
                 }
                 onChange={(e, value) => {
                   setSelectedSupplier(value);
@@ -519,7 +519,7 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
                 loading={loading.customer}
                 isOptionEqualToValue={(o, v) => o.id === v?.id}
                 getOptionLabel={(o) =>
-                  o?.customerName ? `${o.customerName} - ${o.city || ""}` : ""
+                  o?.customerName ? `${o.customerName}${o.city ? ` - ${o.city}` : ""}` : ""
                 }
                 onChange={(e, value) => {
                   setSelectedCustomer(value);
