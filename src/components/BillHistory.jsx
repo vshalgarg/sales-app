@@ -42,9 +42,11 @@ const BillHistory = ({
           <div className="flex flex-col">
             <span>{row.supplierName || "-"}</span>
 
-            <span className="text-xs text-gray-500">
-              {row.supplierCity || "-"}
-            </span>
+            {row.supplierCity && (
+              <span className="text-xs text-gray-500">
+                {row.supplierCity}
+              </span>
+            )}
           </div>
         ),
       },
@@ -54,9 +56,11 @@ const BillHistory = ({
           <div className="flex flex-col">
             <span>{row.customerName || "-"}</span>
 
-            <span className="text-xs text-gray-500">
-              {row.customerCity || "-"}
-            </span>
+            {row.customerCity && (
+              <span className="text-xs text-gray-500">
+                {row.customerCity}
+              </span>
+            )}
           </div>
         ),
 
