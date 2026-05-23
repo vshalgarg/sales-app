@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hisabio/enums/supplier_mode.dart';
+import '../enums/customer_mode.dart';
 
 class BankDetailsSection extends StatelessWidget {
-  final SupplierMode? mode;
+  final FormMode? mode;
   final TextEditingController accountNumber;
   final TextEditingController ifscCode;
   final TextEditingController bankName;
@@ -31,7 +31,7 @@ class BankDetailsSection extends StatelessWidget {
 
         SizedBox(height: 15),
         TextFormField(  keyboardType: TextInputType.number,
-          enabled: mode != SupplierMode.view,
+          enabled: mode != FormMode.view,
 
           controller: accountNumber,
           decoration: InputDecoration(
@@ -41,7 +41,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
-          enabled: mode != SupplierMode.view,
+          enabled: mode != FormMode.view,
           controller: ifscCode,
           decoration: InputDecoration(
             labelText: "IFSC Code",
@@ -50,7 +50,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
-          enabled: mode != SupplierMode.view,
+          enabled: mode != FormMode.view,
           controller: bankName,
           decoration: InputDecoration(
             labelText: "Bank Name",
@@ -59,7 +59,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
-          enabled: mode != SupplierMode.view,
+          enabled: mode != FormMode.view,
           controller: branchName,
           decoration: InputDecoration(
             labelText: "Branch Name",
@@ -68,7 +68,7 @@ class BankDetailsSection extends StatelessWidget {
         ),
         SizedBox(height: 15),
         TextFormField(
-          enabled: mode != SupplierMode.view,
+          enabled: mode != FormMode.view,
           controller: accountHolderName,
           decoration: InputDecoration(
             labelText: "Account Holder Name",

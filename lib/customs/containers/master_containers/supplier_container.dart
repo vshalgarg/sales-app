@@ -55,7 +55,7 @@ class SupplierContainer extends StatelessWidget {
                     children: [
                       Text(
                         name ?? "",
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
                         style: TextStyle(
@@ -85,11 +85,15 @@ class SupplierContainer extends StatelessWidget {
                       Expanded(
                         child: Row(
                           children: [
-                            Text(
+                            Text(overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              maxLines: 3,
                               "GST:",
                               style: TextStyle(fontSize: 10, color: Colors.grey),
                             ),
-                            Text(
+                            Text(overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              maxLines: 3,
                               gst ?? "",
                               style: TextStyle(
                                 fontSize: 10,

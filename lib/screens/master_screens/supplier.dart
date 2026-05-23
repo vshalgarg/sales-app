@@ -8,7 +8,6 @@ import 'package:hisabio/customs/containers/master_containers/supplier_container.
 import 'package:hisabio/dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
 import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_supplier_dialog.dart';
 import 'package:hisabio/drawers/master_drawer.dart';
-import 'package:hisabio/enums/supplier_mode.dart';
 import 'package:hisabio/model_classes/add_newsupplier.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
@@ -18,6 +17,8 @@ import 'package:hisabio/provider/search_supplier_provider.dart';
 import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+
+import '../../enums/customer_mode.dart';
 
 class Supplier extends StatefulWidget {
   const Supplier({super.key});
@@ -100,7 +101,9 @@ class _SupplierState extends State<Supplier> {
             SizedBox(height: 25),
 
             Expanded(
-              child: suppliers.isEmpty
+              child:provider.isLoading?
+                  Center(child: const CircularProgressIndicator())
+                  : suppliers.isEmpty
                   ? const Center(
                       child: Text(
                         "No Data Found",
@@ -130,7 +133,7 @@ class _SupplierState extends State<Supplier> {
                               MaterialPageRoute(
                                 builder: (_) => AddNewSupplier(
                                   id: item.id,
-                                  mode: SupplierMode.view,
+                                  mode: FormMode.view,
                                   supplierData: AddNewsupplier.fromJson(
                                     item.toJson(),
                                   ),
@@ -143,7 +146,8 @@ class _SupplierState extends State<Supplier> {
                               context: context,
                               builder: (context) {
                                 return CustomDeleteDialog(
-                                  supplierName: item.supplierName ?? "",
+                                  dialogBoxName: "Delete Supplier",
+                                  name: item.supplierName ?? "",
                                   onDelete: () async {
                                     final provider =
                                         Provider.of<DeleteSupplierProvider>(
@@ -203,7 +207,7 @@ class _SupplierState extends State<Supplier> {
                               MaterialPageRoute(
                                 builder: (_) => AddNewSupplier(
                                   id: item.id,
-                                  mode: SupplierMode.edit,
+                                  mode: FormMode.edit,
                                   supplierData: AddNewsupplier.fromJson(
                                     item.toJson(),
                                   ),

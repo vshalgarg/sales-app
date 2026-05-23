@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/colors_used.dart';
 
 class CustomDeleteDialog extends StatelessWidget {
 
-  final String supplierName;
+  final String name;
   final VoidCallback onDelete;
+  final String dialogBoxName;
 
   const CustomDeleteDialog({
     super.key,
-    required this.supplierName,
+    required this.dialogBoxName,
+    required this.name,
     required this.onDelete,
   });
 
@@ -25,8 +28,8 @@ class CustomDeleteDialog extends StatelessWidget {
           children: [
 
             /// Title
-            const Text(
-              "Delete Supplier",
+             Text(
+             " $dialogBoxName",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -38,7 +41,7 @@ class CustomDeleteDialog extends StatelessWidget {
             /// Message
             Text(
               "Are you sure you want to permanently "
-                  "delete $supplierName? "
+                  "delete $name? "
                   "This action cannot be undone.",
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -76,7 +79,7 @@ class CustomDeleteDialog extends StatelessWidget {
                     child: ElevatedButton(
                       style:
                       ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: AppColors.primaryPurple,
                       ),
                       onPressed: onDelete,
                       child: const Text(

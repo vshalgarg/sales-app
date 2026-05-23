@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/list_items.dart';
-import 'package:hisabio/enums/supplier_mode.dart';
+
+import '../enums/customer_mode.dart';
 
 class AddressDetails extends StatefulWidget {
-  final SupplierMode? mode;
+  final FormMode? mode;
   final TextEditingController addressLine1;
   final TextEditingController addressLine2;
   final TextEditingController state;
@@ -54,7 +55,7 @@ class _AddressDetailsState extends State<AddressDetails> {
         ),
 
         SizedBox(height: 15),
-        TextFormField(  enabled: widget.mode != SupplierMode.view,
+        TextFormField(  enabled: widget.mode != FormMode.view,
           controller: widget.addressLine1,
           decoration: InputDecoration(
             labelText: "Address Line1",
@@ -63,7 +64,7 @@ class _AddressDetailsState extends State<AddressDetails> {
         ),
 
         SizedBox(height: 15),
-        TextFormField(enabled: widget.mode != SupplierMode.view,
+        TextFormField(enabled: widget.mode != FormMode.view,
           controller: widget.addressLine2,
           decoration: InputDecoration(
             labelText: "Address Line2",
@@ -75,7 +76,7 @@ class _AddressDetailsState extends State<AddressDetails> {
           value: selectedState,
           isExpanded: true,
           decoration: InputDecoration(
-            enabled: widget.mode != SupplierMode.view,
+            enabled: widget.mode != FormMode.view,
             labelText: "State",
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -91,7 +92,7 @@ class _AddressDetailsState extends State<AddressDetails> {
               child: Text(state),
             );
           }).toList(),
-          onChanged: widget.mode == SupplierMode.view
+          onChanged: widget.mode == FormMode.view
             ? null
               : (value) {
             setState(() {
@@ -102,7 +103,7 @@ class _AddressDetailsState extends State<AddressDetails> {
         ),
         SizedBox(height: 15),
         TextFormField(
-          enabled: widget.mode != SupplierMode.view,
+          enabled: widget.mode != FormMode.view,
           controller: widget.city,
           decoration: InputDecoration(
             labelText: "city",
@@ -111,7 +112,7 @@ class _AddressDetailsState extends State<AddressDetails> {
         ),
         SizedBox(height: 15),
         TextFormField(  keyboardType: TextInputType.number,
-          enabled: widget.mode != SupplierMode.view,
+          enabled: widget.mode != FormMode.view,
           controller: widget.pinCode,
           decoration: InputDecoration(
             labelText: "Pin Code",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/list_items.dart';
-import 'package:hisabio/enums/supplier_mode.dart';
+
+import '../enums/customer_mode.dart';
 
 class SupplierBasicInfo extends StatefulWidget {
   final TextEditingController nameController;
@@ -11,7 +12,7 @@ class SupplierBasicInfo extends StatefulWidget {
   final TextEditingController? commissionSchemeController;
   final TextEditingController? commissionRateController;
   final TextEditingController? referenceController;
-  final SupplierMode? mode;
+  final FormMode? mode;
   final bool showCommissionScheme;
   final bool showCommissionRate;
 
@@ -82,16 +83,16 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
         SizedBox(height: 15),
         TextFormField(
-          enabled: widget.mode != SupplierMode.view,
+          enabled: widget.mode != FormMode.view,
           controller: widget.nameController,
           decoration: InputDecoration(
-            hintText: "Supplier Name",
+            hintText: "Name",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
 
         ),
         SizedBox(height: 15),
-        TextFormField(enabled: widget.mode != SupplierMode.view,
+        TextFormField(enabled: widget.mode != FormMode.view,
           controller: widget.emailController,
           decoration: InputDecoration(
             hintText: "Email",
@@ -100,7 +101,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
         ),
         SizedBox(height: 15),
-        TextFormField(enabled: widget.mode != SupplierMode.view,
+        TextFormField(enabled: widget.mode != FormMode.view,
           controller: widget.groupController,
           decoration: InputDecoration(
             hintText: "Group Name",
@@ -109,7 +110,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
         ),
         SizedBox(height: 15),
-        TextFormField(enabled: widget.mode != SupplierMode.view,
+        TextFormField(enabled: widget.mode != FormMode.view,
           controller: widget.gstNoController,
           decoration: InputDecoration(
             hintText: "GST Number",
@@ -122,9 +123,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
           value: ListItems.msmeItems.contains(selectedMsme)
               ? selectedMsme
               : null,
-          //controller: msmeController,
           decoration: InputDecoration(
-            enabled: widget.mode != SupplierMode.view,
+            enabled: widget.mode != FormMode.view,
             hintText: "MSME",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -132,7 +132,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
             return DropdownMenuItem(value: msme, child: Text(msme));
           }).toList(),
 
-          onChanged: widget.mode == SupplierMode.view
+          onChanged: widget.mode == FormMode.view
               ? null
               : (value) {
             setState(() {
@@ -149,7 +149,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               ? selectedCommissionScheme
               : null,
           decoration: InputDecoration(
-            enabled: widget.mode != SupplierMode.view,
+            enabled: widget.mode != FormMode.view,
             hintText: "Commission Scheme",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -161,7 +161,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
             );
           }).toList(),
 
-          onChanged: widget.mode == SupplierMode.view
+          onChanged: widget.mode == FormMode.view
               ? null
         :(value) {
             setState(() {
@@ -174,7 +174,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
         if(widget.showCommissionRate)...[
         SizedBox(height: 15),
         TextFormField(  keyboardType: TextInputType.number,
-          enabled: widget.mode != SupplierMode.view,
+          enabled: widget.mode != FormMode.view,
           controller: widget.commissionRateController,
           decoration: InputDecoration(
             hintText: "Commission % (Rate)",
@@ -183,7 +183,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
         ),],
         SizedBox(height: 15),
-        TextFormField(enabled: widget.mode != SupplierMode.view,
+        TextFormField(enabled: widget.mode != FormMode.view,
           controller: widget.referenceController,
           decoration: InputDecoration(
             hintText: "Reference By",

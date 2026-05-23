@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
-import 'package:hisabio/enums/supplier_mode.dart';
 
+import '../enums/customer_mode.dart';
 class ContactInfo extends StatefulWidget {
   final List<Map<String, TextEditingController>> contacts;
   final VoidCallback onAdd;
   final Function(int) onDelete;
-  final SupplierMode? mode;
+  final FormMode? mode;
 
   const ContactInfo({
     super.key,
@@ -84,7 +84,7 @@ class _ContactInfoState extends State<ContactInfo> {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
 
-                        if (index > 0)
+                        if (widget.mode != FormMode.view && index > 0)
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => widget.onDelete(index),
@@ -93,7 +93,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     ),
                     SizedBox(height: 15),
                     TextFormField(
-                      enabled: widget.mode != SupplierMode.view,
+                      enabled: widget.mode != FormMode.view,
                       controller: contact["name"],
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -105,7 +105,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     SizedBox(height: 15),
                     TextFormField(
                       keyboardType: TextInputType.number,
-                      enabled: widget.mode != SupplierMode.view,
+                      enabled: widget.mode != FormMode.view,
                       controller: contact["mobile"],
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -116,7 +116,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     ),
                     SizedBox(height: 15),
                     TextFormField(
-                      enabled: widget.mode != SupplierMode.view,
+                      enabled: widget.mode != FormMode.view,
                       controller: contact["type"],
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -133,7 +133,7 @@ class _ContactInfoState extends State<ContactInfo> {
           }).toList(),
         ),
         SizedBox(height: 10),
-        widget.mode == SupplierMode.view
+        widget.mode == FormMode.view
             ? SizedBox()
             : Container(
                 decoration: BoxDecoration(

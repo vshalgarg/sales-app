@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
-import 'package:hisabio/enums/supplier_mode.dart';
+
+import '../enums/customer_mode.dart';
 
 class BottomNavigationButton extends StatelessWidget {
   final VoidCallback saveSupplier;
   final VoidCallback saveAndAddNew;
   final VoidCallback cancel;
   final VoidCallback update;
-  final SupplierMode? mode;
+  final FormMode? mode;
 
   const BottomNavigationButton({
     super.key,
@@ -26,7 +27,7 @@ class BottomNavigationButton extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if(mode==SupplierMode.add)...[
+          if(mode==FormMode.add)...[
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -43,7 +44,7 @@ class BottomNavigationButton extends StatelessWidget {
               ),
             ),
           ),],
-          if(mode==SupplierMode.edit)...[
+          if(mode==FormMode.edit)...[
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -61,7 +62,7 @@ class BottomNavigationButton extends StatelessWidget {
             ),
           ),],
           //SizedBox(height: 10),
-if(mode==SupplierMode.add)...[
+if(mode==FormMode.add)...[
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
