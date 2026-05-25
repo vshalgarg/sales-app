@@ -61,8 +61,6 @@ public class BillServiceImpl implements BillService {
                 requestDto.getTaxableValue(),
                 requestDto.getBillAmount());
 
-        checkLrNumberDuplicate(requestDto.getLrNumber());
-
         BillEntryEntity billEntry = new BillEntryEntity();
 
         // Header mapping
@@ -208,14 +206,6 @@ public class BillServiceImpl implements BillService {
         log.info("Bill detail mapped successfully | billNumber={}", billNumber);
         return response;
     }
-
-    private void checkLrNumberDuplicate(String lrNumber) {
-        if (StringUtils.isNotBlank(lrNumber) && billRepo.existsByLrNumber(lrNumber)) {
-            log.warn("LR number already exists: {}", lrNumber);
-            throw new BillException(DUPLICATE_ENTRY, "LR number already exists: " + lrNumber);
-        }
-    }
-
 
     private synchronized String generateBillNumber() {
         // 1️⃣ Fetch the last saved bill number from DB
