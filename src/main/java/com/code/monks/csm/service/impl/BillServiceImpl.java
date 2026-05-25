@@ -159,6 +159,7 @@ public class BillServiceImpl implements BillService {
                 size,
                 Sort.by(
                         Sort.Order.desc("date"),
+                        Sort.Order.desc("createdAt"),
                         Sort.Order.desc("id")
                 )
         );

@@ -156,6 +156,7 @@ public class CreditServiceImpl implements CreditService {
                 size,
                 Sort.by(
                         Sort.Order.desc("date"),
+                        Sort.Order.desc("createdAt"),
                         Sort.Order.desc("id")
                 )
         );
