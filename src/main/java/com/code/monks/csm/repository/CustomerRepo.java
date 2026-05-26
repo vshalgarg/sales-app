@@ -4,6 +4,7 @@ import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -49,5 +50,5 @@ public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
         """
     )
     Page<CustomerEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
-
+    List<CustomerEntity> findByStatus(StatusEnum statusEnum, Sort sort);
 }
