@@ -136,12 +136,6 @@ const validate = (field, value) => {
         error = "Joining Date is required";
       }
       break;
-
-    case "billNumber":
-      if (!value.trim() || !value || value.length === 0) {
-        error = "Bill Number is required";
-      }
-      break;
     case "date":
       if (!value.trim() || !value || value.length === 0) {
         error = "Date is required";
