@@ -60,7 +60,7 @@ const Purchase = () => {
 
         const customerOptions = (customers || []).map((c) => ({
           id: c.id,
-          label: `${c.supplierName}${c.city ? ` - ${c.city}` : ""}`,
+          label: `${c.customerName}${c.city ? ` - ${c.city}` : ""}`,
         }));
 
         const staffOptions = (staffs || []).map((s) => ({
