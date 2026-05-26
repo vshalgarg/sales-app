@@ -58,44 +58,6 @@ public class CreditServiceImpl implements CreditService {
         log.info("Attempting to add credit entry: {}", requestDto);
 
         try {
-            if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE) {
-
-                if (!StringUtils.hasText(requestDto.getReferenceNumber())) {
-                    throw new CreditException(
-                            INVALID_REQUEST,
-                            "Cheque number is required for CHEQUE payment"
-                    );
-                }
-
-                if (requestDto.getReferenceDate() == null) {
-                    throw new CreditException(
-                            INVALID_REQUEST,
-                            "Cheque date is required for CHEQUE payment"
-                    );
-                }
-            }
-
-            List<String> errorMessages = new ArrayList<>();
-
-            // Bill number duplicate
-//            if (billEntryRepo.existsByBillNumber(requestDto.getBillNumber())) {
-//                errorMessages.add("Bill number already exists");
-//            }
-
-            // Cheque number duplicate → ONLY FOR CHEQUE
-            if (requestDto.getPaymentType() == CreditEntryEnum.CHEQUE &&
-                    creditEntryRepo.existsByReferenceNumber(requestDto.getReferenceNumber())) {
-
-                errorMessages.add("Cheque number already exists");
-            }
-
-            if (!errorMessages.isEmpty()) {
-                throw new CreditException(
-                        DUPLICATE_ENTRY,
-                        String.join(", ", errorMessages)
-                );
-            }
-
             CreditEntryEntity entity = AddCreditEntryResponseDto.dtoToEntity(requestDto);
             creditEntryRepo.save(entity);
 
