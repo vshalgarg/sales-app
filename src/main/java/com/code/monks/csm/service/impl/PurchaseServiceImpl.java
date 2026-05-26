@@ -134,6 +134,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 size,
                 Sort.by(
                         Sort.Order.desc("date"),
+                        Sort.Order.desc("createdAt"),
                         Sort.Order.desc("id")
                 )
         );
