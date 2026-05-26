@@ -17,6 +17,8 @@ public class AddCreditEntryRequestDto {
     private LocalDate date;
 
     private String referenceNumber;
+
+    @NotNull(message = "Reference date is required")
     private LocalDate referenceDate;
 
     private Double receivedAmount;
@@ -24,7 +26,10 @@ public class AddCreditEntryRequestDto {
     private DrawTypeEnum drawType;
     private String remark;
 
+    @NotNull(message = "Supplier is required")
     private Integer supplierId;
+
+    @NotNull(message = "Customer is required")
     private Integer customerId;
     private String slipNumber;
 }
