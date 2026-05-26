@@ -153,7 +153,8 @@ public class CustomerServiceImpl implements CustomerService {
         log.info("Fetching ALL customers (no filter, non-paged)...");
 
         try {
-            List<CustomerEntity> customers = customerRepo.findAll(
+            List<CustomerEntity> customers = customerRepo.findByStatus(
+                    StatusEnum.ACTIVE,
                     Sort.by(Sort.Direction.DESC, "id")
             );
 
