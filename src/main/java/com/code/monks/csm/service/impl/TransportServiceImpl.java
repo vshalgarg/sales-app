@@ -318,7 +318,6 @@ public class TransportServiceImpl implements TransportService {
             Integer id
     ) {
 
-
         log.info("Fetching transport from database for id: {}", id);
         TransportEntity transport =
                 transportRepository
