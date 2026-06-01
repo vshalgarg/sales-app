@@ -21,6 +21,7 @@ const Bills = () => {
   const { showSnackbar } = useSnackbar();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
   const rowsPerPage = 10;
   const [billHistoryData, setBillHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -37,9 +38,6 @@ const Bills = () => {
   const todayDayjs = dayjs();
   const [billToDelete, setBillToDelete] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
-
-  const today = dayjs().format("YYYY-MM-DD");
 
   const {
     errors,
@@ -103,6 +101,8 @@ const Bills = () => {
       setBillHistoryData(data?.content ?? []);
       setTotalItems(data?.totalElements ?? 0);
       setCurrentPage(page);
+      let total=data?.totalAmount ?? 0
+      setTotalAmount(Math.round(total))
     } catch {
       setBillHistoryData([]);
       setTotalItems(0);
@@ -309,6 +309,7 @@ const Bills = () => {
           page={currentPage}
           totalItems={totalItems}
           rowsPerPage={rowsPerPage}
+          totalAmount={totalAmount}
           onPageChange={handleBillDetailHistory}
           emptyMessage={
             filtersApplied

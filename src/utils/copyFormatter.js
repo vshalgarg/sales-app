@@ -70,6 +70,39 @@ export const getSupplierFormattedText = (supplier) => {
   );
 };
 
+export const getSuppliersFormattedText = (data) => {
+  const suppliers = data?.suppliers ?? [];
+
+  if (suppliers.length === 0) return { html: "", text: "" };
+
+  const html = suppliers.map((supplier) => {
+
+    const bankParts = [
+      supplier.accountName,
+      supplier.accountNumber,
+      supplier.ifscCode,
+      supplier.branchName,
+      supplier.bankName,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    const entry = {
+      "Name": supplier.supplierName,
+      ...(bankParts ? { "Bank Details": bankParts } : {}),
+    };
+
+    return Object.entries(entry)
+      .map(([key, value]) => `<b>${key}:</b> ${value}`)
+      .join("<br/>");
+
+  }).join("<br/><br/>");
+
+  const text = convertHtmlToWhatsApp(html);
+
+  return { html, text };
+};
+
 
 export const getCustomerFormattedText = (customer) => {
 
