@@ -71,6 +71,7 @@ public class ApiPaths {
     public static final String UPDATE_PURCHASE_ENTRY="purchase/entry/update/{id}";
     public static final String DELETE_PURCHASE_ENTRY = "/purchase/entry/delete/{id}";
     public static final String GET_PURCHASE_DETAILS_BY_ID ="/purchase/get/details/{id}";
+    public static final String GET_COPY_SUPPLIER_DETAILS_PER_CUSTOMER= "/purchase/copy-suppliers";
 
     public static final String TRANSPORT_SEARCH ="/transports/search";
     public static final String GET_ALL = "/transports/getAll";

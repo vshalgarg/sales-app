@@ -2,10 +2,7 @@ package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.request.AddCreditEntryRequestDto;
 import com.code.monks.csm.dto.request.CreditUpdateRequest;
-import com.code.monks.csm.dto.response.AddCreditEntryResponseDto;
-import com.code.monks.csm.dto.response.GetCreditEntries;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.SearchCreditEntryResponse;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.CreditService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -54,7 +51,7 @@ public class CreditEntryController {
     }
 
     @GetMapping(SEARCH_CREDIT_ENTRIES)
-    public ResponseEntity<PagedResponseDto<SearchCreditEntryResponse>> getCreditHistory(
+    public ResponseEntity<ReportPagedResponseDto<SearchCreditEntryResponse>> getCreditHistory(
             @RequestParam(required = false)
             @DateTimeFormat(pattern = "yyyy-MM-dd")
             LocalDate fromDate,
@@ -67,7 +64,7 @@ public class CreditEntryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size
     ){
-        PagedResponseDto<SearchCreditEntryResponse> history = creditService.searchCreditHistory(
+        ReportPagedResponseDto<SearchCreditEntryResponse> history = creditService.searchCreditHistory(
                 fromDate,
                 toDate,
                 supplierId,

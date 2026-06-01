@@ -67,7 +67,7 @@ public class BillEntryController {
     }
 
     @GetMapping(SEARCH_BILL_ENTRY)
-    public ResponseEntity<PagedResponseDto<BillListResponseDto>> getBillHistory(
+    public ResponseEntity<ReportPagedResponseDto<BillListResponseDto>> getBillHistory(
             @RequestParam(required = false)
             @DateTimeFormat(pattern = "yyyy-MM-dd")
             LocalDate fromDate,
@@ -85,7 +85,7 @@ public class BillEntryController {
             return ResponseEntity.badRequest().build();
         }
 
-        PagedResponseDto<BillListResponseDto> history = billService.searchBillHistory(
+        ReportPagedResponseDto<BillListResponseDto> history = billService.searchBillHistory(
                 fromDate,
                 toDate,
                 supplierId,

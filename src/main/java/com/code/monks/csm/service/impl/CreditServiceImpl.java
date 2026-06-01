@@ -2,10 +2,7 @@ package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.request.AddCreditEntryRequestDto;
 import com.code.monks.csm.dto.request.CreditUpdateRequest;
-import com.code.monks.csm.dto.response.AddCreditEntryResponseDto;
-import com.code.monks.csm.dto.response.GetCreditEntries;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.SearchCreditEntryResponse;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.CreditEntryEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.SupplierEntity;
@@ -19,6 +16,8 @@ import com.code.monks.csm.repository.CustomerRepo;
 import com.code.monks.csm.repository.SupplierRepo;
 import com.code.monks.csm.service.CreditService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
+import com.code.monks.csm.specification.SpecificationAggregateHelper;
+import com.code.monks.csm.utils.MoneyUtil;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +30,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +51,7 @@ public class CreditServiceImpl implements CreditService {
     private final SupplierRepo supplierRepo;
 
     private final BillEntryRepo billEntryRepo;
+    private final SpecificationAggregateHelper aggregateHelper;
 
     @Transactional
     public AddCreditEntryResponseDto addCreditEntry(AddCreditEntryRequestDto requestDto) {
@@ -100,7 +101,7 @@ public class CreditServiceImpl implements CreditService {
         }
     }
 
-    public PagedResponseDto<SearchCreditEntryResponse> searchCreditHistory(
+    public ReportPagedResponseDto<SearchCreditEntryResponse> searchCreditHistory(
             LocalDate fromDate,
             LocalDate toDate,
             Integer supplierId,
@@ -134,6 +135,13 @@ public class CreditServiceImpl implements CreditService {
         Page<CreditEntryEntity> records =
                 creditEntryRepo.findAll(spec, pageable);
 
+        Long totalAmount =
+                aggregateHelper.sum(
+                        CreditEntryEntity.class,
+                        "receivedAmount",
+                        spec
+                );
+
         log.info("Fetched {} credit records", records.getTotalElements());
 
         List<SearchCreditEntryResponse> content = records.getContent()
@@ -141,13 +149,14 @@ public class CreditServiceImpl implements CreditService {
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
 
-        return new PagedResponseDto<>(
+        return new ReportPagedResponseDto<>(
                 content,
                 records.getNumber(),
                 records.getSize(),
                 records.getTotalElements(),
                 records.getTotalPages(),
-                records.isLast()
+                records.isLast(),
+                MoneyUtil.toRupee(totalAmount)
         );
     }
 

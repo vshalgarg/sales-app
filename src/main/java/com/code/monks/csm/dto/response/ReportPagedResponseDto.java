@@ -9,14 +9,16 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PagedResponseDto<T> {
+@Builder
+public class ReportPagedResponseDto<T> {
     private List<T> content;
     private int page;
     private int size;
     private long totalElements;
     private int totalPages;
     private boolean last;
+
+    private BigDecimal totalAmount;
 }

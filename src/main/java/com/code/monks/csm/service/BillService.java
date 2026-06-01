@@ -12,7 +12,7 @@ import java.util.Map;
 public interface BillService {
     BillEntryResponseDto addBill(BillEntryRequestDto requestDto, List<MultipartFile> images);
     EditBillEntryResponse updateBill(Integer id, BillUpdateRequest request, List<MultipartFile> images);
-    PagedResponseDto<BillListResponseDto> searchBillHistory(
+    ReportPagedResponseDto<BillListResponseDto> searchBillHistory(
             LocalDate fromDate,
             LocalDate toDate,
             Integer supplierId,
