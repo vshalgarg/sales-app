@@ -70,3 +70,16 @@ export const getPurchaseDetailsById = async (id) => {
   }
 };
 
+export const getSupplierDataByCustomer = async (payload) => {
+  try {
+    const response = await api.post(`/purchase/copy-suppliers`,payload);
+
+    const result = checkLogicalError(response.data);
+
+    return result.data;
+
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
