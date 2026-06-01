@@ -23,6 +23,7 @@ const Sidebar = ({
       { name: "Bill Entry", path: "/bill-entry" },
       { name: "Credit Entry", path: "/credit-entry" },
       { name: "Purchase Entry", path: "/purchase-entry" },
+      { name: "Retail Entry", path: "/retail-entry" },
     ];
   } else if (activeSection === "reporting") {
     menuItems = [
