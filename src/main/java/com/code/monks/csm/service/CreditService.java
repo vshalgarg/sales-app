@@ -11,7 +11,7 @@ import java.util.Map;
 public interface CreditService {
     AddCreditEntryResponseDto addCreditEntry(AddCreditEntryRequestDto requestDto);
     List<GetCreditEntries> getCreditEntries();
-    PagedResponseDto<SearchCreditEntryResponse> searchCreditHistory(
+    ReportPagedResponseDto<SearchCreditEntryResponse> searchCreditHistory(
             LocalDate fromDate,
             LocalDate toDate,
             Integer supplierId,

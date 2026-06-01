@@ -2,8 +2,10 @@ package com.code.monks.csm.service;
 
 import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
+import com.code.monks.csm.dto.request.CopySupplierDetailsRequest;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
+import com.code.monks.csm.dto.response.CopySupplierDetailsResponseDTO;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import org.springframework.util.MultiValueMap;
@@ -34,4 +36,5 @@ public interface PurchaseService {
 
     Map<String, Object> deletePurchaseEntry(int id);
     PurchaseDetailResponse getPurchaseById(int id);
+    CopySupplierDetailsResponseDTO copySupplierDetailsPerCustomer(CopySupplierDetailsRequest request);
 }

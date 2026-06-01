@@ -22,5 +22,6 @@ public class SearchPurchaseEntryResponse {
     private String remarks;
     private String customerCity;
     private String supplierCity;
+    private Integer customerId;
 
 }

@@ -3,10 +3,9 @@ package com.code.monks.csm.contoller;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
+import com.code.monks.csm.dto.request.CopySupplierDetailsRequest;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
-import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.PurchaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
@@ -95,6 +95,16 @@ public class PurchaseEntryController {
                 purchaseService.getPurchaseById(id);
         return ResponseEntity.ok(
                 ApiResponse.success("Purchase details fetched successfully", response)
+        );
+    }
+
+    @PostMapping(GET_COPY_SUPPLIER_DETAILS_PER_CUSTOMER)
+    public ResponseEntity<ApiResponse<CopySupplierDetailsResponseDTO>> copySupplierDetails(
+           @RequestBody CopySupplierDetailsRequest request) {
+
+        CopySupplierDetailsResponseDTO response = purchaseService.copySupplierDetailsPerCustomer(request);
+        return ResponseEntity.ok(
+                ApiResponse.success("Copy Supplier Details PerCustomer fetched successfully", response)
         );
     }
 

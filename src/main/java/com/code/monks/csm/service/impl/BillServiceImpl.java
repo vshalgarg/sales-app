@@ -19,6 +19,7 @@ import com.code.monks.csm.service.BillService;
 import com.code.monks.csm.service.TransportService;
 import com.code.monks.csm.service.file.FileService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
+import com.code.monks.csm.specification.SpecificationAggregateHelper;
 import com.code.monks.csm.utils.MoneyUtil;
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -48,6 +50,7 @@ public class BillServiceImpl implements BillService {
     private final TransportService transportService;
     private final FileService fileService;
     private final BillMapper billMapper;
+    private final SpecificationAggregateHelper aggregateHelper;
 
     @Transactional
     public BillEntryResponseDto addBill(
@@ -141,7 +144,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public PagedResponseDto<BillListResponseDto> searchBillHistory(
+    public ReportPagedResponseDto<BillListResponseDto> searchBillHistory(
             LocalDate fromDate,
             LocalDate toDate,
             Integer supplierId,
@@ -175,6 +178,13 @@ public class BillServiceImpl implements BillService {
         Page<BillEntryEntity> billRecords =
                 billRepo.findAll(spec, pageable);
 
+        Long totalAmount =
+                aggregateHelper.sum(
+                        BillEntryEntity.class,
+                        "billAmount",
+                        spec
+                );
+
         List<BillListResponseDto> content =
                 billRecords.getContent()
                         .stream()
@@ -184,13 +194,14 @@ public class BillServiceImpl implements BillService {
         log.info("Search result fetched | totalRecords={} | page={}",
                 billRecords.getTotalElements(),
                 billRecords.getNumber());
-        return new PagedResponseDto<>(
+        return new ReportPagedResponseDto<>(
                 content,
                 billRecords.getNumber(),
                 billRecords.getSize(),
                 billRecords.getTotalElements(),
                 billRecords.getTotalPages(),
-                billRecords.isLast()
+                billRecords.isLast(),
+                MoneyUtil.toRupee(totalAmount)
         );
     }
 

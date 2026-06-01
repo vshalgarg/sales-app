@@ -3,9 +3,11 @@ package com.code.monks.csm.mapper;
 import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.purchase.PurchaseImageDto;
 import com.code.monks.csm.dto.purchase.SupplierPurchaseDetailDto;
+import com.code.monks.csm.dto.response.CopySupplierDTO;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import com.code.monks.csm.entity.PurchaseEntity;
 import com.code.monks.csm.entity.PurchaseImageEntity;
+import com.code.monks.csm.entity.SupplierEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -99,7 +101,21 @@ public class PurchaseMapper {
                                 ? entity.getSupplier().getCity()
                                 : null
                 )
+                .customerId(entity.getCustomer().getId())
                 .remarks(entity.getRemarks())
                 .build();
+    }
+
+    public CopySupplierDTO toSupplierCopyDto(
+            SupplierEntity supplier
+    ) {
+        return new CopySupplierDTO(
+                supplier.getSupplierName(),
+                supplier.getAccountName(),
+                supplier.getAccountNumber(),
+                supplier.getIfscCode(),
+                supplier.getBranchName(),
+                supplier.getBankName()
+        );
     }
 }

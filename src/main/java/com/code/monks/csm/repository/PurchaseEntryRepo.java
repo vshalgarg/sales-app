@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
+
 public interface PurchaseEntryRepo extends
         JpaRepository<PurchaseEntity, Integer>,
         JpaSpecificationExecutor<PurchaseEntity> {
@@ -17,4 +19,9 @@ public interface PurchaseEntryRepo extends
             "customer"
     })
     Page<PurchaseEntity> findAll(Specification<PurchaseEntity> spec, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"supplier"})
+    List<PurchaseEntity> findAll(
+            Specification<PurchaseEntity> specification
+    );
 }
