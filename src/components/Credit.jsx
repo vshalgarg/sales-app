@@ -26,6 +26,7 @@ const Credit = () => {
   const [creditHistoryData, setCreditHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filtersApplied, setFiltersApplied] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
@@ -37,11 +38,7 @@ const Credit = () => {
   const [creditToEdit, setCreditToEdit] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [creditToDelete, setCreditToDelete] = useState(null);
-
-
   const todayDayjs = dayjs();
-  const today = dayjs().format("YYYY-MM-DD");
-
   const { errors, setErrors, filterObject, setFilterObject } = useBillForm();
 
   /* ================= LOAD SUPPLIERS & CUSTOMERS ================= */
@@ -107,6 +104,8 @@ const Credit = () => {
 
       setCreditHistoryData(data?.content ?? []);
       setTotalItems(data?.totalElements ?? 0);
+      let total=data?.totalAmount ?? 0
+      setTotalAmount(Math.round(total))
       setCurrentPage(page);
     } catch {
       setCreditHistoryData([]);
@@ -286,6 +285,7 @@ const Credit = () => {
         page={currentPage}
         totalItems={totalItems}
         rowsPerPage={rowsPerPage}
+        totalAmount={totalAmount}
         onPageChange={handleCreditHistory}
         emptyMessage={
           filtersApplied
