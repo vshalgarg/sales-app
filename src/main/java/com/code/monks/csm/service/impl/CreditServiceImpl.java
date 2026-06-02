@@ -49,8 +49,6 @@ public class CreditServiceImpl implements CreditService {
     private final CustomerRepo customerRepo;
 
     private final SupplierRepo supplierRepo;
-
-    private final BillEntryRepo billEntryRepo;
     private final SpecificationAggregateHelper aggregateHelper;
 
     @Transactional
@@ -136,7 +134,7 @@ public class CreditServiceImpl implements CreditService {
                 creditEntryRepo.findAll(spec, pageable);
 
         Long totalAmount =
-                aggregateHelper.sum(
+                aggregateHelper.sumRoundedAmount(
                         CreditEntryEntity.class,
                         "receivedAmount",
                         spec

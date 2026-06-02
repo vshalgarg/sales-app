@@ -179,7 +179,7 @@ public class BillServiceImpl implements BillService {
                 billRepo.findAll(spec, pageable);
 
         Long totalAmount =
-                aggregateHelper.sum(
+                aggregateHelper.sumRoundedAmount(
                         BillEntryEntity.class,
                         "billAmount",
                         spec
