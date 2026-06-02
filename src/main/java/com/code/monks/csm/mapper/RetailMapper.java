@@ -16,7 +16,9 @@ public class RetailMapper {
                 .map(item -> new RetailSupplierResponseDto(
                         item.getSupplier().getId(),
                         item.getSupplier().getSupplierName(),
-                        item.getAmount()
+                        item.getBalanceAmount(),
+                        item.getDepositAmount(),
+                        item.getTotalAmount()
                 ))
                 .toList();
 
@@ -27,8 +29,6 @@ public class RetailMapper {
                 retailer.getCustomer().getCustomerName(),
                 staff != null ? staff.getId() : null,
                 staff != null ? staff.getStaffName() : null,
-                retailer.getDepositAmount(),
-                retailer.getBalanceAmount(),
                 suppliers
         );
     }

@@ -2,6 +2,8 @@ package com.code.monks.csm.dto.request;
 
 public record RetailSupplierRequest(
         Integer supplierId,
-        Long amount
+        Long totalAmount,
+        Long depositAmount,
+        Long balanceAmount
 ) {
 }

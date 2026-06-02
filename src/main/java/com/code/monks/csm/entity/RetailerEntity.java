@@ -17,8 +17,6 @@ public class RetailerEntity {
     private Integer id;
 
     private String name;
-    private Long depositAmount;
-    private Long balanceAmount;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

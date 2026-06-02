@@ -22,5 +22,7 @@ public class RetailSupplierEntity {
     @JoinColumn(name = "supplier_id")
     private SupplierEntity supplier;
 
-    private Long amount;
+    private Long totalAmount;
+    private Long depositAmount;
+    private Long balanceAmount;
 }
