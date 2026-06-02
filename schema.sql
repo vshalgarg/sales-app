@@ -652,3 +652,36 @@ ALTER TABLE bill
 ADD CONSTRAINT fk_bill_customer
 FOREIGN KEY (customer_id)
 REFERENCES customer(id);
+
+
+CREATE TABLE retailers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    customer_id INT,
+    staff_id INT,
+    deposit_amount BIGINT,
+    balance_amount BIGINT,
+
+    CONSTRAINT fk_retailer_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customer(id),
+
+    CONSTRAINT fk_retailer_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staff(id)
+);
+
+CREATE TABLE retail_supplier (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    retail_id INT,
+    supplier_id INT,
+    amount BIGINT,
+
+    CONSTRAINT fk_retail_supplier_retail
+        FOREIGN KEY (retail_id)
+        REFERENCES retailers(id),
+
+    CONSTRAINT fk_retail_supplier_supplier
+        FOREIGN KEY (supplier_id)
+        REFERENCES supplier(id)
+);

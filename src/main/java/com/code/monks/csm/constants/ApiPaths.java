@@ -80,4 +80,9 @@ public class ApiPaths {
     public static final String DELETE_TRANSPORT = "/transports/delete/{id}";
 
     public static final String CHANGE_PASSWORD = "/admin/change/password";
+
+    // retailer
+    public static final String ADD_RETAILER = "/retail/create";
+    public static final String UPDATE_RETAILER = "/retail/update/{id}";
+    public static final String GET_RETAILER = "/retail/get/{id}";
 }
