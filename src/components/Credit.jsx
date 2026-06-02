@@ -14,6 +14,7 @@ import EditCreditDetail from "../modals/EditCreditDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
 
 const Credit = () => {
@@ -105,7 +106,7 @@ const Credit = () => {
       setCreditHistoryData(data?.content ?? []);
       setTotalItems(data?.totalElements ?? 0);
       let total=data?.totalAmount ?? 0
-      setTotalAmount(Math.round(total))
+      setTotalAmount(formatIndianCurrency(Math.round(total)))
       setCurrentPage(page);
     } catch {
       setCreditHistoryData([]);

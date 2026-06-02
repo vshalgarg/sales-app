@@ -15,6 +15,7 @@ import { deleteBill } from "../service/BillService";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
 
 const Bills = () => {
@@ -102,7 +103,7 @@ const Bills = () => {
       setTotalItems(data?.totalElements ?? 0);
       setCurrentPage(page);
       let total=data?.totalAmount ?? 0
-      setTotalAmount(Math.round(total))
+      setTotalAmount(formatIndianCurrency(Math.round(total)))
     } catch {
       setBillHistoryData([]);
       setTotalItems(0);

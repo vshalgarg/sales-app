@@ -166,7 +166,7 @@ const DataTable = ({
         {/* Left: total amount — only renders if passed */}
         {totalAmount != null && (
           <div style={{ paddingLeft: "16px", fontSize: "0.875rem", fontWeight: 600, whiteSpace: "nowrap" }}>
-          TotalAmount: {totalAmount}
+          TotalAmount: ₹{totalAmount}
           </div>
         )}
         <TablePagination
