@@ -9,8 +9,6 @@ public record RetailResponseDto(
         String customerName,
         Integer staffId,
         String staffName,
-        Long depositAmount,
-        Long balanceAmount,
         List<RetailSupplierResponseDto> suppliers
 ) {
 }

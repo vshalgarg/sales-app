@@ -659,8 +659,6 @@ CREATE TABLE retailers (
     name VARCHAR(255),
     customer_id INT,
     staff_id INT,
-    deposit_amount BIGINT,
-    balance_amount BIGINT,
 
     CONSTRAINT fk_retailer_customer
         FOREIGN KEY (customer_id)
@@ -675,7 +673,9 @@ CREATE TABLE retail_supplier (
     id INT AUTO_INCREMENT PRIMARY KEY,
     retail_id INT,
     supplier_id INT,
-    amount BIGINT,
+    total_amount BIGINT,
+    deposit_amount BIGINT,
+    balance_amount BIGINT,
 
     CONSTRAINT fk_retail_supplier_retail
         FOREIGN KEY (retail_id)

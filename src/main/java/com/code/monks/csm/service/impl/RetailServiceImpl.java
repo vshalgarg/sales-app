@@ -43,8 +43,6 @@ public class RetailServiceImpl implements RetailService {
         retailer.setName(request.name());
         retailer.setCustomer(getCustomer(request.customerId()));
         retailer.setStaff(getStaff(request.staffId()));
-        retailer.setDepositAmount(request.depositAmount());
-        retailer.setBalanceAmount(request.balanceAmount());
         retailer.setSuppliers(buildRetailSuppliers(retailer, request));
         retailRepository.save(retailer);
         log.info("Retailer created successfully with id: {}", retailer.getId());
@@ -59,8 +57,6 @@ public class RetailServiceImpl implements RetailService {
         retailer.setName(request.name());
         retailer.setCustomer(getCustomer(request.customerId()));
         retailer.setStaff(getStaff(request.staffId()));
-        retailer.setDepositAmount(request.depositAmount());
-        retailer.setBalanceAmount(request.balanceAmount());
         retailer.getSuppliers().clear();
         retailer.getSuppliers().addAll(buildRetailSuppliers(retailer, request));
         log.info("Retailer updated successfully with id: {}", retailId);
@@ -92,7 +88,9 @@ public class RetailServiceImpl implements RetailService {
                     var relation = new RetailSupplierEntity();
                     relation.setRetail(retailer);
                     relation.setSupplier(getSupplier(item.supplierId()));
-                    relation.setAmount(item.amount());
+                    relation.setBalanceAmount(item.balanceAmount());
+                    relation.setDepositAmount(item.depositAmount());
+                    relation.setTotalAmount(item.totalAmount());
                     return relation;
                 })
                 .toList();
