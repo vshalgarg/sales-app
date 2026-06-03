@@ -201,7 +201,7 @@ public class BillServiceImpl implements BillService {
                 billRecords.getTotalElements(),
                 billRecords.getTotalPages(),
                 billRecords.isLast(),
-                MoneyUtil.toRupee(totalAmount)
+                totalAmount
         );
     }
 

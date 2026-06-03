@@ -20,5 +20,5 @@ public class ReportPagedResponseDto<T> {
     private int totalPages;
     private boolean last;
 
-    private BigDecimal totalAmount;
+    private Long totalAmount;
 }
