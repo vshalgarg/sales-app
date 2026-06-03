@@ -57,13 +57,15 @@ public class GenericSpecificationBuilder<T> {
     ) {
 
         if (value != null) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(
-                            root.join(firstJoin, JoinType.LEFT)
-                                    .join(secondJoin, JoinType.LEFT)
-                                    .get(field), value
-                    )
-            );
+            spec = spec.and((root, query, cb) -> {
+                //query.distinct(true);
+                return cb.equal(
+                        root.join(firstJoin, JoinType.LEFT)
+                                .join(secondJoin, JoinType.LEFT)
+                                .get(field),
+                        value
+                );
+            });
         }
         return this;
     }

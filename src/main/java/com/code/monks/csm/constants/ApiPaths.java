@@ -85,4 +85,5 @@ public class ApiPaths {
     public static final String ADD_RETAILER = "/retail/create";
     public static final String UPDATE_RETAILER = "/retail/update/{id}";
     public static final String GET_RETAILER = "/retail/get/{id}";
+    public static final String SEARCH_RETAILERS = "/retail/search";
 }

@@ -6,10 +6,14 @@ import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.RetailResponseDto;
 import com.code.monks.csm.dto.response.RetailerListResponseDto;
 import com.code.monks.csm.service.RetailService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
 
@@ -23,7 +27,7 @@ public class RetailController {
 
     @PostMapping(ADD_RETAILER)
     public ResponseEntity<ApiResponse<Void>> createRetail(
-            @RequestBody RetailRequestDto request
+           @Valid @RequestBody RetailRequestDto request
     ) {
 
         retailService.createRetail(request);
@@ -37,7 +41,7 @@ public class RetailController {
     @PutMapping(UPDATE_RETAILER)
     public ResponseEntity<ApiResponse<Void>> updateRetail(
             @PathVariable Long id,
-            @RequestBody RetailRequestDto request
+           @Valid @RequestBody RetailRequestDto request
     ) {
         retailService.updateRetail(id, request);
         return ResponseEntity.ok(
@@ -59,8 +63,16 @@ public class RetailController {
         );
     }
 
-    @GetMapping
+    @GetMapping(SEARCH_RETAILERS)
     public ResponseEntity<ApiResponse<PagedResponseDto<RetailerListResponseDto>>> searchRetailers(
+
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            LocalDate toDate,
 
             @RequestParam(required = false)
             Integer customerId,
@@ -88,6 +100,8 @@ public class RetailController {
         );
 
         var response =  retailService.searchRetailers(
+                fromDate,
+                toDate,
                 customerId,
                 staffId,
                 supplierId,

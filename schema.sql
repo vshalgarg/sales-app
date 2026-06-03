@@ -657,8 +657,14 @@ REFERENCES customer(id);
 CREATE TABLE retailers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
+    transaction_date DATE NOT NULL,
     customer_id INT,
     staff_id INT,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
 
     CONSTRAINT fk_retailer_customer
         FOREIGN KEY (customer_id)
@@ -671,11 +677,17 @@ CREATE TABLE retailers (
 
 CREATE TABLE retail_supplier (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    retail_id INT,
-    supplier_id INT,
+
+    retail_id INT NOT NULL,
+    supplier_id INT NOT NULL,
     total_amount BIGINT,
     deposit_amount BIGINT,
     balance_amount BIGINT,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
 
     CONSTRAINT fk_retail_supplier_retail
         FOREIGN KEY (retail_id)

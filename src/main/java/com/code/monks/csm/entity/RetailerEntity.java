@@ -3,6 +3,7 @@ package com.code.monks.csm.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -19,6 +20,7 @@ public class RetailerEntity extends BaseEntity{
     private Integer id;
 
     private String name;
+    private LocalDate transactionDate;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

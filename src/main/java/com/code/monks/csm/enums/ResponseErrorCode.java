@@ -26,7 +26,7 @@ public enum ResponseErrorCode {
     FILE_STORAGE_FAILED(1015,"File storage failed"),
     CUSTOMER_NOT_FOUND(1016, "customer not found for id "),
     SUPPLIER_NOT_FOUND(1017, "supplier not found"),
-    DB_ERROR(1028, "Database error occurred."),
+    DB_ERROR(1028, "Something went wrong. Please try again later."),
     STAFF_NOT_FOUND(1029, "Staff not found "),
     RETAIL_NOT_FOUND(1030, "Retail not found ");
 

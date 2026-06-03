@@ -8,10 +8,7 @@ import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.ResponseErrorCode;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.mapper.RetailMapper;
-import com.code.monks.csm.repository.CustomerRepo;
-import com.code.monks.csm.repository.RetailRepository;
-import com.code.monks.csm.repository.StaffRepo;
-import com.code.monks.csm.repository.SupplierRepo;
+import com.code.monks.csm.repository.*;
 import com.code.monks.csm.service.RetailService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +21,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -63,6 +61,7 @@ public class RetailServiceImpl implements RetailService {
         log.info("Updating retailer with id: {}", retailId);
         var retailer = getRetail(retailId);
         retailer.setName(request.name());
+        retailer.setTransactionDate(request.transactionDate());
         retailer.setCustomer(getCustomer(request.customerId()));
         retailer.setStaff(getStaff(request.staffId()));
         retailer.getSuppliers().clear();
@@ -90,10 +89,11 @@ public class RetailServiceImpl implements RetailService {
 
     @Override
     public PagedResponseDto<RetailerListResponseDto> searchRetailers(
+            LocalDate fromDate,
+            LocalDate toDate,
             Integer customerId,
             Integer staffId,
             Integer supplierId,
-
             int page,
             int size
     ) {
@@ -103,24 +103,28 @@ public class RetailServiceImpl implements RetailService {
                         page,
                         size,
                         Sort.by(
-                                Sort.Order.desc("id"),
-                                Sort.Order.desc("createdAt")
+                                Sort.Order.desc("transactionDate"),
+                                Sort.Order.desc("id")
                         )
                 );
 
-        Specification<RetailerEntity> spec = new GenericSpecificationBuilder<RetailerEntity>()
+        Specification<RetailerEntity> spec =
+                new GenericSpecificationBuilder<RetailerEntity>()
+                        .fromDate("transactionDate", fromDate)
+                        .toDate("transactionDate", toDate)
                         .joinEqual("customer", "id", customerId)
                         .joinEqual("staff", "id", staffId)
                         .joinJoinEqual("suppliers", "supplier", "id", supplierId)
                         .build();
 
         Page<RetailerEntity> retailers = retailRepository.findAll(spec, pageable);
+        List<RetailerListResponseDto> content =
+                retailers.getContent()
+                        .stream()
+                        .flatMap(retail ->
+                                retailMapper.toListDto(retail).stream())
+                        .toList();
 
-//        List<RetailerListResponseDto> content =
-//                retailers.getContent()
-//                        .stream()
-//                        .map(retailerMapper::toListDto)
-//                        .toList();
         log.info(
                 "Retailers fetched totalRecords={}, totalPages={}",
                 retailers.getTotalElements(),
@@ -128,7 +132,7 @@ public class RetailServiceImpl implements RetailService {
         );
 
         return new PagedResponseDto<>(
-                null,
+                content,
                 retailers.getNumber(),
                 retailers.getSize(),
                 retailers.getTotalElements(),
