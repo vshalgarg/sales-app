@@ -154,7 +154,7 @@ public class CreditServiceImpl implements CreditService {
                 records.getTotalElements(),
                 records.getTotalPages(),
                 records.isLast(),
-                MoneyUtil.toRupee(totalAmount)
+                totalAmount
         );
     }
 
