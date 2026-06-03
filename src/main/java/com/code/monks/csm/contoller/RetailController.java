@@ -2,9 +2,12 @@ package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.request.RetailRequestDto;
+import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.RetailResponseDto;
+import com.code.monks.csm.dto.response.RetailerListResponseDto;
 import com.code.monks.csm.service.RetailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +16,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 @RequestMapping(BASE)
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class RetailController {
 
     private final RetailService retailService;
@@ -47,6 +51,50 @@ public class RetailController {
     public ResponseEntity<ApiResponse<RetailResponseDto>> getRetailDetails(@PathVariable Long id) {
 
         var response = retailService.getRetailDetails(id);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Retail fetched successfully",
+                        response
+                )
+        );
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedResponseDto<RetailerListResponseDto>>> searchRetailers(
+
+            @RequestParam(required = false)
+            Integer customerId,
+
+            @RequestParam(required = false)
+            Integer staffId,
+
+            @RequestParam(required = false)
+            Integer supplierId,
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+
+        log.info(
+                "Search Retailers customerId={}, staffId={}, supplierId={}, page={}, size={}",
+                customerId,
+                staffId,
+                supplierId,
+                page,
+                size
+        );
+
+        var response =  retailService.searchRetailers(
+                customerId,
+                staffId,
+                supplierId,
+                page,
+                size
+        );
+
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "Retail fetched successfully",

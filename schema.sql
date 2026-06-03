@@ -685,3 +685,15 @@ CREATE TABLE retail_supplier (
         FOREIGN KEY (supplier_id)
         REFERENCES supplier(id)
 );
+
+CREATE INDEX idx_retailer_customer_id
+ON retailer(customer_id);
+
+CREATE INDEX idx_retailer_staff_id
+ON retailer(staff_id);
+
+CREATE INDEX idx_retail_supplier_supplier_id
+ON retail_supplier(supplier_id);
+
+CREATE INDEX idx_retail_supplier_retail_id
+ON retail_supplier(retail_id);
