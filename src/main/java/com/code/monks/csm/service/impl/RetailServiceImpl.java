@@ -43,13 +43,13 @@ public class RetailServiceImpl implements RetailService {
 
         log.info("Creating retailer with name: {}, customerId: {}, staffId: {}",
                 request.name(),
-                request.customerId(),
+                request.referredByCustomerId(),
                 request.staffId());
 
         var retailer = new RetailerEntity();
         retailer.setName(request.name());
         retailer.setDate(request.date());
-        retailer.setCustomer(getCustomer(request.customerId()));
+        retailer.setCustomer(getCustomer(request.referredByCustomerId()));
         retailer.setStaff(getStaff(request.staffId()));
         retailer.setSuppliers(buildRetailSuppliers(retailer, request));
         retailRepository.save(retailer);
@@ -64,7 +64,7 @@ public class RetailServiceImpl implements RetailService {
         var retailer = getRetail(retailId);
         retailer.setName(request.name());
         retailer.setDate(request.date());
-        retailer.setCustomer(getCustomer(request.customerId()));
+        retailer.setCustomer(getCustomer(request.referredByCustomerId()));
         retailer.setStaff(getStaff(request.staffId()));
         retailer.getSuppliers().clear();
         retailer.getSuppliers().addAll(buildRetailSuppliers(retailer, request));

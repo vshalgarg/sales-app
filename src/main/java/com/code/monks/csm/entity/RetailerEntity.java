@@ -23,7 +23,7 @@ public class RetailerEntity extends BaseEntity{
     private LocalDate date;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "referred_by_customer_id")
     private CustomerEntity customer;
 
     @ManyToOne

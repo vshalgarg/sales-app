@@ -658,7 +658,7 @@ CREATE TABLE retailers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     date DATE NOT NULL,
-    customer_id INT,
+    referred_by_customer_id INT,
     staff_id INT,
 
     created_at DATETIME NOT NULL,
@@ -667,7 +667,7 @@ CREATE TABLE retailers (
     updated_by BIGINT,
 
     CONSTRAINT fk_retailer_customer
-        FOREIGN KEY (customer_id)
+        FOREIGN KEY (referred_by_customer_id)
         REFERENCES customer(id),
 
     CONSTRAINT fk_retailer_staff
@@ -699,10 +699,10 @@ CREATE TABLE retail_supplier (
 );
 
 CREATE INDEX idx_retailer_customer_id
-ON retailer(customer_id);
+ON retailers(referred_by_customer_id);
 
 CREATE INDEX idx_retailer_staff_id
-ON retailer(staff_id);
+ON retailers(staff_id);
 
 CREATE INDEX idx_retail_supplier_supplier_id
 ON retail_supplier(supplier_id);

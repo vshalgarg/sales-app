@@ -7,7 +7,7 @@ public record RetailerListResponseDto(
 
         Integer retailId,
         String retailName,
-        String customerName,
+        String referredByCustomerName,
         String staffName,
         LocalDate date,
         List<RetailSupplierResponseDto> suppliers
