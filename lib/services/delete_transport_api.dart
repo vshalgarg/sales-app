@@ -1,24 +1,24 @@
 import 'dart:convert';
-
-import 'package:hisabio/model_classes/add_newsupplier.dart';
 import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:http/http.dart' as http;
 
-class AddNewSupplierApiApi {
-  Future<AddNewsupplier> addNewSupplier(Map<String, dynamic> body) async {
+import '../model_classes/delete_transport.dart';
+
+class DeleteTransportApi {
+  Future<DeleteTransport> deleteTransport(int id) async {
     try {
       final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/supplier/add");
+          "http://192.168.1.100:8087/csm/api/v1/transports/delete/$id");
       final token = await AppStorage.getToken();
-      final response = await http.post(
+      final response = await http.delete(
         url, headers: { "Content-Type": "application/json",
         "Authorization": "Bearer $token"},
-        body: jsonEncode(body),);
+        );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return AddNewsupplier.fromJson(data);
+        return  DeleteTransport .fromJson(data);
       } else {
-        throw Exception(data['message'] ?? "Failed to add new supplier");
+        throw Exception(data['message'] ?? "Failed to delete transport");
       }
     } catch (e) {
       throw Exception("Error $e");

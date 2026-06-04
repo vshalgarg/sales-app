@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 
 import '../enums/customer_mode.dart';
+import '../screens/master_screens/add_new_supplier.dart';
 class ContactInfo extends StatefulWidget {
-  final List<Map<String, TextEditingController>> contacts;
+  final List< ContactControllers> contacts;
   final VoidCallback onAdd;
   final Function(int) onDelete;
   final FormMode? mode;
@@ -19,36 +20,7 @@ class ContactInfo extends StatefulWidget {
   @override
   State<ContactInfo> createState() => _ContactInfoState();
 }
-
 class _ContactInfoState extends State<ContactInfo> {
-  // late List<Map<String, TextEditingController>> contacts;
-
-  /*void addContact() {
-    setState(() {
-      contacts.add({
-        "name": TextEditingController(),
-        "mobile": TextEditing
-
-  /*@override
-  void initState() {
-    super.initState();
-    contacts = widget.contacts;
-
-    if (contacts.isEmpty) {
-      addContact();
-    }
-  }*/
-
-  /*  void deleteContact(int index) {
-    setState(() {
-      contacts.removeAt(index);
-    });Controller(),
-        "type": TextEditingController(),
-      });
-    });
-  }*/
-  }*/
-
   @override
   Widget build(BuildContext context) {
     final contacts = widget.contacts;
@@ -62,7 +34,7 @@ class _ContactInfoState extends State<ContactInfo> {
         SizedBox(height: 15),
 
         Column(
-          children: List.generate(  contacts.isEmpty ? 1 : contacts.length, (index) {
+          children: List.generate(  contacts.length, (index) {
             final contact = contacts[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 15.0),
@@ -94,7 +66,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     SizedBox(height: 15),
                     TextFormField(
                       enabled: widget.mode != FormMode.view,
-                      controller: contact["name"],
+                      controller: contact.name,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -106,7 +78,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     TextFormField(
                       keyboardType: TextInputType.number,
                       enabled: widget.mode != FormMode.view,
-                      controller: contact["mobile"],
+                      controller: contact.mobile,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -117,7 +89,7 @@ class _ContactInfoState extends State<ContactInfo> {
                     SizedBox(height: 15),
                     TextFormField(
                       enabled: widget.mode != FormMode.view,
-                      controller: contact["type"],
+                      controller: contact.type,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),

@@ -3,35 +3,28 @@ import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
 
-class SupplierContainer extends StatelessWidget {
+class StaffContainer extends StatelessWidget {
   final double? elevation;
   final String? name;
-  final String? city;
-  final String? gst;
-  final String? code;
-  final VoidCallback? eyeIconTap;
+  final String? joiningDate;
+  final String? number;
   final VoidCallback? trashIconTap;
-  final VoidCallback? copyIconTap;
   final VoidCallback? editIconTap;
 
-  const SupplierContainer({
+  const StaffContainer({
     super.key,
     this.elevation,
     this.name,
-    this.city,
-    this.gst,
-    this.code,
-    this.eyeIconTap,
-     this.trashIconTap,
-    this.copyIconTap,
-     this.editIconTap,
+    this.joiningDate,
+    this.number,
+    this.trashIconTap,
+    this.editIconTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: elevation,
-      // shadowColor: Colors.black12,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -65,36 +58,20 @@ class SupplierContainer extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 5),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: AppColors.primaryPurpleLight,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(2.0),
-                          child: Text(
-                            code ?? "",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.primaryPurple,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 5),
                       Expanded(
                         child: Row(
                           children: [
-                            Text(overflow: TextOverflow.ellipsis,
+                            Text("Phone:",
+                              overflow: TextOverflow.ellipsis,
                               softWrap: true,
                               maxLines: 3,
-                              "GST:",
+
                               style: TextStyle(fontSize: 10, color: Colors.grey),
                             ),
                             Text(overflow: TextOverflow.ellipsis,
                               softWrap: true,
                               maxLines: 3,
-                              gst ?? "",
+                              number ?? "",
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppColors.primaryPurple,
@@ -107,11 +84,11 @@ class SupplierContainer extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            "City:",
+                            "Joining Date:",
                             style: TextStyle(fontSize: 10, color: Colors.grey),
                           ),
                           Text(
-                            city ?? "",
+                            joiningDate ?? "",
                             style: TextStyle(
                               fontSize: 10,
                               color: AppColors.primaryPurple,
@@ -128,29 +105,11 @@ class SupplierContainer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     GestureDetector(
-                      onTap: eyeIconTap,
-                      child: customIcon(
-                        icon: Iconsax.eye,
-                        iconColor: AppColors.primaryPurple,
-                        bgColor: AppColors.primaryPurpleLight,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    GestureDetector(
                       onTap: trashIconTap,
                       child: customIcon(
                         icon: Iconsax.trash,
-                        iconColor: Color(0xFFFF4D4F),
-                        bgColor: Color(0xFFFFE9E9),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: copyIconTap,
-                      child: customIcon(
-                        icon: Iconsax.copy,
-                        iconColor: Color(0xFF2F80ED),
-                        bgColor: Color(0xFFEAF2FF),
+                        iconColor: AppColors.binRed,
+                        bgColor: AppColors.binRedLight,
                       ),
                     ),
                     SizedBox(width: 10),
@@ -158,8 +117,8 @@ class SupplierContainer extends StatelessWidget {
                       onTap: editIconTap,
                       child: customIcon(
                         icon: Iconsax.edit,
-                        iconColor: Color(0xFF00B894),
-                        bgColor: Color(0xFFE6FAF5),
+                        iconColor: AppColors.editGreen,
+                        bgColor: AppColors.editGreenLight,
                       ),
                     ),
                   ],

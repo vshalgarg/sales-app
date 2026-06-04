@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/bottom_navigation_bar.dart';
-import 'package:hisabio/customs/containers/master_containers/supplier_container.dart';
+import 'package:hisabio/customs/containers/master_containers/master_container.dart';
 import 'package:hisabio/dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
-import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_supplier_dialog.dart';
+import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
 import 'package:hisabio/drawers/master_drawer.dart';
-import 'package:hisabio/model_classes/add_newsupplier.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
 import 'package:hisabio/provider/get_supplier_provider.dart';
@@ -99,7 +98,6 @@ class _SupplierState extends State<Supplier> {
               ),
             ),
             SizedBox(height: 25),
-
             Expanded(
               child:provider.isLoading?
                   Center(child: const CircularProgressIndicator())
@@ -121,7 +119,7 @@ class _SupplierState extends State<Supplier> {
                       },
                       itemBuilder: (context, index) {
                         final item = suppliers[index];
-                        return SupplierContainer(
+                        return MasterContainer(
                           elevation: 1,
                           name: item.supplierName,
                           gst: item.supplierGstNo,
@@ -134,9 +132,7 @@ class _SupplierState extends State<Supplier> {
                                 builder: (_) => AddNewSupplier(
                                   id: item.id,
                                   mode: FormMode.view,
-                                  supplierData: AddNewsupplier.fromJson(
-                                    item.toJson(),
-                                  ),
+
                                 ),
                               ),
                             );
@@ -208,9 +204,7 @@ class _SupplierState extends State<Supplier> {
                                 builder: (_) => AddNewSupplier(
                                   id: item.id,
                                   mode: FormMode.edit,
-                                  supplierData: AddNewsupplier.fromJson(
-                                    item.toJson(),
-                                  ),
+
                                 ),
                               ),
                             );

@@ -26,8 +26,6 @@ class CustomDeleteDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
-            /// Title
              Text(
              " $dialogBoxName",
               style: TextStyle(
@@ -37,8 +35,6 @@ class CustomDeleteDialog extends StatelessWidget {
             ),
 
             const SizedBox(height: 15),
-
-            /// Message
             Text(
               "Are you sure you want to permanently "
                   "delete $name? "
@@ -50,12 +46,8 @@ class CustomDeleteDialog extends StatelessWidget {
             ),
 
             const SizedBox(height: 25),
-
-            /// Buttons
             Row(
               children: [
-
-                /// Cancel Button
                 Expanded(
                   child: SizedBox(
                     height: 45,
@@ -71,8 +63,6 @@ class CustomDeleteDialog extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 12),
-
-                /// Delete Button
                 Expanded(
                   child: SizedBox(
                     height: 45,

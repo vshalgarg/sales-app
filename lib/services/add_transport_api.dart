@@ -1,20 +1,16 @@
 import 'dart:convert';
 import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:http/http.dart' as http;
+import '../model_classes/add_transport_model.dart';
 
-import '../model_classes/update_customer_model.dart';
-
-class UpdateCustomerApi {
-  Future<UpdateCustomerModel> updateCustomer({
-    required Map<String, dynamic> body,
-    required int id,
-  }) async {
+class AddNewTransportApi {
+  Future<AddTransportModel > addNewTransport(Map<String, dynamic> body) async {
     try {
       final url = Uri.parse(
-        "http://192.168.1.100:8087/csm/api/v1/customers/update/id/$id",
+        "http://192.168.1.100:8087/csm/api/v1/transports/add",
       );
       final token = await AppStorage.getToken();
-      final response = await http.put(
+      final response = await http.post(
         url,
         headers: {
           "Content-Type": "application/json",
@@ -22,13 +18,11 @@ class UpdateCustomerApi {
         },
         body: jsonEncode(body),
       );
-      print(body);
       final data = jsonDecode(response.body);
-      print(response.body);
       if (response.statusCode == 200) {
-        return UpdateCustomerModel.fromJson(data);
+        return AddTransportModel .fromJson(data);
       } else {
-        throw Exception(data['message'] ?? "Failed to update customer");
+        throw Exception(data['message'] ?? "Failed to add new Transport");
       }
     } catch (e) {
       throw Exception("Error $e");

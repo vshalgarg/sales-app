@@ -16,17 +16,29 @@ import 'package:hisabio/screens/master_screens/supplier.dart';
 import 'package:provider/provider.dart';
 
 import '../../enums/customer_mode.dart';
+class ContactControllers {
+
+  final name = TextEditingController();
+
+  final mobile = TextEditingController();
+
+  final type = TextEditingController();
+
+  void dispose() {
+    name.dispose();
+    mobile.dispose();
+    type.dispose();
+  }
+}
 
 class AddNewSupplier extends StatefulWidget {
   final num? id;
   final FormMode mode;
-  final dynamic supplierData;
 
   const AddNewSupplier({
     super.key,
     this.id,
     this.mode = FormMode.add,
-    this.supplierData,
   });
 
   @override
@@ -69,19 +81,17 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   final cityController = TextEditingController();
 
   final pinCodeController = TextEditingController();
-
-  final preferredTransportController = TextEditingController();
-
   final remarksController = TextEditingController();
-  List<Map<String, TextEditingController>> contacts = [];
+  List<ContactControllers> contacts = [];
+
   String? selectedTransportId;
 
   Map<String, dynamic> submitSupplier() {
     List<Map<String, dynamic>> contactList = contacts.map((c) {
       return {
-        "contactPerson": c["name"]!.text,
-        "mobileNumber": c["mobile"]!.text,
-        "type": c["type"]!.text,
+        "contactPerson": c.name.text,
+        "mobileNumber": c.mobile.text,
+        "type": c.type.text,
       };
     }).toList();
     Map<String, dynamic> body = {
@@ -93,19 +103,16 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       "commissionScheme": commissionSchemeController.text,
       "commissionRate": commissionRateController.text,
       "referenceBy": referenceController.text,
-
       "bankName": bankNameController.text,
       "ifscCode": ifscController.text,
       "branchName": branchNameController.text,
       "accountName": accountholderNameController.text,
       "accountNumber": accountNumberController.text,
-
       "addressLine1": addressLine1Controller.text,
       "addressLine2": addressLine2Controller.text,
       "state": stateController.text,
       "city": cityController.text,
       "pinCode": pinCodeController.text,
-
       "preferredTransportIds": selectedTransportId != null
           ? [int.parse(selectedTransportId!)]
           : [],
@@ -115,12 +122,13 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     };
     return body;
   }
+
   Map<String, dynamic> updateSupplier() {
     List<Map<String, dynamic>> contactList = contacts.map((c) {
       return {
-        "contactPerson": c["name"]!.text,
-        "mobileNumber": c["mobile"]!.text,
-        "type": c["type"]!.text,
+        "contactPerson": c.name.text,
+        "mobileNumber": c.mobile.text,
+        "type": c.type.text,
       };
     }).toList();
     Map<String, dynamic> body = {
@@ -189,29 +197,40 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     contacts = [];
 
     if ((s.contacts ?? []).isNotEmpty) {
+
       for (var c in s.contacts!) {
+
+        final contact = ContactControllers();
+
         if (c is Map) {
-          contacts.add({
-            "name": TextEditingController(text: c['contactPerson']?.toString() ?? ""),
-            "mobile": TextEditingController(
-              text: c['mobileNumber']?.toString() ?? "",
-            ),
-            "type": TextEditingController(text: c['type']?.toString() ?? ""),
-          });
+
+          contact.name.text =
+              c['contactPerson']?.toString() ?? "";
+
+          contact.mobile.text =
+              c['mobileNumber']?.toString() ?? "";
+
+          contact.type.text =
+              c['type']?.toString() ?? "";
+
         } else {
-          contacts.add({
-            "name": TextEditingController(text: c.contactPerson ?? ""),
-            "mobile": TextEditingController(text: c.mobileNumber ?? ""),
-            "type": TextEditingController(text: c.type ?? ""),
-          });
+
+          contact.name.text =
+              c.contactPerson ?? "";
+
+          contact.mobile.text =
+              c.mobileNumber ?? "";
+
+          contact.type.text =
+              c.type ?? "";
         }
+
+        contacts.add(contact);
       }
+
     } else {
-      contacts.add({
-        "name": TextEditingController(),
-        "mobile": TextEditingController(),
-        "type": TextEditingController(),
-      });
+
+      contacts.add(ContactControllers());
     }
   }
 
@@ -233,18 +252,16 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     }
 
     if (widget.mode == FormMode.add) {
-      contacts.add({
-        "name": TextEditingController(),
-        "mobile": TextEditingController(),
-        "type": TextEditingController(),
-      });
+      contacts.add(ContactControllers());
     }
 
     Future.microtask(() {
       Provider.of<TransportProvider>(context, listen: false).fetchTransports();
     });
   }
+
   void deleteContact(int index) {
+    contacts[index].dispose();
     setState(() {
       contacts.removeAt(index);
     });
@@ -252,14 +269,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
   void addContact() {
     setState(() {
-      contacts.add({
-        "name": TextEditingController(),
-        "mobile": TextEditingController(),
-        "type": TextEditingController(),
-      });
+      contacts.add(ContactControllers());
     });
   }
-
 
   void clearForm() {
     nameController.clear();
@@ -270,38 +282,27 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     commissionSchemeController.clear();
     commissionRateController.clear();
     referenceController.clear();
-
     bankNameController.clear();
     ifscController.clear();
     branchNameController.clear();
     accountholderNameController.clear();
     accountNumberController.clear();
-
     addressLine1Controller.clear();
     addressLine2Controller.clear();
     stateController.clear();
     cityController.clear();
     pinCodeController.clear();
-
-    preferredTransportController.clear();
     remarksController.clear();
-
     for (var c in contacts) {
-      c["name"]!.clear();
-      c["mobile"]!.clear();
-      c["type"]!.clear();
+      c.name.clear();
+      c.mobile.clear();
+      c.type.clear();
     }
 
     setState(() {
       selectedTransportId = null;
 
-      contacts = [
-        {
-          "name": TextEditingController(),
-          "mobile": TextEditingController(),
-          "type": TextEditingController(),
-        },
-      ];
+      contacts = [ContactControllers()];
     });
   }
 
@@ -325,13 +326,12 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     stateController.dispose();
     cityController.dispose();
     pinCodeController.dispose();
-    preferredTransportController.dispose();
     remarksController.dispose();
 
     for (var c in contacts) {
-      c["name"]!.dispose();
-      c["mobile"]!.dispose();
-      c["type"]!.dispose();
+      c.name.dispose();
+      c.mobile.dispose();
+      c.type.dispose();
     }
 
     super.dispose();
@@ -339,7 +339,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.white,
+    return Scaffold(
+      backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: widget.mode == FormMode.add
             ? "Add New Supplier"
@@ -375,7 +376,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
               SizedBox(height: 15),
               BankDetailsSection(
-
                 mode: widget.mode,
                 bankName: bankNameController,
                 ifscCode: ifscController,
@@ -402,24 +402,21 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
               SizedBox(height: 15),
               Text(
                 "Preferred Transports",
-                style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 15),
               Consumer<TransportProvider>(
                 builder: (context, provider, child) {
-                  //  if (provider.isLoading) {
-                  //  return CircularProgressIndicator();
-                  //}
-                  final transportIds =
-                  provider.transports.map((t) => t.id.toString()).toSet();
+                  final transportIds = provider.transports
+                      .map((t) => t.id.toString())
+                      .toSet();
                   return DropdownButtonFormField<String>(
-                    value: selectedTransportId != null &&
-                        transportIds.contains(selectedTransportId)
+                    value:
+                        selectedTransportId != null &&
+                            transportIds.contains(selectedTransportId)
                         ? selectedTransportId
                         : null,
                     isExpanded: true,
-                    // controller: preferredTransportController,
                     decoration: InputDecoration(
                       enabled: widget.mode != FormMode.view,
                       labelText: "Preferred Transport",
@@ -437,10 +434,10 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     onChanged: widget.mode == FormMode.view
                         ? null
                         : (value) {
-                      setState(() {
-                        selectedTransportId = value;
-                      });
-                    },
+                            setState(() {
+                              selectedTransportId = value;
+                            });
+                          },
                   );
                 },
               ),
@@ -461,88 +458,57 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       ),
 
       bottomNavigationBar: Consumer<AddSupplierProvider>(
-          builder: (context, provider, child) {
-            return BottomNavigationButton(
-                mode: widget.mode,
-                update: () async {
-                  try {
-                    final body =updateSupplier();
+        builder: (context, provider, child) {
+          return BottomNavigationButton(
+            mode: widget.mode,
+            update: () async {
+              try {
+                final body = updateSupplier();
 
-                    final updateProvider =
-                    context.read<UpdateSupplierProvider>();
+                final updateProvider = context.read<UpdateSupplierProvider>();
 
-                    await updateProvider.updateSupplier(
-                      id: widget.id!.toInt(),
-                      body: body,
-                    );
+                await updateProvider.updateSupplier(
+                  id: widget.id!.toInt(),
+                  body: body,
+                );
+                if (!context.mounted) return;
 
-                    if (updateProvider.error != null) {
-                      ScaffoldSnackBar.show(
-                        context,
-                        updateProvider.error!,
-                        backgroundColor: Colors.red,
-                      );
-                    } else {
-                      ScaffoldSnackBar.show(
-                        context,
-                        updateProvider.response?.message ??
-                            "Supplier Updated Successfully",
-                      );
+                if (updateProvider.error != null) {
+                  ScaffoldSnackBar.show(
+                    context,
+                    updateProvider.error!,
+                    backgroundColor: Colors.red,
+                  );
+                } else {
+                  ScaffoldSnackBar.show(
+                    context,
+                    updateProvider.response?.message ??
+                        "Supplier Updated Successfully",
+                  );
 
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => Supplier(),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    print("something went wrong $e");
-                    ScaffoldSnackBar.show(
-                        context, "Something Went wrong $e");
-                  }
-                },
-                saveAndAddNew:
-                provider.isLoading
-                    ? () {}
-                    : () async {
-                  if (nameController.text.isEmpty) {
-                    ScaffoldSnackBar.show(
-                        context, "Supplier name is required");
-                    return;
-                  }
-                  final body = submitSupplier();
-
-                  await provider.addSupplier(body);
-
-                  if (provider.error != null) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      provider.error!,
-                      backgroundColor: Colors.red,
-                    );
-                  } else {
-                    ScaffoldSnackBar.show(
-                      context,
-                      provider.response!.message ??
-                          "Supplier Added Successfully by text",
-                    );
-                    context.read<SupplierProvider>().fetchSuppliers();
-                    clearForm();
-                  }
-                },
-                saveSupplier: provider.isLoading
-                    ? () {}
-                    : () async{
-                  try {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => Supplier()),
+                  );
+                }
+              } catch (e) {
+                ScaffoldSnackBar.show(context, "Something Went wrong $e");
+              }
+            },
+            saveAndAddNew: provider.isLoading?(){}
+                : () async {
                     if (nameController.text.isEmpty) {
-                      ScaffoldSnackBar.show(context, "Supplier name is required");
+                      ScaffoldSnackBar.show(
+                        context,
+                        "Supplier name is required",
+                      );
                       return;
                     }
-
-
                     final body = submitSupplier();
+
                     await provider.addSupplier(body);
+                    if (!context.mounted) return;
+
                     if (provider.error != null) {
                       ScaffoldSnackBar.show(
                         context,
@@ -553,23 +519,55 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                       ScaffoldSnackBar.show(
                         context,
                         provider.response!.message ??
-                            "Supplier Added Successfully",
+                            "Supplier Added Successfully by text",
                       );
-
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => Supplier(),
-                        ),
-                      );
+                      context.read<SupplierProvider>().fetchSuppliers();
+                      clearForm();
                     }
-                  }catch(e){
-                    ScaffoldSnackBar.show(context, "Something went wrong$e");
-                  }},
-                cancel: () {
-                  Navigator.pop(context);
-                });
-          }
+                  },
+            saveSupplier: provider.isLoading
+                ? () {}
+                : () async {
+                    try {
+                      if (nameController.text.isEmpty) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          "Supplier name is required",
+                        );
+                        return;
+                      }
+
+                      final body = submitSupplier();
+                      await provider.addSupplier(body);
+                      if (!context.mounted) return;
+                      if (provider.error != null) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          provider.error!,
+                          backgroundColor: Colors.red,
+                        );
+                      } else {
+                        ScaffoldSnackBar.show(
+                          context,
+                          provider.response!.message ??
+                              "Supplier Added Successfully",
+                        );
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => Supplier()),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldSnackBar.show(context, "Something went wrong$e");
+                    }
+                  },
+            cancel: () {
+              Navigator.pop(context);
+            },
+          );
+        },
       ),
     );
-  }}
+  }
+}

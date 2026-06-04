@@ -13,14 +13,17 @@ class LoginApi {
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"username": username, "password": password}),
     );
+
     var data =jsonDecode(response.body);
+
+
     if (response.statusCode == 200) {
       return  LoginModel.fromJson(data);
     } else {
       throw Exception(data['message']??"Login Failed");
     }}
-    catch(e){
-      throw Exception("Error $e");
+    catch (e){
+      rethrow;
     }
   }
 }

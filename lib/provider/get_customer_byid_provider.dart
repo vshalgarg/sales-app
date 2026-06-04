@@ -13,7 +13,6 @@ class GetCustomerByIdProvider extends ChangeNotifier {
   String? errorMessage;
 
   Future<void> getCustomerById(int id) async {
-
     try {
 
       isLoading = true;

@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
-import 'package:hisabio/customs/containers/master_containers/supplier_container.dart';
-import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_supplier_dialog.dart';
+import 'package:hisabio/customs/containers/master_containers/master_container.dart';
+import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
 import 'package:hisabio/drawers/master_drawer.dart';
+import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/master_screens/add_new_customer.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
@@ -15,15 +16,16 @@ import '../../provider/delete_customer_provider.dart';
 import '../../provider/get_customers_provider.dart';
 import '../../provider/search_customer_provider.dart';
 
-class Customer extends StatefulWidget {
-  const Customer({super.key});
+class CustomerScreen extends StatefulWidget {
+  const CustomerScreen({super.key});
 
   @override
-  State<Customer> createState() => _CustomerState();
+  State<CustomerScreen> createState() => _CustomerScreenState();
 }
 
-class _CustomerState extends State<Customer> {
+class _CustomerScreenState extends State<CustomerScreen> {
   final searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -33,6 +35,16 @@ class _CustomerState extends State<Customer> {
       context.read<CustomersProvider>().fetchCustomers();
     });
   }
+  @override
+  void dispose() {
+
+    _debounce?.cancel();
+
+    searchController.dispose();
+
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +78,24 @@ class _CustomerState extends State<Customer> {
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search customers...",
                 onChanged: (value) {
-                  context.read<SearchCustomerProvider>().searchCustomer(value);
+
+                  if (_debounce?.isActive ?? false) {
+                    _debounce!.cancel();
+                  }
+
+                  _debounce = Timer(
+                    const Duration(milliseconds: 500),
+                        () {
+                      if (value.trim().isEmpty) {
+                        setState(() {});
+                        return;
+                      }
+
+                      context
+                          .read<SearchCustomerProvider>()
+                          .searchCustomer(value);
+                    },
+                  );
                 },
                 leading: Icon(Icons.search_outlined, size: 30),
                 backgroundColor: WidgetStatePropertyAll(Colors.white),
@@ -99,7 +128,7 @@ class _CustomerState extends State<Customer> {
                           itemCount: customers.length,
                           itemBuilder: (context, index) {
                             final customer = customers[index];
-                            return SupplierContainer(
+                            return MasterContainer(
                               elevation: 1,
                               name: isSearching
                                   ? customer.customerName
@@ -132,7 +161,7 @@ class _CustomerState extends State<Customer> {
                                   context: context,
                                   builder: (context) {
                                     return CustomDeleteDialog(
-                                      dialogBoxName: "Delete Supplier",
+                                      dialogBoxName: "Delete Customer",
                                       name: customer['customerName'],
                                       onDelete: () async {
                                         await context
@@ -148,25 +177,14 @@ class _CustomerState extends State<Customer> {
                                           context
                                               .read<CustomersProvider>()
                                               .fetchCustomers();
-
-                                          ScaffoldMessenger.of(
+                                          ScaffoldSnackBar.show(
                                             context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                "Customer deleted successfully",
-                                              ),
-                                            ),
+                                            "Customer Deleted successfully",
                                           );
                                         } else {
-                                          ScaffoldMessenger.of(
+                                          ScaffoldSnackBar.show(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                deleteProvider.errorMessage!,
-                                              ),
-                                            ),
+                                            deleteProvider.errorMessage!,
                                           );
                                         }
                                       },
@@ -175,18 +193,20 @@ class _CustomerState extends State<Customer> {
                                 );
                               },
                               copyIconTap: () {},
-                              editIconTap: () {final id = isSearching
-                                  ? customer.id
-                                  : customer['id'];
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AddNewCustomer(
-                                    mode: FormMode.edit,
-                                    id: id,
+                              editIconTap: () {
+                                final id = isSearching
+                                    ? customer.id
+                                    : customer['id'];
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddNewCustomer(
+                                      mode: FormMode.edit,
+                                      id: id,
+                                    ),
                                   ),
-                                ),
-                              );},
+                                );
+                              },
                             );
                           },
                         );

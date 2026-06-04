@@ -27,61 +27,61 @@ class BottomNavigationButton extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if(mode==FormMode.add)...[
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          if (mode == FormMode.add) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: saveSupplier,
+                child: const Text(
+                  "Save Details",
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
-              onPressed: saveSupplier,
-              child: const Text(
-                "Save Details",
-                style: TextStyle(color: Colors.white),
-              ),
             ),
-          ),],
-          if(mode==FormMode.edit)...[
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          ],
+          if (mode == FormMode.edit) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: update,
+                child: const Text(
+                  "Update",
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
-              onPressed: update,
-              child: const Text(
-                "Update",
-                style: TextStyle(color: Colors.white),
-              ),
             ),
-          ),],
-          //SizedBox(height: 10),
-if(mode==FormMode.add)...[
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          ],
+          if (mode == FormMode.add) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: saveAndAddNew,
+                child: const Text(
+                  "Save & Add New",
+                  style: TextStyle(color: AppColors.primaryPurple),
                 ),
               ),
-              onPressed: saveAndAddNew,
-              child: const Text(
-                "Save & Add New",
-                style: TextStyle(color: AppColors.primaryPurple),
-              ),
             ),
-          ),],
-
+          ],
           SizedBox(height: 10),
-
           SizedBox(
             width: double.infinity,
 

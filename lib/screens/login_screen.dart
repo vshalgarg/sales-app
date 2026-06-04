@@ -137,7 +137,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               password: passwordController.text.trim(),
                             );
-                            print("passwsword jaa rha h");
                             if (success) {
                               ScaffoldSnackBar.show(
                                 context,

@@ -2,19 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/provider/add_customer.dart';
+import 'package:hisabio/provider/add_new_staff_provider.dart';
+import 'package:hisabio/provider/add_new_transport.dart';
 import 'package:hisabio/provider/add_newsupplier.dart';
 import 'package:hisabio/provider/delete_customer_provider.dart';
+import 'package:hisabio/provider/delete_staff_provider.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
+import 'package:hisabio/provider/delete_transport_provider.dart';
 import 'package:hisabio/provider/get_customer_byid_provider.dart';
 import 'package:hisabio/provider/get_customers_provider.dart';
+import 'package:hisabio/provider/get_staff_by_id_provider.dart';
+import 'package:hisabio/provider/get_staff_provider.dart';
 import 'package:hisabio/provider/get_supplier_provider.dart';
 import 'package:hisabio/provider/get_suppliers_byid_provider.dart';
+import 'package:hisabio/provider/get_transport_by_id_provider.dart';
+import 'package:hisabio/provider/get_transport_details_provider.dart';
 import 'package:hisabio/provider/get_transport_provider.dart';
+import 'package:hisabio/provider/get_user_provider.dart';
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hisabio/provider/login_provider.dart';
 import 'package:hisabio/provider/search_customer_provider.dart';
+import 'package:hisabio/provider/search_staff_provider.dart';
 import 'package:hisabio/provider/search_supplier_provider.dart';
+import 'package:hisabio/provider/search_transport_provider.dart';
 import 'package:hisabio/provider/update_customer_provider.dart';
+import 'package:hisabio/provider/update_staff_provider.dart';
 import 'package:hisabio/provider/update_supplier_provider.dart';
 import 'package:hisabio/screens/login_screen.dart';
 //import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
@@ -40,16 +52,29 @@ void main() async {
         ChangeNotifierProvider(create: (_)=> SearchCustomerProvider()),
         ChangeNotifierProvider(create: (_)=> GetCustomerByIdProvider()),
         ChangeNotifierProvider(create: (_)=> UpdateCustomerProvider()),
+        ChangeNotifierProvider(create: (_)=> GetStaffProvider()),
+        ChangeNotifierProvider(create: (_)=> DeleteStaffProvider()),
+        ChangeNotifierProvider(create: (_)=> SearchStaffProvider()),
+        ChangeNotifierProvider(create: (_)=> AddNewStaffProvider()),
+        ChangeNotifierProvider(create: (_)=> GetStaffByIdProvider()),
+        ChangeNotifierProvider(create: (_)=>  UpdateStaffProvider()),
+        ChangeNotifierProvider(create: (_)=>  GetTransportProvider()),
+        ChangeNotifierProvider(create: (_)=>  DeleteTransportProvider()),
+        ChangeNotifierProvider(create: (_)=>  AddNewTransportProvider()),
+        ChangeNotifierProvider(create: (_)=>SearchTransportProvider()),
+        ChangeNotifierProvider(create: (_)=>GetTransportByIdProvider()),
+        ChangeNotifierProvider(create: (_)=> GetUsersProvider()),
+
+
       ],
       child: const MyApp(),
+
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
