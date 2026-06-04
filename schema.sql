@@ -657,8 +657,14 @@ REFERENCES customer(id);
 CREATE TABLE retailers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
+    date DATE NOT NULL,
     customer_id INT,
     staff_id INT,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
 
     CONSTRAINT fk_retailer_customer
         FOREIGN KEY (customer_id)
@@ -671,11 +677,17 @@ CREATE TABLE retailers (
 
 CREATE TABLE retail_supplier (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    retail_id INT,
-    supplier_id INT,
+
+    retail_id INT NOT NULL,
+    supplier_id INT NOT NULL,
     total_amount BIGINT,
     deposit_amount BIGINT,
     balance_amount BIGINT,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
 
     CONSTRAINT fk_retail_supplier_retail
         FOREIGN KEY (retail_id)
@@ -684,4 +696,33 @@ CREATE TABLE retail_supplier (
     CONSTRAINT fk_retail_supplier_supplier
         FOREIGN KEY (supplier_id)
         REFERENCES supplier(id)
+);
+
+CREATE INDEX idx_retailer_customer_id
+ON retailer(customer_id);
+
+CREATE INDEX idx_retailer_staff_id
+ON retailer(staff_id);
+
+CREATE INDEX idx_retail_supplier_supplier_id
+ON retail_supplier(supplier_id);
+
+CREATE INDEX idx_retail_supplier_retail_id
+ON retail_supplier(retail_id);
+
+CREATE TABLE retail_supplier_deposits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    retail_supplier_id INT NOT NULL,
+    deposit_date DATE,
+    amount BIGINT,
+
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    CONSTRAINT fk_rsp_retail_supplier
+        FOREIGN KEY (retail_supplier_id)
+        REFERENCES retail_supplier(id)
 );
