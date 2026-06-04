@@ -29,7 +29,7 @@ public class RetailMapper {
         return new RetailResponseDto(
                 retailer.getId(),
                 retailer.getName(),
-                retailer.getTransactionDate(),
+                retailer.getDate(),
                 retailer.getCustomer().getId(),
                 retailer.getCustomer().getCustomerName(),
                 staff != null ? staff.getId() : null,
@@ -38,23 +38,29 @@ public class RetailMapper {
         );
     }
 
-    public List<RetailerListResponseDto> toListDto(
+    public RetailerListResponseDto toListDto(
             RetailerEntity retail
     ) {
 
-        return retail.getSuppliers()
-                .stream()
-                .map(supplier -> new RetailerListResponseDto(
-                        retail.getId(),
-                        retail.getName(),
-                        retail.getCustomer().getCustomerName(),
-                        retail.getStaff().getStaffName(),
-                        supplier.getSupplier().getSupplierName(),
-                        retail.getTransactionDate(),
-                        supplier.getTotalAmount(),
-                        supplier.getDepositAmount(),
-                        supplier.getBalanceAmount()
-                ))
-                .toList();
+        List<RetailSupplierResponseDto> suppliers =
+                retail.getSuppliers()
+                        .stream()
+                        .map(supplier -> new RetailSupplierResponseDto(
+                                supplier.getSupplier().getId(),
+                                supplier.getSupplier().getSupplierName(),
+                                supplier.getTotalAmount(),
+                                supplier.getDepositAmount(),
+                                supplier.getBalanceAmount()
+                        ))
+                        .toList();
+
+        return new RetailerListResponseDto(
+                retail.getId(),
+                retail.getName(),
+                retail.getCustomer().getCustomerName(),
+                retail.getStaff().getStaffName(),
+                retail.getDate(),
+                suppliers
+        );
     }
 }

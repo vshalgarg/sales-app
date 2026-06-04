@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,4 +30,11 @@ public class RetailSupplierEntity extends BaseEntity{
     private Long totalAmount;
     private Long depositAmount;
     private Long balanceAmount;
+
+    @OneToMany(
+            mappedBy = "retailSupplier",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<RetailSupplierDepositEntity> deposits;
 }

@@ -12,8 +12,8 @@ public record RetailRequestDto(
         @Size(max = 255, message = "Retail name cannot exceed 255 characters")
         String name,
 
-        @NotNull(message = "Transaction Date is required")
-        LocalDate transactionDate,
+        @NotNull(message = "Date is required")
+        LocalDate date,
 
         @NotNull(message = "Customer is required")
         Integer customerId,

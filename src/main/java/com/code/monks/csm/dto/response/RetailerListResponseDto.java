@@ -1,6 +1,7 @@
 package com.code.monks.csm.dto.response;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record RetailerListResponseDto(
 
@@ -8,10 +9,7 @@ public record RetailerListResponseDto(
         String retailName,
         String customerName,
         String staffName,
-        String supplierName,
-        LocalDate transactionDate,
-        Long totalAmount,
-        Long depositAmount,
-        Long balanceAmount
+        LocalDate date,
+        List<RetailSupplierResponseDto> suppliers
 ) {
 }

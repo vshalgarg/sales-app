@@ -20,7 +20,7 @@ public class RetailerEntity extends BaseEntity{
     private Integer id;
 
     private String name;
-    private LocalDate transactionDate;
+    private LocalDate date;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

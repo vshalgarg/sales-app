@@ -6,7 +6,7 @@ import java.util.List;
 public record RetailResponseDto(
         Integer id,
         String name,
-        LocalDate transactionDate,
+        LocalDate date,
         Integer customerId,
         String customerName,
         Integer staffId,

@@ -657,7 +657,7 @@ REFERENCES customer(id);
 CREATE TABLE retailers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
-    transaction_date DATE NOT NULL,
+    date DATE NOT NULL,
     customer_id INT,
     staff_id INT,
 
@@ -709,3 +709,20 @@ ON retail_supplier(supplier_id);
 
 CREATE INDEX idx_retail_supplier_retail_id
 ON retail_supplier(retail_id);
+
+CREATE TABLE retail_supplier_deposits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    retail_supplier_id INT NOT NULL,
+    deposit_date DATE,
+    amount BIGINT,
+
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    CONSTRAINT fk_rsp_retail_supplier
+        FOREIGN KEY (retail_supplier_id)
+        REFERENCES retail_supplier(id)
+);
