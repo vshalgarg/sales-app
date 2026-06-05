@@ -1,5 +1,6 @@
 package com.code.monks.csm.entity;
 
+import com.code.monks.csm.enums.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,4 +37,6 @@ public class RetailerEntity extends BaseEntity{
             orphanRemoval = true
     )
     private List<RetailSupplierEntity> suppliers;
+
+    private StatusEnum status;
 }

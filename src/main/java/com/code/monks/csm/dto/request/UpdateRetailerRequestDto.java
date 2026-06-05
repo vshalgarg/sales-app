@@ -5,9 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
-import java.util.List;
 
-public record RetailRequestDto(
+public record UpdateRetailerRequestDto (
+
         @NotBlank(message = "Retail name is required")
         @Size(max = 255, message = "Retail name cannot exceed 255 characters")
         String name,
@@ -17,7 +17,7 @@ public record RetailRequestDto(
 
         @NotNull(message = "Customer is required")
         Integer referredByCustomerId,
-        Integer staffId,
-        List<RetailSupplierRequest> suppliers
-) {
+
+        Integer staffId
+){
 }

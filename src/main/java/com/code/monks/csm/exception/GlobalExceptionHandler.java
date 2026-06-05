@@ -144,4 +144,10 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getErrorCode().getCode(), ex.getErrorCode().getMessage(),LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
 }
