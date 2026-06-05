@@ -10,6 +10,7 @@ const CreditHistory = ({
   page,
   totalItems,
   rowsPerPage,
+  totalAmount,
   onPageChange,
   onView,
   onEdit,
@@ -100,6 +101,7 @@ const CreditHistory = ({
       totalCount={totalItems}
       rowsPerPage={rowsPerPage}
       onPageChange={onPageChange}
+      totalAmount={totalAmount}
       actions={true}
       onView={onView}
       onEdit={onEdit}

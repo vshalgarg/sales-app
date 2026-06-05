@@ -30,6 +30,7 @@ const DataTable = ({
   onView,
   onEdit,
   onDelete,
+  totalAmount,
   onCopy,
   actions = true,
   page,
@@ -160,10 +161,18 @@ const DataTable = ({
 
       {/* MUI Pagination – only show if there's more than one page worth of data */}
       {showPagination && (
+        <div style={{ display: "flex", alignItems: "center", borderTop: "1px solid", borderColor: "divider" }}>
+
+        {/* Left: total amount — only renders if passed */}
+        {totalAmount != null && (
+          <div style={{ paddingLeft: "16px", fontSize: "0.875rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+          TotalAmount: ₹{totalAmount}
+          </div>
+        )}
         <TablePagination
           component="div"
           count={totalCount}
-          page={page - 1} // 0-based index
+          page={page - 1}
           rowsPerPage={rowsPerPage}
           onPageChange={(event, newPage) => {
             onPageChange?.(newPage + 1);
@@ -179,6 +188,7 @@ const DataTable = ({
             `${from}–${to} of ${count !== -1 ? count : `more than ${to}`}`
           }
           sx={{
+            marginLeft: "auto",
             borderTop: "1px solid",
             borderColor: "divider",
             ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
@@ -186,6 +196,7 @@ const DataTable = ({
             },
           }}
         />
+        </div>
       )}
 
       {/* Action Menu */}

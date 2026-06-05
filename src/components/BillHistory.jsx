@@ -10,6 +10,7 @@ const BillHistory = ({
   page,
   totalItems,
   rowsPerPage,
+  totalAmount,
   onPageChange,
   onView,
   onEdit,
@@ -101,6 +102,7 @@ const BillHistory = ({
       loading={loading}
       page={page}
       totalCount={totalItems}
+      totalAmount={totalAmount}
       rowsPerPage={rowsPerPage}
       onPageChange={onPageChange}
       actions={true}

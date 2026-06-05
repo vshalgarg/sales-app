@@ -1,16 +1,23 @@
 import useResponsive from "../customHooks/useResponsive";
 import PurchaseView from "../modals/PurchaseView";
-import { getPurchaseDetailsById } from "../service/PurchaseService";
+import {
+  getPurchaseDetailsById,
+  getSupplierDataByCustomer,
+} from "../service/PurchaseService";
+import { IconButton, Tooltip, CircularProgress } from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { getSuppliersFormattedText } from "../utils/copyFormatter";
+import CopyDetailsModal from "../components/common/CopyDetailsModal";
 import DataTable from "./DataTable";
 import dayjs from "dayjs";
 import { useState } from "react";
-import { roundUp } from "../utils/numberUtils";
-
+import { useSnackbar } from "../context/SnackbarContext";
 
 const PurchaseHistory = ({
   data,
   loading,
   page,
+  filterObject,
   totalItems,
   rowsPerPage,
   onPageChange,
@@ -18,17 +25,33 @@ const PurchaseHistory = ({
   onDelete,
   emptyMessage,
 }) => {
-
   const { isMobile } = useResponsive();
   const [viewData, setViewData] = useState(null);
+  const [copyData, setCopyData] = useState(null);
+  const [copyLoadingId, setCopyLoadingId] = useState(null);
+  const { showSnackbar } = useSnackbar();
+
+  const handleCopyClick = async (row) => {
+    try {
+      setCopyLoadingId(row.id);
+
+      const result = await getSupplierDataByCustomer({
+        ...filterObject,
+        customerId: row.customerId,
+      });
+      setCopyData(getSuppliersFormattedText(result));
+    } catch {
+      showSnackbar("Failed to load copy data", "error");
+    } finally {
+      setCopyLoadingId(null);
+    }
+  };
 
   const handleView = async (row) => {
     try {
-
       const detail = await getPurchaseDetailsById(row.id);
 
       setViewData(detail);
-
     } catch {
       showSnackbar("Failed to load purchase details", "error");
     }
@@ -57,9 +80,7 @@ const PurchaseHistory = ({
           <div className="flex flex-col">
             <span>{r.supplierName || "-"}</span>
             {r.supplierCity && (
-              <span className="text-xs text-gray-500">
-                {r.supplierCity}
-              </span>
+              <span className="text-xs text-gray-500">{r.supplierCity}</span>
             )}
           </div>
         ),
@@ -70,12 +91,35 @@ const PurchaseHistory = ({
         label: "Customer",
         width: "18%",
         render: (r) => (
-          <div className="flex flex-col">
-            <span>{r.customerName || "-"}</span>
-            {r.customerCity && (
-              <span className="text-xs text-gray-500">
-                {r.customerCity}
-              </span>
+          <div className="flex items-center gap-1">
+            {/* Left side: name + city */}
+            <div className="flex flex-col min-w-0">
+              <span className="truncate">{r.customerName || "-"}</span>
+              {r.customerCity && (
+                <span className="text-xs text-gray-500">{r.customerCity}</span>
+              )}
+            </div>
+
+            {/* Right side: copy button */}
+            {r.customerId && (
+              <Tooltip title="Copy customer data">
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyClick(r);
+                    }}
+                    disabled={copyLoadingId === r.id}
+                  >
+                    {copyLoadingId === r.id ? (
+                      <CircularProgress size={14} />
+                    ) : (
+                      <ContentCopyIcon sx={{ fontSize: 14 }} />
+                    )}
+                  </IconButton>
+                </span>
+              </Tooltip>
             )}
           </div>
         ),
@@ -85,10 +129,7 @@ const PurchaseHistory = ({
         key: "remarks",
         label: "Remarks",
         width: "16%",
-        render: (r) =>
-          r.remarks != null
-            ? r.remarks
-            : "-",
+        render: (r) => (r.remarks != null ? r.remarks : "-"),
       },
     ],
 
@@ -136,6 +177,15 @@ const PurchaseHistory = ({
           open={!!viewData}
           data={viewData}
           onClose={handleCloseView}
+        />
+      )}
+
+      {copyData && (
+        <CopyDetailsModal
+          open={!!copyData}
+          title="Supplier Details"
+          formattedText={copyData}
+          onClose={() => setCopyData(null)}
         />
       )}
     </>

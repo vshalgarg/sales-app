@@ -36,9 +36,6 @@ const Purchase = () => {
   const [purchaseToDelete, setPurchaseToDelete] = useState(null);
   const [allStaffs, setAllStaffs] = useState([]);
   const [selectedStaff, setSelectedStaff] = useState(null);
-
-
-  const today = dayjs().format("YYYY-MM-DD");
   const todayDayjs = dayjs();
 
   const { errors, setErrors, filterObject, setFilterObject } = useBillForm();
@@ -301,6 +298,7 @@ const Purchase = () => {
         data={purchaseHistoryData}
         page={currentPage}
         totalItems={totalItems}
+        filterObject={filterObject}
         rowsPerPage={rowsPerPage}
         onPageChange={handlePurchaseHistory}
         emptyMessage={
