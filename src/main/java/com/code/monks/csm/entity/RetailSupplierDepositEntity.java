@@ -1,5 +1,6 @@
 package com.code.monks.csm.entity;
 
+import com.code.monks.csm.enums.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,4 +26,5 @@ public class RetailSupplierDepositEntity extends BaseEntity{
 
     private LocalDate depositDate;
     private Long amount;
+    private StatusEnum status;
 }

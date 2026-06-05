@@ -660,6 +660,7 @@ CREATE TABLE retailers (
     date DATE NOT NULL,
     referred_by_customer_id INT,
     staff_id INT,
+    status TINYINT,
 
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
@@ -683,6 +684,7 @@ CREATE TABLE retail_supplier (
     total_amount BIGINT,
     deposit_amount BIGINT,
     balance_amount BIGINT,
+    status TINYINT,
 
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
@@ -716,6 +718,7 @@ CREATE TABLE retail_supplier_deposits (
     retail_supplier_id INT NOT NULL,
     deposit_date DATE,
     amount BIGINT,
+    status TINYINT,
 
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,

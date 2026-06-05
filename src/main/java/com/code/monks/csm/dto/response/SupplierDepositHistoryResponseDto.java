@@ -1,13 +1,19 @@
 package com.code.monks.csm.dto.response;
 
-public record RetailSupplierResponseDto(
+import lombok.Builder;
 
+import java.util.List;
+
+@Builder
+public record SupplierDepositHistoryResponseDto(
         Integer retailSupplierId,
         Integer supplierId,
         String supplierName,
         String supplierCity,
         Long totalAmount,
         Long depositAmount,
-        Long balanceAmount
+        Long balanceAmount,
+
+        List<DepositHistoryDto> deposits
 ) {
 }

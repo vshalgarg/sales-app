@@ -28,7 +28,11 @@ public enum ResponseErrorCode {
     SUPPLIER_NOT_FOUND(1017, "supplier not found"),
     DB_ERROR(1028, "Something went wrong. Please try again later."),
     STAFF_NOT_FOUND(1029, "Staff not found "),
-    RETAIL_NOT_FOUND(1030, "Retail not found ");
+    RETAILER_NOT_FOUND(1030, "Retailer not found "),
+    RETAILER_SUPPLIER_NOT_FOUND(1031, "Retail Supplier not found"),
+    INVALID_DEPOSIT_AMOUNT(1032, "Deposit amount cannot exceed balance amount"),
+    INVALID_TOTAL_AMOUNT(1033, "Total amount cannot be less than deposited amount");
+
 
     private final int code;
     private final String message;

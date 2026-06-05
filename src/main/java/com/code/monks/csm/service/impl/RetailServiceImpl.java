@@ -1,11 +1,17 @@
 package com.code.monks.csm.service.impl;
 
-import com.code.monks.csm.dto.request.RetailRequestDto;
+import com.code.monks.csm.dto.request.CreateRetailerRequestDto;
+import com.code.monks.csm.dto.request.RetailSupplierDepositRequestDto;
+import com.code.monks.csm.dto.request.UpdateRetailSupplierRequestDto;
+import com.code.monks.csm.dto.request.UpdateRetailerRequestDto;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.RetailResponseDto;
 import com.code.monks.csm.dto.response.RetailerListResponseDto;
+import com.code.monks.csm.dto.response.SupplierDepositHistoryResponseDto;
 import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.ResponseErrorCode;
+import com.code.monks.csm.enums.StatusEnum;
+import com.code.monks.csm.exception.BusinessException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.mapper.RetailMapper;
 import com.code.monks.csm.repository.*;
@@ -22,8 +28,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +43,13 @@ public class RetailServiceImpl implements RetailService {
     private final StaffRepo staffRepository;
     private final SupplierRepo supplierRepository;
     private final RetailMapper retailMapper;
+    private final RetailSupplierRepository retailSupplierRepository;
+    private final RetailSupplierDepositRepository retailSupplierDepositRepository;
 
 
     @Override
     @Transactional
-    public void createRetail(RetailRequestDto request) {
+    public void createRetail(CreateRetailerRequestDto request) {
 
         log.info("Creating retailer with name: {}, customerId: {}, staffId: {}",
                 request.name(),
@@ -51,6 +61,7 @@ public class RetailServiceImpl implements RetailService {
         retailer.setDate(request.date());
         retailer.setCustomer(getCustomer(request.referredByCustomerId()));
         retailer.setStaff(getStaff(request.staffId()));
+        retailer.setStatus(StatusEnum.ACTIVE);
         retailer.setSuppliers(buildRetailSuppliers(retailer, request));
         retailRepository.save(retailer);
         log.info("Retailer created successfully with id: {}", retailer.getId());
@@ -58,7 +69,7 @@ public class RetailServiceImpl implements RetailService {
 
     @Override
     @Transactional
-    public void updateRetail(Long retailId, RetailRequestDto request) {
+    public void updateRetail(Long retailId, UpdateRetailerRequestDto request) {
 
         log.info("Updating retailer with id: {}", retailId);
         var retailer = getRetail(retailId);
@@ -66,9 +77,52 @@ public class RetailServiceImpl implements RetailService {
         retailer.setDate(request.date());
         retailer.setCustomer(getCustomer(request.referredByCustomerId()));
         retailer.setStaff(getStaff(request.staffId()));
-        retailer.getSuppliers().clear();
-        retailer.getSuppliers().addAll(buildRetailSuppliers(retailer, request));
         log.info("Retailer updated successfully with id: {}", retailId);
+    }
+
+    @Override
+    @Transactional
+    public void updateRetailSupplier(
+            Long retailId,
+            Integer retailSupplierId,
+            UpdateRetailSupplierRequestDto request
+    ) {
+
+        log.info(
+                "Updating retail supplier. Retail Id: {}, Retail Supplier Id: {}",
+                retailId,
+                retailSupplierId
+        );
+
+        var retailSupplier = retailSupplierRepository
+                .findByIdAndRetailId(
+                        retailSupplierId,
+                        retailId.intValue()
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                RETAILER_SUPPLIER_NOT_FOUND,
+                                " : Retail Id = " + retailId
+                                        + ", Retail Supplier Id = " + retailSupplierId
+                        ));
+
+        if (request.totalAmount() < retailSupplier.getDepositAmount()) {
+            throw new BusinessException(INVALID_TOTAL_AMOUNT);
+        }
+
+        retailSupplier.setTotalAmount(request.totalAmount());
+        retailSupplier.setBalanceAmount(
+                request.totalAmount() - retailSupplier.getDepositAmount()
+        );
+
+        log.info(
+                "Retail supplier updated successfully. Retail Id: {}, Retail Supplier Id: {}, Total Amount: {}, Deposit Amount: {}, Balance Amount: {}",
+                retailId,
+                retailSupplierId,
+                retailSupplier.getTotalAmount(),
+                retailSupplier.getDepositAmount(),
+                retailSupplier.getBalanceAmount()
+        );
     }
 
     @Override
@@ -76,11 +130,11 @@ public class RetailServiceImpl implements RetailService {
     public RetailResponseDto getRetailDetails(Long retailId) {
 
         log.info("Fetching retailer details for id: {}", retailId);
-        var retailer = retailRepository.findRetailDetailsById(retailId)
+        var retailer = retailRepository.findByIdAndStatusWithActiveSuppliers(retailId, StatusEnum.ACTIVE)
                 .orElseThrow(() -> {
                     log.warn("Retailer not found with id: {}", retailId);
                     return new ResourceNotFoundException(
-                            ResponseErrorCode.RETAIL_NOT_FOUND,
+                            RETAILER_NOT_FOUND,
                             " : Retail Id = " + retailId
                     );
                 });
@@ -117,6 +171,7 @@ public class RetailServiceImpl implements RetailService {
                         .joinEqual("customer", "id", customerId)
                         .joinEqual("staff", "id", staffId)
                         .joinJoinEqual("suppliers", "supplier", "id", supplierId)
+                        .equal("status", StatusEnum.ACTIVE)
                         .build();
 
         Page<RetailerEntity> retailers = retailRepository.findAll(spec, pageable);
@@ -142,25 +197,178 @@ public class RetailServiceImpl implements RetailService {
         );
     }
 
+    @Transactional
+    public void addDeposit(RetailSupplierDepositRequestDto request) {
+
+        for (RetailSupplierDepositRequestDto.DepositDto depositRequest : request.deposits()) {
+            log.info("Adding deposit for retail supplier id : {}", depositRequest.retailSupplierId());
+            RetailSupplierEntity retailSupplier =
+                    retailSupplierRepository.findById(depositRequest.retailSupplierId())
+                            .orElseThrow(() ->
+                                    new ResourceNotFoundException(
+                                            RETAILER_SUPPLIER_NOT_FOUND,
+                                            " : Retail Supplier Id = " + depositRequest.retailSupplierId()));
+
+            if (depositRequest.amount() > retailSupplier.getBalanceAmount()) {
+                throw new BusinessException(INVALID_DEPOSIT_AMOUNT);
+            }
+
+            RetailSupplierDepositEntity deposit = RetailSupplierDepositEntity.builder()
+                            .retailSupplier(retailSupplier)
+                            .depositDate(depositRequest.depositDate())
+                            .amount(depositRequest.amount())
+                            .status(StatusEnum.ACTIVE)
+                            .build();
+
+            retailSupplierDepositRepository.save(deposit);
+
+            Long currentDeposit = Optional.ofNullable(retailSupplier.getDepositAmount()).orElse(0L);
+            Long updatedDepositAmount = currentDeposit + depositRequest.amount();
+            Long updatedBalanceAmount = retailSupplier.getTotalAmount() - updatedDepositAmount;
+
+            retailSupplier.setDepositAmount(updatedDepositAmount);
+            retailSupplier.setBalanceAmount(updatedBalanceAmount);
+
+            retailSupplierRepository.save(retailSupplier);
+            log.info("Deposits added successfully. Total Deposits Processed: {}", request.deposits().size());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SupplierDepositHistoryResponseDto> getDepositHistory(Long retailId) {
+
+        log.info(
+                "Fetching deposit history for retail id : {}",
+                retailId
+        );
+
+        RetailerEntity retailer =
+                retailRepository.findByIdAndStatus(retailId, StatusEnum.ACTIVE)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        RETAILER_NOT_FOUND,
+                                        " : Retail Id = " + retailId
+                                ));
+
+        List<Integer> retailSupplierIds =
+                retailer.getSuppliers()
+                        .stream()
+                        .map(RetailSupplierEntity::getId)
+                        .toList();
+        Map<Integer, List<RetailSupplierDepositEntity>> depositsMap =
+                retailSupplierDepositRepository
+                        .findByRetailSupplierIdsAndStatus(retailSupplierIds, StatusEnum.ACTIVE)
+                        .stream()
+                        .collect(Collectors.groupingBy(
+                                d -> d.getRetailSupplier().getId()
+                        ));
+
+        List<SupplierDepositHistoryResponseDto> response =
+                retailer.getSuppliers()
+                        .stream()
+                        .map(s -> retailMapper.mapSupplierDepositHistory(
+                                s,
+                                depositsMap.getOrDefault(
+                                        s.getId(),
+                                        Collections.emptyList()
+                                )
+                        ))
+                        .toList();
+
+        log.info(
+                "Deposit history fetched successfully for retail id : {}. Supplier count : {}",
+                retailId,
+                response.size()
+        );
+
+        return response;
+    }
+
+    @Transactional
+    public void deleteRetailer(Long retailId) {
+
+        RetailerEntity retailer = retailRepository.findById(retailId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        RETAILER_NOT_FOUND,
+                                        " : Retail Id = " + retailId
+                                ));
+
+        retailSupplierDepositRepository.updateDepositStatus(
+                retailId,
+                StatusEnum.INACTIVE
+        );
+
+        retailSupplierRepository.updateRetailSupplierStatus(
+                retailId,
+                StatusEnum.INACTIVE
+        );
+
+        retailRepository.updateRetailStatus(
+                retailId,
+                StatusEnum.INACTIVE
+        );
+
+        log.info(
+                "Retail soft deleted successfully. Retail Id : {}",
+                retailId
+        );
+    }
+
+    @Override
+    @Transactional
+    public void deleteRetailSupplier(
+            Long retailId,
+            Integer retailSupplierId
+    ) {
+
+        log.info(
+                "Deleting retail supplier. Retail Id: {}, Retail Supplier Id: {}",
+                retailId,
+                retailSupplierId
+        );
+
+        var retailSupplier = retailSupplierRepository
+                .findByIdAndRetailId(
+                        retailSupplierId,
+                        retailId.intValue()
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                RETAILER_SUPPLIER_NOT_FOUND,
+                                " : Retail Id = " + retailId
+                                        + ", Retail Supplier Id = " + retailSupplierId
+                        ));
+
+        retailSupplier.setStatus(StatusEnum.INACTIVE);
+        log.info(
+                "Retail supplier deleted successfully. Retail Id: {}, Retail Supplier Id: {}",
+                retailId,
+                retailSupplierId
+        );
+    }
+
     private List<RetailSupplierEntity> buildRetailSuppliers(
             RetailerEntity retailer,
-            RetailRequestDto request) {
+            CreateRetailerRequestDto request) {
 
         return request.suppliers()
                 .stream()
-                .map(item -> {
+                .map(s -> {
                     var retailSupplier = new RetailSupplierEntity();
                     retailSupplier.setRetail(retailer);
-                    retailSupplier.setSupplier(getSupplier(item.supplierId()));
-                    Long totalAmount = item.totalAmount();
-                    Long depositAmount = item.depositAmount() == null
+                    retailSupplier.setSupplier(getSupplier(s.supplierId()));
+                    Long totalAmount = s.totalAmount();
+                    Long depositAmount = s.depositAmount() == null
                             ? 0L
-                            : item.depositAmount();
+                            : s.depositAmount();
 
                     Long balanceAmount = totalAmount - depositAmount;
                     retailSupplier.setTotalAmount(totalAmount);
                     retailSupplier.setDepositAmount(depositAmount);
                     retailSupplier.setBalanceAmount(balanceAmount);
+                    retailSupplier.setStatus(StatusEnum.ACTIVE);
                     List<RetailSupplierDepositEntity> payments = new ArrayList<>();
 
                     if (depositAmount > 0) {
@@ -168,15 +376,16 @@ public class RetailServiceImpl implements RetailService {
                         payment.setRetailSupplier(retailSupplier);
                         payment.setDepositDate(request.date());
                         payment.setAmount(depositAmount);
+                        payment.setStatus(StatusEnum.ACTIVE);
                         payments.add(payment);
                         log.info(
                                 "Initial deposit payment created. supplierId={}, amount={}",
-                                item.supplierId(),
+                                s.supplierId(),
                                 depositAmount);
                     } else {
                         log.warn(
                                 "No advance payment received for supplierId={}",
-                                item.supplierId());
+                                s.supplierId());
                     }
                     retailSupplier.setDeposits(payments);
                     return retailSupplier;
@@ -218,7 +427,7 @@ public class RetailServiceImpl implements RetailService {
         return retailRepository.findById(retailId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                ResponseErrorCode.RETAIL_NOT_FOUND,
+                                ResponseErrorCode.RETAILER_NOT_FOUND,
                                 " : Retail Id = " + retailId
                         ));
     }
