@@ -95,18 +95,18 @@ const HistorySection = ({ suppliers = [], expanded, onChange }) => (
                   {supplier.supplierName || "-"}
                 </Typography>
                 <Chip
-                  label={`Total: ${Math.round(supplier.totalAmount ?? 0)}`}
+                  label={`Total: ₹${Math.round(supplier.totalAmount ?? 0)}`}
                   size="small"
                   variant="outlined"
                 />
                 <Chip
-                  label={`Deposited: ${Math.round(supplier.depositAmount ?? 0)}`}
+                  label={`Deposited: ₹${Math.round(supplier.depositAmount ?? 0)}`}
                   size="small"
                   color="success"
                   variant="outlined"
                 />
                 <Chip
-                  label={`Remaining: ${Math.round(supplier.balanceAmount ?? 0)}`}
+                  label={`Remaining: ₹${Math.round(supplier.balanceAmount ?? 0)}`}
                   size="small"
                   color={supplier.balanceAmount > 0 ? "warning" : "success"}
                   variant="outlined"
@@ -141,7 +141,7 @@ const HistorySection = ({ suppliers = [], expanded, onChange }) => (
                             : "-"}
                         </TableCell>
                         <TableCell>
-                          {dep.amount ? Math.round(dep.amount) : "-"}
+                          {dep.amount ? `₹${Math.round(dep.amount)}` : "-"}
                         </TableCell>
                       </TableRow>
                     ))

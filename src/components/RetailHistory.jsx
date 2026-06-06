@@ -74,19 +74,19 @@ const RetailHistory = ({
       key: "totalAmount",
       label: "Total Amount",
       width: "18%",
-      render: (s) => (s.totalAmount ? Math.round(s.totalAmount) : "-"),
+      render: (s) => (s.totalAmount ? `₹${Math.round(s.totalAmount)}` : "-"),
     },
     {
       key: "depositAmount",
       label: "Deposit",
       width: "18%",
-      render: (s) => (s.depositAmount ? Math.round(s.depositAmount) : "-"),
+      render: (s) => (s.depositAmount ? `₹${Math.round(s.depositAmount)}` : "-"),
     },
     {
       key: "balanceAmount",
       label: "Balance",
       width: "18%",
-      render: (s) => (s.balanceAmount ? Math.round(s.balanceAmount) : "-"),
+      render: (s) => (s.balanceAmount ? `₹${Math.round(s.balanceAmount)}` : "-"),
     },
   ];
 

@@ -15,10 +15,12 @@ import {
   Box,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useSnackbar } from "../context/SnackbarContext";
 
 const EditSupplierModal = ({ open, onClose, supplier, onSave }) => {
   const [totalAmount, setTotalAmount] = useState("");
   const [saving, setSaving] = useState(false);
+  const showSnackbar = useSnackbar();
 
   useEffect(() => {
     if (supplier) {
@@ -44,6 +46,7 @@ const EditSupplierModal = ({ open, onClose, supplier, onSave }) => {
 
       handleClose();
     } catch (error) {
+      showSnackbar(error.message || "something went wrong", "error");
       console.error(error);
     } finally {
       setSaving(false);

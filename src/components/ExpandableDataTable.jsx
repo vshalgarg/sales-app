@@ -124,6 +124,8 @@ const ExpandableRow = ({
   index,
   columns = [],
   expandedColumns = [],
+  open,        
+  onToggle,
   getExpandedRows,
   expandedActionItems = [],
   expandedLabel,
@@ -133,7 +135,6 @@ const ExpandableRow = ({
   actionItems = [],
   isMobile,
 }) => {
-  const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const subRows = getExpandedRows ? (getExpandedRows(row) ?? []) : [];
@@ -151,7 +152,7 @@ const ExpandableRow = ({
             <span>
               <IconButton
                 size="small"
-                onClick={() => setOpen((prev) => !prev)}
+                onClick={onToggle}
                 disabled={count === 0}
               >
                 {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -267,6 +268,7 @@ const ExpandableDataTable = ({
   tableLayout = "fixed",
 }) => {
   const { isMobile } = useResponsive();
+  const [openRowIndex, setOpenRowIndex] = useState(null);
 
   const safeData = data ?? [];
   const safeCols = columns ?? [];
@@ -345,6 +347,8 @@ const ExpandableDataTable = ({
                   key={i}
                   row={row}
                   index={i}
+                  open={openRowIndex === i}
+                  onToggle={() => setOpenRowIndex(openRowIndex === i ? null : i)} 
                   columns={safeCols}
                   expandedColumns={expandedColumns}
                   expandedActionItems={expandedActionItems}

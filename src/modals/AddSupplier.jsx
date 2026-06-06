@@ -18,6 +18,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import GenericAutocomplete from "../components/common/GenericAutocomplete";
 import CustomDatePicker from "../components/common/CustomDatePicker";
 import dayjs from "dayjs";
+import { useSnackbar } from "../context/SnackbarContext";
 
 const AddSupplier = ({
   open,
@@ -28,6 +29,7 @@ const AddSupplier = ({
   onSave,
 }) => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const { showSnackbar } = useSnackbar();
   const [inputs, setInputs] = useState({
     date: dayjs(),
     totalAmount: "",
@@ -61,6 +63,8 @@ const AddSupplier = ({
         depositDate: inputs.date,
       });
       handleClose();
+    }catch(err){
+      showSnackbar(err.message || "Something went wrong" , "error")
     } finally {
       setSaving(false);
     }
