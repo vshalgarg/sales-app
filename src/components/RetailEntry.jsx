@@ -339,14 +339,6 @@ const RetailEntry = () => {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={addSuppliers}
-                className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm"
-              >
-                <span className="sm:hidden">+ Add</span>
-                <span className="hidden sm:inline">+ Add More Supplier</span>
-              </button>
             </div>
 
             {/* Supplier Card */}
@@ -438,6 +430,17 @@ const RetailEntry = () => {
                 </div>
               </div>
             ))}
+            <div className="flex justify-end">
+             <button
+                type="button"
+                onClick={addSuppliers}
+                className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm"
+              >
+                <span className="sm:hidden">+ Add</span>
+                <span className="hidden sm:inline">+ Add More Supplier</span>
+              </button>
+            </div>
+             
           </div>
         </div>
 

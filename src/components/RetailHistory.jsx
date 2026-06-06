@@ -6,6 +6,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import RetailerViewEdit from "../modals/RetailerViewEdit";
+import {formatIndianCurrency} from "../utils/currencyUtils"
 
 const RetailHistory = ({
   data,
@@ -74,19 +75,19 @@ const RetailHistory = ({
       key: "totalAmount",
       label: "Total Amount",
       width: "18%",
-      render: (s) => (s.totalAmount ? `₹${Math.round(s.totalAmount)}` : "-"),
+      render: (s) => (s.totalAmount ? `₹${formatIndianCurrency(Math.round(s.totalAmount))}` : "-"),
     },
     {
       key: "depositAmount",
       label: "Deposit",
       width: "18%",
-      render: (s) => (s.depositAmount ? `₹${Math.round(s.depositAmount)}` : "-"),
+      render: (s) => (s.depositAmount ? `₹${formatIndianCurrency(Math.round(s.depositAmount))}` : "-"),
     },
     {
       key: "balanceAmount",
       label: "Balance",
       width: "18%",
-      render: (s) => (s.balanceAmount ? `₹${Math.round(s.balanceAmount)}` : "-"),
+      render: (s) => (s.balanceAmount ? `₹${formatIndianCurrency(Math.round(s.balanceAmount))}` : "-"),
     },
   ];
 
