@@ -31,6 +31,7 @@ import GenericAutocomplete from "../components/common/GenericAutocomplete";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { mapToOption } from "../utils/optionMapper";
+import {formatIndianCurrency} from "../utils/currencyUtils"
 
 /* Read-only field */
 const InfoField = ({ label, value }) => (
@@ -95,18 +96,18 @@ const HistorySection = ({ suppliers = [], expanded, onChange }) => (
                   {supplier.supplierName || "-"}
                 </Typography>
                 <Chip
-                  label={`Total: ₹${Math.round(supplier.totalAmount ?? 0)}`}
+                  label={`Total: ₹${formatIndianCurrency(Math.round(supplier.totalAmount ?? 0))}`}
                   size="small"
                   variant="outlined"
                 />
                 <Chip
-                  label={`Deposited: ₹${Math.round(supplier.depositAmount ?? 0)}`}
+                  label={`Deposited: ₹${formatIndianCurrency(Math.round(supplier.depositAmount ?? 0))}`}
                   size="small"
                   color="success"
                   variant="outlined"
                 />
                 <Chip
-                  label={`Remaining: ₹${Math.round(supplier.balanceAmount ?? 0)}`}
+                  label={`Remaining: ₹${formatIndianCurrency(Math.round(supplier.balanceAmount ?? 0))}`}
                   size="small"
                   color={supplier.balanceAmount > 0 ? "warning" : "success"}
                   variant="outlined"
@@ -141,7 +142,7 @@ const HistorySection = ({ suppliers = [], expanded, onChange }) => (
                             : "-"}
                         </TableCell>
                         <TableCell>
-                          {dep.amount ? `₹${Math.round(dep.amount)}` : "-"}
+                          {dep.amount ? `₹${formatIndianCurrency(Math.round(dep.amount))}` : "-"}
                         </TableCell>
                       </TableRow>
                     ))
@@ -289,7 +290,7 @@ const RetailerViewEdit = ({
   const [depositInputs, setDepositInputs] = useState(() => {
     const init = {};
     (data?.suppliers ?? []).forEach((s) => {
-      init[s.supplierId] = { date: dayjs(), amount: "" };
+      init[s.supplierId] = { date: dayjs().format("YYYY-MM-DD"), amount: "" };
     });
     return init;
   });
