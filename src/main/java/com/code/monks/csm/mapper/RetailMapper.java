@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.RetailSupplierDepositEntity;
 import com.code.monks.csm.entity.RetailSupplierEntity;
 import com.code.monks.csm.entity.RetailerEntity;
+import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -52,15 +53,18 @@ public class RetailMapper {
                 retail.getSuppliers()
                         .stream()
                         .filter(s -> s.getStatus() == StatusEnum.ACTIVE)
-                        .map(supplier -> new RetailSupplierResponseDto(
-                                supplier.getId(),
-                                supplier.getSupplier().getId(),
-                                supplier.getSupplier().getSupplierName(),
-                                supplier.getSupplier().getCity(),
-                                supplier.getTotalAmount(),
-                                supplier.getDepositAmount(),
-                                supplier.getBalanceAmount()
-                        ))
+                        .map(supplier -> {
+                            SupplierEntity supplierEntity = supplier.getSupplier();
+                            return new RetailSupplierResponseDto(
+                                    supplier.getId(),
+                                    supplierEntity != null ? supplierEntity.getId() : null,
+                                    supplierEntity != null ? supplierEntity.getSupplierName() : null,
+                                    supplierEntity != null ? supplierEntity.getCity() : null,
+                                    supplier.getTotalAmount(),
+                                    supplier.getDepositAmount(),
+                                    supplier.getBalanceAmount()
+                            );
+                        })
                         .toList();
 
         return new RetailerListResponseDto(
