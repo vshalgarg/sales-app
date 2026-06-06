@@ -30,8 +30,7 @@ public enum ResponseErrorCode {
     STAFF_NOT_FOUND(1029, "Staff not found "),
     RETAILER_NOT_FOUND(1030, "Retailer not found "),
     RETAILER_SUPPLIER_NOT_FOUND(1031, "Retail Supplier not found"),
-    INVALID_DEPOSIT_AMOUNT(1032, "Deposit amount cannot exceed balance amount"),
-    INVALID_TOTAL_AMOUNT(1033, "Total amount cannot be less than deposited amount");
+    RETAIL_SUPPLIER_ALREADY_ADDED(1034,"Supplier already added to this retailer");
 
 
     private final int code;

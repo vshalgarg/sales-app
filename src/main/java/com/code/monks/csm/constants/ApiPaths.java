@@ -82,13 +82,14 @@ public class ApiPaths {
     public static final String CHANGE_PASSWORD = "/admin/change/password";
 
     // retailer
-    public static final String ADD_RETAILER = "/retail/create";
+    public static final String RETAILER_ENTRY = "/retail/create";
     public static final String UPDATE_RETAILER = "/retail/{id}";
     public static final String GET_RETAILER = "/retail/get/{id}";
     public static final String SEARCH_RETAILERS = "/retail/search";
     public static final String GET_DEPOSIT_HISTORY = "/retail/{retailId}/deposits";
     public static final String ADD_DEPOSIT = "/retail-supplier-deposits";
     public static final String DELETE_RETAILER = "/retail/{retailId}";
-    public static final String UPDATE_RETAIL_SUPPLIER ="/retail/{retailId}/suppliers/{retailSupplierId}";
-    public static final String DELETE_RETAIL_SUPPLIER = "/retails/{retailId}/suppliers/{retailSupplierId}";
+    public static final String UPDATE_RETAIL_SUPPLIER ="/retail-suppliers/{retailSupplierId}";
+    public static final String DELETE_RETAIL_SUPPLIER = "/retail-suppliers/{retailSupplierId}";
+    public static final String ADD_RETAIL_SUPPLIER = "/retail-suppliers";
 }

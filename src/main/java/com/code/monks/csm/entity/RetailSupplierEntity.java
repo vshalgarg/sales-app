@@ -15,6 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "retail_supplier")
+@Builder
 public class RetailSupplierEntity extends BaseEntity{
 
     @Id

@@ -1,5 +1,6 @@
 package com.code.monks.csm.specification;
 
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -58,7 +59,7 @@ public class GenericSpecificationBuilder<T> {
 
         if (value != null) {
             spec = spec.and((root, query, cb) -> {
-                //query.distinct(true);
+                query.distinct(true);
                 return cb.equal(
                         root.join(firstJoin, JoinType.LEFT)
                                 .join(secondJoin, JoinType.LEFT)
