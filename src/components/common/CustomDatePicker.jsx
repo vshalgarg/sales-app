@@ -8,6 +8,8 @@ const CustomDatePicker = ({
   label,
   value,
   onChange,
+  maxDate,
+  minDate,
   error,
   helperText,
 }) => {
@@ -17,6 +19,8 @@ const CustomDatePicker = ({
         label={label}
         format={DATE_FORMAT}
         value={parseDate(value)}
+        maxDate={maxDate}
+        minDate={minDate}
         onChange={(newValue) => onChange(formatDate(newValue))}
         slotProps={{
           textField: {
