@@ -3,6 +3,7 @@ package com.code.monks.csm.entity;
 import com.code.monks.csm.enums.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +37,7 @@ public class RetailerEntity extends BaseEntity{
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @SQLRestriction("status = '1'")
     private List<RetailSupplierEntity> suppliers;
 
     private StatusEnum status;

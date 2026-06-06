@@ -1,10 +1,7 @@
 package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.ApiResponse;
-import com.code.monks.csm.dto.request.CreateRetailerRequestDto;
-import com.code.monks.csm.dto.request.RetailSupplierDepositRequestDto;
-import com.code.monks.csm.dto.request.UpdateRetailSupplierRequestDto;
-import com.code.monks.csm.dto.request.UpdateRetailerRequestDto;
+import com.code.monks.csm.dto.request.*;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.RetailResponseDto;
 import com.code.monks.csm.dto.response.RetailerListResponseDto;
@@ -28,14 +25,11 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 @RequiredArgsConstructor
 @Slf4j
 public class RetailController {
-    private final RetailRepository retailRepository;
 
     private final RetailService retailService;
 
-    @PostMapping(ADD_RETAILER)
-    public ResponseEntity<ApiResponse<Void>> createRetail(
-           @Valid @RequestBody CreateRetailerRequestDto request
-    ) {
+    @PostMapping(RETAILER_ENTRY)
+    public ResponseEntity<ApiResponse<Void>> createRetail(@Valid @RequestBody CreateRetailerRequestDto request) {
 
         retailService.createRetail(request);
         return ResponseEntity.ok(
@@ -46,10 +40,7 @@ public class RetailController {
     }
 
     @PutMapping(UPDATE_RETAILER)
-    public ResponseEntity<ApiResponse<Void>> updateRetail(
-            @PathVariable Long id,
-           @Valid @RequestBody UpdateRetailerRequestDto request
-    ) {
+    public ResponseEntity<ApiResponse<Void>> updateRetail(@PathVariable Long id, @Valid @RequestBody UpdateRetailerRequestDto request) {
         retailService.updateRetail(id, request);
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -125,9 +116,7 @@ public class RetailController {
     }
 
     @PostMapping(ADD_DEPOSIT)
-    public ResponseEntity<ApiResponse<Void>> addDeposit(
-            @Valid @RequestBody RetailSupplierDepositRequestDto request
-    ) {
+    public ResponseEntity<ApiResponse<Void>> addDeposit(@Valid @RequestBody RetailSupplierDepositRequestDto request) {
         retailService.addDeposit(request);
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -138,9 +127,7 @@ public class RetailController {
     }
 
     @GetMapping(GET_DEPOSIT_HISTORY)
-    public ResponseEntity<ApiResponse<List<SupplierDepositHistoryResponseDto>>> getDepositHistory(
-            @PathVariable Long retailId
-    ) {
+    public ResponseEntity<ApiResponse<List<SupplierDepositHistoryResponseDto>>> getDepositHistory(@PathVariable Long retailId) {
 
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -151,23 +138,22 @@ public class RetailController {
     }
 
     @DeleteMapping(DELETE_RETAILER)
-    public ApiResponse<String> deleteRetailer(@PathVariable Long retailId) {
+    public ResponseEntity<ApiResponse<Void>> deleteRetailer(@PathVariable Long retailId) {
 
         retailService.deleteRetailer(retailId);
-        return ApiResponse.success(
-                "Retail deleted successfully",null
-        );
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                "Retail deleted successfully"
+        ));
     }
 
     @PutMapping(UPDATE_RETAIL_SUPPLIER)
     public ResponseEntity<ApiResponse<Void>> updateRetailSupplier(
-            @PathVariable Long retailId,
             @PathVariable Integer retailSupplierId,
             @Valid @RequestBody UpdateRetailSupplierRequestDto request
     ) {
 
         retailService.updateRetailSupplier(
-                retailId,
                 retailSupplierId,
                 request
         );
@@ -180,20 +166,24 @@ public class RetailController {
     }
 
     @DeleteMapping(DELETE_RETAIL_SUPPLIER)
-    public ResponseEntity<ApiResponse<Void>> deleteRetailSupplier(
-            @PathVariable Long retailId,
-            @PathVariable Integer retailSupplierId
-    ) {
+    public ResponseEntity<ApiResponse<Void>> deleteRetailSupplier(@PathVariable Integer retailSupplierId) {
 
-        retailService.deleteRetailSupplier(
-                retailId,
-                retailSupplierId
+        retailService.deleteRetailSupplier(retailSupplierId);
+        return ResponseEntity.ok(
+                ApiResponse.success("Retail supplier deleted successfully")
         );
+    }
+
+    @PostMapping(ADD_RETAIL_SUPPLIER)
+    public ResponseEntity<ApiResponse<Void>> addRetailSupplier(@Valid @RequestBody AddRetailSupplierRequestDto request) {
+
+        retailService.addRetailSupplier(request);
 
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        "Retail supplier deleted successfully"
+                        "Retail supplier added successfully"
                 )
         );
     }
+
 }

@@ -1,12 +1,12 @@
 package com.code.monks.csm.repository;
 
-import com.code.monks.csm.entity.RetailSupplierEntity;
 import com.code.monks.csm.entity.RetailerEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -68,7 +68,7 @@ public interface RetailRepository extends JpaRepository<RetailerEntity,Long>,
     where r.id = :retailId
 """)
     int updateRetailStatus(
-            Long retailId,
-            StatusEnum status
+            @Param("retailId") Long retailId,
+            @Param("status") StatusEnum status
     );
 }

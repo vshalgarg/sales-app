@@ -5,6 +5,7 @@ import com.code.monks.csm.enums.StatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -22,13 +23,16 @@ public interface RetailSupplierDepositRepository extends JpaRepository<RetailSup
     );
 
     @Modifying
-    @Query("""
-    update RetailSupplierDepositEntity d
+    @Query(value = """
+    update retail_supplier_deposits d
+    join retail_supplier rs
+        on rs.id = d.retail_supplier_id
     set d.status = :status
-    where d.retailSupplier.retail.id = :retailId
-""")
+    where rs.retail_id = :retailId
+    """,
+            nativeQuery = true)
     int updateDepositStatus(
-            Long retailId,
-            StatusEnum status
+            @Param("retailId") Long retailId,
+            @Param("status") StatusEnum status
     );
 }
