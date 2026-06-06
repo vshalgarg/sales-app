@@ -208,13 +208,10 @@ public class RetailServiceImpl implements RetailService {
 
             retailSupplierDepositRepository.save(deposit);
 
+            Long totalAmount = Optional.ofNullable(retailSupplier.getTotalAmount()).orElse(0L);
             Long currentDeposit = Optional.ofNullable(retailSupplier.getDepositAmount()).orElse(0L);
             Long updatedDepositAmount = currentDeposit + depositRequest.amount();
-            retailSupplier.setDepositAmount(updatedDepositAmount);
-
-            Long updatedBalanceAmount = retailSupplier.getTotalAmount() == null
-                    ? null
-                    : retailSupplier.getTotalAmount() - updatedDepositAmount;
+            Long updatedBalanceAmount = totalAmount - updatedDepositAmount;
             retailSupplier.setBalanceAmount(updatedBalanceAmount);
             retailSupplierRepository.save(retailSupplier);
             log.info("Deposits added successfully. Total Deposits Processed: {}", request.deposits().size());
