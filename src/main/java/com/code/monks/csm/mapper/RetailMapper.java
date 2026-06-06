@@ -1,10 +1,7 @@
 package com.code.monks.csm.mapper;
 
 import com.code.monks.csm.dto.response.*;
-import com.code.monks.csm.entity.RetailSupplierDepositEntity;
-import com.code.monks.csm.entity.RetailSupplierEntity;
-import com.code.monks.csm.entity.RetailerEntity;
-import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.StatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -48,7 +45,7 @@ public class RetailMapper {
     public RetailerListResponseDto toListDto(
             RetailerEntity retail
     ) {
-
+        StaffEntity staff = retail.getStaff();
         List<RetailSupplierResponseDto> suppliers =
                 retail.getSuppliers()
                         .stream()
@@ -71,7 +68,7 @@ public class RetailMapper {
                 retail.getId(),
                 retail.getName(),
                 retail.getCustomer().getCustomerName(),
-                retail.getStaff().getStaffName(),
+                staff != null ? staff.getStaffName() : null,
                 retail.getDate(),
                 suppliers
         );
