@@ -729,3 +729,16 @@ CREATE TABLE retail_supplier_deposits (
         FOREIGN KEY (retail_supplier_id)
         REFERENCES retail_supplier(id)
 );
+
+CREATE TABLE configurations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    config_key VARCHAR(255) NOT NULL UNIQUE,
+    config_value VARCHAR(255),
+    description VARCHAR(500),
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT
+);
