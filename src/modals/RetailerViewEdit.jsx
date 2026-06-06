@@ -323,6 +323,18 @@ const RetailerViewEdit = ({
     try {
       setSavingDeposits(true);
       await onSaveDeposits(deposits);
+      setDepositInputs((prev) => {
+        const reset = {};
+
+        Object.keys(prev).forEach((supplierId) => {
+          reset[supplierId] = {
+            date: dayjs().format("YYYY-MM-DD"),
+            amount: "",
+          };
+        });
+
+        return reset;
+      });
       setExpanded(false);
     } finally {
       setSavingDeposits(false);
