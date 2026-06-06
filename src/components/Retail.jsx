@@ -145,7 +145,7 @@ const Retail = () => {
   const handleSaveDeposits = async (deposits) => {
     await addDeposits(deposits);
     showSnackbar("Deposits saved", "success");
-    
+
     const retailId = viewEditData?.id;
 
     const [detail, history] = await Promise.all([
@@ -153,7 +153,7 @@ const Retail = () => {
       getSupplierAndPaymentHistory(retailId),
     ]);
 
-    setViewEditData(detail); 
+    setViewEditData(detail);
     setHistoryData(history ?? []);
     handleRetailerHistory(currentPage);
   };
@@ -231,7 +231,7 @@ const Retail = () => {
       customerId: null,
       staffId: null,
       fromDate: null,
-      toDate: dayjs(),
+      toDate: null,
     });
 
     setErrors({});

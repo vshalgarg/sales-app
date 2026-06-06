@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import GenericAutocomplete from "../components/common/GenericAutocomplete";
+import CustomDatePicker from "../components/common/CustomDatePicker";
+import dayjs from "dayjs";
 
 const AddSupplier = ({
   open,
@@ -27,6 +29,7 @@ const AddSupplier = ({
 }) => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [inputs, setInputs] = useState({
+    date: dayjs(),
     totalAmount: "",
     depositAmount: "",
   });
@@ -41,7 +44,7 @@ const AddSupplier = ({
 
   const handleClose = () => {
     setSelectedSupplier(null);
-    setInputs({ totalAmount: "", depositAmount: "" });
+    setInputs({ date: dayjs(), totalAmount: "", depositAmount: "" });
     onClose();
   };
 
@@ -55,6 +58,7 @@ const AddSupplier = ({
         supplierId: selectedSupplier.id,
         totalAmount: Number(inputs.totalAmount),
         depositAmount: Number(inputs.depositAmount) || 0,
+        depositDate: inputs.date,
       });
       handleClose();
     } finally {
@@ -91,21 +95,30 @@ const AddSupplier = ({
       <DialogContent>
         <Box sx={{ pt: 1 }}>
           <Grid container spacing={2}>
-            {/* Supplier — full width */}
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12 }}>
               <GenericAutocomplete
                 options={allSuppliers}
                 value={selectedSupplier}
-                label="Supplier"
+                label="Supplier*"
                 placeholder="Select supplier"
                 onChange={(value) => setSelectedSupplier(value)}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <CustomDatePicker
+                label="Date*"
+                value={inputs.date}
+                // required={true}
+                // error={!!errors.date}
+                // helperText={errors.date || ""}
+                onChange={(val) => handleChange("date", val)}
               />
             </Grid>
 
             {/* Total Amount */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
-                label="Total Amount"
+                label="Total Amount*"
                 type="number"
                 size="small"
                 fullWidth
