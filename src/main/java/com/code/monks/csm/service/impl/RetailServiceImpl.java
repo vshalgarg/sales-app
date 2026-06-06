@@ -390,8 +390,7 @@ public class RetailServiceImpl implements RetailService {
             LocalDate depositDate) {
 
         depositAmount = depositAmount == null ? 0L : depositAmount;
-
-        Long balanceAmount = totalAmount - depositAmount;
+        Long balanceAmount = totalAmount != null ? totalAmount - depositAmount : null;
 
         RetailSupplierEntity retailSupplier = new RetailSupplierEntity();
         retailSupplier.setRetail(retailer);
