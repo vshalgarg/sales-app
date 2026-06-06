@@ -131,14 +131,14 @@ const Retail = () => {
   };
 
   const handleSaveEditSupplier = async ({ retailSupplierId, totalAmount }) => {
-    await updateSupplier(retailSupplierId, { totalAmount });
-    showSnackbar("Supplier updated", "success");
+    const result = await updateSupplier(retailSupplierId, { totalAmount });
+    showSnackbar(result.message || "Supplier updated", "success");
     handleRetailerHistory(currentPage);
   };
 
   const handleSaveAddSupplier = async (payload) => {
-    await addSupplierToRetailer(payload);
-    showSnackbar("Supplier added", "success");
+    const result = await addSupplierToRetailer(payload);
+    showSnackbar(result.message || "Supplier added", "success");
     handleRetailerHistory(currentPage);
   };
 

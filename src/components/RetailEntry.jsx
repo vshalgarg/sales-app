@@ -12,6 +12,8 @@ import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
 import dayjs from "dayjs";
+import DeleteIcon from "@mui/icons-material/Delete";
+import IconButton from "@mui/material/IconButton";
 
 const RetailEntry = () => {
   const { showSnackbar } = useSnackbar();
@@ -92,7 +94,7 @@ const RetailEntry = () => {
   const removeSupplier = (indexToRemove) => {
     setSuppliers((prev) => {
       if (prev.length === 1) {
-        return prev; 
+        return prev;
       }
 
       return prev.filter((_, index) => index !== indexToRemove);
@@ -353,7 +355,23 @@ const RetailEntry = () => {
                 key={index}
                 className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50 mb-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-start">
+                {/* Card Header */}
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-medium text-gray-700">
+                    Supplier {index + 1}
+                  </h4>
+
+                  {suppliers.length > 1 && (
+                    <IconButton
+                      color="error"
+                      size="small"
+                      onClick={() => removeSupplier(index)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-start">
                   {/* Supplier */}
                   <GenericAutocomplete
                     options={filteredSuppliers}
@@ -405,17 +423,18 @@ const RetailEntry = () => {
                     disabled
                   />
 
-                  {suppliers.length > 1 && (
+                  {/* {suppliers.length > 1 && (
                     <div className="flex items-end h-full">
-                      <button
-                        type="button"
+                      <IconButton
+                        color="error"
                         onClick={() => removeSupplier(index)}
-                        className="w-full px-3 py-2 text-sm font-medium rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                        title="Remove Supplier"
+                        size="small"
                       >
-                        Remove
-                      </button>
+                        <DeleteIcon />
+                      </IconButton>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             ))}
