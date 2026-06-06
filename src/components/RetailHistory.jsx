@@ -4,6 +4,7 @@ import { IconButton } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
 import RetailerViewEdit from "../modals/RetailerViewEdit";
 
 const RetailHistory = ({
@@ -41,7 +42,9 @@ const RetailHistory = ({
         <div className="flex flex-col">
           <span>{r.referredByCustomerName || "-"}</span>
           {r.customerCity && (
-            <span className="text-xs text-gray-500">{r.referredByCustomerCity}</span>
+            <span className="text-xs text-gray-500">
+              {r.referredByCustomerCity}
+            </span>
           )}
         </div>
       ),
@@ -100,7 +103,7 @@ const RetailHistory = ({
     },
     {
       label: "Add Supplier",
-      icon: EditIcon,
+      icon: AddIcon,
       onClick: (row) => onAddSupplier(row),
     },
     {
@@ -119,7 +122,7 @@ const RetailHistory = ({
       sx: { color: "error.main" },
     },
     {
-      label: "edit",
+      label: "Edit",
       icon: EditIcon,
       onClick: (s) => onEditSupplier(s),
     },
@@ -142,7 +145,7 @@ const RetailHistory = ({
         expandedColumns={expandedColumns}
         expandedActionItems={expandedActionItems}
         getExpandedRows={(row) => row.suppliers || []}
-        expandedLabel={(row) => `Suppliers for ${row.retailName}`}
+        // expandedLabel={(row) => `Suppliers for ${row.retailName}`}
       />
     </>
   );

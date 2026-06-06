@@ -33,7 +33,7 @@ const RetailEntry = () => {
   });
 
   const [suppliers, setSuppliers] = useState(
-    Array.from({ length: 1 }, () => ({
+    Array.from({ length: 5 }, () => ({
       supplierId: null,
       totalAmount: "",
       depositAmount: "",
@@ -84,9 +84,19 @@ const RetailEntry = () => {
       {
         supplierId: null,
         depositAmount: "",
-        balanceAmount: "null",
+        balanceAmount: "",
       },
     ]);
+  };
+
+  const removeSupplier = (indexToRemove) => {
+    setSuppliers((prev) => {
+      if (prev.length === 1) {
+        return prev; 
+      }
+
+      return prev.filter((_, index) => index !== indexToRemove);
+    });
   };
 
   const filteredSuppliers = supplierOptions.filter(
@@ -169,7 +179,7 @@ const RetailEntry = () => {
 
   const resetSupplier = () => {
     setSuppliers(
-      Array.from({ length: 1 }, () => ({
+      Array.from({ length: 5 }, () => ({
         supplierId: null,
         totalAmount: "",
         depositAmount: "",
@@ -209,13 +219,11 @@ const RetailEntry = () => {
         [field]: value,
       };
 
-      const total =
-      Number(updated[index].totalAmount) || 0;
+      const total = Number(updated[index].totalAmount) || 0;
 
-      const deposit =
-      Number(updated[index].depositAmount) || 0;
-      let balance = total - deposit
-      updated[index].balanceAmount = balance.toFixed(2)
+      const deposit = Number(updated[index].depositAmount) || 0;
+      let balance = total - deposit;
+      updated[index].balanceAmount = balance.toFixed(2);
       return updated;
     });
 
@@ -258,16 +266,16 @@ const RetailEntry = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Bill Date */}
-                <CustomDatePicker
-                    label="Date*"
-                    value={formData.date}
-                    // maxDate={dayjs()}
-                    required={true}
-                    error={!!errors.date}
-                    helperText={errors.date || ""}
-                    onChange={(val) => handleChange("date", val)}
-                />
+              {/* Date */}
+              <CustomDatePicker
+                label="Date*"
+                value={formData.date}
+                // maxDate={dayjs()}
+                required={true}
+                error={!!errors.date}
+                helperText={errors.date || ""}
+                onChange={(val) => handleChange("date", val)}
+              />
 
               {/* Retailer Name */}
               <CustomTextField
@@ -345,7 +353,7 @@ const RetailEntry = () => {
                 key={index}
                 className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50 mb-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-start">
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-start">
                   {/* Supplier */}
                   <GenericAutocomplete
                     options={filteredSuppliers}
@@ -371,13 +379,9 @@ const RetailEntry = () => {
                     label="Total Amount"
                     value={suppliers[index].totalAmount}
                     onChange={(e) => {
-                      let val = e.target.value
+                      let val = e.target.value;
                       if (/^\d*\.?\d{0,2}$/.test(val)) {
-                      handleSupplierFieldChange(
-                        index,
-                        "totalAmount",
-                         val,
-                      );
+                        handleSupplierFieldChange(index, "totalAmount", val);
                       }
                     }}
                   />
@@ -387,13 +391,9 @@ const RetailEntry = () => {
                     label="Deposit Amount"
                     value={suppliers[index].depositAmount}
                     onChange={(e) => {
-                      let val = e.target.value
+                      let val = e.target.value;
                       if (/^\d*\.?\d{0,2}$/.test(val)) {
-                        handleSupplierFieldChange(
-                          index,
-                          "depositAmount",
-                          val,
-                        );
+                        handleSupplierFieldChange(index, "depositAmount", val);
                       }
                     }}
                   />
@@ -404,6 +404,18 @@ const RetailEntry = () => {
                     value={suppliers[index].balanceAmount}
                     disabled
                   />
+
+                  {suppliers.length > 1 && (
+                    <div className="flex items-end h-full">
+                      <button
+                        type="button"
+                        onClick={() => removeSupplier(index)}
+                        className="w-full px-3 py-2 text-sm font-medium rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
