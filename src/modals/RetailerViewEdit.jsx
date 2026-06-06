@@ -31,7 +31,7 @@ import GenericAutocomplete from "../components/common/GenericAutocomplete";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { mapToOption } from "../utils/optionMapper";
-import {formatIndianCurrency} from "../utils/currencyUtils"
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
 /* Read-only field */
 const InfoField = ({ label, value }) => (
@@ -39,7 +39,7 @@ const InfoField = ({ label, value }) => (
     <Typography
       variant="caption"
       color="text.secondary"
-      sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}
+      sx={{ fontWeight: 600, letterSpacing: 0.5 }}
     >
       {label}
     </Typography>
@@ -142,7 +142,9 @@ const HistorySection = ({ suppliers = [], expanded, onChange }) => (
                             : "-"}
                         </TableCell>
                         <TableCell>
-                          {dep.amount ? `₹${formatIndianCurrency(Math.round(dep.amount))}` : "-"}
+                          {dep.amount
+                            ? `₹${formatIndianCurrency(Math.round(dep.amount))}`
+                            : "-"}
                         </TableCell>
                       </TableRow>
                     ))
