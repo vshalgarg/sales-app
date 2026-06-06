@@ -18,16 +18,18 @@ public class RetailMapper {
         var staff = retailer.getStaff();
         var suppliers = retailer.getSuppliers()
                 .stream()
-                .map(s -> new RetailSupplierResponseDto(
-                        s.getId(),
-                        s.getSupplier().getId(),
-                        s.getSupplier().getSupplierName(),
-                        s.getSupplier().getCity(),
-                        s.getTotalAmount(),
-                        s.getDepositAmount(),
-                        s.getBalanceAmount()
-
-                ))
+                .map(s -> {
+                    SupplierEntity supplier = s.getSupplier();
+                    return new RetailSupplierResponseDto(
+                            s.getId(),
+                            supplier != null ? supplier.getId() : null,
+                            supplier != null ? supplier.getSupplierName() : null,
+                            supplier != null ? supplier.getCity() : null,
+                            s.getTotalAmount(),
+                            s.getDepositAmount(),
+                            s.getBalanceAmount()
+                    );
+                })
                 .toList();
 
         return new RetailResponseDto(
@@ -82,7 +84,7 @@ public class RetailMapper {
                 "Mapping deposit history for supplier id : {}",
                 retailSupplier.getSupplier().getId()
         );
-
+        SupplierEntity supplier = retailSupplier.getSupplier();
         List<DepositHistoryDto> depositHistory =
                 deposits.stream()
                         .sorted(Comparator.comparing(RetailSupplierDepositEntity::getDepositDate).reversed())
@@ -96,9 +98,9 @@ public class RetailMapper {
 
         return SupplierDepositHistoryResponseDto.builder()
                 .retailSupplierId(retailSupplier.getId())
-                .supplierId(retailSupplier.getSupplier().getId())
-                .supplierName(retailSupplier.getSupplier().getSupplierName())
-                .supplierCity(retailSupplier.getSupplier().getCity())
+                .supplierId(supplier != null ? supplier.getId() : null)
+                .supplierName(supplier != null ? supplier.getSupplierName() : null)
+                .supplierCity(supplier != null ? supplier.getCity() : null)
                 .totalAmount(retailSupplier.getTotalAmount())
                 .depositAmount(retailSupplier.getDepositAmount())
                 .balanceAmount(retailSupplier.getBalanceAmount())
