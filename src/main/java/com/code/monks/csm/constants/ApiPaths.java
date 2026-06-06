@@ -92,4 +92,10 @@ public class ApiPaths {
     public static final String UPDATE_RETAIL_SUPPLIER ="/retail-suppliers/{retailSupplierId}";
     public static final String DELETE_RETAIL_SUPPLIER = "/retail-suppliers/{retailSupplierId}";
     public static final String ADD_RETAIL_SUPPLIER = "/retail-suppliers";
+
+    // admin
+    public static final String ADD_CONFIGURATION = "/admin/configurations";
+    public static final String GET_CONFIGURATIONS = "/admin/configurations";
+    public static final String UPDATE_CONFIGURATION = "/admin/configurations/{configurationId}";
+    public static final String DELETE_CONFIGURATION = "/admin/configurations/{configurationId}";
 }
