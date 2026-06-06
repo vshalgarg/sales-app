@@ -4,32 +4,30 @@ import { useEffect, useState } from "react";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
-import { addPurchaseEntry } from "../service/PurchaseService";
-import validate from "../validations/Validation";
+import { addRetailEntry } from "../service/RetailService";
 import { CheckCircleIcon } from "lucide-react";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { mapToOption } from "../utils/optionMapper";
 import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import CustomDatePicker from "./common/CustomDatePicker";
+import dayjs from "dayjs";
 
 const RetailEntry = () => {
   const { showSnackbar } = useSnackbar();
-
   const [allStaffs, setAllStaffs] = useState([]);
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
-
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSupplierIndex, setActiveSupplierIndex] = useState(null);
   const [userTouched, setUserTouched] = useState(false);
   const { setIsDirty } = useUnsaved();
-
   const customerOptions = mapToOption(allCustomers, "id", "customerName");
   const staffOptions = mapToOption(allStaffs, "staffId", "staffName");
   const supplierOptions = mapToOption(allSuppliers, "id", "supplierName");
 
   const [formData, setFormData] = useState({
     name: "",
+    date: dayjs(),
     staffId: "",
     customerId: "",
   });
@@ -37,8 +35,9 @@ const RetailEntry = () => {
   const [suppliers, setSuppliers] = useState(
     Array.from({ length: 1 }, () => ({
       supplierId: null,
-      deposit: null,
-      balance: null,
+      totalAmount: "",
+      depositAmount: "",
+      balanceAmount: "",
     })),
   );
 
@@ -84,8 +83,8 @@ const RetailEntry = () => {
       ...prev,
       {
         supplierId: null,
-        deposit: null,
-        balance: null,
+        depositAmount: "",
+        balanceAmount: "null",
       },
     ]);
   };
@@ -100,9 +99,6 @@ const RetailEntry = () => {
     if (isSaving) return;
 
     const newErrors = {};
-
-    // const dateError = validate("date", formData.date);
-    // if (dateError) newErrors.date = dateError;
 
     const hasAtLeastOneSupplier = suppliers.some(
       (s) => s.supplierId != null && s.supplierId !== "",
@@ -119,6 +115,10 @@ const RetailEntry = () => {
       newErrors.name = "Please enter a retailer name";
     }
 
+    if (!formData.date) {
+      newErrors.date = "Please select date";
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       showSnackbar("Please fill all required fields", "error");
@@ -129,18 +129,20 @@ const RetailEntry = () => {
     try {
       const payload = {
         name: formData.name,
+        date: formData.date || null,
         staffId: formData.staffId || null,
-        customerId: formData.customerId,
+        referredByCustomerId: formData.customerId,
         suppliers: suppliers
           .filter((s) => s.supplierId)
           .map((s) => ({
             supplierId: s.supplierId,
-            deposit: s.deposit || null,
-            balance: s.balance || null,
+            totalAmount: Number(s.totalAmount) || null,
+            depositAmount: Number(s.depositAmount) || null,
+            balanceAmount: Number(s.balanceAmount) || null,
           })),
       };
 
-      const response = await addPurchaseEntry(payload);
+      const response = await addRetailEntry(payload);
       showSnackbar(response.message || "retail entry saved", "success");
       handleReset();
     } catch (error) {
@@ -158,6 +160,7 @@ const RetailEntry = () => {
     resetCustomer();
     setFormData({
       name: "",
+      date: dayjs(),
       staffId: "",
       customerId: "",
     });
@@ -166,10 +169,11 @@ const RetailEntry = () => {
 
   const resetSupplier = () => {
     setSuppliers(
-      Array.from({ length: 5 }, () => ({
+      Array.from({ length: 1 }, () => ({
         supplierId: null,
-        deposit: null,
-        balance: null,
+        totalAmount: "",
+        depositAmount: "",
+        balanceAmount: "",
       })),
     );
   };
@@ -204,6 +208,14 @@ const RetailEntry = () => {
         ...updated[index],
         [field]: value,
       };
+
+      const total =
+      Number(updated[index].totalAmount) || 0;
+
+      const deposit =
+      Number(updated[index].depositAmount) || 0;
+      let balance = total - deposit
+      updated[index].balanceAmount = balance.toFixed(2)
       return updated;
     });
 
@@ -246,9 +258,20 @@ const RetailEntry = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* name */}
+              {/* Bill Date */}
+                <CustomDatePicker
+                    label="Date*"
+                    value={formData.date}
+                    // maxDate={dayjs()}
+                    required={true}
+                    error={!!errors.date}
+                    helperText={errors.date || ""}
+                    onChange={(val) => handleChange("date", val)}
+                />
+
+              {/* Retailer Name */}
               <CustomTextField
-                label="Name"
+                label="Retailer Name"
                 value={formData.name}
                 onChange={(e) => {
                   handleChange("name", e.target.value);
@@ -265,7 +288,7 @@ const RetailEntry = () => {
                   customerOptions.find((c) => c.id === formData.customerId) ||
                   null
                 }
-                label="Customer Reference"
+                label="ReferredBy"
                 required={true}
                 error={!!errors.customerId}
                 helperText={errors.customerId || ""}
@@ -285,9 +308,6 @@ const RetailEntry = () => {
                   staffOptions.find((s) => s.id === formData.staffId) || null
                 }
                 label="Staff"
-                required={true}
-                error={!!errors.staff}
-                helperText={errors.staff || ""}
                 onChange={(value) => {
                   handleChange("staffId", value?.id || "");
                 }}
@@ -325,7 +345,7 @@ const RetailEntry = () => {
                 key={index}
                 className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50 mb-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-start">
                   {/* Supplier */}
                   <GenericAutocomplete
                     options={filteredSuppliers}
@@ -346,31 +366,43 @@ const RetailEntry = () => {
                       )
                     }
                   />
+                  {/* Total Amount */}
+                  <CustomTextField
+                    label="Total Amount"
+                    value={suppliers[index].totalAmount}
+                    onChange={(e) => {
+                      let val = e.target.value
+                      if (/^\d*\.?\d{0,2}$/.test(val)) {
+                      handleSupplierFieldChange(
+                        index,
+                        "totalAmount",
+                         val,
+                      );
+                      }
+                    }}
+                  />
 
                   {/* Deposit amount */}
                   <CustomTextField
                     label="Deposit Amount"
-                    value={suppliers[index].deposit}
+                    value={suppliers[index].depositAmount}
                     onChange={(e) => {
-                      handleSupplierFieldChange(
-                        index,
-                        "deposit",
-                        e.target.value,
-                      );
+                      let val = e.target.value
+                      if (/^\d*\.?\d{0,2}$/.test(val)) {
+                        handleSupplierFieldChange(
+                          index,
+                          "depositAmount",
+                          val,
+                        );
+                      }
                     }}
                   />
 
                   {/* balance amount */}
                   <CustomTextField
-                    label="balance Amount"
-                    value={suppliers[index].balance}
-                    onChange={(e) => {
-                      handleSupplierFieldChange(
-                        index,
-                        "balance",
-                        e.target.value,
-                      );
-                    }}
+                    label="Balance Amount"
+                    value={suppliers[index].balanceAmount}
+                    disabled
                   />
                 </div>
               </div>

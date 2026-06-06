@@ -31,6 +31,7 @@ const Sidebar = ({
       { name: "Bills", path: "/bills" },
       { name: "Credit", path: "/credits" },
       { name: "Purchase", path: "/purchase" },
+      { name: "Retail", path: "/retail" },
     ];
   }
 
