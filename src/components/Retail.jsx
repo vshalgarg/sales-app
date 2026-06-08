@@ -91,33 +91,31 @@ const Retail = () => {
     loadData();
   }, []);
 
-  const fetchHistory = async (retailId) => {
-    const history = await getSupplierAndPaymentHistory(retailId);
-    setHistoryData(history ?? []);
+  const fetchRetailerDetailsAndHistory = async (retailId) => {
+    const [retailerDetail, supplierAndPaymentHistory] = await Promise.all([
+      getRetailerDetailsById(retailId),
+      getSupplierAndPaymentHistory(retailId),
+    ]);
+    return { retailerDetail, supplierAndPaymentHistory };
   };
 
-  const handleView = async (row) => {
+  const openRetailerModal = async (row, mode) => {
     try {
-      console.log(row);
-      const detail = await getRetailerDetailsById(row.retailId);
-      await fetchHistory(row.retailId);
-      setModalMode("view");
-      setViewEditData(detail);
-    } catch {
+      const { retailerDetail, supplierAndPaymentHistory } =
+        await fetchRetailerDetailsAndHistory(row.retailId);
+
+      setModalMode(mode);
+      setViewEditData(retailerDetail);
+      setHistoryData(supplierAndPaymentHistory ?? []);
+    } catch (err) {
+      console.error("Failed to load retailer details", err);
       showSnackbar("Failed to load retailer details", "error");
     }
   };
 
-  const handleEdit = async (row) => {
-    try {
-      const detail = await getRetailerDetailsById(row.retailId);
-      await fetchHistory(row.retailId);
-      setModalMode("edit");
-      setViewEditData(detail);
-    } catch {
-      showSnackbar("Failed to load retailer details", "error");
-    }
-  };
+  const handleView = (row) => openRetailerModal(row, "view");
+
+  const handleEdit = (row) => openRetailerModal(row, "edit");
 
   const handleEditSupplier = (supplierRow) => {
     setSupplierToEdit(supplierRow);
@@ -125,43 +123,62 @@ const Retail = () => {
   };
 
   const handleAddSupplier = (row) => {
-    console.log("row", row);
     setAddSupplierRetailerId(row.retailId);
     setIsAddSupplierOpen(true);
   };
 
   const handleSaveEditSupplier = async ({ retailSupplierId, totalAmount }) => {
-    const result = await updateSupplier(retailSupplierId, { totalAmount });
-    showSnackbar(result.message || "Supplier updated", "success");
-    handleRetailerHistory(currentPage);
+    try {
+      const result = await updateSupplier(retailSupplierId, { totalAmount });
+      showSnackbar(result.message || "Supplier updated", "success");
+      handleRetailerHistory(currentPage);
+    } catch (error) {
+      showSnackbar(error.message || "Failed to update supplier", "error");
+      throw error;
+    }
   };
 
   const handleSaveAddSupplier = async (payload) => {
-    const result = await addSupplierToRetailer(payload);
-    showSnackbar(result.message || "Supplier added", "success");
-    handleRetailerHistory(currentPage);
+    try {
+      const result = await addSupplierToRetailer(payload);
+      showSnackbar(result.message || "Supplier added", "success");
+      handleRetailerHistory(currentPage);
+    } catch (error) {
+      showSnackbar(error.message || "Failed to add supplier", "error");
+      throw error;
+    }
   };
 
   const handleSaveDeposits = async (deposits) => {
-    await addDeposits(deposits);
-    showSnackbar("Deposits saved", "success");
+    try {
+      await addDeposits(deposits);
+      showSnackbar("Deposits saved successfully", "success");
 
-    const retailId = viewEditData?.id;
+      const retailId = viewEditData?.id;
 
-    const [detail, history] = await Promise.all([
-      getRetailerDetailsById(retailId),
-      getSupplierAndPaymentHistory(retailId),
-    ]);
+      const [detail, history] = await Promise.all([
+        getRetailerDetailsById(retailId),
+        getSupplierAndPaymentHistory(retailId),
+      ]);
 
-    setViewEditData(detail);
-    setHistoryData(history ?? []);
-    handleRetailerHistory(currentPage);
+      setViewEditData(detail);
+      setHistoryData(history ?? []);
+      handleRetailerHistory(currentPage);
+    } catch (error) {
+      showSnackbar(error.message || "something went wrong!", "error");
+      throw error;
+    }
   };
 
   const handleSaveRetailer = async ({ retailId, payload }) => {
-    await updateRetailer(retailId, payload);
-    showSnackbar("Retailer saved", "success");
-    handleRetailerHistory(currentPage);
+    try {
+      await updateRetailer(retailId, payload);
+      showSnackbar("Retailer saved successfully", "success");
+      handleRetailerHistory(currentPage);
+    } catch (error) {
+      showSnackbar(error.message || "something went wrong!", "error");
+      throw error;
+    }
   };
 
   const confirmDelete = async () => {
@@ -186,11 +203,11 @@ const Retail = () => {
   const confirmDeleteSupplier = async () => {
     try {
       await deleteSupplierPerRetailer(supplierToDelete.retailSupplierId);
-      showSnackbar("Supplier entry deleted", "success");
+      showSnackbar("Supplier entry deleted successfully", "success");
       setIsSupplierDeleteOpen(false);
       handleRetailerHistory(currentPage);
     } catch (err) {
-      showSnackbar(err.message || "Failed to delete", "error");
+      showSnackbar(err.message || "Failed to delete supplier", "error");
     }
   };
   /* ================= SEARCH ================= */
