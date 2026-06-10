@@ -10,10 +10,8 @@ import java.util.Map;
 public interface AdminService {
 
     Map<String,Object> changePassword(ChangePasswordRequestDTO requestDTO);
-    void addConfiguration(ConfigurationRequestDto requestDto);
     List<ConfigurationResponseDto> getConfigurations();
     void updateConfiguration(
             Integer configurationId,
             ConfigurationRequestDto requestDto);
-    void deleteConfiguration(Integer configurationId);
 }

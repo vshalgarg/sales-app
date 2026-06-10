@@ -37,15 +37,6 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(ADD_CONFIGURATION)
-    public ResponseEntity<ApiResponse<Void>> addConfiguration(@RequestBody @Valid ConfigurationRequestDto requestDto) {
-
-        log.info("Received request to add configuration with key: {}", requestDto.key());
-        adminService.addConfiguration(requestDto);
-        return ResponseEntity.ok(
-                ApiResponse.success("Configuration added successfully")
-        );
-    }
 
     @GetMapping(GET_CONFIGURATIONS)
     public ResponseEntity<ApiResponse<List<ConfigurationResponseDto>>> getConfigurations() {
@@ -71,13 +62,4 @@ public class AdminController {
         );
     }
 
-    @DeleteMapping(DELETE_CONFIGURATION)
-    public ResponseEntity<ApiResponse<Void>> deleteConfiguration(@PathVariable Integer configurationId) {
-
-        log.info("Received request to delete configuration id: {}", configurationId);
-        adminService.deleteConfiguration(configurationId);
-        return ResponseEntity.ok(
-                ApiResponse.success("Configuration deleted successfully")
-        );
-    }
 }

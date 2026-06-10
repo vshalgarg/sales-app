@@ -6,7 +6,6 @@ import lombok.Builder;
 public record ConfigurationResponseDto(
         Integer id,
         String key,
-        String value,
-        String description
+        String value
 ) {
 }

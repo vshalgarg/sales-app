@@ -1,5 +1,7 @@
 package com.code.monks.csm.entity;
 
+import com.code.monks.csm.enums.ConfigurationTypeEnum;
+import com.code.monks.csm.enums.converter.ConfigurationTypeEnumConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +23,10 @@ public class ConfigurationEntity extends BaseEntity{
 
     @Column(name = "config_value")
     private String value;
+
+    @Column(name = "config_type")
+    @Convert(converter = ConfigurationTypeEnumConverter.class)
+    private ConfigurationTypeEnum type;
 
     private String description;
 }
