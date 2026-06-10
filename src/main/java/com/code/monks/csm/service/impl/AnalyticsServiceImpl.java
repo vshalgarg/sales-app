@@ -45,17 +45,27 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<Integer> supplierIds = normalizeIds(request.supplierIds());
         List<Integer> customerIds = normalizeIds(request.customerIds());
+        LocalDate fromDate = request.fromDate();
+        LocalDate toDate = request.toDate();
+        if (fromDate == null && toDate == null) {
+            toDate = LocalDate.now();
+            fromDate = toDate.minusMonths(11).withDayOfMonth(1);
+        }
 
         List<MonthlyAnalyticsView> billAnalytics =
                 billEntryRepo.getMonthlyBillAnalytics(
                         supplierIds,
-                        customerIds
+                        customerIds,
+                         fromDate,
+                         toDate
                 );
 
         List<MonthlyAnalyticsView> creditAnalytics =
                 creditEntryRepo.getMonthlyCreditAnalytics(
                         supplierIds,
-                        customerIds
+                        customerIds,
+                         fromDate,
+                         toDate
                 );
 
         Map<YearMonth, MonthlyAnalyticsAccumulator> monthlyMap = new TreeMap<>();
@@ -91,6 +101,17 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             data.setCreditCount(credit.getCount());
         }
 
+        YearMonth startMonth = YearMonth.from(fromDate);
+        YearMonth endMonth = YearMonth.from(toDate);
+
+        while (!startMonth.isAfter(endMonth)) {
+            monthlyMap.putIfAbsent(
+                    startMonth,
+                    new MonthlyAnalyticsAccumulator()
+            );
+            startMonth = startMonth.plusMonths(1);
+        }
+
         List<MonthlyAnalyticsDto> records =
                 monthlyMap.entrySet()
                         .stream()
@@ -110,7 +131,57 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         })
                         .toList();
 
+        List<String> labels =
+                records.stream()
+                        .map(MonthlyAnalyticsDto::month)
+                        .toList();
+
+        List<DatasetDto> datasets = List.of(
+
+                DatasetDto.builder()
+                        .label("Bill Amount")
+                        .data(
+                                records.stream()
+                                        .map(MonthlyAnalyticsDto::billAmount)
+                                        .toList()
+                        )
+                        .unit("₹")
+                        .build(),
+
+                DatasetDto.builder()
+                        .label("Credit Amount")
+                        .data(
+                                records.stream()
+                                        .map(MonthlyAnalyticsDto::creditAmount)
+                                        .toList()
+                        )
+                        .unit("₹")
+                        .build(),
+
+                DatasetDto.builder()
+                        .label("Bill Count")
+                        .data(
+                                records.stream()
+                                        .map(MonthlyAnalyticsDto::billCount)
+                                        .toList()
+                        )
+                        .unit("COUNT")
+                        .build(),
+
+                DatasetDto.builder()
+                        .label("Credit Count")
+                        .data(
+                                records.stream()
+                                        .map(MonthlyAnalyticsDto::creditCount)
+                                        .toList()
+                        )
+                        .unit("COUNT")
+                        .build()
+        );
+
         return MonthlyAnalyticsResponseDto.builder()
+                .labels(labels)
+                .datasets(datasets)
                 .records(records)
                 .build();
     }

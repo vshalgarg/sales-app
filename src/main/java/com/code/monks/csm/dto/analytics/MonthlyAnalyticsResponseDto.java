@@ -6,6 +6,9 @@ import java.util.List;
 
 @Builder
 public record MonthlyAnalyticsResponseDto(
+
+        List<String> labels,
+        List<DatasetDto> datasets,
         List<MonthlyAnalyticsDto> records
 ) {
 }
