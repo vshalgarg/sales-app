@@ -88,7 +88,6 @@ public class AdminServiceImpl implements AdminService {
                 .id(configuration.getId())
                 .key(configuration.getKey())
                 .value(configuration.getValue())
-                .description(configuration.getDescription())
                 .build();
     }
 
