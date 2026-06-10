@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,4 +87,21 @@ WHERE s.status = :status
 """)
     Page<SupplierEntity> findSupplierList(StatusEnum status, Pageable pageable);
 
+    @Query("""
+    SELECT COUNT(s)
+    FROM SupplierEntity s
+    WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE
+    AND s.createdAt BETWEEN :from AND :to
+""")
+    long countActiveSuppliersBetween(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
+    @Query("""
+    SELECT COUNT(s)
+    FROM SupplierEntity s
+    WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE
+""")
+    long countActiveSuppliers();
 }

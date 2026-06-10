@@ -81,4 +81,9 @@ public class ApiPaths {
     public static final String DELETE_TRANSPORT = "/transports/delete/{id}";
 
     public static final String CHANGE_PASSWORD = "/admin/change/password";
+
+    // analytics
+    public static final String AMOUNT_VS_MONTH = "/analytics/amount-vs-month";
+    public static final String ENTRY_COUNT = "/analytics/entry-count";
+    public static final String PIE_CHART = "/analytics/pie-chart";
 }

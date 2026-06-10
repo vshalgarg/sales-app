@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,4 +52,22 @@ public interface CustomerRepo extends JpaRepository<CustomerEntity, Integer> {
     )
     Page<CustomerEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
     List<CustomerEntity> findByStatus(StatusEnum statusEnum, Sort sort);
+
+    @Query("""
+    SELECT COUNT(c)
+    FROM CustomerEntity c
+    WHERE c.status = com.code.monks.csm.enums.StatusEnum.ACTIVE
+    AND c.createdAt BETWEEN :from AND :to
+""")
+    long countActiveCustomersBetween(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
+    @Query("""
+    SELECT COUNT(c)
+    FROM CustomerEntity c
+    WHERE c.status = com.code.monks.csm.enums.StatusEnum.ACTIVE
+""")
+    long countActiveCustomers();
 }
