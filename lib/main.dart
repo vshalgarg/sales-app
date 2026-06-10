@@ -9,6 +9,7 @@ import 'package:hisabio/provider/delete_customer_provider.dart';
 import 'package:hisabio/provider/delete_staff_provider.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
 import 'package:hisabio/provider/delete_transport_provider.dart';
+import 'package:hisabio/provider/entries_provider/entries_section_provider.dart';
 import 'package:hisabio/provider/get_customer_byid_provider.dart';
 import 'package:hisabio/provider/get_customers_provider.dart';
 import 'package:hisabio/provider/get_staff_by_id_provider.dart';
@@ -28,6 +29,7 @@ import 'package:hisabio/provider/search_transport_provider.dart';
 import 'package:hisabio/provider/update_customer_provider.dart';
 import 'package:hisabio/provider/update_staff_provider.dart';
 import 'package:hisabio/provider/update_supplier_provider.dart';
+import 'package:hisabio/provider/user_all_provider.dart';
 import 'package:hisabio/screens/login_screen.dart';
 //import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:provider/provider.dart';
@@ -64,8 +66,8 @@ void main() async {
         ChangeNotifierProvider(create: (_)=>SearchTransportProvider()),
         ChangeNotifierProvider(create: (_)=>GetTransportByIdProvider()),
         ChangeNotifierProvider(create: (_)=> GetUsersProvider()),
-
-
+        ChangeNotifierProvider(create: (_)=>   UserProvider()),
+        ChangeNotifierProvider(create: (_)=>  EntriesProvider()),
       ],
       child: const MyApp(),
 

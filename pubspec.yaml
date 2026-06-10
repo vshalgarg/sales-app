@@ -44,6 +44,7 @@ dependencies:
   lucide_icons: ^0.257.0
   shared_preferences: ^2.5.5
   dropdown_button2: ^2.3.9
+  file_picker: ^10.0.0
 
 dev_dependencies:
   flutter_test:

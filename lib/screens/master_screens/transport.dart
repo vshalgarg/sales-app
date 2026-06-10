@@ -59,7 +59,7 @@ class _TransportScreenState extends State<TransportScreen> {
         ),
       ),
       drawer: MasterDrawer(),
-      bottomNavigationBar: CustomBottomNavigationBar(),
+      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(

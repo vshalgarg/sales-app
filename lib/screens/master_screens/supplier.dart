@@ -60,7 +60,7 @@ class _SupplierState extends State<Supplier> {
           fontSize: 25,
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(),
+      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
       drawer: MasterDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
