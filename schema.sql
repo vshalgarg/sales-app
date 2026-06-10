@@ -735,6 +735,7 @@ CREATE TABLE configurations (
 
     config_key VARCHAR(255) NOT NULL UNIQUE,
     config_value VARCHAR(255),
+    config_type TINYINT NOT NULL DEFAULT 0,
     description VARCHAR(500),
 
     created_at DATETIME NOT NULL,
