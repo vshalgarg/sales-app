@@ -1,11 +1,7 @@
 package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.ApiResponse;
-import com.code.monks.csm.dto.analytics.AmountVsMonthDto;
-import com.code.monks.csm.dto.analytics.AmountVsMonthRequestDto;
-import com.code.monks.csm.dto.analytics.EntryCountDto;
-import com.code.monks.csm.dto.analytics.PieChartDataDto;
-import com.code.monks.csm.dto.analytics.PieChartRequestDto;
+import com.code.monks.csm.dto.analytics.*;
 import com.code.monks.csm.enums.DataTypeEnum;
 import com.code.monks.csm.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
@@ -30,23 +26,12 @@ public class AnalyticsController {
     private final AnalyticsService analyticsService;
 
     @PostMapping(AMOUNT_VS_MONTH)
-    public ResponseEntity<ApiResponse<List<AmountVsMonthDto>>> getAmountVsMonth(@RequestBody AmountVsMonthRequestDto request) {
+    public ResponseEntity<ApiResponse<MonthlyAnalyticsResponseDto>> getAmountVsMonth(@RequestBody MonthlyAnalyticsRequestDto request) {
         log.info("Fetching amount vs month analytics");
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "Amount vs month fetched successfully",
-                        analyticsService.getAmountVsMonth(request)
-                )
-        );
-    }
-
-    @PostMapping(ENTRY_COUNT)
-    public ResponseEntity<ApiResponse<List<EntryCountDto>>> getEntryCount(@RequestBody AmountVsMonthRequestDto request) {
-        log.info("Fetching entry count analytics");
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        "Entry count fetched successfully",
-                        analyticsService.getEntryCount(request)
+                        analyticsService.getMonthlyAnalytics(request)
                 )
         );
     }

@@ -1,12 +1,9 @@
 package com.code.monks.csm.service.impl;
 
-import com.code.monks.csm.dto.analytics.AmountVsMonthDto;
-import com.code.monks.csm.dto.analytics.AmountVsMonthRequestDto;
-import com.code.monks.csm.dto.analytics.EntryCountDto;
-import com.code.monks.csm.dto.analytics.PieChartDataDto;
-import com.code.monks.csm.dto.analytics.PieChartRequestDto;
+import com.code.monks.csm.dto.analytics.*;
 import com.code.monks.csm.dto.analytics.projection.CountView;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAmountView;
+import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CreditEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
@@ -37,12 +34,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final SupplierRepo supplierRepo;
     private final StaffRepo staffRepo;
 
-    private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
-
     @Override
-    public List<EntryCountDto> getEntryCount(AmountVsMonthRequestDto request) {
+    public MonthlyAnalyticsResponseDto getMonthlyAnalytics(MonthlyAnalyticsRequestDto request) {
+
         log.info(
-                "Fetching entry count analytics. SupplierIds: {}, CustomerIds: {}",
+                "Fetching monthly analytics. SupplierIds: {}, CustomerIds: {}",
                 request.supplierIds(),
                 request.customerIds()
         );
@@ -50,59 +46,73 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         List<Integer> supplierIds = normalizeIds(request.supplierIds());
         List<Integer> customerIds = normalizeIds(request.customerIds());
 
-        List<CountView> billCounts = billEntryRepo.getMonthlyBillEntryCount(supplierIds, customerIds);
-        List<CountView> creditCounts = creditEntryRepo.getMonthlyCreditEntryCount(supplierIds, customerIds);
-
-        Map<YearMonth, MonthlyEntryCounts> monthlyMap = new TreeMap<>();
-
-        mergeBillCounts(monthlyMap, billCounts);
-        mergeCreditCounts(monthlyMap, creditCounts);
-        List<EntryCountDto> response = buildEntryCountResponse(monthlyMap);
-
-        log.info(
-                "Entry count analytics fetched successfully. Total months: {}",
-                response.size()
-        );
-
-        return response;
-    }
-
-    @Override
-    public List<AmountVsMonthDto> getAmountVsMonth(AmountVsMonthRequestDto request) {
-
-        log.info(
-                "Fetching amount vs month analytics. SupplierIds: {}, CustomerIds: {}",
-                request.supplierIds(),
-                request.customerIds()
-        );
-
-        List<Integer> supplierIds = normalizeIds(request.supplierIds());
-        List<Integer> customerIds = normalizeIds(request.customerIds());
-
-        List<MonthlyAmountView> billData =
-                billEntryRepo.getMonthlyBillAmount(
+        List<MonthlyAnalyticsView> billAnalytics =
+                billEntryRepo.getMonthlyBillAnalytics(
                         supplierIds,
                         customerIds
                 );
 
-        List<MonthlyAmountView> creditData =
-                creditEntryRepo.getMonthlyCreditAmount(
+        List<MonthlyAnalyticsView> creditAnalytics =
+                creditEntryRepo.getMonthlyCreditAnalytics(
                         supplierIds,
                         customerIds
                 );
 
-        Map<YearMonth, MonthlyTotals> monthlyMap = new TreeMap<>();
+        Map<YearMonth, MonthlyAnalyticsAccumulator> monthlyMap = new TreeMap<>();
+        for (MonthlyAnalyticsView bill : billAnalytics) {
+            YearMonth yearMonth = YearMonth.of(
+                    bill.getYear(),
+                    bill.getMonth()
+            );
 
-        mergeBillData(monthlyMap, billData);
-        mergeCreditData(monthlyMap, creditData);
+            MonthlyAnalyticsAccumulator data =
+                    monthlyMap.computeIfAbsent(
+                            yearMonth,
+                            key -> new MonthlyAnalyticsAccumulator()
+                    );
 
-        List<AmountVsMonthDto> response = buildResponse(monthlyMap);
-        log.info(
-                "Amount vs month analytics fetched successfully. Total months: {}",
-                response.size()
-        );
+            data.setBillAmount(bill.getAmount());
+            data.setBillCount(bill.getCount());
+        }
 
-        return response;
+        for (MonthlyAnalyticsView credit : creditAnalytics) {
+            YearMonth yearMonth = YearMonth.of(
+                    credit.getYear(),
+                    credit.getMonth()
+            );
+
+            MonthlyAnalyticsAccumulator data =
+                    monthlyMap.computeIfAbsent(
+                            yearMonth,
+                            key -> new MonthlyAnalyticsAccumulator()
+                    );
+
+            data.setCreditAmount(credit.getAmount());
+            data.setCreditCount(credit.getCount());
+        }
+
+        List<MonthlyAnalyticsDto> records =
+                monthlyMap.entrySet()
+                        .stream()
+                        .map(entry -> {
+                            YearMonth yearMonth = entry.getKey();
+                            MonthlyAnalyticsAccumulator data = entry.getValue();
+                            return new MonthlyAnalyticsDto(
+                                    yearMonth.getMonth().getDisplayName(
+                                            TextStyle.SHORT,
+                                            Locale.ENGLISH
+                                    ),
+                                    data.getBillAmount(),
+                                    data.getCreditAmount(),
+                                    data.getBillCount(),
+                                    data.getCreditCount()
+                            );
+                        })
+                        .toList();
+
+        return MonthlyAnalyticsResponseDto.builder()
+                .records(records)
+                .build();
     }
 
     @Override
@@ -228,118 +238,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 : ids;
     }
 
-    private void mergeBillData(Map<YearMonth, MonthlyTotals> monthlyMap, List<MonthlyAmountView> billData) {
-
-        billData.
-                stream()
-                .filter(item -> item.year() != null)
-                .filter(item -> item.month() != null)
-                .forEach(item -> {
-            YearMonth yearMonth =
-                    YearMonth.of(
-                            item.year(),
-                            item.month()
-                    );
-            monthlyMap
-                    .computeIfAbsent(
-                            yearMonth,
-                            ym -> new MonthlyTotals()
-                    )
-                    .setBillAmount(item.amount());
-        });
-    }
-
-    private void mergeCreditData(Map<YearMonth, MonthlyTotals> monthlyMap, List<MonthlyAmountView> creditData) {
-
-        creditData.stream()
-                .filter(item -> item.year() != null)
-                .filter(item -> item.month() != null)
-                .forEach(item -> {
-            YearMonth yearMonth =
-                    YearMonth.of(
-                            item.year(),
-                            item.month()
-                    );
-
-            monthlyMap
-                    .computeIfAbsent(
-                            yearMonth,
-                            ym -> new MonthlyTotals()
-                    )
-                    .setCreditAmount(item.amount());
-        });
-    }
-
-    private List<AmountVsMonthDto> buildResponse(Map<YearMonth, MonthlyTotals> monthlyMap) {
-
-        return monthlyMap.entrySet()
-                .stream()
-                .map(entry -> {
-
-                    YearMonth yearMonth = entry.getKey();
-                    MonthlyTotals totals = entry.getValue();
-
-                    return new AmountVsMonthDto(
-                            yearMonth.format(MONTH_FORMATTER),
-                            totals.getBillAmount(),
-                            totals.getCreditAmount()
-                    );
-                })
-                .toList();
-    }
-
-    private void mergeBillCounts(Map<YearMonth, MonthlyEntryCounts> monthlyMap, List<CountView> billCounts) {
-        billCounts.stream()
-                .filter(item -> item.year() != null)
-                .filter(item -> item.month() != null)
-                .forEach(item -> {
-                    YearMonth yearMonth = YearMonth.of(item.year(), item.month());
-                    monthlyMap
-                            .computeIfAbsent(yearMonth, ym -> new MonthlyEntryCounts())
-                            .setBillEntryCount(item.count());
-                });
-    }
-
-    private void mergeCreditCounts(Map<YearMonth, MonthlyEntryCounts> monthlyMap, List<CountView> creditCounts) {
-        creditCounts.stream()
-                .filter(item -> item.year() != null)
-                .filter(item -> item.month() != null)
-                .forEach(item -> {
-                    YearMonth yearMonth = YearMonth.of(item.year(), item.month());
-                    monthlyMap
-                            .computeIfAbsent(yearMonth, ym -> new MonthlyEntryCounts())
-                            .setCreditEntryCount(item.count());
-                });
-    }
-
-    private List<EntryCountDto> buildEntryCountResponse(Map<YearMonth, MonthlyEntryCounts> monthlyMap) {
-        return monthlyMap.entrySet()
-                .stream()
-                .map(entry -> {
-                    YearMonth yearMonth = entry.getKey();
-                    MonthlyEntryCounts totals = entry.getValue();
-                    return new EntryCountDto(
-                            yearMonth.format(MONTH_FORMATTER),
-                            totals.getBillEntryCount(),
-                            totals.getCreditEntryCount()
-                    );
-                })
-                .toList();
-    }
 
     @Getter
     @Setter
-    private static class MonthlyTotals {
+    private static class MonthlyAnalyticsAccumulator {
 
-        private Long billAmount = 0L;
-        private Long creditAmount = 0L;
-    }
-
-    @Getter
-    @Setter
-    private static class MonthlyEntryCounts {
-
-        private Long billEntryCount = 0L;
-        private Long creditEntryCount = 0L;
+        private double billAmount;
+        private double creditAmount;
+        private long billCount;
+        private long creditCount;
     }
 }
