@@ -16,6 +16,7 @@ pipeline {
     stages {
 
         stage('Checkout') {
+        echo "Checking out branch: ${params.BRANCH_NAME}"
             steps {
                 echo 'Checking out from git'
                 git branch: "${params.BRANCH_NAME}",
