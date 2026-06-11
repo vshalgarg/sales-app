@@ -8,7 +8,26 @@ class AdminService {
 
       const result = checkLogicalError(response.data);
       return result;
+    } catch (err) {
+      throw new Error(handleApiError(err));
+    }
+  }
+  async getConfigurations() {
+    try {
+      const response = await api.get("/admin/configurations");
 
+      const result = checkLogicalError(response.data);
+      return result;
+    } catch (err) {
+      throw new Error(handleApiError(err));
+    }
+  }
+  async updateConfigurations(id, payload) {
+    try {
+      const response = await api.patch(`/admin/configurations/${id}`, payload);
+
+      const result = checkLogicalError(response.data);
+      return result;
     } catch (err) {
       throw new Error(handleApiError(err));
     }
