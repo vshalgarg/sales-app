@@ -11,7 +11,7 @@ const Sidebar = ({
 }) => {
   let menuItems = [];
   const { config } = useConfig();
-  const retailConfig = config?.filter((c) => c.key === "ENABLE_RETAIL");
+  const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
 
   if (activeSection === "master") {
     menuItems = [
