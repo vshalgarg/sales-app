@@ -7,8 +7,6 @@ import lombok.Builder;
 public record ConfigurationRequestDto(
 
         @NotBlank(message = "Configuration value is required")
-        String value,
+        String value
 
-        String description
-) {
-}
+        ) { }

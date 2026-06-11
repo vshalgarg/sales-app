@@ -19,10 +19,10 @@ public class ConfigurationEntity extends BaseEntity{
     private Integer id;
 
     @Column(name = "config_key", unique = true, nullable = false)
-    private String key;
+    private String configKey;
 
     @Column(name = "config_value")
-    private String value;
+    private String configValue;
 
     @Column(name = "config_type")
     @Convert(converter = ConfigurationTypeEnumConverter.class)

@@ -32,7 +32,7 @@ public enum ResponseErrorCode {
     RETAILER_SUPPLIER_NOT_FOUND(1031, "Retail Supplier not found"),
     RETAIL_SUPPLIER_ALREADY_ADDED(1034,"Supplier already added to this retailer"),
     CONFIGURATION_NOT_FOUND(1035, "Configuration not found"),
-    DUPLICATE_CONFIGURATION_KEY(1036, "Configuration already exists with the given key");
+    INVALID_CONFIGURATION_VALUE(1036, "Invalid configuration value");
 
 
     private final int code;

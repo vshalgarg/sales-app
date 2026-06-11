@@ -7,7 +7,7 @@ import com.code.monks.csm.dto.request.ChangePasswordRequestDTO;
 import com.code.monks.csm.dto.request.ConfigurationRequestDto;
 import com.code.monks.csm.dto.response.ConfigurationResponseDto;
 import com.code.monks.csm.entity.ConfigurationEntity;
-import com.code.monks.csm.enums.ConfigurationTypeEnum;
+import com.code.monks.csm.exception.BusinessException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.repository.ConfigurationRepository;
 import com.code.monks.csm.service.AdminService;
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.CONFIGURATION_NOT_FOUND;
+import static com.code.monks.csm.enums.ResponseErrorCode.INVALID_REQUEST;
 
 @Service
 @RequiredArgsConstructor
@@ -73,9 +74,10 @@ public class AdminServiceImpl implements AdminService {
                                         CONFIGURATION_NOT_FOUND,
                                         " with id: " + configurationId));
 
-        ConfigurationTypeEnum type = configuration.getType();
-        configuration.setValue(requestDto.value());
-        configuration.setDescription(requestDto.description());
+        if (!configuration.getType().isValid(requestDto.value())) {
+            throw new BusinessException(INVALID_REQUEST);
+        }
+        configuration.setConfigValue(requestDto.value());
         configurationRepository.save(configuration);
         log.info("Configuration updated successfully for id: {}", configurationId);
     }
@@ -86,8 +88,9 @@ public class AdminServiceImpl implements AdminService {
 
         return ConfigurationResponseDto.builder()
                 .id(configuration.getId())
-                .key(configuration.getKey())
-                .value(configuration.getValue())
+                .key(configuration.getConfigKey())
+                .value(configuration.getConfigValue())
+                .type(configuration.getType())
                 .build();
     }
 
