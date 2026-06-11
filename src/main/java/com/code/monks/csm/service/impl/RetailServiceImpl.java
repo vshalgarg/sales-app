@@ -1,5 +1,6 @@
 package com.code.monks.csm.service.impl;
 
+import com.code.monks.csm.annotation.RetailerEnabled;
 import com.code.monks.csm.dto.request.*;
 import com.code.monks.csm.dto.response.PagedResponseDto;
 import com.code.monks.csm.dto.response.RetailResponseDto;
@@ -12,6 +13,7 @@ import com.code.monks.csm.exception.BusinessException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.mapper.RetailMapper;
 import com.code.monks.csm.repository.*;
+import com.code.monks.csm.service.ConfigurationService;
 import com.code.monks.csm.service.RetailService;
 import com.code.monks.csm.specification.GenericSpecificationBuilder;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ import static com.code.monks.csm.enums.ResponseErrorCode.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@RetailerEnabled
 public class RetailServiceImpl implements RetailService {
 
     private final RetailRepository retailRepository;

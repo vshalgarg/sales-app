@@ -49,7 +49,7 @@ public class AdminController {
         );
     }
 
-    @PutMapping(UPDATE_CONFIGURATION)
+    @PatchMapping(UPDATE_CONFIGURATION)
     public ResponseEntity<ApiResponse<Void>> updateConfiguration(
             @PathVariable Integer configurationId,
             @RequestBody @Valid ConfigurationRequestDto requestDto) {

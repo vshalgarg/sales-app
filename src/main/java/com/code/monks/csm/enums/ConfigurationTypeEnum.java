@@ -7,11 +7,36 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ConfigurationTypeEnum {
 
-    STRING(0),
-    INTEGER(1),
-    BOOLEAN(2);
+    STRING(0) {
+        @Override
+        public boolean isValid(String value) {
+            return true;
+        }
+    },
+
+    INTEGER(1) {
+        @Override
+        public boolean isValid(String value) {
+            try {
+                Integer.parseInt(value);
+                return true;
+            } catch (NumberFormatException ex) {
+                return false;
+            }
+        }
+    },
+
+    BOOLEAN(2) {
+        @Override
+        public boolean isValid(String value) {
+            return "true".equalsIgnoreCase(value)
+                    || "false".equalsIgnoreCase(value);
+        }
+    };
 
     private final int code;
+
+    public abstract boolean isValid(String value);
 
     public static ConfigurationTypeEnum fromCode(int code) {
         for (ConfigurationTypeEnum type : values()) {
