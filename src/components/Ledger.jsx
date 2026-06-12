@@ -217,7 +217,7 @@ const handleDownload = async () => {
             {/* Genereted For */}
             <div className="col-span-2 sm:col-span-1 md:col-span-2">
               <GenericSingleSelect
-                label="Generating_For*"
+                label="GeneratingFor*"
                 value={filterObject.selectedFor}
                 options={forOptions}
                 onChange={(value) => handleChange("selectedFor", value)}

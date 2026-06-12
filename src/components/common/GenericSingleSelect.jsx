@@ -10,7 +10,6 @@ const GenericSingleSelect = ({
   options = [],
   value = "",
   label = "",
-  placeholder = "Select",
   required = false,
   error = false,
   helperText = "",
@@ -32,10 +31,6 @@ const GenericSingleSelect = ({
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       >
-        <MenuItem value="">
-          <em>{placeholder}</em>
-        </MenuItem>
-
         {options.map((option) => (
           <MenuItem
             key={option.id}
