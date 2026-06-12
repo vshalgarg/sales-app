@@ -99,4 +99,5 @@ public class ApiPaths {
 
     // ledger
     public static final String LEDGER = "/ledger";
+    public static final String LEDGER_DOWNLOAD = "/ledger/download";
 }
