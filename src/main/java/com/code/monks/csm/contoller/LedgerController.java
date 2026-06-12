@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import static com.code.monks.csm.constants.ApiPaths.*;
 
 @RestController
@@ -48,7 +51,13 @@ public class LedgerController {
 
         LedgerResponseDto ledger = ledgerService.getLedger(supplierId, customerId, viewType);
         byte[] excel = ledgerExcelService.generateExcel(ledger);
-        String filename = String.format("ledger_%s.xlsx", ledger.party().name().replaceAll("\\s+", "_"));
+        String filename = String.format(
+                "ledger_%s_%s.xlsx",
+                ledger.party().name().replaceAll("\\s+", "_"),
+                LocalDateTime.now().format(
+                        DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
+                )
+        );
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
