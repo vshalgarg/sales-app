@@ -34,7 +34,8 @@ const AppLayout = () => {
       location.pathname.startsWith("/bills") ||
       location.pathname.startsWith("/credits") ||
       location.pathname.startsWith("/purchase")||
-      location.pathname.startsWith("/retail")
+      location.pathname.startsWith("/retail")||
+      location.pathname.startsWith("/ledger")
     ) {
       return "reporting";
     }
