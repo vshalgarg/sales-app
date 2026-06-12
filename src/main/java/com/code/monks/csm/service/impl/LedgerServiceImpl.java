@@ -24,6 +24,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -91,12 +94,20 @@ public class LedgerServiceImpl implements LedgerService {
                 .get(customer.getContactList().size() - 1)
                 .getMobileNumber();
 
+        String address = Stream.of(
+                        customer.getAddressLine1(),
+                        customer.getAddressLine2()
+                )
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.joining(", "));
+
         return LedgerPartyDto.builder()
                 .id(customer.getId())
                 .name(customer.getCustomerName())
                 .email(customer.getEmail())
                 .phone(mobile)
-                .address(customer.getAddressLine1())
+                .address(address)
                 .build();
     }
 
@@ -114,13 +125,20 @@ public class LedgerServiceImpl implements LedgerService {
                 : supplier.getContactList()
                 .get(supplier.getContactList().size() - 1)
                 .getMobileNumber();
+        String address = Stream.of(
+                        supplier.getAddressLine1(),
+                        supplier.getAddressLine2()
+                )
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.joining(", "));
 
         return LedgerPartyDto.builder()
                 .id(supplier.getId())
                 .name(supplier.getSupplierName())
                 .email(supplier.getEmail())
                 .phone(mobile)
-                .address(supplier.getAddressLine1())
+                .address(address)
                 .build();
     }
 
@@ -240,7 +258,7 @@ public class LedgerServiceImpl implements LedgerService {
             result.add(
                     new LedgerEntryDto(
                             entry.date(),
-                            entry.InvoiceNo(),
+                            entry.invoiceNo(),
                             entry.particular(),
                             entry.debit(),
                             entry.credit(),

@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Builder
 public record LedgerEntryDto(
         LocalDate date,
-        String InvoiceNo,
+        String invoiceNo,
         String particular,
         BigDecimal debit,
         BigDecimal credit,
