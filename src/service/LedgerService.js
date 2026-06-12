@@ -16,3 +16,12 @@ export const getLedger = async (payload) => {
     throw new Error(handleApiError(error));
   }
 };
+
+export const downloadLedger = async (payload) => {
+  const response = await api.get("/ledger/download", {
+    params: payload,
+    responseType: "blob",
+  });
+
+  return response;
+};
