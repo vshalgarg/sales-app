@@ -6,7 +6,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import GenericSingleSelect from "./common/GenericSingleSelect";
 import { Button } from "@mui/material";
-import { getLedger } from "../service/LedgerService";
+import { downloadLedger, getLedger } from "../service/LedgerService";
 import dayjs from "dayjs";
 import DataTable from "./DataTable";
 import { formatIndianCurrency } from "../utils/currencyUtils";
@@ -109,6 +109,52 @@ function Ledger() {
     }
   };
 
+const handleDownload = async () => {
+  try {
+    const payload = {
+      supplierId: filterObject.selectedSupplier.id,
+      customerId: filterObject.selectedCustomer.id,
+      viewType: filterObject.selectedFor,
+    };
+
+    const response = await downloadLedger(payload);
+
+    const blob = new Blob([response.data]);
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+
+  
+    const disposition = response.headers["content-disposition"];
+
+    let fileName = "ledger.xlsx";
+
+    if (disposition) {
+      const match = disposition.match(/filename="?(.+)"?/);
+
+      if (match) {
+        fileName = match[1];
+      }
+    }
+
+    link.download = fileName;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+
+  } catch (err) {
+    showSnackbar(err.message || "Download failed", "error");
+  }
+};
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -145,7 +191,7 @@ function Ledger() {
           </p>
         </div>
         <div className="px-6 py-5">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-8 gap-3">
             {/* Supplier */}
             <div className="col-span-2 sm:col-span-1 md:col-span-2">
               <GenericAutocomplete
@@ -177,13 +223,21 @@ function Ledger() {
                 onChange={(value) => handleChange("selectedFor", value)}
               />
             </div>
-            <div className="col-span-2 sm:col-span-1 md:col-span-1">
+            <div className="col-span-2 sm:col-span-1 md:col-span-2 flex gap-2">
               <Button
                 variant="contained"
                 disabled={isDisabled()}
                 onClick={handleSubmit}
               >
                 Submit
+              </Button>
+
+              <Button
+                variant="outlined"
+                disabled={isDisabled()}
+                onClick={handleDownload}
+              >
+                Download
               </Button>
             </div>
           </div>
@@ -193,7 +247,7 @@ function Ledger() {
         <div className="mt-4 rounded-lg border bg-gray-50 shadow-sm">
           <div className="border-b px-5 py-3">
             <h3 className="font-semibold text-lg">
-              {filterObject.selectedFor === "SUPPLIER"
+              {ledgerData?.ledgerType === "SUPPLIER"
                 ? "Customer"
                 : "Supplier"}{" "}
               Details
