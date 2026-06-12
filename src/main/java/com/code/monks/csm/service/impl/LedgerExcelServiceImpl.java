@@ -2,6 +2,8 @@ package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.ledger.LedgerEntryDto;
 import com.code.monks.csm.dto.ledger.LedgerResponseDto;
+import com.code.monks.csm.enums.ResponseErrorCode;
+import com.code.monks.csm.exception.ExcelGenerationException;
 import com.code.monks.csm.service.LedgerExcelService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -50,30 +52,21 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
             CellStyle evenDateStyle = createEvenRowStyle(workbook, dateStyle);
             CellStyle evenTextStyle = createEvenRowStyle(workbook, textStyle);
             CellStyle evenAmountStyle = createEvenRowStyle(workbook, amountStyle);
-            CellStyle balHighlightStyle = createBalanceHighlightStyle(workbook, false);
-            CellStyle evenBalHighlightStyle = createBalanceHighlightStyle(workbook, true);
             CellStyle summaryHeaderStyle = createSummaryHeaderStyle(workbook);
             CellStyle summaryLabelStyle = createSummaryLabelStyle(workbook, false);
             CellStyle summaryValueStyle = createSummaryValueStyle(workbook, false);
             CellStyle summaryClosingLabelStyle = createSummaryLabelStyle(workbook, true);
             CellStyle summaryClosingValueStyle = createSummaryValueStyle(workbook, true);
-            CellStyle lastDataDateStyle = createLastDataCellStyle(workbook, dateStyle, false);
-            CellStyle lastDataTextStyle = createLastDataCellStyle(workbook, textStyle, false);
-            CellStyle lastDataAmountStyle = createLastDataCellStyle(workbook, amountStyle, false);
-            CellStyle lastDataEvenDateStyle = createLastDataCellStyle(workbook, evenDateStyle, true);
-            CellStyle lastDataEvenTextStyle = createLastDataCellStyle(workbook, evenTextStyle, true);
-            CellStyle lastDataEvenAmountStyle = createLastDataCellStyle(workbook, evenAmountStyle, true);
-            CellStyle lastDataBalStyle = createLastDataCellStyle(workbook, balHighlightStyle, false);
-            CellStyle lastDataEvenBalStyle = createLastDataCellStyle(workbook, evenBalHighlightStyle, true);
 
             int rowNum = 0;
 
             writeTitle(sheet, rowNum++, titleStyle);
             writeGeneratedDate(sheet, rowNum++, generatedDateStyle);
             rowNum++;
+            rowNum = writeSectionHeading(sheet, rowNum, sectionHeadingStyle, "Party Information");
             rowNum = writePartyCard(sheet, rowNum, ledger, cardLabelStyle, cardValueStyle, cardNameValueStyle);
             rowNum++;
-            rowNum = writeSectionHeading(sheet, rowNum, sectionHeadingStyle);
+            rowNum = writeSectionHeading(sheet, rowNum, sectionHeadingStyle, "Transaction Details");
             rowNum++;
 
             int headerRowNum = rowNum;
@@ -82,13 +75,9 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
             rowNum++;
             int firstDataRowNum = rowNum;
             log.debug("First data row number: {}", firstDataRowNum);
-            boolean lastRowIsEven = (entryCount > 0) && (entryCount % 2 == 0);
             rowNum = writeEntryRows(sheet, rowNum, ledger,
-                    dateStyle, textStyle, amountStyle, balHighlightStyle,
-                    evenDateStyle, evenTextStyle, evenAmountStyle, evenBalHighlightStyle,
-                    lastDataDateStyle, lastDataTextStyle, lastDataAmountStyle, lastDataBalStyle,
-                    lastDataEvenDateStyle, lastDataEvenTextStyle, lastDataEvenAmountStyle, lastDataEvenBalStyle,
-                    lastRowIsEven);
+                    dateStyle, textStyle, amountStyle,
+                    evenDateStyle, evenTextStyle, evenAmountStyle);
             log.debug("Last entry written, final rowNum={}", rowNum);
 
             int summaryRow = rowNum + 2;
@@ -108,9 +97,7 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
             return result;
 
         } catch (Exception e) {
-            log.error("Failed to generate Excel for ledger: party={}, type={}",
-                    ledger.party().name(), ledger.ledgerType(), e);
-            throw new RuntimeException("Failed to generate ledger Excel file", e);
+            throw new ExcelGenerationException(ResponseErrorCode.EXCEL_GENERATION_FAILED, e);
         }
     }
 
@@ -179,13 +166,13 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         return rowNum;
     }
 
-    private int writeSectionHeading(Sheet sheet, int rowNum, CellStyle style) {
+    private int writeSectionHeading(Sheet sheet, int rowNum, CellStyle style, String heading) {
         Row row = sheet.createRow(rowNum);
         row.setHeightInPoints(20);
         for (int i = 0; i < TABLE_COLUMNS; i++) {
             Cell cell = row.createCell(i);
             if (i == 0) {
-                cell.setCellValue("Transaction Details");
+                cell.setCellValue(heading);
             }
             cell.setCellStyle(style);
         }
@@ -213,32 +200,20 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
 
     private int writeEntryRows(Sheet sheet, int rowNum, LedgerResponseDto ledger,
                                 CellStyle dateStyle, CellStyle textStyle, CellStyle amountStyle,
-                                CellStyle balStyle,
-                                CellStyle evenDateStyle, CellStyle evenTextStyle, CellStyle evenAmountStyle,
-                                CellStyle evenBalStyle,
-                                CellStyle lastDateStyle, CellStyle lastTextStyle, CellStyle lastAmountStyle,
-                                CellStyle lastBalStyle,
-                                CellStyle lastEvenDateStyle, CellStyle lastEvenTextStyle,
-                                CellStyle lastEvenAmountStyle, CellStyle lastEvenBalStyle,
-                                boolean lastRowIsEven) {
-        int entryCount = ledger.entries().size();
+                                CellStyle evenDateStyle, CellStyle evenTextStyle, CellStyle evenAmountStyle) {
         boolean isEven = false;
-        int idx = 0;
         for (LedgerEntryDto entry : ledger.entries()) {
-            boolean isLastRow = (idx == entryCount - 1);
             Row row = sheet.createRow(rowNum);
 
-            CellStyle csDate, csText, csAmount, csBal;
-            if (isLastRow) {
-                csDate = lastRowIsEven ? lastEvenDateStyle : lastDateStyle;
-                csText = lastRowIsEven ? lastEvenTextStyle : lastTextStyle;
-                csAmount = lastRowIsEven ? lastEvenAmountStyle : lastAmountStyle;
-                csBal = lastRowIsEven ? lastEvenBalStyle : lastBalStyle;
+            CellStyle csDate, csText, csAmount;
+            if (isEven) {
+                csDate = evenDateStyle;
+                csText = evenTextStyle;
+                csAmount = evenAmountStyle;
             } else {
-                csDate = isEven ? evenDateStyle : dateStyle;
-                csText = isEven ? evenTextStyle : textStyle;
-                csAmount = isEven ? evenAmountStyle : amountStyle;
-                csBal = isEven ? evenBalStyle : balStyle;
+                csDate = dateStyle;
+                csText = textStyle;
+                csAmount = amountStyle;
             }
 
             Cell dateCell = row.createCell(0);
@@ -263,11 +238,10 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
 
             Cell balCell = row.createCell(5);
             balCell.setCellValue(entry.runningBalance().doubleValue());
-            balCell.setCellStyle(csBal);
+            balCell.setCellStyle(csAmount);
 
             rowNum++;
             isEven = !isEven;
-            idx++;
         }
         return rowNum;
     }
@@ -353,6 +327,7 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         applyBorders(style, BorderStyle.THIN);
         style.setAlignment(HorizontalAlignment.LEFT);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setWrapText(true);
         return style;
     }
 
@@ -437,33 +412,11 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         return style;
     }
 
-    private CellStyle createBalanceHighlightStyle(Workbook wb, boolean isEven) {
-        CellStyle style = baseCellStyle(wb);
-        style.setAlignment(HorizontalAlignment.RIGHT);
-        style.setDataFormat(wb.getCreationHelper().createDataFormat().getFormat(NUMBER_FORMAT));
-        style.setFillForegroundColor(isEven
-                ? IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex()
-                : IndexedColors.LIGHT_TURQUOISE.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        return style;
-    }
-
     private CellStyle createEvenRowStyle(Workbook wb, CellStyle base) {
         CellStyle style = wb.createCellStyle();
         style.cloneStyleFrom(base);
         style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        return style;
-    }
-
-    private CellStyle createLastDataCellStyle(Workbook wb, CellStyle base, boolean isEven) {
-        CellStyle style = wb.createCellStyle();
-        style.cloneStyleFrom(base);
-        style.setBorderBottom(BorderStyle.MEDIUM);
-        if (isEven) {
-            style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        }
         return style;
     }
 

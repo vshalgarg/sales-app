@@ -71,7 +71,6 @@ public class LedgerServiceImpl implements LedgerService {
         log.debug("Fetching party details for ledgerType={}", ledgerType);
 
         return switch (ledgerType) {
-
             case CUSTOMER ->
                     getSupplierDetails(supplierId);
 
