@@ -40,6 +40,7 @@ const Sidebar = ({
       ...(retailConfig?.[0]?.value === "true"
         ? [{ name: "Retail", path: "/retail" }]
         : []),
+      { name: "Ledger", path: "/ledger" },
     ];
   }
 
