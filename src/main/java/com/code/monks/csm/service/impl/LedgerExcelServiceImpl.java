@@ -53,9 +53,9 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
             CellStyle dateStyle           = createDateCellStyle(workbook);
             CellStyle textStyle           = createTextCellStyle(workbook);
             CellStyle amountStyle         = createAmountCellStyle(workbook);
-            CellStyle evenDateStyle       = createEvenRowStyle(workbook, dateStyle);
-            CellStyle evenTextStyle       = createEvenRowStyle(workbook, textStyle);
-            CellStyle evenAmountStyle     = createEvenRowStyle(workbook, amountStyle);
+            CellStyle evenDateStyle       = dateStyle;
+            CellStyle evenTextStyle       = textStyle;
+            CellStyle evenAmountStyle     = amountStyle;
             CellStyle totalLabelStyle     = createTotalRowLabelStyle(workbook);
             CellStyle totalAmountStyle    = createTotalRowAmountStyle(workbook);
 
@@ -76,7 +76,6 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
             rowNum++;
             rowNum = writeSectionHeading(sheet, rowNum, sectionStyle, "Transaction Details", 0);
 
-            int headerRowNum = rowNum;
             writeTableHeader(sheet, rowNum, headerStyle, headerFirstStyle, headerLastStyle);
             rowNum++;
 
@@ -381,13 +380,6 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         return s;
     }
 
-    private CellStyle createEvenRowStyle(Workbook wb, CellStyle base) {
-        CellStyle s = wb.createCellStyle();
-        s.cloneStyleFrom(base);
-        s.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        return s;
-    }
 
     private CellStyle createTotalRowLabelStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
