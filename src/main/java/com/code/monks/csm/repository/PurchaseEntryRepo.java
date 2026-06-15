@@ -48,6 +48,7 @@ public interface PurchaseEntryRepo extends
     List<StaffAnalyticsView> getStaffCustomerAnalytics(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
+    );
     @EntityGraph(attributePaths = {"supplier"})
     List<PurchaseEntity> findAll(
             Specification<PurchaseEntity> specification
