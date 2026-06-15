@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.code.monks.csm.constants.ApiPaths.ANALYTICS_MONTHLY;
 import static com.code.monks.csm.constants.ApiPaths.BASE;
 
 @RestController
@@ -22,12 +23,12 @@ public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
 
-    @PostMapping("/analytics")
-    public ResponseEntity<ApiResponse<MonthlyAnalyticsResponseDto>> getAmountVsMonth(@RequestBody MonthlyAnalyticsRequestDto request) {
-        log.info("Fetching amount vs month analytics");
+    @PostMapping(ANALYTICS_MONTHLY)
+    public ResponseEntity<ApiResponse<MonthlyAnalyticsResponseDto>> getMonthlyAnalytics(@RequestBody MonthlyAnalyticsRequestDto request) {
+        log.info("Fetching monthly analytics");
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        "Amount vs month fetched successfully",
+                        "Monthly analytics fetched successfully",
                         analyticsService.getMonthlyAnalytics(request)
                 )
         );

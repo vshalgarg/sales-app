@@ -2,7 +2,7 @@ package com.code.monks.csm.dto.analytics;
 
 import java.math.BigDecimal;
 
-public record MonthlyAnalyticsDto(
+public record MonthlyDataPoint(
         String month,
         BigDecimal billAmount,
         BigDecimal creditAmount,
