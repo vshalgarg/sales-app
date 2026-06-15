@@ -1,7 +1,8 @@
 package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.analytics.DatasetDto;
-import com.code.monks.csm.dto.analytics.MonthlyAnalyticsDto;
+import com.code.monks.csm.dto.analytics.MetricType;
+import com.code.monks.csm.dto.analytics.MonthlyDataPoint;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsRequestDto;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsResponseDto;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,9 +48,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         List<Integer> customerIds = normalizeIds(request.customerIds());
         LocalDate fromDate = request.fromDate();
         LocalDate toDate = request.toDate();
-        if (fromDate == null && toDate == null) {
+        if (fromDate == null) {
+            fromDate = toDate != null
+                    ? toDate.minusMonths(11).withDayOfMonth(1)
+                    : LocalDate.now().minusMonths(11).withDayOfMonth(1);
+        }
+        if (toDate == null) {
             toDate = LocalDate.now();
-            fromDate = toDate.minusMonths(11).withDayOfMonth(1);
         }
 
         List<MonthlyAnalyticsView> billAnalytics =
@@ -111,13 +117,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             startMonth = startMonth.plusMonths(1);
         }
 
-        List<MonthlyAnalyticsDto> records =
+        List<MonthlyDataPoint> records =
                 monthlyMap.entrySet()
                         .stream()
                         .map(entry -> {
                             YearMonth yearMonth = entry.getKey();
                             MonthlyAnalyticsAccumulator data = entry.getValue();
-                            return new MonthlyAnalyticsDto(
+                            return new MonthlyDataPoint(
                                     yearMonth.getMonth().getDisplayName(
                                             TextStyle.SHORT,
                                             Locale.ENGLISH
@@ -132,51 +138,16 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<String> labels =
                 records.stream()
-                        .map(MonthlyAnalyticsDto::month)
+                        .map(MonthlyDataPoint::month)
                         .toList();
 
-        List<DatasetDto> datasets = List.of(
-
-                DatasetDto.builder()
-                        .label("Bill Amount")
-                        .data(
-                                records.stream()
-                                        .map(MonthlyAnalyticsDto::billAmount)
-                                        .toList()
-                        )
-                        .unit("₹")
-                        .build(),
-
-                DatasetDto.builder()
-                        .label("Credit Amount")
-                        .data(
-                                records.stream()
-                                        .map(MonthlyAnalyticsDto::creditAmount)
-                                        .toList()
-                        )
-                        .unit("₹")
-                        .build(),
-
-                DatasetDto.builder()
-                        .label("Bill Count")
-                        .data(
-                                records.stream()
-                                        .map(MonthlyAnalyticsDto::billCount)
-                                        .toList()
-                        )
-                        .unit("COUNT")
-                        .build(),
-
-                DatasetDto.builder()
-                        .label("Credit Count")
-                        .data(
-                                records.stream()
-                                        .map(MonthlyAnalyticsDto::creditCount)
-                                        .toList()
-                        )
-                        .unit("COUNT")
-                        .build()
-        );
+        List<DatasetDto> datasets = Arrays.stream(MetricType.values())
+                .map(type -> DatasetDto.builder()
+                        .label(type.getLabel())
+                        .data(records.stream().map(type::extract).toList())
+                        .unit(type.getUnit())
+                        .build())
+                .toList();
 
         return MonthlyAnalyticsResponseDto.builder()
                 .labels(labels)

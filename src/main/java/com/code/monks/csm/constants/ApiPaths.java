@@ -103,5 +103,6 @@ public class ApiPaths {
     public static final String LEDGER_DOWNLOAD = "/ledger/download";
 
     // analytics
+    public static final String ANALYTICS_MONTHLY = "/analytics/monthly";
 
 }
