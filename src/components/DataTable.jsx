@@ -29,7 +29,6 @@ const DataTable = ({
   loading = false,
   onView,
   onEdit,
-  onEditRole,
   onDelete,
   totalAmount,
   onCopy,
@@ -229,18 +228,6 @@ const DataTable = ({
           >
             <EditIcon fontSize="small" sx={{ mr: 1 }} />
             Edit
-          </MenuItem>
-        )}
-
-        {onEditRole && (
-          <MenuItem
-            onClick={() => {
-              onEditRole(selectedRow);
-              handleCloseMenu();
-            }}
-          >
-            <EditIcon fontSize="small" sx={{ mr: 1 }} />
-            Edit Role
           </MenuItem>
         )}
 
