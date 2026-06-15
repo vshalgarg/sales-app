@@ -1,11 +1,18 @@
 package com.code.monks.csm.service.impl;
 
+import com.code.monks.csm.dto.analytics.ChartDataDto;
 import com.code.monks.csm.dto.analytics.DatasetDto;
 import com.code.monks.csm.dto.analytics.MetricType;
 import com.code.monks.csm.dto.analytics.MonthlyDataPoint;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsRequestDto;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsResponseDto;
+import com.code.monks.csm.dto.analytics.StaffAnalyticsRequestDto;
+import com.code.monks.csm.dto.analytics.StaffAnalyticsResponseDto;
+import com.code.monks.csm.dto.analytics.StaffMetricType;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
+import com.code.monks.csm.dto.analytics.projection.StaffAnalyticsView;
+import com.code.monks.csm.entity.StaffEntity;
+import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.repository.*;
 import com.code.monks.csm.service.AnalyticsService;
 import com.code.monks.csm.utils.MoneyUtil;
@@ -18,11 +25,16 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -34,12 +46,113 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final CustomerRepo customerRepo;
     private final SupplierRepo supplierRepo;
     private final StaffRepo staffRepo;
+    private final PurchaseEntryRepo purchaseEntryRepo;
+
+    @Override
+    public StaffAnalyticsResponseDto getStaffAnalytics(StaffAnalyticsRequestDto request) {
+        log.info("Fetching staff analytics from {} to {}", request.fromDate(), request.toDate());
+
+        LocalDate fromDate = request.fromDate();
+        LocalDate toDate = request.toDate();
+        if (fromDate == null && toDate == null) {
+            toDate = LocalDate.now();
+            fromDate = toDate.minusMonths(11).withDayOfMonth(1);
+        }
+
+        List<StaffAnalyticsView> supplierData = purchaseEntryRepo.getStaffSupplierAnalytics(fromDate, toDate);
+        List<StaffAnalyticsView> customerData = purchaseEntryRepo.getStaffCustomerAnalytics(fromDate, toDate);
+
+        Map<Integer, String> staffNameMap = staffRepo.findAll()
+                .stream()
+                //.filter(s -> s.getStatus() == StatusEnum.ACTIVE)
+                .collect(Collectors.toMap(StaffEntity::getId, StaffEntity::getStaffName));
+
+        Set<Integer> validStaffIds = new HashSet<>();
+        supplierData.stream()
+                .map(StaffAnalyticsView::getStaffId)
+                .filter(staffNameMap::containsKey)
+                .forEach(validStaffIds::add);
+        customerData.stream()
+                .map(StaffAnalyticsView::getStaffId)
+                .filter(staffNameMap::containsKey)
+                .forEach(validStaffIds::add);
+
+        List<Integer> sortedStaffIds = validStaffIds.stream()
+                .sorted(Comparator.comparing(staffNameMap::get))
+                .toList();
+
+        List<String> labels = sortedStaffIds.stream()
+                .map(staffNameMap::get)
+                .toList();
+
+        Map<Integer, Long> supplierCountMap = supplierData.stream()
+                .filter(v -> staffNameMap.containsKey(v.getStaffId()))
+                .collect(Collectors.toMap(StaffAnalyticsView::getStaffId, StaffAnalyticsView::getCount));
+
+        Map<Integer, Long> customerCountMap = customerData.stream()
+                .filter(v -> staffNameMap.containsKey(v.getStaffId()))
+                .collect(Collectors.toMap(StaffAnalyticsView::getStaffId, StaffAnalyticsView::getCount));
+
+        List<Long> supplierCounts = sortedStaffIds.stream()
+                .map(id -> supplierCountMap.getOrDefault(id, 0L))
+                .toList();
+
+        List<Long> customerCounts = sortedStaffIds.stream()
+                .map(id -> customerCountMap.getOrDefault(id, 0L))
+                .toList();
+
+        List<Long> totalCounts = sortedStaffIds.stream()
+                .map(id -> supplierCountMap.getOrDefault(id, 0L) + customerCountMap.getOrDefault(id, 0L))
+                .toList();
+
+        DatasetDto supplierDataset = DatasetDto.builder()
+                .label(StaffMetricType.SUPPLIER_COUNT.getLabel())
+                .data(supplierCounts)
+                .unit(StaffMetricType.SUPPLIER_COUNT.getUnit())
+                .build();
+
+        DatasetDto customerDataset = DatasetDto.builder()
+                .label(StaffMetricType.CUSTOMER_COUNT.getLabel())
+                .data(customerCounts)
+                .unit(StaffMetricType.CUSTOMER_COUNT.getUnit())
+                .build();
+
+        DatasetDto totalDataset = DatasetDto.builder()
+                .label(StaffMetricType.TOTAL_COUNT.getLabel())
+                .data(totalCounts)
+                .unit(StaffMetricType.TOTAL_COUNT.getUnit())
+                .build();
+
+        ChartDataDto supplierVsStaff = ChartDataDto.builder()
+                .labels(labels)
+                .datasets(List.of(supplierDataset))
+                .build();
+
+        ChartDataDto customerVsStaff = ChartDataDto.builder()
+                .labels(labels)
+                .datasets(List.of(customerDataset))
+                .build();
+
+        ChartDataDto supplierAndCustomerVsStaff = ChartDataDto.builder()
+                .labels(labels)
+                .datasets(List.of(totalDataset))
+                .build();
+
+        log.info("Staff analytics fetched: {} staff members, date range: {} to {}", labels.size(), fromDate, toDate);
+
+        return StaffAnalyticsResponseDto.builder()
+                .supplierVsStaff(supplierVsStaff)
+                .customerVsStaff(customerVsStaff)
+                .supplierAndCustomerVsStaff(supplierAndCustomerVsStaff)
+                .build();
+    }
 
     @Override
     public MonthlyAnalyticsResponseDto getMonthlyAnalytics(MonthlyAnalyticsRequestDto request) {
 
         log.info(
-                "Fetching monthly analytics. SupplierIds: {}, CustomerIds: {}",
+                "Fetching monthly analytics. fromDate: {}, toDate: {}, supplierIds: {}, customerIds: {}",
+                request.fromDate(), request.toDate(),
                 request.supplierIds(),
                 request.customerIds()
         );
@@ -148,6 +261,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         .unit(type.getUnit())
                         .build())
                 .toList();
+
+        log.info("Monthly analytics fetched: {} months from {} to {}", records.size(), fromDate, toDate);
 
         return MonthlyAnalyticsResponseDto.builder()
                 .labels(labels)

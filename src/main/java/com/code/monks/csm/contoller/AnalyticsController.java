@@ -3,6 +3,8 @@ package com.code.monks.csm.contoller;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsRequestDto;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsResponseDto;
+import com.code.monks.csm.dto.analytics.StaffAnalyticsRequestDto;
+import com.code.monks.csm.dto.analytics.StaffAnalyticsResponseDto;
 import com.code.monks.csm.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.code.monks.csm.constants.ApiPaths.ANALYTICS_MONTHLY;
+import static com.code.monks.csm.constants.ApiPaths.ANALYTICS_STAFF;
 import static com.code.monks.csm.constants.ApiPaths.BASE;
 
 @RestController
@@ -30,6 +33,17 @@ public class AnalyticsController {
                 ApiResponse.success(
                         "Monthly analytics fetched successfully",
                         analyticsService.getMonthlyAnalytics(request)
+                )
+        );
+    }
+
+    @PostMapping(ANALYTICS_STAFF)
+    public ResponseEntity<ApiResponse<StaffAnalyticsResponseDto>> getStaffAnalytics(@RequestBody StaffAnalyticsRequestDto request) {
+        log.info("Fetching staff analytics");
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Staff analytics fetched successfully",
+                        analyticsService.getStaffAnalytics(request)
                 )
         );
     }
