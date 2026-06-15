@@ -49,6 +49,7 @@ public interface PurchaseEntryRepo extends
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
     @EntityGraph(attributePaths = {"supplier"})
     List<PurchaseEntity> findAll(
             Specification<PurchaseEntity> specification
