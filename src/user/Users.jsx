@@ -1,32 +1,27 @@
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
-import {
-  getUsers,
-  deleteUser,
-  searchUsers,
-} from "../service/UserService";
+import { getUsers, deleteUser, searchUsers } from "../service/UserService";
 import { useSnackbar } from "../context/SnackbarContext";
 import { useAuth } from "../context/AuthContext";
-
 import DataTable from "../components/DataTable";
 import UniversalSearch from "../components/UniversalSearch";
-
 import ChangePasswordModal from "./modals/ChangePasswordModal";
+import ChangeRoleModal from "./modals/ChangeRoleModal";
 import AddUserModal from "./modals/AddUserModal";
 import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
+import { updateSupplier } from "../service/RetailService";
+
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
   const { auth } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
-
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState("");
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
   const [changePwdModalOpen, setChangePwdModalOpen] = useState(false);
+  const [changeRoleModalOpen, setChangeRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -57,7 +52,6 @@ const Users = () => {
     }
   };
 
-
   const handleDelete = async () => {
     if (!userToDelete?.id) return;
 
@@ -72,12 +66,27 @@ const Users = () => {
       setUserToDelete(null);
     }
   };
+   const handleSaveEditRole = async ({ retailSupplierId, totalAmount }) => {
+      try {
+        const result = await updateSupplier(retailSupplierId, { totalAmount });
+        showSnackbar(result.message || "Role updated successfully", "success");
+        fetchUsers();
+      } catch (error) {
+        showSnackbar(error.message || "Failed to update role", "error");
+        throw error;
+      }
+    };
 
   const columns = [
     {
       key: "username",
       label: "Username",
-      width: "70%",
+      width: "40%",
+    },
+    {
+      key: "role",
+      label: "Role",
+      width: "40%",
     },
   ];
 
@@ -117,14 +126,30 @@ const Users = () => {
           data={users}
           loading={false}
           actions={isAdmin}
-          onEdit={isAdmin ? (u) => {
-            setSelectedUser(u);
-            setChangePwdModalOpen(true);
-          } : undefined}
-          onDelete={isAdmin ? (u) => {
-            setUserToDelete(u);
-            setDeleteModalOpen(true);
-          } : undefined}
+          onEdit={
+            isAdmin
+              ? (u) => {
+                  setSelectedUser(u);
+                  setChangePwdModalOpen(true);
+                }
+              : undefined
+          }
+          onEditRole={
+            isAdmin
+              ? (u) => {
+                  setSelectedUser(u);
+                  setChangeRoleModalOpen(true);
+                }
+              : undefined
+          }
+          onDelete={
+            isAdmin
+              ? (u) => {
+                  setUserToDelete(u);
+                  setDeleteModalOpen(true);
+                }
+              : undefined
+          }
           emptyMessage="No users found"
           disablePagination
         />
@@ -145,14 +170,22 @@ const Users = () => {
           setSelectedUser(null);
         }}
       />
+      <ChangeRoleModal
+        open={changeRoleModalOpen}
+        user={selectedUser}
+        onClose={() => {
+          setChangeRoleModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onSave={handleSaveEditRole}
+      />
 
       <DeleteConfirmModal
         open={deleteModalOpen}
         title="Delete User"
         message={
           <>
-            Are you sure you want to delete{" "}
-            <b>{userToDelete?.username}</b>?
+            Are you sure you want to delete <b>{userToDelete?.username}</b>?
             This action cannot be undone.
           </>
         }
@@ -164,7 +197,6 @@ const Users = () => {
         }}
         onConfirm={handleDelete}
       />
-
     </div>
   );
 };
