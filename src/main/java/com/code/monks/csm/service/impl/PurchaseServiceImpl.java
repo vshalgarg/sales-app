@@ -2,12 +2,10 @@ package com.code.monks.csm.service.impl;
 
 import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
+import com.code.monks.csm.dto.request.CopySupplierDetailsRequest;
 import com.code.monks.csm.dto.request.SupplierPurchaseDto;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
-import com.code.monks.csm.dto.response.AddPurchaseEntryResponseDto;
-import com.code.monks.csm.dto.response.FileUploadResponse;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.*;
 import com.code.monks.csm.enums.UploadModuleEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
@@ -34,6 +32,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
 
@@ -441,5 +441,48 @@ public class PurchaseServiceImpl implements PurchaseService {
             images.add(image);
         }
         return images;
+    }
+
+
+    @Override
+    public CopySupplierDetailsResponseDTO copySupplierDetailsPerCustomer(CopySupplierDetailsRequest request) {
+
+        log.info(
+                "Copy supplier details requested. customerId={}, supplierId={}, staffId={}",
+                request.customerId(),
+                request.supplierId(),
+                request.staffId()
+        );
+
+        GenericSpecificationBuilder<PurchaseEntity> builder = new GenericSpecificationBuilder<>();
+        Specification<PurchaseEntity> specification = builder
+                .fromDate("date", request.fromDate())
+                .toDate("date", request.toDate())
+                .joinEqual("supplier", "id", request.supplierId())
+                .joinEqual("customer", "id", request.customerId())
+                .equal("staffId", request.staffId())
+                .build();
+
+        List<PurchaseEntity> purchases = purchaseEntryRepo.findAll(specification);
+        log.info("Found {} purchase records", purchases.size());
+
+        Map<Integer, SupplierEntity> supplierMap = new LinkedHashMap<>();
+        for (PurchaseEntity purchase : purchases) {
+            SupplierEntity supplier = purchase.getSupplier();
+            if (supplier != null) {
+                supplierMap.putIfAbsent(
+                        supplier.getId(),
+                        supplier
+                );
+            }
+        }
+        List<CopySupplierDTO> suppliers =
+                supplierMap.values()
+                        .stream()
+                        .map(purchaseMapper::toSupplierCopyDto)
+                        .toList();
+
+        log.info("Returning {} unique suppliers", suppliers.size());
+        return new CopySupplierDetailsResponseDTO(suppliers);
     }
 }

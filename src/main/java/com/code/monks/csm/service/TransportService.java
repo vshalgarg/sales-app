@@ -1,10 +1,7 @@
 package com.code.monks.csm.service;
 
 import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
-import com.code.monks.csm.dto.response.CommonTransportResponseDto;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.TransportLiteResponseDto;
-import com.code.monks.csm.dto.response.TransportResponseDto;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.TransportEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,4 +21,5 @@ public interface TransportService {
 
     void deleteTransport(Integer id);
     Optional<TransportEntity> findByNameIgnoreCase(String name);
+    TransportDetailsResponseDTO getTransportDetails(Integer id);
 }

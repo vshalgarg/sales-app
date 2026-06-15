@@ -14,6 +14,8 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
+import java.util.List;
+
 public interface PurchaseEntryRepo extends
         JpaRepository<PurchaseEntity, Integer>,
         JpaSpecificationExecutor<PurchaseEntity> {
@@ -46,5 +48,8 @@ public interface PurchaseEntryRepo extends
     List<StaffAnalyticsView> getStaffCustomerAnalytics(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
+    @EntityGraph(attributePaths = {"supplier"})
+    List<PurchaseEntity> findAll(
+            Specification<PurchaseEntity> specification
     );
 }
