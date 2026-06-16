@@ -51,7 +51,7 @@ public class LedgerServiceImpl implements LedgerService {
         BigDecimal totalDebit = calculateTotalDebit(entries);
         BigDecimal totalCredit = calculateTotalCredit(entries);
 
-        BigDecimal balance = calculateBalance(totalDebit, totalCredit, ledgerType);
+        BigDecimal balance = calculateBalance(totalDebit, totalCredit);
 
         log.info("Ledger generated successfully. Entries={}, TotalDebit={}, TotalCredit={}, Balance={}", entries.size(), totalDebit, totalCredit, balance);
 
@@ -283,7 +283,7 @@ public class LedgerServiceImpl implements LedgerService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal calculateBalance(BigDecimal totalDebit, BigDecimal totalCredit, LedgerViewTypeEnum ledgerType) {
+    private BigDecimal calculateBalance(BigDecimal totalDebit, BigDecimal totalCredit) {
         return totalCredit.subtract(totalDebit);
     }
 }
