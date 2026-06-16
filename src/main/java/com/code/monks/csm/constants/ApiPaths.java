@@ -105,5 +105,7 @@ public class ApiPaths {
     // analytics
     public static final String ANALYTICS_MONTHLY = "/analytics/monthly";
     public static final String ANALYTICS_STAFF = "/analytics/staff";
+    public static final String ANALYTICS_SUPPLIER_AMOUNT = "/analytics/supplier/amount";
+    public static final String ANALYTICS_CUSTOMER_AMOUNT = "/analytics/customer/amount";
 
 }
