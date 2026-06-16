@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useConfig } from "../context/ConfigContext";
+import { useAuth } from "../context/AuthContext";
 
 const Sidebar = ({
   activeSection,
@@ -7,11 +8,13 @@ const Sidebar = ({
   onClose,
   isMobile,
   navbarHeight,
-  safeNavigate
+  safeNavigate,
 }) => {
   let menuItems = [];
   const { config } = useConfig();
   const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
+  const { auth } = useAuth();
+  const isAdmin = auth?.role?.includes("ADMIN");
 
   if (activeSection === "master") {
     menuItems = [
@@ -20,7 +23,7 @@ const Sidebar = ({
       { name: "Staff", path: "/staff" },
       { name: "Transports", path: "/transports" },
       { name: "Users", path: "/users" },
-      { name: "Configurations", path: "/configurations" },
+      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   } else if (activeSection === "entries") {
     menuItems = [
@@ -70,7 +73,8 @@ const Sidebar = ({
                 `block px-4 py-2 rounded transition-colors
                  text-gray-700 dark:text-white
                  hover:bg-blue-100 dark:hover:bg-blue-800
-                 ${isActive ? "bg-blue-200 dark:bg-blue-700 font-semibold" : ""
+                 ${
+                   isActive ? "bg-blue-200 dark:bg-blue-700 font-semibold" : ""
                  }`
               }
             >
