@@ -38,6 +38,6 @@ public class MoneyUtil {
 
     public static BigDecimal roundUpToInteger(BigDecimal amount) {
         if (amount == null) return BigDecimal.ZERO;
-        return amount.setScale(0, RoundingMode.UP);
+        return amount.setScale(0, RoundingMode.HALF_UP);
     }
 }
