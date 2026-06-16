@@ -756,7 +756,7 @@ INSERT INTO configurations (
 ) VALUES (
     'RETAIL_FEATURE',
     'true',
-    1,
+    2,
     'Enable/disable retail feature',
     NOW(),
     NOW(),
