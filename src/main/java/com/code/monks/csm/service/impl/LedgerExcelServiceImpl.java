@@ -222,12 +222,11 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         Row row = sheet.createRow(rowNum);
         row.setHeightInPoints(20);
 
-        for (int i = 0; i < 3; i++) {
-            Cell cell = row.createCell(i);
-            if (i == 0) cell.setCellValue("Total");
-            cell.setCellStyle(labelStyle);
-        }
-        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, 0, 2));
+        row.createCell(0).setCellStyle(labelStyle);
+        row.createCell(1).setCellStyle(labelStyle);
+        Cell totalCell = row.createCell(2);
+        totalCell.setCellValue("Total");
+        totalCell.setCellStyle(labelStyle);
 
         row.createCell(3).setCellValue(ledger.totalDebit().doubleValue());   row.getCell(3).setCellStyle(amountStyle);
         row.createCell(4).setCellValue(ledger.totalCredit().doubleValue());  row.getCell(4).setCellStyle(amountStyle);
@@ -395,7 +394,7 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         s.setBorderBottom(BorderStyle.MEDIUM);
         s.setBorderLeft(BorderStyle.MEDIUM);
         s.setBorderRight(BorderStyle.THIN);
-        s.setAlignment(HorizontalAlignment.RIGHT);
+        s.setAlignment(HorizontalAlignment.LEFT);
         s.setVerticalAlignment(VerticalAlignment.CENTER);
         return s;
     }
