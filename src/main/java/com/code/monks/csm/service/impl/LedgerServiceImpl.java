@@ -51,7 +51,7 @@ public class LedgerServiceImpl implements LedgerService {
         BigDecimal totalDebit = calculateTotalDebit(entries);
         BigDecimal totalCredit = calculateTotalCredit(entries);
 
-        BigDecimal balance = calculateBalance(totalDebit, totalCredit, ledgerType);
+        BigDecimal balance = calculateBalance(totalDebit, totalCredit);
 
         log.info("Ledger generated successfully. Entries={}, TotalDebit={}, TotalCredit={}, Balance={}", entries.size(), totalDebit, totalCredit, balance);
 
@@ -253,7 +253,7 @@ public class LedgerServiceImpl implements LedgerService {
             if (ledgerType == LedgerViewTypeEnum.CUSTOMER) {
                 balance = balance.add(entry.credit()).subtract(entry.debit());
             } else {
-                balance = balance.add(entry.debit()).subtract(entry.credit());
+                balance = balance.add(entry.credit()).subtract(entry.debit());
             }
 
             result.add(
@@ -283,13 +283,7 @@ public class LedgerServiceImpl implements LedgerService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal calculateBalance(BigDecimal totalDebit, BigDecimal totalCredit, LedgerViewTypeEnum ledgerType) {
-
-        return switch (ledgerType) {
-            case CUSTOMER ->
-                    totalCredit.subtract(totalDebit);
-            case SUPPLIER ->
-                    totalDebit.subtract(totalCredit);
-        };
+    private BigDecimal calculateBalance(BigDecimal totalDebit, BigDecimal totalCredit) {
+        return totalCredit.subtract(totalDebit);
     }
 }
