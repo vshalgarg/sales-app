@@ -106,6 +106,7 @@ public class LedgerServiceImpl implements LedgerService {
                 .name(customer.getCustomerName())
                 .email(customer.getEmail())
                 .phone(mobile)
+                .gstNo(customer.getGstNo())
                 .address(address)
                 .build();
     }
@@ -137,6 +138,7 @@ public class LedgerServiceImpl implements LedgerService {
                 .name(supplier.getSupplierName())
                 .email(supplier.getEmail())
                 .phone(mobile)
+                .gstNo(supplier.getGstNo())
                 .address(address)
                 .build();
     }
