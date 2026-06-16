@@ -5,6 +5,7 @@ import com.code.monks.csm.dto.ledger.LedgerResponseDto;
 import com.code.monks.csm.enums.ResponseErrorCode;
 import com.code.monks.csm.exception.ExcelGenerationException;
 import com.code.monks.csm.service.LedgerExcelService;
+import com.code.monks.csm.utils.MoneyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -23,7 +24,7 @@ import java.util.List;
 public class LedgerExcelServiceImpl implements LedgerExcelService {
 
     private static final String DATE_FORMAT   = "dd-MMM-yyyy";
-    private static final String NUMBER_FORMAT = "#,##0.00";
+    private static final String NUMBER_FORMAT = "#,##0";
     private static final int TABLE_COLUMNS       = 6;
     private static final int PARTY_CARD_START_COL = 1;
     private static final int PARTY_CARD_END_COL   = 5;
@@ -207,9 +208,9 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
             row.createCell(0).setCellValue(e.date());                      row.getCell(0).setCellStyle(csDate);
             row.createCell(1).setCellValue(e.invoiceNo());                 row.getCell(1).setCellStyle(csText);
             row.createCell(2).setCellValue(e.particular());                row.getCell(2).setCellStyle(csText);
-            row.createCell(3).setCellValue(e.debit().doubleValue());       row.getCell(3).setCellStyle(csAmt);
-            row.createCell(4).setCellValue(e.credit().doubleValue());      row.getCell(4).setCellStyle(csAmt);
-            row.createCell(5).setCellValue(e.runningBalance().doubleValue()); row.getCell(5).setCellStyle(csAmt);
+            row.createCell(3).setCellValue(MoneyUtil.roundUpToInteger(e.debit()).doubleValue());       row.getCell(3).setCellStyle(csAmt);
+            row.createCell(4).setCellValue(MoneyUtil.roundUpToInteger(e.credit()).doubleValue());      row.getCell(4).setCellStyle(csAmt);
+            row.createCell(5).setCellValue(MoneyUtil.roundUpToInteger(e.runningBalance()).doubleValue()); row.getCell(5).setCellStyle(csAmt);
 
             rowNum++;
             isEven = !isEven;
@@ -228,9 +229,9 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         totalCell.setCellValue("Total");
         totalCell.setCellStyle(labelStyle);
 
-        row.createCell(3).setCellValue(ledger.totalDebit().doubleValue());   row.getCell(3).setCellStyle(amountStyle);
-        row.createCell(4).setCellValue(ledger.totalCredit().doubleValue());  row.getCell(4).setCellStyle(amountStyle);
-        row.createCell(5).setCellValue(ledger.balance().doubleValue());      row.getCell(5).setCellStyle(amountStyle);
+        row.createCell(3).setCellValue(MoneyUtil.roundUpToInteger(ledger.totalDebit()).doubleValue());   row.getCell(3).setCellStyle(amountStyle);
+        row.createCell(4).setCellValue(MoneyUtil.roundUpToInteger(ledger.totalCredit()).doubleValue());  row.getCell(4).setCellStyle(amountStyle);
+        row.createCell(5).setCellValue(MoneyUtil.roundUpToInteger(ledger.balance()).doubleValue());      row.getCell(5).setCellStyle(amountStyle);
     }
 
     // ─── Style Helpers ────────────────────────────────────────────────────────────

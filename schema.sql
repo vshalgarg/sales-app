@@ -743,3 +743,23 @@ CREATE TABLE configurations (
     created_by BIGINT,
     updated_by BIGINT
 );
+
+INSERT INTO configurations (
+    config_key,
+    config_value,
+    config_type,
+    description,
+    created_at,
+    updated_at,
+    created_by,
+    updated_by
+) VALUES (
+    'RETAIL_FEATURE',
+    'true',
+    2,
+    'Enable/disable retail feature',
+    NOW(),
+    NOW(),
+    NULL,
+    NULL
+);
