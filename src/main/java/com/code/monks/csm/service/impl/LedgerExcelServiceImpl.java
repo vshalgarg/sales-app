@@ -395,7 +395,7 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         s.setBorderBottom(BorderStyle.MEDIUM);
         s.setBorderLeft(BorderStyle.MEDIUM);
         s.setBorderRight(BorderStyle.THIN);
-        s.setAlignment(HorizontalAlignment.LEFT);
+        s.setAlignment(HorizontalAlignment.RIGHT);
         s.setVerticalAlignment(VerticalAlignment.CENTER);
         return s;
     }
