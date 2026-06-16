@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 public class LedgerExcelServiceImpl implements LedgerExcelService {
 
-    private static final String DATE_FORMAT   = "dd-MM-yyyy";
+    private static final String DATE_FORMAT   = "dd-MMM-yyyy";
     private static final String NUMBER_FORMAT = "#,##0.00";
     private static final int TABLE_COLUMNS       = 6;
     private static final int PARTY_CARD_START_COL = 1;
