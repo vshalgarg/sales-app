@@ -1,6 +1,8 @@
 package com.code.monks.csm.repository;
 
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
+import com.code.monks.csm.dto.analytics.projection.CustomerAmountView;
+import com.code.monks.csm.dto.analytics.projection.SupplierAmountView;
 import com.code.monks.csm.entity.BillEntryEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +62,36 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
 """)
     List<MonthlyAnalyticsView> getMonthlyBillAnalytics(
             @Param("supplierIds") List<Integer> supplierIds,
+            @Param("customerIds") List<Integer> customerIds,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate
+    );
+
+    @Query("""
+    SELECT b.supplier.id as supplierId, COALESCE(SUM(b.billAmount), 0) as amount
+    FROM BillEntryEntity b
+    WHERE (:supplierIds IS NULL OR b.supplier.id IN :supplierIds)
+      AND (:fromDate IS NULL OR b.date >= :fromDate)
+      AND (:toDate IS NULL OR b.date <= :toDate)
+    GROUP BY b.supplier.id
+    ORDER BY COALESCE(SUM(b.billAmount), 0) DESC
+""")
+    List<SupplierAmountView> getSupplierBillAnalytics(
+            @Param("supplierIds") List<Integer> supplierIds,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate
+    );
+
+    @Query("""
+    SELECT b.customer.id as customerId, COALESCE(SUM(b.billAmount), 0) as amount
+    FROM BillEntryEntity b
+    WHERE (:customerIds IS NULL OR b.customer.id IN :customerIds)
+      AND (:fromDate IS NULL OR b.date >= :fromDate)
+      AND (:toDate IS NULL OR b.date <= :toDate)
+    GROUP BY b.customer.id
+    ORDER BY COALESCE(SUM(b.billAmount), 0) DESC
+""")
+    List<CustomerAmountView> getCustomerBillAnalytics(
             @Param("customerIds") List<Integer> customerIds,
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate

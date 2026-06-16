@@ -9,9 +9,17 @@ import com.code.monks.csm.dto.analytics.MonthlyAnalyticsResponseDto;
 import com.code.monks.csm.dto.analytics.StaffAnalyticsRequestDto;
 import com.code.monks.csm.dto.analytics.StaffAnalyticsResponseDto;
 import com.code.monks.csm.dto.analytics.StaffMetricType;
+import com.code.monks.csm.dto.analytics.CustomerAmountAnalyticsRequestDto;
+import com.code.monks.csm.dto.analytics.CustomerAmountAnalyticsResponseDto;
+import com.code.monks.csm.dto.analytics.SupplierAmountAnalyticsRequestDto;
+import com.code.monks.csm.dto.analytics.SupplierAmountAnalyticsResponseDto;
+import com.code.monks.csm.dto.analytics.projection.CustomerAmountView;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
 import com.code.monks.csm.dto.analytics.projection.StaffAnalyticsView;
+import com.code.monks.csm.dto.analytics.projection.SupplierAmountView;
+import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.StaffEntity;
+import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.repository.*;
 import com.code.monks.csm.service.AnalyticsService;
@@ -22,6 +30,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
@@ -144,6 +153,156 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .supplierVsStaff(supplierVsStaff)
                 .customerVsStaff(customerVsStaff)
                 .supplierAndCustomerVsStaff(supplierAndCustomerVsStaff)
+                .build();
+    }
+
+    @Override
+    public SupplierAmountAnalyticsResponseDto getSupplierAmountAnalytics(SupplierAmountAnalyticsRequestDto request) {
+        log.info("Fetching supplier amount analytics from {} to {}, supplierIds: {}", request.fromDate(), request.toDate(), request.supplierIds());
+
+        List<Integer> supplierIds = normalizeIds(request.supplierIds());
+        LocalDate fromDate = request.fromDate();
+        LocalDate toDate = request.toDate();
+        if (fromDate == null) {
+            fromDate = toDate != null
+                    ? toDate.minusMonths(11).withDayOfMonth(1)
+                    : LocalDate.now().minusMonths(11).withDayOfMonth(1);
+        }
+        if (toDate == null) {
+            toDate = LocalDate.now();
+        }
+
+        List<SupplierAmountView> billData = billEntryRepo.getSupplierBillAnalytics(supplierIds, fromDate, toDate);
+
+        if (supplierIds == null && billData.size() > 10) {
+            billData = billData.subList(0, 10);
+        }
+
+        List<Integer> activeSupplierIds = billData.stream()
+                .map(SupplierAmountView::getSupplierId)
+                .toList();
+
+        List<SupplierAmountView> creditData = activeSupplierIds.isEmpty()
+                ? List.of()
+                : creditEntryRepo.getSupplierCreditAnalytics(activeSupplierIds, fromDate, toDate);
+
+        Map<Integer, String> supplierNameMap = supplierRepo.findAll()
+                .stream()
+                .collect(Collectors.toMap(SupplierEntity::getId, SupplierEntity::getSupplierName));
+
+        Map<Integer, Long> creditAmountMap = creditData.stream()
+                .collect(Collectors.toMap(SupplierAmountView::getSupplierId, SupplierAmountView::getAmount));
+
+        List<String> labels = new ArrayList<>();
+        List<BigDecimal> billAmounts = new ArrayList<>();
+        List<BigDecimal> creditAmounts = new ArrayList<>();
+
+        for (SupplierAmountView bill : billData) {
+            Integer sid = bill.getSupplierId();
+            if (!supplierNameMap.containsKey(sid)) {
+                continue;
+            }
+            labels.add(supplierNameMap.get(sid));
+            billAmounts.add(MoneyUtil.toRupee(bill.getAmount()));
+            creditAmounts.add(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, 0L)));
+        }
+
+        DatasetDto billDataset = DatasetDto.builder()
+                .label("Bill Amount")
+                .data(billAmounts)
+                .unit("AMOUNT")
+                .build();
+
+        DatasetDto creditDataset = DatasetDto.builder()
+                .label("Credit Amount")
+                .data(creditAmounts)
+                .unit("AMOUNT")
+                .build();
+
+        ChartDataDto chartData = ChartDataDto.builder()
+                .labels(labels)
+                .datasets(List.of(billDataset, creditDataset))
+                .build();
+
+        log.info("Supplier amount analytics fetched: {} suppliers, date range: {} to {}", labels.size(), fromDate, toDate);
+
+        return SupplierAmountAnalyticsResponseDto.builder()
+                .supplierVsAmount(chartData)
+                .build();
+    }
+
+    @Override
+    public CustomerAmountAnalyticsResponseDto getCustomerAmountAnalytics(CustomerAmountAnalyticsRequestDto request) {
+        log.info("Fetching customer amount analytics from {} to {}, customerIds: {}", request.fromDate(), request.toDate(), request.customerIds());
+
+        List<Integer> customerIds = normalizeIds(request.customerIds());
+        LocalDate fromDate = request.fromDate();
+        LocalDate toDate = request.toDate();
+        if (fromDate == null) {
+            fromDate = toDate != null
+                    ? toDate.minusMonths(11).withDayOfMonth(1)
+                    : LocalDate.now().minusMonths(11).withDayOfMonth(1);
+        }
+        if (toDate == null) {
+            toDate = LocalDate.now();
+        }
+
+        List<CustomerAmountView> billData = billEntryRepo.getCustomerBillAnalytics(customerIds, fromDate, toDate);
+
+        if (customerIds == null && billData.size() > 10) {
+            billData = billData.subList(0, 10);
+        }
+
+        List<Integer> activeCustomerIds = billData.stream()
+                .map(CustomerAmountView::getCustomerId)
+                .toList();
+
+        List<CustomerAmountView> creditData = activeCustomerIds.isEmpty()
+                ? List.of()
+                : creditEntryRepo.getCustomerCreditAnalytics(activeCustomerIds, fromDate, toDate);
+
+        Map<Integer, String> customerNameMap = customerRepo.findAll()
+                .stream()
+                .collect(Collectors.toMap(CustomerEntity::getId, CustomerEntity::getCustomerName));
+
+        Map<Integer, Long> creditAmountMap = creditData.stream()
+                .collect(Collectors.toMap(CustomerAmountView::getCustomerId, CustomerAmountView::getAmount));
+
+        List<String> labels = new ArrayList<>();
+        List<BigDecimal> billAmounts = new ArrayList<>();
+        List<BigDecimal> creditAmounts = new ArrayList<>();
+
+        for (CustomerAmountView bill : billData) {
+            Integer cid = bill.getCustomerId();
+            if (!customerNameMap.containsKey(cid)) {
+                continue;
+            }
+            labels.add(customerNameMap.get(cid));
+            billAmounts.add(MoneyUtil.toRupee(bill.getAmount()));
+            creditAmounts.add(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, 0L)));
+        }
+
+        DatasetDto billDataset = DatasetDto.builder()
+                .label("Bill Amount")
+                .data(billAmounts)
+                .unit("AMOUNT")
+                .build();
+
+        DatasetDto creditDataset = DatasetDto.builder()
+                .label("Credit Amount")
+                .data(creditAmounts)
+                .unit("AMOUNT")
+                .build();
+
+        ChartDataDto chartData = ChartDataDto.builder()
+                .labels(labels)
+                .datasets(List.of(billDataset, creditDataset))
+                .build();
+
+        log.info("Customer amount analytics fetched: {} customers, date range: {} to {}", labels.size(), fromDate, toDate);
+
+        return CustomerAmountAnalyticsResponseDto.builder()
+                .customerVsAmount(chartData)
                 .build();
     }
 
