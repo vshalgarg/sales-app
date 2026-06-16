@@ -652,3 +652,94 @@ ALTER TABLE bill
 ADD CONSTRAINT fk_bill_customer
 FOREIGN KEY (customer_id)
 REFERENCES customer(id);
+
+
+CREATE TABLE retailers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    date DATE NOT NULL,
+    referred_by_customer_id INT,
+    staff_id INT,
+    status TINYINT,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    CONSTRAINT fk_retailer_customer
+        FOREIGN KEY (referred_by_customer_id)
+        REFERENCES customer(id),
+
+    CONSTRAINT fk_retailer_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staff(id)
+);
+
+CREATE TABLE retail_supplier (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    retail_id INT NOT NULL,
+    supplier_id INT NOT NULL,
+    total_amount BIGINT,
+    deposit_amount BIGINT,
+    balance_amount BIGINT,
+    status TINYINT,
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    CONSTRAINT fk_retail_supplier_retail
+        FOREIGN KEY (retail_id)
+        REFERENCES retailers(id),
+
+    CONSTRAINT fk_retail_supplier_supplier
+        FOREIGN KEY (supplier_id)
+        REFERENCES supplier(id)
+);
+
+CREATE INDEX idx_retailer_customer_id
+ON retailers(referred_by_customer_id);
+
+CREATE INDEX idx_retailer_staff_id
+ON retailers(staff_id);
+
+CREATE INDEX idx_retail_supplier_supplier_id
+ON retail_supplier(supplier_id);
+
+CREATE INDEX idx_retail_supplier_retail_id
+ON retail_supplier(retail_id);
+
+CREATE TABLE retail_supplier_deposits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    retail_supplier_id INT NOT NULL,
+    deposit_date DATE,
+    amount BIGINT,
+    status TINYINT,
+
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    CONSTRAINT fk_rsp_retail_supplier
+        FOREIGN KEY (retail_supplier_id)
+        REFERENCES retail_supplier(id)
+);
+
+CREATE TABLE configurations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    config_key VARCHAR(255) NOT NULL UNIQUE,
+    config_value VARCHAR(255),
+    config_type TINYINT NOT NULL,
+    description VARCHAR(500),
+
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT
+);

@@ -81,4 +81,24 @@ public class ApiPaths {
     public static final String DELETE_TRANSPORT = "/transports/delete/{id}";
 
     public static final String CHANGE_PASSWORD = "/admin/change/password";
+
+    // retailer
+    public static final String RETAILER_ENTRY = "/retail/create";
+    public static final String UPDATE_RETAILER = "/retail/{id}";
+    public static final String GET_RETAILER = "/retail/get/{id}";
+    public static final String SEARCH_RETAILERS = "/retail/search";
+    public static final String GET_DEPOSIT_HISTORY = "/retail/{retailId}/deposits";
+    public static final String ADD_DEPOSIT = "/retail-supplier-deposits";
+    public static final String DELETE_RETAILER = "/retail/{retailId}";
+    public static final String UPDATE_RETAIL_SUPPLIER ="/retail-suppliers/{retailSupplierId}";
+    public static final String DELETE_RETAIL_SUPPLIER = "/retail-suppliers/{retailSupplierId}";
+    public static final String ADD_RETAIL_SUPPLIER = "/retail-suppliers";
+
+    // admin
+    public static final String GET_CONFIGURATIONS = "/admin/configurations";
+    public static final String UPDATE_CONFIGURATION = "/admin/configurations/{configurationId}";
+
+    // ledger
+    public static final String LEDGER = "/ledger";
+    public static final String LEDGER_DOWNLOAD = "/ledger/download";
 }

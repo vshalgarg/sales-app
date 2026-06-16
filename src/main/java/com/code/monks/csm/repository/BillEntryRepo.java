@@ -11,16 +11,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
         JpaSpecificationExecutor<BillEntryEntity>
 {
-    boolean existsByBillNumber(String billNumber);
     Optional<BillEntryEntity> findByBillNumber(String billNumber);
     Optional<BillEntryEntity> findTopByOrderByIdDesc();
-    boolean existsByLrNumber(String lrNumber);
 
     @EntityGraph(attributePaths = {"supplier", "customer"})
     Page<BillEntryEntity> findAll(Specification<BillEntryEntity> spec, Pageable pageable);
@@ -35,4 +34,9 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
         WHERE b.id = :id
     """)
     Optional<BillEntryEntity> findDetailById(@Param("id") Integer id);
+
+    List<BillEntryEntity> findBySupplier_IdAndCustomer_Id(
+            Integer supplierId,
+            Integer customerId
+    );
 }

@@ -144,4 +144,22 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getErrorCode().getCode(), ex.getErrorCode().getMessage(),LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
+    @ExceptionHandler(ExcelGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleExcelGenerationException(ExcelGenerationException ex) {
+
+        log.error("Excel generation failed: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(
+                ex.getCode(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(errorResponse);
+    }
+
 }
