@@ -46,12 +46,12 @@ public class LedgerServiceImpl implements LedgerService {
         LedgerPartyDto party = getPartyDetails(supplierId, customerId, ledgerType);
         List<LedgerEntryDto> entries = getLedgerEntries(supplierId, customerId, ledgerType);
 
-        entries = calculateRunningBalance(entries);
+        entries = calculateRunningBalance(entries, ledgerType);
 
         BigDecimal totalDebit = calculateTotalDebit(entries);
         BigDecimal totalCredit = calculateTotalCredit(entries);
 
-        BigDecimal balance = calculateBalance(totalDebit, totalCredit);
+        BigDecimal balance = calculateBalance(totalDebit, totalCredit, ledgerType);
 
         log.info("Ledger generated successfully. Entries={}, TotalDebit={}, TotalCredit={}, Balance={}", entries.size(), totalDebit, totalCredit, balance);
 
@@ -241,7 +241,7 @@ public class LedgerServiceImpl implements LedgerService {
         );
     }
 
-    private List<LedgerEntryDto> calculateRunningBalance(List<LedgerEntryDto> entries) {
+    private List<LedgerEntryDto> calculateRunningBalance(List<LedgerEntryDto> entries, LedgerViewTypeEnum ledgerType) {
 
         log.debug("Calculating running balance for {} entries", entries.size());
 
@@ -249,7 +249,13 @@ public class LedgerServiceImpl implements LedgerService {
         List<LedgerEntryDto> result = new ArrayList<>();
 
         for (LedgerEntryDto entry : entries) {
-            balance = balance.add(entry.credit()).subtract(entry.debit());
+
+            if (ledgerType == LedgerViewTypeEnum.CUSTOMER) {
+                balance = balance.add(entry.credit()).subtract(entry.debit());
+            } else {
+                balance = balance.add(entry.credit()).subtract(entry.debit());
+            }
+
             result.add(
                     new LedgerEntryDto(
                             entry.date(),
@@ -277,7 +283,7 @@ public class LedgerServiceImpl implements LedgerService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal calculateBalance(BigDecimal totalDebit, BigDecimal totalCredit) {
+    private BigDecimal calculateBalance(BigDecimal totalDebit, BigDecimal totalCredit, LedgerViewTypeEnum ledgerType) {
         return totalCredit.subtract(totalDebit);
     }
 }
