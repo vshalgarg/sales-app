@@ -8,6 +8,7 @@ public record LedgerPartyDto(
         String name,
         String email,
         String phone,
+        String gstNo,
         String address
 ) {
 }

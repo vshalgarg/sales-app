@@ -106,6 +106,7 @@ public class LedgerServiceImpl implements LedgerService {
                 .name(customer.getCustomerName())
                 .email(customer.getEmail())
                 .phone(mobile)
+                .gstNo(customer.getGstNo())
                 .address(address)
                 .build();
     }
@@ -137,6 +138,7 @@ public class LedgerServiceImpl implements LedgerService {
                 .name(supplier.getSupplierName())
                 .email(supplier.getEmail())
                 .phone(mobile)
+                .gstNo(supplier.getGstNo())
                 .address(address)
                 .build();
     }
@@ -251,7 +253,7 @@ public class LedgerServiceImpl implements LedgerService {
             if (ledgerType == LedgerViewTypeEnum.CUSTOMER) {
                 balance = balance.add(entry.credit()).subtract(entry.debit());
             } else {
-                balance = balance.add(entry.debit()).subtract(entry.credit());
+                balance = balance.add(entry.credit()).subtract(entry.debit());
             }
 
             result.add(
@@ -282,12 +284,6 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     private BigDecimal calculateBalance(BigDecimal totalDebit, BigDecimal totalCredit, LedgerViewTypeEnum ledgerType) {
-
-        return switch (ledgerType) {
-            case CUSTOMER ->
-                    totalCredit.subtract(totalDebit);
-            case SUPPLIER ->
-                    totalDebit.subtract(totalCredit);
-        };
+        return totalCredit.subtract(totalDebit);
     }
 }

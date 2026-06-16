@@ -145,8 +145,10 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
                 {"Party Name",  ledger.party().name()},
                 {"Phone",       ledger.party().phone()   != null ? ledger.party().phone()   : "-"},
                 {"Email",       ledger.party().email()   != null ? ledger.party().email()   : "-"},
+                {"Gst No",       ledger.party().gstNo()   != null ? ledger.party().gstNo()   : "-"},
                 {"Address",     ledger.party().address() != null ? ledger.party().address() : "-"},
                 {"Ledger Type", ledger.ledgerType().name()}
+
         };
 
         for (int f = 0; f < fields.length; f++) {
@@ -393,7 +395,7 @@ public class LedgerExcelServiceImpl implements LedgerExcelService {
         s.setBorderBottom(BorderStyle.MEDIUM);
         s.setBorderLeft(BorderStyle.MEDIUM);
         s.setBorderRight(BorderStyle.THIN);
-        s.setAlignment(HorizontalAlignment.LEFT);
+        s.setAlignment(HorizontalAlignment.RIGHT);
         s.setVerticalAlignment(VerticalAlignment.CENTER);
         return s;
     }
