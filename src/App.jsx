@@ -10,7 +10,7 @@ import { LoaderProvider, useLoader } from "./context/LoaderContext";
 import { setLoader } from "./api/api";
 import { useEffect } from "react";
 import GlobalLoader from "./components/common/GlobalLoader";
-
+import { ConfigProvider } from "./context/ConfigContext";
 
 // handles loader + interceptor
 function AppInitializer({ children }) {
@@ -28,7 +28,6 @@ function AppInitializer({ children }) {
   );
 }
 
-
 // All providers
 function AppProviders({ children }) {
   return (
@@ -36,14 +35,13 @@ function AppProviders({ children }) {
       <LoaderProvider>
         <SnackbarProvider>
           <AuthProvider>
-            {children}
+            <ConfigProvider>{children}</ConfigProvider>
           </AuthProvider>
         </SnackbarProvider>
       </LoaderProvider>
     </UnsavedProvider>
   );
 }
-
 
 // App
 function App() {

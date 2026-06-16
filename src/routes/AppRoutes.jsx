@@ -7,6 +7,7 @@ import PrivateRoute from "./PrivateRoute";
 import CustomerDashboard from "../components/CustomerDashboard";
 import StaffDashboard from "../components/StaffDashboard";
 import BillEntry from "../components/BillEntry";
+import RetailEntry from "../components/RetailEntry";
 import BillHistory from "../components/BillHistory";
 import CreditEntryForm from "../components/CreditEntry";
 import Bills from "../components/Bills";
@@ -14,6 +15,9 @@ import Credit from "../components/Credit";
 import PurchaseEntry from "../components/PurchaseEntry";
 import Purchase from "../components/Purchase";
 import TransportDashboard from "../components/TransportDashboard";
+import Retail from "../components/Retail";
+import Configurations from "../components/Configurations";
+import Ledger from "../components/Ledger";
 
 
 const SupplierDashboard = lazy(() => import("../components/SupplierDashboard"));
@@ -41,13 +45,18 @@ export default function AppRoutes() {
             <Route path="staff" element={<StaffDashboard />}  />
             <Route path="users" element={<Users />} />
             <Route path="bill-entry" element={<BillEntry />} />
+            <Route path="retail-entry" element={<RetailEntry />} />
             <Route path="bills" element={<Bills />} />
             <Route path="bill-history" element={<BillHistory />} />
             <Route path="credit-entry" element={<CreditEntryForm />} />
             <Route path="credits" element={<Credit />} />
             <Route path="/purchase-entry" element={<PurchaseEntry />} />
             <Route path="/purchase" element={<Purchase />} />
+             <Route path="/retail" element={<Retail />} />
             <Route path="/transports" element={<TransportDashboard />} />
+            <Route path="/configurations" element={<Configurations />} />
+            <Route path="/ledger" element={<Ledger />} />
+
           </Route>
         </Route>
 

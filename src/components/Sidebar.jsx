@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useConfig } from "../context/ConfigContext";
 
 const Sidebar = ({
   activeSection,
@@ -9,6 +10,8 @@ const Sidebar = ({
   safeNavigate
 }) => {
   let menuItems = [];
+  const { config } = useConfig();
+  const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
 
   if (activeSection === "master") {
     menuItems = [
@@ -17,12 +20,16 @@ const Sidebar = ({
       { name: "Staff", path: "/staff" },
       { name: "Transports", path: "/transports" },
       { name: "Users", path: "/users" },
+      { name: "Configurations", path: "/configurations" },
     ];
   } else if (activeSection === "entries") {
     menuItems = [
       { name: "Bill Entry", path: "/bill-entry" },
       { name: "Credit Entry", path: "/credit-entry" },
       { name: "Purchase Entry", path: "/purchase-entry" },
+      ...(retailConfig?.[0]?.value === "true"
+        ? [{ name: "Retail Entry", path: "/retail-entry" }]
+        : []),
     ];
   } else if (activeSection === "reporting") {
     menuItems = [
@@ -30,6 +37,10 @@ const Sidebar = ({
       { name: "Bills", path: "/bills" },
       { name: "Credit", path: "/credits" },
       { name: "Purchase", path: "/purchase" },
+      ...(retailConfig?.[0]?.value === "true"
+        ? [{ name: "Retail", path: "/retail" }]
+        : []),
+      { name: "Ledger", path: "/ledger" },
     ];
   }
 
@@ -60,7 +71,7 @@ const Sidebar = ({
                  text-gray-700 dark:text-white
                  hover:bg-blue-100 dark:hover:bg-blue-800
                  ${isActive ? "bg-blue-200 dark:bg-blue-700 font-semibold" : ""
-                }`
+                 }`
               }
             >
               {item.name}

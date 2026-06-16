@@ -24,7 +24,8 @@ const AppLayout = () => {
     if (
       location.pathname.startsWith("/bill-entry") ||
       location.pathname.startsWith("/credit-entry") ||
-      location.pathname.startsWith("/purchase-entry")
+      location.pathname.startsWith("/purchase-entry") ||
+      location.pathname.startsWith("/retail-entry")
     ) {
       return "entries";
     }
@@ -32,7 +33,9 @@ const AppLayout = () => {
     if (
       location.pathname.startsWith("/bills") ||
       location.pathname.startsWith("/credits") ||
-      location.pathname.startsWith("/purchase")
+      location.pathname.startsWith("/purchase")||
+      location.pathname.startsWith("/retail")||
+      location.pathname.startsWith("/ledger")
     ) {
       return "reporting";
     }
