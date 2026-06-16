@@ -23,7 +23,7 @@ const Sidebar = ({
       { name: "Staff", path: "/staff" },
       { name: "Transports", path: "/transports" },
       { name: "Users", path: "/users" },
-      ...(isAdmin ? { name: "Configurations", path: "/configurations" } : []),
+      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   } else if (activeSection === "entries") {
     menuItems = [
