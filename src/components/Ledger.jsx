@@ -31,7 +31,7 @@ const columns = {
       key: "date",
       label: "Date",
       width: "20%",
-      render: (row) => (row.date ? dayjs(row.date).format("DD-MM-YYYY") : "-"),
+      render: (row) => (row.date ? dayjs(row.date).format("DD-MMM-YYYY") : "-"),
     },
     { key: "particular", label: "Particular", width: "20%" },
     {
