@@ -1,8 +1,8 @@
 import { Line } from "react-chartjs-2";
 
 const CHART_HEIGHT = 300;
-const SCROLL_THRESHOLD = 12;
-const WIDTH_PER_LABEL = 80;
+const SCROLL_THRESHOLD = 24;
+const WIDTH_PER_LABEL = 50;
 
 export default function LineChart({ options, data }) {
   const labelCount = data?.labels?.length ?? 0;

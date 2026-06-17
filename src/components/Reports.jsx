@@ -23,27 +23,28 @@ import {
   getSupplierVsAmount,
 } from "../service/chartsService";
 
+// Ordered for max contrast between neighbors (warm/cool alternation, no grays/dark runs).
 const CHART_PALETTE = [
-  "#3b82f6",
-  "#8b5cf6",
-  "#10b981",
-  "#f97316",
-  "#ef4444",
-  "#06b6d4",
-  "#eab308",
-  "#ec4899",
-  "#14b8a6",
-  "#a855f7",
-  "#f59e0b",
-  "#22c55e",
-  "#0ea5e9",
-  "#d946ef",
-  "#84cc16",
-  "#f43f5e",
-  "#6366f1",
-  "#78716c",
-  "#0891b2",
-  "#b45309",
+  "#2563EB",
+  "#F97316",
+  "#16A34A",
+  "#E11D48",
+  "#0891B2",
+  "#9333EA",
+  "#CA8A04",
+  "#DB2777",
+  "#0D9488",
+  "#6366F1",
+  "#EA580C",
+  "#22C55E",
+  "#7C3AED",
+  "#EF4444",
+  "#0284C7",
+  "#84CC16",
+  "#C026D3",
+  "#14B8A6",
+  "#F59E0B",
+  "#EC4899",
 ];
 
 const withAlpha = (hex, alpha) => {
@@ -142,6 +143,9 @@ const toCustomerOptions = (customers) =>
 const getRejectedMessage = (result, fallback) =>
   result.reason?.message || fallback;
 
+const getPieSliceTotal = (dataset) =>
+  (dataset?.data || []).reduce((sum, value) => sum + Number(value || 0), 0);
+
 const Reports = () => {
   const showSnackbar = useSnackbar();
   const [allSuppliers, setAllSuppliers] = useState([]);
@@ -175,6 +179,10 @@ const Reports = () => {
   });
   const [supplierBarData, setSupplierBarData] = useState(null);
   const [customerBarData, setCustomerBarData] = useState(null);
+  const [lineChartRevision, setLineChartRevision] = useState(0);
+  const [pieChartRevision, setPieChartRevision] = useState(0);
+  const [supplierBarRevision, setSupplierBarRevision] = useState(0);
+  const [customerBarRevision, setCustomerBarRevision] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -304,6 +312,7 @@ const Reports = () => {
 
       const result = await getAmountAndCountVsMonth(payload);
       setLineChartData(buildLineChartData(result));
+      setLineChartRevision((prev) => prev + 1);
     } catch (error) {
       showSnackbar(error.message || "failed to load data", "error");
     }
@@ -318,6 +327,7 @@ const Reports = () => {
 
       const result = await getStaffAnalytics(payload);
       setPieChartData(buildPieChartData(result));
+      setPieChartRevision((prev) => prev + 1);
     } catch (error) {
       showSnackbar(error.message || "failed to load data", "error");
     }
@@ -333,6 +343,7 @@ const Reports = () => {
 
       const result = await getSupplierVsAmount(payload);
       setSupplierBarData(colorizeBarDatasets(result?.data?.supplierVsAmount));
+      setSupplierBarRevision((prev) => prev + 1);
     } catch (error) {
       showSnackbar(error.message || "failed to load data", "error");
     }
@@ -348,6 +359,7 @@ const Reports = () => {
 
       const result = await getCustomerVsAmount(payload);
       setCustomerBarData(colorizeBarDatasets(result?.data?.customerVsAmount));
+      setCustomerBarRevision((prev) => prev + 1);
     } catch (error) {
       showSnackbar(error.message || "failed to load data", "error");
     }
@@ -418,14 +430,28 @@ const Reports = () => {
     },
 
     scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+
       amountAxis: {
         type: "linear",
 
         position: "left",
 
+        border: {
+          display: true,
+        },
+
         title: {
           display: true,
           text: "Amount (₹)",
+        },
+
+        grid: {
+          display: true,
         },
       },
 
@@ -433,6 +459,10 @@ const Reports = () => {
         type: "linear",
 
         position: "right",
+
+        border: {
+          display: true,
+        },
 
         title: {
           display: true,
@@ -449,6 +479,7 @@ const Reports = () => {
   const pieOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: "65%",
     plugins: {
       legend: {
         position: "bottom",
@@ -457,6 +488,18 @@ const Reports = () => {
           pointStyle: "circle",
           boxWidth: 8,
           boxHeight: 8,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const count = Number(context.parsed || 0);
+            const total = getPieSliceTotal(context.dataset);
+            const percentage = total
+              ? ((count / total) * 100).toFixed(1)
+              : "0.0";
+            return `${context.label}: ${count} (${percentage}%)`;
+          },
         },
       },
     },
@@ -531,7 +574,11 @@ const Reports = () => {
 
               {lineChartData && (
                 <Box>
-                  <LineChart data={lineChartData} options={lineChartOptions} />
+                  <LineChart
+                    key={lineChartRevision}
+                    data={lineChartData}
+                    options={lineChartOptions}
+                  />
                 </Box>
               )}
             </CardContent>
@@ -591,6 +638,7 @@ const Reports = () => {
 
                       <Box>
                         <PieChart
+                          key={`supplier-${pieChartRevision}`}
                           data={pieChartData.supplierCountVsStaff}
                           options={pieOptions}
                         />
@@ -610,6 +658,7 @@ const Reports = () => {
 
                       <Box>
                         <PieChart
+                          key={`customer-${pieChartRevision}`}
                           data={pieChartData.customerCountVsStaff}
                           options={pieOptions}
                         />
@@ -629,6 +678,7 @@ const Reports = () => {
 
                       <Box>
                         <PieChart
+                          key={`combined-${pieChartRevision}`}
                           data={pieChartData.suppierAndCustomerCountVsStaff}
                           options={pieOptions}
                         />
@@ -699,6 +749,7 @@ const Reports = () => {
               {supplierBarData && (
                 <Box>
                   <BarChart
+                    key={supplierBarRevision}
                     data={supplierBarData}
                     options={supplierBarOptions}
                   />
@@ -766,6 +817,7 @@ const Reports = () => {
               {customerBarData && (
                 <Box>
                   <BarChart
+                    key={customerBarRevision}
                     data={customerBarData}
                     options={customerBarOptions}
                   />

@@ -1,9 +1,7 @@
 import { Bar } from "react-chartjs-2";
 
 const CHART_HEIGHT = 450;
-// Below this count, the chart fits the card width (no scroll).
 const SCROLL_THRESHOLD = 10;
-// Minimum horizontal space per category (grouped bars + label).
 const WIDTH_PER_CATEGORY = 80;
 
 export default function BarChart({ options, data }) {

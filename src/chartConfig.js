@@ -11,8 +11,6 @@ import {
   Legend
 } from "chart.js";
 
-// import ChartDataLabels from "chartjs-plugin-datalabels";
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,5 +21,4 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  // ChartDataLabels
 );
