@@ -32,7 +32,8 @@ public enum ResponseErrorCode {
     RETAILER_SUPPLIER_NOT_FOUND(1031, "Retail Supplier not found"),
     RETAIL_SUPPLIER_ALREADY_ADDED(1034,"Supplier already added to this retailer"),
     CONFIGURATION_NOT_FOUND(1035, "Configuration not found"),
-    INVALID_CONFIGURATION_VALUE(1036, "Invalid configuration value");
+    INVALID_CONFIGURATION_VALUE(1036, "Invalid configuration value"),
+    EXCEL_GENERATION_FAILED(1037, "Failed to generate Excel file");
 
 
     private final int code;

@@ -97,4 +97,8 @@ public class ApiPaths {
     // admin
     public static final String GET_CONFIGURATIONS = "/admin/configurations";
     public static final String UPDATE_CONFIGURATION = "/admin/configurations/{configurationId}";
+
+    // ledger
+    public static final String LEDGER = "/ledger";
+    public static final String LEDGER_DOWNLOAD = "/ledger/download";
 }
