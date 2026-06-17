@@ -79,6 +79,7 @@ public class ApiPaths {
     public static final String ADD_TRANSPORT = "/transports/add";
     public static final String UPDATE_TRANSPORT = "/transports/update/{id}";
     public static final String DELETE_TRANSPORT = "/transports/delete/{id}";
+    public static final String GET_TRANSPORT_DETAILS = "/transports/{id}";
 
     public static final String CHANGE_PASSWORD = "/admin/change/password";
 
@@ -101,4 +102,11 @@ public class ApiPaths {
     // ledger
     public static final String LEDGER = "/ledger";
     public static final String LEDGER_DOWNLOAD = "/ledger/download";
+
+    // analytics
+    public static final String ANALYTICS_MONTHLY = "/analytics/monthly";
+    public static final String ANALYTICS_STAFF = "/analytics/staff";
+    public static final String ANALYTICS_SUPPLIER_AMOUNT = "/analytics/supplier/amount";
+    public static final String ANALYTICS_CUSTOMER_AMOUNT = "/analytics/customer/amount";
+
 }

@@ -1,10 +1,7 @@
 package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
-import com.code.monks.csm.dto.response.CommonTransportResponseDto;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.TransportLiteResponseDto;
-import com.code.monks.csm.dto.response.TransportResponseDto;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.TransportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -85,5 +82,13 @@ public class TransportController {
                 "success", true,
                 "message", "Transport marked as deleted"
         ));
+    }
+
+    @GetMapping(GET_TRANSPORT_DETAILS)
+    public TransportDetailsResponseDTO getTransportDetails(
+            @PathVariable Integer id
+    ) {
+        log.info("Received request to get transport details for id: {}", id);
+        return transportService.getTransportDetails(id);
     }
 }
