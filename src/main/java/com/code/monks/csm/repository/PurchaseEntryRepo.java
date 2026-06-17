@@ -16,6 +16,8 @@ import java.util.List;
 
 import java.util.List;
 
+import java.util.List;
+
 public interface PurchaseEntryRepo extends
         JpaRepository<PurchaseEntity, Integer>,
         JpaSpecificationExecutor<PurchaseEntity> {
