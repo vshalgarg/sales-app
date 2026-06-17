@@ -9,6 +9,7 @@ import 'package:hisabio/provider/delete_customer_provider.dart';
 import 'package:hisabio/provider/delete_staff_provider.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
 import 'package:hisabio/provider/delete_transport_provider.dart';
+import 'package:hisabio/provider/entries_provider/add_bill_item_calculation.dart';
 import 'package:hisabio/provider/entries_provider/entries_section_provider.dart';
 import 'package:hisabio/provider/get_customer_byid_provider.dart';
 import 'package:hisabio/provider/get_customers_provider.dart';
@@ -68,6 +69,8 @@ void main() async {
         ChangeNotifierProvider(create: (_)=> GetUsersProvider()),
         ChangeNotifierProvider(create: (_)=>   UserProvider()),
         ChangeNotifierProvider(create: (_)=>  EntriesProvider()),
+        ChangeNotifierProvider(create: (_)=> BillItemProvider()),
+
       ],
       child: const MyApp(),
 

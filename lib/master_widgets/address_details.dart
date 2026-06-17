@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/list_items.dart';
 
+import '../constants/colors_used.dart';
 import '../enums/customer_mode.dart';
 
 class AddressDetails extends StatefulWidget {
@@ -27,96 +28,126 @@ class AddressDetails extends StatefulWidget {
 
 class _AddressDetailsState extends State<AddressDetails> {
   String? selectedState;
+
   @override
   void initState() {
     super.initState();
 
-    selectedState =
-    widget.state.text.isEmpty ? null : widget.state.text;
+    selectedState = widget.state.text.isEmpty ? null : widget.state.text;
   }
+
   @override
   void didUpdateWidget(covariant AddressDetails oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (widget.state.text != selectedState) {
       setState(() {
-        selectedState =
-        widget.state.text.isEmpty ? null : widget.state.text;
+        selectedState = widget.state.text.isEmpty ? null : widget.state.text;
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+       /* Text(
           "Address Details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),*/
+        TextFormField(
+          enabled: false,
+          decoration: InputDecoration(
+            suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
+            iconColor: Colors.white,
+            filled:true,
+            fillColor: AppColors.primaryPurple,
+            hintText: "Address Details",hintStyle: TextStyle(color:Colors.white),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+          ),
+
         ),
 
         SizedBox(height: 15),
-        TextFormField(  enabled: widget.mode != FormMode.view,
+
+        Text("Address Line1",style:TextStyle(color:Colors.white,fontSize: 18)),
+        TextFormField(
+          enabled: widget.mode != FormMode.view,
           controller: widget.addressLine1,
           decoration: InputDecoration(
-            labelText: "Address Line1",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            filled:true,
+            fillColor: Colors.white,
+            hintText: "Address Line1",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
           ),
         ),
 
         SizedBox(height: 15),
-        TextFormField(enabled: widget.mode != FormMode.view,
+        Text("Address Line2",style:TextStyle(color:Colors.white,fontSize: 18)),
+        TextFormField(
+          enabled: widget.mode != FormMode.view,
           controller: widget.addressLine2,
           decoration: InputDecoration(
-            labelText: "Address Line2",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            filled:true,
+            fillColor: Colors.white,
+            hintText: "Address Line2",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
           ),
         ),
         SizedBox(height: 15),
+        Text("State",style:TextStyle(color:Colors.white,fontSize: 18)),
         DropdownButtonFormField<String>(
-          value: selectedState,
+          initialValue: selectedState,
           isExpanded: true,
           decoration: InputDecoration(
+            filled:true,
+            fillColor: Colors.white,
             enabled: widget.mode != FormMode.view,
-            labelText: "State",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 14,
-          ),
+            hintText: "State",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 14,
+            ),
           ),
           menuMaxHeight: double.infinity,
           items: ListItems.indianStates.map((state) {
-            return DropdownMenuItem(
-              value: state,
-              child: Text(state),
-            );
+            return DropdownMenuItem(value: state, child: Text(state));
           }).toList(),
           onChanged: widget.mode == FormMode.view
-            ? null
+              ? null
               : (value) {
-            setState(() {
-              selectedState = value;
-             widget.state.text = value ?? "";
-            });
-          },
+                  setState(() {
+                    selectedState = value;
+                    widget.state.text = value ?? "";
+                  });
+                },
         ),
         SizedBox(height: 15),
+        Text("City",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
           enabled: widget.mode != FormMode.view,
           controller: widget.city,
           decoration: InputDecoration(
-            labelText: "city",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            filled:true,
+            fillColor: Colors.white,
+            hintText: "city",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
           ),
         ),
         SizedBox(height: 15),
-        TextFormField(  keyboardType: TextInputType.number,
+        Text("Pin Code",style:TextStyle(color:Colors.white,fontSize: 18)),
+        TextFormField(
+          keyboardType: TextInputType.number,
           enabled: widget.mode != FormMode.view,
           controller: widget.pinCode,
           decoration: InputDecoration(
-            labelText: "Pin Code",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            filled:true,
+            fillColor: Colors.white,
+
+            hintText: "Pin Code",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
           ),
         ),
       ],

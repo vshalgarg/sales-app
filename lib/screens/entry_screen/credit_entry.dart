@@ -5,12 +5,14 @@ import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
+import '../../customs/bottom_navigation_bar.dart';
 import '../../customs/elevated_button.dart';
 import '../../entry_widgets/custom_api_textfield.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
 import '../../entry_widgets/custom_list_textfield.dart';
 import '../../model_classes/entries_customer_model.dart';
 import '../../model_classes/entries_supplier.dart';
+import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 
 class CreditEntry extends StatefulWidget {
@@ -23,8 +25,8 @@ class CreditEntry extends StatefulWidget {
 class _CreditEntryState extends State<CreditEntry> {
   EntriesModel? selectedSupplier;
   EntriesCustomerModel? selectedCustomer;
-  String?drawType;
-  String?paymentMode;
+  String? drawType;
+  String? paymentMode;
   final invoiceController = TextEditingController();
   final receivedAmountController = TextEditingController();
   final referenceController = TextEditingController();
@@ -32,30 +34,47 @@ class _CreditEntryState extends State<CreditEntry> {
   final referenceDateController = TextEditingController();
   final transactionDateController = TextEditingController();
   final remarksController = TextEditingController();
-  final List<String> drawTypeList=["DRAW","CHEQUE"];
-final List<String> paymentModeList=["NEFT/RTGS","UPI","CASH","CHEQUE"];
-@override
-void dispose(){
-  invoiceController.dispose();
-  receivedAmountController.dispose();
-  referenceController.dispose();
-  slipController.dispose();
-  referenceDateController.dispose();
-  transactionDateController.dispose();
-  remarksController.dispose();
-  super.dispose();
-}
+  final List<String> drawTypeList = ["DRAW", "CHEQUE"];
+  final List<String> paymentModeList = ["NEFT/RTGS", "UPI", "CASH", "CHEQUE"];
+
+  Map<String, dynamic> _creditBody() {
+    return {
+      "billNumber": invoiceController.text.trim(),
+      "customerId": selectedCustomer?.id,
+      "supplierId": selectedSupplier?.id,
+      "paymentType": paymentMode,
+      "receivedAmount": receivedAmountController.text.trim(),
+      "referenceNumber": referenceController.text.trim(),
+      "referenceDate": referenceDateController.text.trim(),
+      "date": transactionDateController.text.trim(),
+      "slipNumber": slipController.text.trim(),
+      "drawType": drawType,
+      "remark": remarksController.text.trim(),
+    };
+  }
+
+  @override
+  void dispose() {
+    invoiceController.dispose();
+    receivedAmountController.dispose();
+    referenceController.dispose();
+    slipController.dispose();
+    referenceDateController.dispose();
+    transactionDateController.dispose();
+    remarksController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
 
     Future.microtask(() async {
       final provider = context.read<EntriesProvider>();
-
-      await provider.fetchSuppliers();
-      await provider.fetchCustomer();
+      await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
     });
   }
+
   void clearFields() {
     invoiceController.clear();
     receivedAmountController.clear();
@@ -67,8 +86,8 @@ void dispose(){
     setState(() {
       drawType = null;
       selectedSupplier = null;
-      selectedCustomer=null;
-      paymentMode=null;
+      selectedCustomer = null;
+      paymentMode = null;
     });
   }
 
@@ -86,6 +105,7 @@ void dispose(){
         ),
       ),
       drawer: EntryDrawer(),
+      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 1),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: SingleChildScrollView(
@@ -135,13 +155,14 @@ void dispose(){
                   CustomListTextField(
                     hintText: "Payment Mode",
                     value: paymentMode,
-                    items:paymentModeList,
+                    items: paymentModeList,
                     onChanged: (value) {
                       setState(() {
                         paymentMode = value;
                       });
                     },
-                  ),SizedBox(height:10),
+                  ),
+                  SizedBox(height: 10),
                   EntryTextField(
                     controller: invoiceController,
                     hintText: "Invoice Number",
@@ -192,7 +213,7 @@ void dispose(){
                       });
                     },
                   ),
-                  SizedBox(height:10),
+                  SizedBox(height: 10),
                   EntryTextField(
                     controller: remarksController,
                     hintText: "Remarks",
@@ -200,20 +221,51 @@ void dispose(){
                   SizedBox(height: 10),
                 ],
               ),
-              SizedBox(height:20),
-              Row(mainAxisAlignment: MainAxisAlignment.end,
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   CustomElevatedButton(
                     text: "Reset",
                     textStyle: TextStyle(color: Colors.black, fontSize: 20),
-                    onPressed: ()async{clearFields();},
+                    onPressed: () async {
+                      clearFields();
+                    },
                     borderRadius: 10,
                   ),
                   SizedBox(width: 20),
                   CustomElevatedButton(
                     text: "Save",
                     textStyle: TextStyle(color: Colors.white, fontSize: 20),
-                    onPressed: () async {},
+                    onPressed: () async {
+                      if (selectedCustomer == null ||
+                          selectedSupplier == null ||
+                          paymentMode == null ||
+                          referenceController.text.isEmpty ||
+                          referenceDateController.text.isEmpty) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          "Please fill all the required fields",
+                        );
+                        return;
+                      }
+                      try {
+                        final body = _creditBody();
+                        final response = await context
+                            .read<EntriesProvider>()
+                            .addCreditEntry(body);
+
+                        if (!context.mounted) return;
+                        ScaffoldSnackBar.show(
+                          context,
+                          response?.message ?? "Success",
+                        );
+                        clearFields();
+                      } catch (e) {
+                        if (!mounted) return;
+                        ScaffoldSnackBar.show(context, e.toString());
+                      }
+                    },
                     borderRadius: 10,
                     color: AppColors.primaryPurple,
                   ),

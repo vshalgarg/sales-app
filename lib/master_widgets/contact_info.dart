@@ -27,9 +27,21 @@ class _ContactInfoState extends State<ContactInfo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+       /* const Text(
           "Contact Information",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),*/
+        TextFormField(
+          enabled: false,
+          decoration: InputDecoration(
+            suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
+            iconColor: Colors.white,
+            filled:true,
+            fillColor: AppColors.primaryPurple,
+            hintText: "Contact Information",hintStyle: TextStyle(color:Colors.white),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+          ),
+
         ),
         SizedBox(height: 15),
 
@@ -69,9 +81,9 @@ class _ContactInfoState extends State<ContactInfo> {
                       controller: contact.name,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(5),
                         ),
-                        labelText: "Contact Person",
+                        hintText: "Contact Person",
                       ),
                     ),
                     SizedBox(height: 15),
@@ -81,7 +93,7 @@ class _ContactInfoState extends State<ContactInfo> {
                       controller: contact.mobile,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(5),
                         ),
                         labelText: "Mobile No.",
                       ),
@@ -92,9 +104,9 @@ class _ContactInfoState extends State<ContactInfo> {
                       controller: contact.type,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(5),
                         ),
-                        labelText: "Type",
+                        hintText: "Type",
                       ),
                     ),
                     SizedBox(height: 5),
@@ -109,8 +121,9 @@ class _ContactInfoState extends State<ContactInfo> {
             ? SizedBox()
             : Container(
                 decoration: BoxDecoration(
+                  color:Colors.white,
                   borderRadius: BorderRadius.circular(5),
-                  border: Border.all(color: AppColors.primaryPurple),
+                  border: Border.all(color: Colors.white),
                 ),
                 child: TextButton(
                   onPressed: widget.onAdd,

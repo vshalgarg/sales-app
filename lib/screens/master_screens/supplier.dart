@@ -51,7 +51,7 @@ class _SupplierState extends State<Supplier> {
         ? searchProvider.searchSupplier?.content ?? []
         : provider.data?.content ?? [];
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         title: "Supplier",
         textStyle: TextStyle(
@@ -60,20 +60,25 @@ class _SupplierState extends State<Supplier> {
           fontSize: 25,
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
-      drawer: MasterDrawer(),
+     // bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
+     // drawer: MasterDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              decoration: BoxDecoration(
+              decoration: BoxDecoration(color:AppColors.containerFillColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               height: 40,
               width: double.infinity,
               child: SearchBar(
+                shape: WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
                 controller: searchController,
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search suppliers...",
@@ -122,7 +127,7 @@ class _SupplierState extends State<Supplier> {
                         return MasterContainer(
                           elevation: 1,
                           name: item.supplierName,
-                          gst: item.supplierGstNo,
+                          mobile: item.mobile,
                           code: item.code,
                           city: item.city,
                           eyeIconTap: () {

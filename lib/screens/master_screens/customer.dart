@@ -5,7 +5,6 @@ import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/containers/master_containers/master_container.dart';
 import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
-import 'package:hisabio/drawers/master_drawer.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/master_screens/add_new_customer.dart';
 import 'package:iconsax/iconsax.dart';
@@ -35,16 +34,15 @@ class _CustomerScreenState extends State<CustomerScreen> {
       context.read<CustomersProvider>().fetchCustomers();
     });
   }
+
   @override
   void dispose() {
-
     _debounce?.cancel();
 
     searchController.dispose();
 
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +54,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
         ? (searchProvider.searchResult?.content ?? [])
         : customerProvider.customers;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         title: "Customer",
         textStyle: TextStyle(
@@ -65,7 +63,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
           fontSize: 25,
         ),
       ),
-      drawer: MasterDrawer(),
+      //drawer: MasterDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
@@ -74,28 +72,29 @@ class _CustomerScreenState extends State<CustomerScreen> {
               width: double.infinity,
               height: 40,
               child: SearchBar(
+                shape: WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
                 controller: searchController,
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search customers...",
                 onChanged: (value) {
-
                   if (_debounce?.isActive ?? false) {
                     _debounce!.cancel();
                   }
 
-                  _debounce = Timer(
-                    const Duration(milliseconds: 500),
-                        () {
-                      if (value.trim().isEmpty) {
-                        setState(() {});
-                        return;
-                      }
+                  _debounce = Timer(const Duration(milliseconds: 500), () {
+                    if (value.trim().isEmpty) {
+                      setState(() {});
+                      return;
+                    }
 
-                      context
-                          .read<SearchCustomerProvider>()
-                          .searchCustomer(value);
-                    },
-                  );
+                    context.read<SearchCustomerProvider>().searchCustomer(
+                      value,
+                    );
+                  });
                 },
                 leading: Icon(Icons.search_outlined, size: 30),
                 backgroundColor: WidgetStatePropertyAll(Colors.white),
@@ -133,9 +132,9 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               name: isSearching
                                   ? customer.customerName
                                   : customer['customerName'],
-                              gst: isSearching
+                              mobile: isSearching
                                   ? customer.customerGstNo
-                                  : customer['customerGstNo'],
+                                  : customer['mobileNumber'],
                               code: isSearching
                                   ? customer.code
                                   : customer['code'],
@@ -169,6 +168,9 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                             .deleteCustomer({
                                               "customerCode": customer['code'],
                                             });
+                                        if (!context.mounted) {
+                                          return;
+                                        }
 
                                         if (deleteProvider.errorMessage ==
                                             null) {

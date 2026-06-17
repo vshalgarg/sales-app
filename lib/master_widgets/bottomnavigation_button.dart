@@ -34,7 +34,7 @@ class BottomNavigationButton extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryPurple,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
                 onPressed: saveSupplier,
@@ -52,7 +52,7 @@ class BottomNavigationButton extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryPurple,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
                 onPressed: update,
@@ -70,7 +70,7 @@ class BottomNavigationButton extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
                 onPressed: saveAndAddNew,
@@ -89,7 +89,7 @@ class BottomNavigationButton extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey.shade200,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(5),
                 ),
               ),
               onPressed: cancel,

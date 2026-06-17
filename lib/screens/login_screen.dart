@@ -5,6 +5,7 @@ import 'package:hisabio/provider/login_provider.dart';
 import 'package:hisabio/screens/master_screens/supplier.dart';
 import 'package:provider/provider.dart';
 import '../customs/elevated_button.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -146,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => Supplier(),
+                                  builder: (context) =>   HomeScreen(), //Supplier(),
                                 ),
                               );
                             }

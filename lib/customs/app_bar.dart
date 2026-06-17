@@ -4,26 +4,17 @@ import 'package:hisabio/constants/colors_used.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSize {
   final String title;
   final TextStyle? textStyle;
-  final Icon? icon;
-
-  const CustomAppBar({super.key, required this.title, this.textStyle,this.icon});
+  const CustomAppBar({super.key, required this.title, this.textStyle});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(borderRadius: const BorderRadius.vertical(
-      bottom: Radius.circular(40),
-    ),
-      child: AppBar(
+    return AppBar(
         iconTheme: IconThemeData(color:Colors.white),
        // centerTitle: true,
-        backgroundColor: AppColors.primaryPurple,
+        backgroundColor: AppColors.bodyFillColor,
         title: Text(title, style: textStyle),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Icon(Icons.settings,size:30),
-          )],
-      ),
+
+
     );
   }
 

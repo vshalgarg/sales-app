@@ -137,7 +137,7 @@ class _CustomDropdownMenuState
             ),
 
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(5),
 
               borderSide: BorderSide(
                 color: widget.isDisabled?Colors.grey.shade200
@@ -146,7 +146,7 @@ class _CustomDropdownMenuState
             ),
 
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(5),
 
               borderSide: BorderSide(
                 color: Colors.grey.shade600,
@@ -154,7 +154,7 @@ class _CustomDropdownMenuState
             ),
 
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(5),
 
               borderSide: const BorderSide(
                 color: Colors.deepPurple,

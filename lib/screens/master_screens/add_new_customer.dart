@@ -7,6 +7,7 @@ import 'package:hisabio/master_widgets/bottomnavigation_button.dart';
 import 'package:hisabio/master_widgets/contact_info.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:provider/provider.dart';
+import '../../constants/colors_used.dart';
 import '../../customs/new_test.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/get_customer_byid_model.dart';
@@ -304,7 +305,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     final getCustomerProvider =
     context.watch<GetCustomerByIdProvider>();
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         title: widget.mode == FormMode.view
             ? "Customer Details"
@@ -365,16 +366,29 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                 onDelete: deleteContact,
               ),
               SizedBox(height: 15),
-              Text(
+             /* Text(
                 "Financial and Logistics",
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
+              ),*/
+              TextFormField(
+                enabled: false,
+                decoration: InputDecoration(
+                  suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
+                  iconColor: Colors.white,
+                  filled:true,
+                  fillColor: AppColors.primaryPurple,
+                  hintText: "Financial and Logistics",hintStyle: TextStyle(color:Colors.white),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+                ),
+
               ),
 
               SizedBox(height: 15),
+              Text("Preferred Transport",style:TextStyle(color:Colors.white,fontSize: 18)),
               Consumer<TransportProvider>(
                 builder: (context, transportProvider, child) {
                   if (transportProvider.isLoading) {
@@ -390,6 +404,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                     initialValue: selectedType,
 
                     isDisabled: widget.mode == FormMode.view,
+
 
                     width: MediaQuery
                         .of(context)
@@ -414,13 +429,16 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                 },
               ),
               SizedBox(height: 15),
+              Text("Remarks (Optional)",style:TextStyle(color:Colors.white,fontSize: 18)),
               TextFormField(
                 enabled: widget.mode != FormMode.view,
                 controller: remarksController,
                 decoration: InputDecoration(
+                  filled:true,
+                  fillColor: Colors.white,
                   labelText: "Remarks (optional)",
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
               ),

@@ -63,8 +63,7 @@ class _StaffScreenState extends State<StaffScreen> {
           fontSize: 25,
         ),
       ),
-      drawer: MasterDrawer(),
-      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
+     // drawer: MasterDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(

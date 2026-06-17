@@ -15,6 +15,7 @@ import 'package:hisabio/provider/update_supplier_provider.dart';
 import 'package:hisabio/screens/master_screens/supplier.dart';
 import 'package:provider/provider.dart';
 
+import '../../constants/colors_used.dart';
 import '../../enums/customer_mode.dart';
 class ContactControllers {
 
@@ -340,7 +341,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor:AppColors.bodyFillColor,
       appBar: CustomAppBar(
         title: widget.mode == FormMode.add
             ? "Add New Supplier"
@@ -400,28 +401,43 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 onDelete: deleteContact,
               ),
               SizedBox(height: 15),
-              Text(
+             /* Text(
                 "Preferred Transports",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),*/
+              TextFormField(
+                enabled: false,
+                decoration: InputDecoration(
+                  suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
+                  iconColor: Colors.white,
+                  filled:true,
+                  fillColor: AppColors.primaryPurple,
+                  hintText: "Preferred Transports",hintStyle: TextStyle(color:Colors.white),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+                ),
+
               ),
               SizedBox(height: 15),
+              Text("Preferred Transport",style:TextStyle(color:Colors.white,fontSize: 18)),
               Consumer<TransportProvider>(
                 builder: (context, provider, child) {
                   final transportIds = provider.transports
                       .map((t) => t.id.toString())
                       .toSet();
                   return DropdownButtonFormField<String>(
-                    value:
+                    initialValue:
                         selectedTransportId != null &&
                             transportIds.contains(selectedTransportId)
                         ? selectedTransportId
                         : null,
                     isExpanded: true,
                     decoration: InputDecoration(
+                      filled:true,
+                      fillColor: Colors.white,
                       enabled: widget.mode != FormMode.view,
-                      labelText: "Preferred Transport",
+                      hintText: "Preferred Transport",
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(5),
                       ),
                     ),
                     items: provider.transports.map((t) {
@@ -442,13 +458,16 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 },
               ),
               SizedBox(height: 15),
+              Text("Remarks (Optional)",style:TextStyle(color:Colors.white,fontSize: 18)),
               TextFormField(
                 enabled: widget.mode != FormMode.view,
                 controller: remarksController,
                 decoration: InputDecoration(
-                  labelText: "Remarks (optional)",
+                  filled:true,
+                  fillColor: Colors.white,
+                  hintText: "Remarks (optional)",
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
               ),
