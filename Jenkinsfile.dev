@@ -17,7 +17,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Checking out from git'
+                echo "Checking out branch: ${params.BRANCH_NAME}"
                 git branch: "${params.BRANCH_NAME}",
                     url: 'git@github.com:vshalgarg/sales-app.git'
             }

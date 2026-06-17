@@ -12,7 +12,7 @@ public enum ResponseErrorCode {
     ADD_STAFF_EXCEPTION(1003,"Add staff exception occur"),
     GET_STAFF_EXCEPTION(1004,"Get staff exception occur"),
     DATA_NOT_FOUND(1111,"Data not found. "),
-    DUPLICATE_ENTRY(1005,""),
+    DUPLICATE_ENTRY(1005,"Duplicate entry"),
     UNEXPECTED_EXCEPTION(1006,"Unexpected error occur while "),
     DATA_ACCESS_ERROR(1007, "Data access error occurred."),
     TRANSPORT_NOT_FOUND(1008,"Transport not found"),
@@ -26,7 +26,14 @@ public enum ResponseErrorCode {
     FILE_STORAGE_FAILED(1015,"File storage failed"),
     CUSTOMER_NOT_FOUND(1016, "customer not found for id "),
     SUPPLIER_NOT_FOUND(1017, "supplier not found"),
-    DB_ERROR(1028, "Database error occurred.");
+    DB_ERROR(1028, "Something went wrong. Please try again later."),
+    STAFF_NOT_FOUND(1029, "Staff not found "),
+    RETAILER_NOT_FOUND(1030, "Retailer not found "),
+    RETAILER_SUPPLIER_NOT_FOUND(1031, "Retail Supplier not found"),
+    RETAIL_SUPPLIER_ALREADY_ADDED(1034,"Supplier already added to this retailer"),
+    CONFIGURATION_NOT_FOUND(1035, "Configuration not found"),
+    INVALID_CONFIGURATION_VALUE(1036, "Invalid configuration value");
+
 
     private final int code;
     private final String message;

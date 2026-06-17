@@ -17,10 +17,8 @@ import java.util.Optional;
 public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
         JpaSpecificationExecutor<BillEntryEntity>
 {
-    boolean existsByBillNumber(String billNumber);
     Optional<BillEntryEntity> findByBillNumber(String billNumber);
     Optional<BillEntryEntity> findTopByOrderByIdDesc();
-    boolean existsByLrNumber(String lrNumber);
 
     @EntityGraph(attributePaths = {"supplier", "customer"})
     Page<BillEntryEntity> findAll(Specification<BillEntryEntity> spec, Pageable pageable);
