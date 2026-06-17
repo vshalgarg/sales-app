@@ -70,6 +70,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<StaffAnalyticsView> supplierData = purchaseEntryRepo.getStaffSupplierAnalytics(fromDate, toDate);
         List<StaffAnalyticsView> customerData = purchaseEntryRepo.getStaffCustomerAnalytics(fromDate, toDate);
+        log.info("Analytics data fetched. supplierRecords={}, customerRecords={}", supplierData.size(), customerData.size());
 
         Map<Integer, String> staffNameMap = staffRepo.findAll()
                 .stream()
@@ -208,15 +209,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
 
         DatasetDto billDataset = DatasetDto.builder()
-                .label("Bill Amount")
+                .label(MetricType.BILL_AMOUNT.getLabel())
                 .data(billAmounts)
-                .unit("AMOUNT")
+                .unit(MetricType.BILL_AMOUNT.getUnit())
                 .build();
 
         DatasetDto creditDataset = DatasetDto.builder()
-                .label("Credit Amount")
+                .label(MetricType.CREDIT_AMOUNT.getLabel())
                 .data(creditAmounts)
-                .unit("AMOUNT")
+                .unit(MetricType.CREDIT_AMOUNT.getUnit())
                 .build();
 
         ChartDataDto chartData = ChartDataDto.builder()
@@ -253,13 +254,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             billData = billData.subList(0, 10);
         }
 
-        List<Integer> activeCustomerIds = billData.stream()
+        List<Integer> customerIdsWithBills = billData.stream()
                 .map(CustomerAmountView::getCustomerId)
                 .toList();
 
-        List<CustomerAmountView> creditData = activeCustomerIds.isEmpty()
+        List<CustomerAmountView> creditData = customerIdsWithBills.isEmpty()
                 ? List.of()
-                : creditEntryRepo.getCustomerCreditAnalytics(activeCustomerIds, fromDate, toDate);
+                : creditEntryRepo.getCustomerCreditAnalytics(customerIdsWithBills, fromDate, toDate);
+
+        log.info("Analytics data fetched. billRecords={}, creditRecords={}", billData.size(), creditData.size());
 
         Map<Integer, String> customerNameMap = customerRepo.findAll()
                 .stream()
@@ -283,15 +286,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
 
         DatasetDto billDataset = DatasetDto.builder()
-                .label("Bill Amount")
+                .label(MetricType.BILL_AMOUNT.getLabel())
                 .data(billAmounts)
-                .unit("AMOUNT")
+                .unit(MetricType.BILL_AMOUNT.getUnit())
                 .build();
 
         DatasetDto creditDataset = DatasetDto.builder()
-                .label("Credit Amount")
+                .label(MetricType.CREDIT_AMOUNT.getLabel())
                 .data(creditAmounts)
-                .unit("AMOUNT")
+                .unit(MetricType.CREDIT_AMOUNT.getUnit())
                 .build();
 
         ChartDataDto chartData = ChartDataDto.builder()
@@ -329,51 +332,21 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             toDate = LocalDate.now();
         }
 
-        List<MonthlyAnalyticsView> billAnalytics =
-                billEntryRepo.getMonthlyBillAnalytics(
-                        supplierIds,
-                        customerIds,
-                        fromDate,
-                        toDate
-                );
-
-        List<MonthlyAnalyticsView> creditAnalytics =
-                creditEntryRepo.getMonthlyCreditAnalytics(
-                        supplierIds,
-                        customerIds,
-                        fromDate,
-                        toDate
-                );
+        List<MonthlyAnalyticsView> billAnalytics = billEntryRepo.getMonthlyBillAnalytics(supplierIds, customerIds, fromDate, toDate);
+        List<MonthlyAnalyticsView> creditAnalytics = creditEntryRepo.getMonthlyCreditAnalytics(supplierIds, customerIds, fromDate, toDate);
+        log.info("Analytics data fetched. billRecords={}, creditRecords={}", billAnalytics.size(), creditAnalytics.size());
 
         Map<YearMonth, MonthlyAnalyticsAccumulator> monthlyMap = new TreeMap<>();
         for (MonthlyAnalyticsView bill : billAnalytics) {
-            YearMonth yearMonth = YearMonth.of(
-                    bill.getYear(),
-                    bill.getMonth()
-            );
-
-            MonthlyAnalyticsAccumulator data =
-                    monthlyMap.computeIfAbsent(
-                            yearMonth,
-                            key -> new MonthlyAnalyticsAccumulator()
-                    );
-
+            YearMonth yearMonth = YearMonth.of(bill.getYear(), bill.getMonth());
+            MonthlyAnalyticsAccumulator data = monthlyMap.computeIfAbsent(yearMonth, key -> new MonthlyAnalyticsAccumulator());
             data.setBillAmount(bill.getAmount());
             data.setBillCount(bill.getCount());
         }
 
         for (MonthlyAnalyticsView credit : creditAnalytics) {
-            YearMonth yearMonth = YearMonth.of(
-                    credit.getYear(),
-                    credit.getMonth()
-            );
-
-            MonthlyAnalyticsAccumulator data =
-                    monthlyMap.computeIfAbsent(
-                            yearMonth,
-                            key -> new MonthlyAnalyticsAccumulator()
-                    );
-
+            YearMonth yearMonth = YearMonth.of(credit.getYear(), credit.getMonth());
+            MonthlyAnalyticsAccumulator data = monthlyMap.computeIfAbsent(yearMonth, key -> new MonthlyAnalyticsAccumulator());
             data.setCreditAmount(credit.getAmount());
             data.setCreditCount(credit.getCount());
         }
@@ -396,10 +369,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                             YearMonth yearMonth = entry.getKey();
                             MonthlyAnalyticsAccumulator data = entry.getValue();
                             return new MonthlyDataPoint(
-                                    yearMonth.getMonth().getDisplayName(
-                                            TextStyle.SHORT,
-                                            Locale.ENGLISH
-                                    ),
+                                    yearMonth.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH)+ "'" + String.format("%02d", yearMonth.getYear() % 100),
                                     MoneyUtil.toRupee(data.getBillAmount()),
                                     MoneyUtil.toRupee(data.getCreditAmount()),
                                     data.getBillCount(),
@@ -408,10 +378,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         })
                         .toList();
 
-        List<String> labels =
-                records.stream()
-                        .map(MonthlyDataPoint::month)
-                        .toList();
+        List<String> labels = records.stream()
+                                  .map(MonthlyDataPoint::month)
+                                  .toList();
 
         List<DatasetDto> datasets = Arrays.stream(MetricType.values())
                 .map(type -> DatasetDto.builder()
@@ -433,9 +402,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private List<Integer> normalizeIds(
             List<Integer> ids
     ) {
-        return ids == null || ids.isEmpty()
-                ? null
-                : ids;
+        return ids == null || ids.isEmpty() ? null : ids;
     }
 
 
