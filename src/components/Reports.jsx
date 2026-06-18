@@ -74,13 +74,25 @@ const buildLineChartData = (result) => {
   };
 };
 
-const colorizePieChart = (chart) => {
-  if (!chart) return chart;
-  const slices = chart.labels?.length ?? 0;
-  const colors = Array.from(
-    { length: slices },
-    (_, i) => CHART_PALETTE[i % CHART_PALETTE.length],
+const buildStaffColorMap = (...charts) => {
+  const labels = new Set();
+  charts.filter(Boolean).forEach((chart) => {
+    (chart.labels || []).forEach((label) => labels.add(label));
+  });
+
+  const sorted = [...labels].sort((a, b) => a.localeCompare(b));
+  return Object.fromEntries(
+    sorted.map((label, index) => [
+      label,
+      CHART_PALETTE[index % CHART_PALETTE.length],
+    ]),
   );
+};
+
+const colorizePieChartWithMap = (chart, colorMap) => {
+  if (!chart) return chart;
+  const labels = chart.labels || [];
+  const colors = labels.map((label) => colorMap[label]);
   return {
     ...chart,
     datasets: (chart.datasets || []).map((ds) => ({
@@ -99,15 +111,92 @@ const buildPieChartData = (result) => {
       supplierCountVsStaff: null,
       customerCountVsStaff: null,
       suppierAndCustomerCountVsStaff: null,
+      staffLegend: [],
     };
   }
+
+  const supplierVsStaff = data.supplierVsStaff;
+  const customerVsStaff = data.customerVsStaff;
+  const supplierAndCustomerVsStaff = data.supplierAndCustomerVsStaff;
+  const colorMap = buildStaffColorMap(
+    supplierVsStaff,
+    customerVsStaff,
+    supplierAndCustomerVsStaff,
+  );
+  const staffLegend = Object.keys(colorMap)
+    .sort((a, b) => a.localeCompare(b))
+    .map((label) => ({ label, color: colorMap[label] }));
+
   return {
-    supplierCountVsStaff: colorizePieChart(data.supplierVsStaff),
-    customerCountVsStaff: colorizePieChart(data.customerVsStaff),
-    suppierAndCustomerCountVsStaff: colorizePieChart(
-      data.supplierAndCustomerVsStaff,
+    supplierCountVsStaff: colorizePieChartWithMap(supplierVsStaff, colorMap),
+    customerCountVsStaff: colorizePieChartWithMap(customerVsStaff, colorMap),
+    suppierAndCustomerCountVsStaff: colorizePieChartWithMap(
+      supplierAndCustomerVsStaff,
+      colorMap,
     ),
+    staffLegend,
   };
+};
+
+const StaffChartLegend = ({ items }) => {
+  if (!items?.length) return null;
+
+  return (
+    <Box
+      sx={{
+        mt: 3,
+        p: { xs: 1.5, sm: 2 },
+        width: "100%",
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 1,
+        bgcolor: "grey.50",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: { xs: 1, sm: 1.5, md: 2 },
+        }}
+      >
+        {items.map(({ label, color }) => (
+          <Box
+            key={label}
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.75,
+              px: { xs: 0.5, sm: 1 },
+              maxWidth: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                bgcolor: color,
+                flexShrink: 0,
+              }}
+            />
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: { xs: "0.75rem", sm: "0.8125rem" },
+                lineHeight: 1.4,
+                wordBreak: "break-word",
+              }}
+            >
+              {label}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
 };
 
 const colorizeBarDatasets = (chart) => {
@@ -146,6 +235,53 @@ const getRejectedMessage = (result, fallback) =>
 const getPieSliceTotal = (dataset) =>
   (dataset?.data || []).reduce((sum, value) => sum + Number(value || 0), 0);
 
+const INITIAL_LINE_CHART_FILTERS = {
+  suppliers: [],
+  customers: [],
+  fromDate: null,
+  toDate: null,
+};
+
+const INITIAL_PIE_CHART_FILTERS = {
+  fromDate: null,
+  toDate: null,
+};
+
+const INITIAL_SUPPLIER_BAR_FILTERS = {
+  suppliers: [],
+  fromDate: null,
+  toDate: null,
+};
+
+const INITIAL_CUSTOMER_BAR_FILTERS = {
+  customers: [],
+  fromDate: null,
+  toDate: null,
+};
+
+const hasFilterDate = (date) => !!date;
+
+const hasFilterSelections = (items) => (items?.length ?? 0) > 0;
+
+const hasLineChartFilters = (filters) =>
+  hasFilterSelections(filters.suppliers) ||
+  hasFilterSelections(filters.customers) ||
+  hasFilterDate(filters.fromDate) ||
+  hasFilterDate(filters.toDate);
+
+const hasDateRangeFilters = (filters) =>
+  hasFilterDate(filters.fromDate) || hasFilterDate(filters.toDate);
+
+const hasSupplierBarFilters = (filters) =>
+  hasFilterSelections(filters.suppliers) ||
+  hasFilterDate(filters.fromDate) ||
+  hasFilterDate(filters.toDate);
+
+const hasCustomerBarFilters = (filters) =>
+  hasFilterSelections(filters.customers) ||
+  hasFilterDate(filters.fromDate) ||
+  hasFilterDate(filters.toDate);
+
 const Reports = () => {
   const showSnackbar = useSnackbar();
   const [allSuppliers, setAllSuppliers] = useState([]);
@@ -176,6 +312,7 @@ const Reports = () => {
     supplierCountVsStaff: null,
     customerCountVsStaff: null,
     suppierAndCustomerCountVsStaff: null,
+    staffLegend: [],
   });
   const [supplierBarData, setSupplierBarData] = useState(null);
   const [customerBarData, setCustomerBarData] = useState(null);
@@ -318,6 +455,11 @@ const Reports = () => {
     }
   };
 
+  const handleLineChartResetFilters = () => {
+    setLineChartFilters(INITIAL_LINE_CHART_FILTERS);
+    setLineChartData(null);
+  };
+
   const handlePieChartApplyFilters = async () => {
     try {
       const payload = {
@@ -331,6 +473,16 @@ const Reports = () => {
     } catch (error) {
       showSnackbar(error.message || "failed to load data", "error");
     }
+  };
+
+  const handlePieChartResetFilters = () => {
+    setPieChartFilters(INITIAL_PIE_CHART_FILTERS);
+    setPieChartData({
+      supplierCountVsStaff: null,
+      customerCountVsStaff: null,
+      suppierAndCustomerCountVsStaff: null,
+      staffLegend: [],
+    });
   };
 
   const handleSupplierBarApplyFilters = async () => {
@@ -349,6 +501,11 @@ const Reports = () => {
     }
   };
 
+  const handleSupplierBarResetFilters = () => {
+    setSupplierBarFilters(INITIAL_SUPPLIER_BAR_FILTERS);
+    setSupplierBarData(null);
+  };
+
   const handleCustomerBarApplyFilters = async () => {
     try {
       const payload = {
@@ -365,12 +522,22 @@ const Reports = () => {
     }
   };
 
-  const buildBarOptions = (xAxisTitle) => ({
+  const handleCustomerBarResetFilters = () => {
+    setCustomerBarFilters(INITIAL_CUSTOMER_BAR_FILTERS);
+    setCustomerBarData(null);
+  };
+
+  const buildBarOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
       mode: "index",
       intersect: false,
+    },
+    layout: {
+      padding: {
+        bottom: 8,
+      },
     },
     plugins: {
       legend: {
@@ -386,12 +553,13 @@ const Reports = () => {
     },
     scales: {
       x: {
-        title: {
-          display: true,
-          text: xAxisTitle,
-        },
         grid: {
           display: false,
+        },
+        ticks: {
+          autoSkip: false,
+          maxRotation: 45,
+          minRotation: 45,
         },
       },
       y: {
@@ -404,8 +572,7 @@ const Reports = () => {
     },
   });
 
-  const supplierBarOptions = buildBarOptions("Supplier");
-  const customerBarOptions = buildBarOptions("Customer");
+  const barOptions = buildBarOptions();
 
   const lineChartOptions = {
     responsive: true,
@@ -482,13 +649,7 @@ const Reports = () => {
     cutout: "65%",
     plugins: {
       legend: {
-        position: "bottom",
-        labels: {
-          usePointStyle: true,
-          pointStyle: "circle",
-          boxWidth: 8,
-          boxHeight: 8,
-        },
+        display: false,
       },
       tooltip: {
         callbacks: {
@@ -517,7 +678,7 @@ const Reports = () => {
 
               <Box mb={4}>
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 3 }}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <GenericMultiAutocomplete
                       label="Suppliers"
                       options={allSuppliers}
@@ -528,7 +689,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 3 }}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <GenericMultiAutocomplete
                       label="Customers"
                       options={allCustomers}
@@ -559,14 +720,27 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2 }}>
+                  <Grid size={{ xs: 6, md: 2 }}>
                     <Button
                       fullWidth
                       variant="contained"
+                      disabled={!hasLineChartFilters(lineChartFilters)}
                       onClick={handleLineChartApplyFilters}
                       sx={{ height: "40px" }}
                     >
-                      Apply Filter
+                      Apply Filters
+                    </Button>
+                  </Grid>
+
+                  <Grid size={{ xs: 6, md: 2 }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      disabled={!hasLineChartFilters(lineChartFilters)}
+                      onClick={handleLineChartResetFilters}
+                      sx={{ height: "40px" }}
+                    >
+                      Reset Filters
                     </Button>
                   </Grid>
                 </Grid>
@@ -583,6 +757,7 @@ const Reports = () => {
               )}
             </CardContent>
           </Card>
+
           <Card sx={{ boxShadow: "0 0 14px rgba(0, 0, 0, 0.12)" }}>
             <CardContent>
               <Typography variant="h5" gutterBottom>
@@ -611,14 +786,26 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2 }}>
+                  <Grid size={{ xs: 6, md: 2 }}>
                     <Button
                       fullWidth
                       variant="contained"
+                      disabled={!hasDateRangeFilters(pieChartFilters)}
                       onClick={handlePieChartApplyFilters}
                       sx={{ height: "40px" }}
                     >
-                      Apply Filter
+                      Apply Filters
+                    </Button>
+                  </Grid>
+                  <Grid size={{ xs: 6, md: 2 }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      disabled={!hasDateRangeFilters(pieChartFilters)}
+                      onClick={handlePieChartResetFilters}
+                      sx={{ height: "40px" }}
+                    >
+                      Reset Filters
                     </Button>
                   </Grid>
                 </Grid>
@@ -687,6 +874,10 @@ const Reports = () => {
                   )}
                 </Grid>
               )}
+
+              {pieChartData.staffLegend?.length > 0 && (
+                <StaffChartLegend items={pieChartData.staffLegend} />
+              )}
             </CardContent>
           </Card>
 
@@ -733,25 +924,38 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2 }}>
+                  <Grid size={{ xs: 6, md: 2 }}>
                     <Button
                       fullWidth
                       variant="contained"
+                      disabled={!hasSupplierBarFilters(supplierBarFilters)}
                       onClick={handleSupplierBarApplyFilters}
                       sx={{ height: "40px" }}
                     >
-                      Apply Filter
+                      Apply Filters
+                    </Button>
+                  </Grid>
+
+                  <Grid size={{ xs: 6, md: 2 }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      disabled={!hasSupplierBarFilters(supplierBarFilters)}
+                      onClick={handleSupplierBarResetFilters}
+                      sx={{ height: "40px" }}
+                    >
+                      Reset Filters
                     </Button>
                   </Grid>
                 </Grid>
               </Box>
 
               {supplierBarData && (
-                <Box>
+                <Box sx={{ width: "100%" }}>
                   <BarChart
                     key={supplierBarRevision}
                     data={supplierBarData}
-                    options={supplierBarOptions}
+                    options={barOptions}
                   />
                 </Box>
               )}
@@ -801,25 +1005,38 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2 }}>
+                  <Grid size={{ xs: 6, md: 2 }}>
                     <Button
                       fullWidth
                       variant="contained"
+                      disabled={!hasCustomerBarFilters(customerBarFilters)}
                       onClick={handleCustomerBarApplyFilters}
                       sx={{ height: "40px" }}
                     >
-                      Apply Filter
+                      Apply Filters
+                    </Button>
+                  </Grid>
+
+                  <Grid size={{ xs: 6, md: 2 }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      disabled={!hasCustomerBarFilters(customerBarFilters)}
+                      onClick={handleCustomerBarResetFilters}
+                      sx={{ height: "40px" }}
+                    >
+                      Reset Filters
                     </Button>
                   </Grid>
                 </Grid>
               </Box>
 
               {customerBarData && (
-                <Box>
+                <Box sx={{ width: "100%" }}>
                   <BarChart
                     key={customerBarRevision}
                     data={customerBarData}
-                    options={customerBarOptions}
+                    options={barOptions}
                   />
                 </Box>
               )}

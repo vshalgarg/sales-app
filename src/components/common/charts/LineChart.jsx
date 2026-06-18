@@ -18,8 +18,9 @@ export default function LineChart({ options, data }) {
     >
       <div
         style={{
-          width: needsScroll ? chartMinWidth : "100%",
-          minWidth: needsScroll ? chartMinWidth : undefined,
+          position: "relative",
+          width: "100%",
+          minWidth: chartMinWidth,
           height: CHART_HEIGHT,
         }}
       >

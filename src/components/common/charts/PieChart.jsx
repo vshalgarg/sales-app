@@ -33,7 +33,7 @@ const centerTotalPlugin = {
 
 export default function PieChart({ options, data }) {
   return (
-    <div style={{ width: "100%", height: "300px" }}>
+    <div style={{ width: "100%", height: "250px" }}>
       <Doughnut options={options} data={data} plugins={[centerTotalPlugin]} />
     </div>
   );
