@@ -63,11 +63,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         LocalDate fromDate = request.fromDate();
         LocalDate toDate = request.toDate();
-        if (fromDate == null && toDate == null) {
+
+        if (toDate == null) {
             toDate = LocalDate.now();
-            fromDate = toDate.minusMonths(11).withDayOfMonth(1);
         }
 
+        if (fromDate == null) {
+            fromDate = toDate.minusMonths(11).withDayOfMonth(1);
+        }
         List<StaffAnalyticsView> supplierData = purchaseEntryRepo.getStaffSupplierAnalytics(fromDate, toDate);
         List<StaffAnalyticsView> customerData = purchaseEntryRepo.getStaffCustomerAnalytics(fromDate, toDate);
         log.info("Analytics data fetched. supplierRecords={}, customerRecords={}", supplierData.size(), customerData.size());
