@@ -178,8 +178,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<SupplierAmountView> billData = billEntryRepo.getSupplierBillAnalytics(supplierIds, fromDate, toDate);
 
-        if (supplierIds == null && billData.size() > 10) {
-            billData = billData.subList(0, 10);
+        if (supplierIds == null && billData.size() > 20) {
+            billData = billData.subList(0, 20);
         }
 
         List<Integer> activeSupplierIds = billData.stream()
@@ -253,8 +253,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<CustomerAmountView> billData = billEntryRepo.getCustomerBillAnalytics(customerIds, fromDate, toDate);
 
-        if (customerIds == null && billData.size() > 10) {
-            billData = billData.subList(0, 10);
+        if (customerIds == null && billData.size() > 20) {
+            billData = billData.subList(0, 20);
         }
 
         List<Integer> customerIdsWithBills = billData.stream()
