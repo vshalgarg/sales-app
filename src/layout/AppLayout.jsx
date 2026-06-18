@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -35,7 +35,8 @@ const AppLayout = () => {
       location.pathname.startsWith("/credits") ||
       location.pathname.startsWith("/purchase")||
       location.pathname.startsWith("/retail")||
-      location.pathname.startsWith("/ledger")
+      location.pathname.startsWith("/ledger")||
+      location.pathname.startsWith("/reports")
     ) {
       return "reporting";
     }
