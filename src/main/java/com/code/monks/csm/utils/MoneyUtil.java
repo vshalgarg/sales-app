@@ -36,7 +36,7 @@ public class MoneyUtil {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
-    public static BigDecimal roundUpToInteger(BigDecimal amount) {
+    public static BigDecimal roundToNearestInteger(BigDecimal amount) {
         if (amount == null) return BigDecimal.ZERO;
         return amount.setScale(0, RoundingMode.HALF_UP);
     }

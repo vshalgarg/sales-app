@@ -207,8 +207,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 continue;
             }
             labels.add(supplierNameMap.get(sid));
-            billAmounts.add(MoneyUtil.toRupee(bill.getAmount()));
-            creditAmounts.add(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, 0L)));
+            billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, 0L))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -284,8 +284,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 continue;
             }
             labels.add(customerNameMap.get(cid));
-            billAmounts.add(MoneyUtil.toRupee(bill.getAmount()));
-            creditAmounts.add(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, 0L)));
+            billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, 0L))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -367,8 +367,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                             MonthlyAnalyticsAccumulator data = entry.getValue();
                             return new MonthlyDataPoint(
                                     yearMonth.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH)+ "'" + String.format("%02d", yearMonth.getYear() % 100),
-                                    MoneyUtil.toRupee(data.getBillAmount()),
-                                    MoneyUtil.toRupee(data.getCreditAmount()),
+                                    MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(data.getBillAmount())),
+                                    MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(data.getCreditAmount())),
                                     data.getBillCount(),
                                     data.getCreditCount()
                             );
