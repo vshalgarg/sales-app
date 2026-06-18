@@ -315,13 +315,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public MonthlyAnalyticsResponseDto getMonthlyAnalytics(MonthlyAnalyticsRequestDto request) {
 
-        log.info(
-                "Fetching monthly analytics. fromDate: {}, toDate: {}, supplierIds: {}, customerIds: {}",
-                request.fromDate(), request.toDate(),
-                request.supplierIds(),
-                request.customerIds()
-        );
-
+        log.info("Fetching monthly analytics. fromDate: {}, toDate: {}, supplierIds: {}, customerIds: {}", request.fromDate(), request.toDate(), request.supplierIds(), request.customerIds());
         List<Integer> supplierIds = normalizeIds(request.supplierIds());
         List<Integer> customerIds = normalizeIds(request.customerIds());
         LocalDate fromDate = request.fromDate();

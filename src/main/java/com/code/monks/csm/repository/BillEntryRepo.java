@@ -55,8 +55,7 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
         b.date IS NOT NULL
         AND (:supplierIds IS NULL OR b.supplier.id IN :supplierIds)
         AND (:customerIds IS NULL OR b.customer.id IN :customerIds)
-        AND (:fromDate IS NULL OR b.date >= :fromDate)
-        AND (:toDate IS NULL OR b.date <= :toDate)
+        AND b.date BETWEEN :fromDate AND :toDate
     GROUP BY YEAR(b.date), MONTH(b.date)
     ORDER BY YEAR(b.date), MONTH(b.date)
 """)
@@ -68,11 +67,11 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
     );
 
     @Query("""
-    SELECT b.supplier.id as supplierId, COALESCE(SUM(b.billAmount), 0) as amount
+    SELECT b.supplier.id as supplierId,
+    COALESCE(SUM(b.billAmount), 0) as amount
     FROM BillEntryEntity b
     WHERE (:supplierIds IS NULL OR b.supplier.id IN :supplierIds)
-      AND (:fromDate IS NULL OR b.date >= :fromDate)
-      AND (:toDate IS NULL OR b.date <= :toDate)
+    AND b.date BETWEEN :fromDate AND :toDate
     GROUP BY b.supplier.id
     ORDER BY COALESCE(SUM(b.billAmount), 0) DESC
 """)
@@ -83,11 +82,11 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
     );
 
     @Query("""
-    SELECT b.customer.id as customerId, COALESCE(SUM(b.billAmount), 0) as amount
+    SELECT b.customer.id as customerId,
+    COALESCE(SUM(b.billAmount), 0) as amount
     FROM BillEntryEntity b
     WHERE (:customerIds IS NULL OR b.customer.id IN :customerIds)
-      AND (:fromDate IS NULL OR b.date >= :fromDate)
-      AND (:toDate IS NULL OR b.date <= :toDate)
+    AND b.date BETWEEN :fromDate AND :toDate
     GROUP BY b.customer.id
     ORDER BY COALESCE(SUM(b.billAmount), 0) DESC
 """)

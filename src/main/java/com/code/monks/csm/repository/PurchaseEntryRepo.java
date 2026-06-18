@@ -26,10 +26,10 @@ public interface PurchaseEntryRepo extends
     Page<PurchaseEntity> findAll(Specification<PurchaseEntity> spec, Pageable pageable);
 
     @Query("""
-    SELECT p.staffId as staffId, COUNT(DISTINCT p.supplier.id) as count
+    SELECT p.staffId as staffId,
+    COUNT(DISTINCT p.supplier.id) as count
     FROM PurchaseEntity p
-    WHERE (:fromDate IS NULL OR p.date >= :fromDate)
-      AND (:toDate IS NULL OR p.date <= :toDate)
+    WHERE p.date BETWEEN :fromDate AND :toDate
     GROUP BY p.staffId
 """)
     List<StaffAnalyticsView> getStaffSupplierAnalytics(
@@ -38,10 +38,10 @@ public interface PurchaseEntryRepo extends
     );
 
     @Query("""
-    SELECT p.staffId as staffId, COUNT(DISTINCT p.customer.id) as count
+    SELECT p.staffId as staffId,
+    COUNT(DISTINCT p.customer.id) as count
     FROM PurchaseEntity p
-    WHERE (:fromDate IS NULL OR p.date >= :fromDate)
-      AND (:toDate IS NULL OR p.date <= :toDate)
+    WHERE p.date BETWEEN :fromDate AND :toDate
     GROUP BY p.staffId
 """)
     List<StaffAnalyticsView> getStaffCustomerAnalytics(
