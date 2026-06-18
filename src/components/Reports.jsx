@@ -21,7 +21,7 @@ import {
   getCustomerVsAmount,
   getStaffAnalytics,
   getSupplierVsAmount,
-} from "../service/chartsService";
+} from "../service/ChartsService";
 
 // Ordered for max contrast between neighbors (warm/cool alternation, no grays/dark runs).
 const CHART_PALETTE = [
