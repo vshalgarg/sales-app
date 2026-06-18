@@ -1,6 +1,6 @@
 import { Bar } from "react-chartjs-2";
 
-const CHART_HEIGHT = 450;
+const CHART_HEIGHT = 600;
 const SCROLL_THRESHOLD = 10;
 const WIDTH_PER_CATEGORY = 80;
 
@@ -20,8 +20,9 @@ export default function BarChart({ options, data }) {
     >
       <div
         style={{
-          width: needsScroll ? chartMinWidth : "100%",
-          minWidth: needsScroll ? chartMinWidth : undefined,
+          position: "relative",
+          width: "100%",
+          minWidth: chartMinWidth,
           height: CHART_HEIGHT,
         }}
       >
