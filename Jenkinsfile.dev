@@ -1,12 +1,8 @@
 pipeline {
   agent any
 
-  parameters {
-    string(
-      name: 'BRANCH',
-      defaultValue: 'frontend_sales_dev',
-      description: 'Git branch to build and deploy (e.g. feature/my-branch)',
-    )
+  options {
+    skipDefaultCheckout true
   }
 
   environment {
@@ -16,7 +12,7 @@ pipeline {
   }
 
   stages {
-    
+
     stage('Checkout') {
       steps {
         script {
@@ -77,7 +73,7 @@ pipeline {
 
   post {
     success {
-     echo "Deployment successful! Sales App UI (${env.DEPLOY_BRANCH}) running on port $PORT"
+      echo "Deployment successful! Sales App UI (${env.DEPLOY_BRANCH}) running on port $PORT"
     }
     failure {
       echo "Deployment failed! Check build logs."
