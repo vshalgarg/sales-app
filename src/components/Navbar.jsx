@@ -8,6 +8,7 @@ export default function Navbar({
   onMenuClick,
   isMobile,
   setNavbarHeight,
+  showMenuButton = true,
 }) {
   const navRef = useRef(null);
   const [name, setName] = useState("");
@@ -55,6 +56,13 @@ export default function Navbar({
     navigate("/");
   };
 
+  const sectionLabels = {
+    master: "Master",
+    entries: "Entries",
+    reporting: "Reporting",
+    graph: "Graphs",
+  };
+
   const handleSectionClick = (sectionName) => {
     onSectionChange(sectionName);
   };
@@ -81,7 +89,12 @@ export default function Navbar({
       >
         {/* Left: App Title + Section Buttons */}
         <div className="flex items-center">
-          <Menu onClick={onMenuClick} className="w-5 h-5 md:w-8 md:h-8 md:hidden mr-3 text-gray-700 dark:text-white" />
+          {showMenuButton && (
+            <Menu
+              onClick={onMenuClick}
+              className="w-5 h-5 md:w-8 md:h-8 md:hidden mr-3 text-gray-700 dark:text-white"
+            />
+          )}
 
           {
             isMobile ? <div className="flex justify-center">
@@ -105,7 +118,7 @@ export default function Navbar({
           }
           {/* Section Buttons */}
           <div className="hidden md:flex space-x-3 md:ml-[200px]">
-            {["master", "entries", "reporting"].map((section) => (
+            {["master", "entries", "reporting", "graph"].map((section) => (
               <button
                 key={section}
                 onClick={() => handleSectionClick(section)}
@@ -115,7 +128,7 @@ export default function Navbar({
                     : "text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
                   }`}
               >
-                {section.charAt(0).toUpperCase() + section.slice(1)}
+                {sectionLabels[section]}
               </button>
             ))}
           </div>
@@ -133,6 +146,7 @@ export default function Navbar({
               <option value="master">Master</option>
               <option value="entries">Entries</option>
               <option value="reporting">Reporting</option>
+              <option value="graph">Graph</option>
             </select>
 
             <span

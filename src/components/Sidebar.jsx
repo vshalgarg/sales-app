@@ -44,7 +44,6 @@ const Sidebar = ({
         ? [{ name: "Retail", path: "/retail" }]
         : []),
       { name: "Ledger", path: "/ledger" },
-      { name: "Reports", path: "/reports" },
     ];
   }
 
