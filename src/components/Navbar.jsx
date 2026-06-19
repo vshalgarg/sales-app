@@ -60,7 +60,7 @@ export default function Navbar({
     master: "Master",
     entries: "Entries",
     reporting: "Reporting",
-    graph: "Graphs",
+    graph: "Monitoring",
   };
 
   const handleSectionClick = (sectionName) => {
