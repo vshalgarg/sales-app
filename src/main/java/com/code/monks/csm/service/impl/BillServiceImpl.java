@@ -178,12 +178,16 @@ public class BillServiceImpl implements BillService {
         Page<BillEntryEntity> billRecords =
                 billRepo.findAll(spec, pageable);
 
-        Long totalAmount =
-                aggregateHelper.sumRoundedAmount(
+        Long totalAmountPaisa =
+                aggregateHelper.sumAmount(
                         BillEntryEntity.class,
                         "billAmount",
                         spec
                 );
+
+        Long totalAmount = totalAmountPaisa != null
+                ? MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(totalAmountPaisa)).longValue()
+                : 0L;
 
         List<BillListResponseDto> content =
                 billRecords.getContent()
