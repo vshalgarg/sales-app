@@ -7,7 +7,7 @@ const getChartTotal = (data) => {
 
 const centerTotalPlugin = {
   id: "centerTotal",
-  afterDraw(chart) {
+  afterDatasetsDraw(chart) {
     const { ctx, chartArea, data } = chart;
     if (!chartArea) return;
 
