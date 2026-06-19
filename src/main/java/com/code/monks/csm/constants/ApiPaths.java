@@ -28,8 +28,8 @@ public class ApiPaths {
 
     public static final String ADD_CUSTOMER = "/customer/add";
 
-    public static final String GET_CUSTOMERS = "/customers/get";
-    public static final String GET_CUSTOMERS_V2 = "/customers/get/all";
+    public static final String CUSTOMER_LIST_WITH_PAGINATION = "/customers/get";
+    public static final String GET_ALL_CUSTOMERS = "/customers/get/all";
     public static final String UPDATE_CUSTOMER = "/customers/update/id/{id}";
     public static final String GET_CUSTOMER_BY_ID ="/customers/get/id/{id}";
 
@@ -59,8 +59,8 @@ public class ApiPaths {
 
     public static final String SEARCH_USER = "/users/search";
 
-    public static final String GET_SUPPLIERS = "/suppliers/get";
-    public static final String GET_SUPPLIERS_V2 = "/suppliers/get/all";
+    public static final String SUPPLIERS_LIST_WITH_PAGINATION = "/suppliers/get";
+    public static final String GET_ALL_SUPPLIERS = "/suppliers/get/all";
     public static final String SEARCH_SUPPLIERS = "/suppliers/search";
     public static final String SEARCH_SUPPLIERS_V2 = "/suppliers/search/v2";
     public static final String UPDATE_SUPPLIER = "/suppliers/update/id/{id}";

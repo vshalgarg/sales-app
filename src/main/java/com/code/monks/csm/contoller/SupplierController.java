@@ -5,6 +5,7 @@ import com.code.monks.csm.dto.request.AddSupplierRequestDto;
 import com.code.monks.csm.dto.request.DeleteSupplierRequestDto;
 import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
+import com.code.monks.csm.enums.StatusFilter;
 import com.code.monks.csm.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -39,23 +40,21 @@ public class SupplierController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping(GET_SUPPLIERS)
-  public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> getSuppliers(
+  @GetMapping(SUPPLIERS_LIST_WITH_PAGINATION)
+  public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> getSupplierList(
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "8") int size
   ) {
-      PagedResponseDto<SupplierListResponseDto> response = supplierService.getSuppliers(page, size);
+      PagedResponseDto<SupplierListResponseDto> response = supplierService.getSuppliersWithPagination(page, size);
     return ResponseEntity.ok(response);
   }
 
-    @GetMapping(GET_SUPPLIERS_V2)
-    public ResponseEntity<List<SupplierSummaryDto>> getAllSuppliers(
-    ) {
-        log.info("GET {} called to retrieve suppliers.", GET_SUPPLIERS);
+    @GetMapping(GET_ALL_SUPPLIERS)
+    public ResponseEntity<List<SupplierSummaryDto>> getAllSuppliers(@RequestParam(value = "filter", defaultValue = "ACTIVE") StatusFilter filter) {
 
-        List<SupplierSummaryDto> response = supplierService.getAllSuppliers();
-
-        log.info("Retrieved {} suppliers successfully.", response.size());
+        log.info("GET {} called to retrieve suppliers with filter={}", GET_ALL_SUPPLIERS, filter);
+        List<SupplierSummaryDto> response = supplierService.getAllSuppliers(filter);
+        log.info("Retrieved {} suppliers successfully (filter={}).", response.size(), filter);
         return ResponseEntity.ok(response);
     }
 

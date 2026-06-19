@@ -8,6 +8,7 @@ import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.TransportEntity;
+import com.code.monks.csm.enums.StatusFilter;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.DuplicateEntryException;
@@ -118,7 +119,7 @@ public class CustomerServiceImpl implements CustomerService {
         validatorUtil.validateUniqueFields(duplicateChecks);
     }
 
-    public PagedResponseDto<CustomerListDto> getCustomers(int page, int size) {
+    public PagedResponseDto<CustomerListDto> getCustomersWithPagination(int page, int size) {
         log.info("Fetching active customers with pagination...");
 
         Page<CustomerEntity> records;
@@ -149,16 +150,18 @@ public class CustomerServiceImpl implements CustomerService {
                 .build();
     }
 
-    public List<CustomerSummaryResponseDto> getAllCustomers() {
-        log.info("Fetching ALL customers (no filter, non-paged)...");
+    public List<CustomerSummaryResponseDto> getAllCustomers(StatusFilter filter) {
+        log.info("Fetching customers with filter={}", filter);
 
         try {
-            List<CustomerEntity> customers = customerRepo.findByStatus(
-                    StatusEnum.ACTIVE,
-                    Sort.by(Sort.Direction.DESC, "id")
-            );
+            Sort sort = Sort.by(Sort.Direction.DESC, "id");
+            List<CustomerEntity> customers = switch (filter) {
+                case ALL -> customerRepo.findAll(sort);
+                case INACTIVE -> customerRepo.findByStatus(StatusEnum.INACTIVE, sort);
+                default -> customerRepo.findByStatus(StatusEnum.ACTIVE, sort);
+            };
 
-            log.info("Successfully fetched {} customers (including active and inactive)", customers.size());
+            log.info("Successfully fetched {} customers (filter={})", customers.size(), filter);
 
             return customers.stream()
                     .map(c -> new CustomerSummaryResponseDto(
