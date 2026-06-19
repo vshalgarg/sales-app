@@ -235,6 +235,14 @@ const getRejectedMessage = (result, fallback) =>
 const getPieSliceTotal = (dataset) =>
   (dataset?.data || []).reduce((sum, value) => sum + Number(value || 0), 0);
 
+const MAX_BAR_LABEL_LENGTH = 35;
+
+const truncateBarLabel = (label) => {
+  const text = String(label ?? "");
+  if (text.length <= MAX_BAR_LABEL_LENGTH) return text;
+  return `${text.slice(0, MAX_BAR_LABEL_LENGTH)}...`;
+};
+
 const INITIAL_LINE_CHART_FILTERS = {
   suppliers: [],
   customers: [],
@@ -560,6 +568,9 @@ const Reports = () => {
           autoSkip: false,
           maxRotation: 45,
           minRotation: 45,
+          callback(value) {
+            return truncateBarLabel(this.getLabelForValue(value));
+          },
         },
       },
       y: {
