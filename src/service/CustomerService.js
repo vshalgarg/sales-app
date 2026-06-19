@@ -26,9 +26,11 @@ class CustomerService {
     }
   }
 
-  static async getAllCustomers() {
+  static async getAllCustomers(filter) {
     try {
-      const response = await api.get("/customers/get/all");
+      const response = await api.get("/customers/get/all",{
+        params: { filter: filter },
+      });
       const result = checkLogicalError(response.data);
       return result;
     } catch (error) {

@@ -22,6 +22,7 @@ import {
   getStaffAnalytics,
   getSupplierVsAmount,
 } from "../service/ChartsService";
+import dayjs from "dayjs";
 
 // Ordered for max contrast between neighbors (warm/cool alternation, no grays/dark runs).
 const CHART_PALETTE = [
@@ -332,8 +333,8 @@ const Reports = () => {
   useEffect(() => {
     const loadData = async () => {
       const results = await Promise.allSettled([
-        SupplierService.getAllSuppliers(),
-        CustomerService.getAllCustomers(),
+        SupplierService.getAllSuppliers("ALL"),
+        CustomerService.getAllCustomers("ALL"),
         getAmountAndCountVsMonth({
           supplierIds: [],
           customerIds: [],
@@ -438,6 +439,46 @@ const Reports = () => {
 
     loadData();
   }, []);
+
+  const restoreDefaultView = async (name) => {
+    try {
+      if (name === "AmountAndCountVsMonth") {
+        const result = await getAmountAndCountVsMonth({
+          supplierIds: [],
+          customerIds: [],
+          fromDate: null,
+          toDate: null,
+        });
+        setLineChartData(buildLineChartData(result));
+      }
+      if (name === "StaffAnalytics") {
+        const result = await getStaffAnalytics({
+          fromDate: null,
+          toDate: null,
+        });
+        setPieChartData(buildPieChartData(result));
+      }
+      if (name === "SupplierVsAmount") {
+        const result = await getSupplierVsAmount({
+          supplierIds: [],
+          fromDate: null,
+          toDate: null,
+        });
+        setSupplierBarData(colorizeBarDatasets(result?.data?.supplierVsAmount));
+      }
+      if (name === "CustomerVsAmount") {
+        const result = await getCustomerVsAmount({
+          customerIds: [],
+          fromDate: null,
+          toDate: null,
+        });
+        setCustomerBarData(colorizeBarDatasets(result?.data?.customerVsAmount));
+      }
+    } catch (error) {
+      console.error(error);
+      showSnackbar(error.message || "something went wrong!", "error");
+    }
+  };
 
   const onFilterChange = (setFilterState, filterName, filterValue) => {
     setFilterState((prev) => ({
@@ -715,6 +756,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="From Date"
                       value={lineChartFilters.fromDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setLineChartFilters, "fromDate", value)
                       }
@@ -725,6 +767,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="To Date"
                       value={lineChartFilters.toDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setLineChartFilters, "toDate", value)
                       }
@@ -757,14 +800,33 @@ const Reports = () => {
                 </Grid>
               </Box>
 
-              {lineChartData && (
-                <Box>
-                  <LineChart
-                    key={lineChartRevision}
-                    data={lineChartData}
-                    options={lineChartOptions}
-                  />
-                </Box>
+              {lineChartData ? (
+                lineChartData?.labels?.length > 0 ? (
+                  <Box>
+                    <LineChart
+                      key={lineChartRevision}
+                      data={lineChartData}
+                      options={lineChartOptions}
+                    />
+                  </Box>
+                ) : (
+                  <div className="flex justify-center items-center text-lg">
+                    No data found! try other filters values
+                  </div>
+                )
+              ) : (
+                <div className="text-center text-lg">
+                  No data displayed. Use the filters above to generate the
+                  graph, or{" "}
+                  <button
+                    type="button"
+                    onClick={() => restoreDefaultView("AmountAndCountVsMonth")}
+                    className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
+                  >
+                    restore the default view
+                  </button>
+                  .
+                </div>
               )}
             </CardContent>
           </Card>
@@ -781,6 +843,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="From Date"
                       value={pieChartFilters.fromDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setPieChartFilters, "fromDate", value)
                       }
@@ -791,6 +854,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="To Date"
                       value={pieChartFilters.toDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setPieChartFilters, "toDate", value)
                       }
@@ -822,7 +886,9 @@ const Reports = () => {
                 </Grid>
               </Box>
 
-              {pieChartData.supplierCountVsStaff && (
+              {pieChartData.supplierCountVsStaff ||
+              pieChartData.customerCountVsStaff ||
+              pieChartData.suppierAndCustomerCountVsStaff ? (
                 <Grid container spacing={3}>
                   {pieChartData.supplierCountVsStaff && (
                     <Grid size={{ xs: 12, md: 4 }}>
@@ -884,6 +950,19 @@ const Reports = () => {
                     </Grid>
                   )}
                 </Grid>
+              ) : (
+                <div className="text-center text-lg">
+                  No data displayed. Use the filters above to generate the
+                  graph, or{" "}
+                  <button
+                    type="button"
+                    onClick={() => restoreDefaultView("StaffAnalytics")}
+                    className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
+                  >
+                    restore the default view
+                  </button>
+                  .
+                </div>
               )}
 
               {pieChartData.staffLegend?.length > 0 && (
@@ -919,6 +998,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="From Date"
                       value={supplierBarFilters.fromDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setSupplierBarFilters, "fromDate", value)
                       }
@@ -929,6 +1009,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="To Date"
                       value={supplierBarFilters.toDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setSupplierBarFilters, "toDate", value)
                       }
@@ -961,7 +1042,7 @@ const Reports = () => {
                 </Grid>
               </Box>
 
-              {supplierBarData && (
+              {supplierBarData ? (
                 <Box sx={{ width: "100%" }}>
                   <BarChart
                     key={supplierBarRevision}
@@ -969,6 +1050,19 @@ const Reports = () => {
                     options={barOptions}
                   />
                 </Box>
+              ) : (
+                <div className="text-center text-lg">
+                  No data displayed. Use the filters above to generate the
+                  graph, or{" "}
+                  <button
+                    type="button"
+                    onClick={() => restoreDefaultView("SupplierVsAmount")}
+                    className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
+                  >
+                    restore the default view
+                  </button>
+                  .
+                </div>
               )}
             </CardContent>
           </Card>
@@ -1000,6 +1094,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="From Date"
                       value={customerBarFilters.fromDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setCustomerBarFilters, "fromDate", value)
                       }
@@ -1010,6 +1105,7 @@ const Reports = () => {
                     <CustomDatePicker
                       label="To Date"
                       value={customerBarFilters.toDate}
+                      maxDate={dayjs()}
                       onChange={(value) =>
                         onFilterChange(setCustomerBarFilters, "toDate", value)
                       }
@@ -1042,7 +1138,7 @@ const Reports = () => {
                 </Grid>
               </Box>
 
-              {customerBarData && (
+              {customerBarData ? (
                 <Box sx={{ width: "100%" }}>
                   <BarChart
                     key={customerBarRevision}
@@ -1050,6 +1146,19 @@ const Reports = () => {
                     options={barOptions}
                   />
                 </Box>
+              ) : (
+                <div className="text-center text-lg">
+                  No data displayed. Use the filters above to generate the
+                  graph, or{" "}
+                  <button
+                    type="button"
+                    onClick={() => restoreDefaultView("CustomerVsAmount")}
+                    className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
+                  >
+                    restore the default view
+                  </button>
+                  .
+                </div>
               )}
             </CardContent>
           </Card>
