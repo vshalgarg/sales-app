@@ -730,7 +730,7 @@ const Reports = () => {
 
               <Box mb={4}>
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid size={{ xs: 12, md: 4,lg: 2.5 }}>
                     <GenericMultiAutocomplete
                       label="Suppliers"
                       options={allSuppliers}
@@ -741,7 +741,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid size={{ xs: 12, md: 4 ,lg:2.5}}>
                     <GenericMultiAutocomplete
                       label="Customers"
                       options={allCustomers}
@@ -752,7 +752,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2 }}>
+                  <Grid size={{ xs: 12, md: 2,lg:2 }}>
                     <CustomDatePicker
                       label="From Date"
                       value={lineChartFilters.fromDate}
@@ -763,7 +763,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2 }}>
+                  <Grid size={{ xs: 12, md: 2 ,lg:2}}>
                     <CustomDatePicker
                       label="To Date"
                       value={lineChartFilters.toDate}
@@ -774,7 +774,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 6, md: 2 }}>
+                  <Grid size={{ xs: 6, md: 2,lg:1.5 }}>
                     <Button
                       fullWidth
                       variant="contained"
@@ -786,7 +786,7 @@ const Reports = () => {
                     </Button>
                   </Grid>
 
-                  <Grid size={{ xs: 6, md: 2 }}>
+                  <Grid size={{ xs: 6, md: 2,lg:1.5 }}>
                     <Button
                       fullWidth
                       variant="contained"
