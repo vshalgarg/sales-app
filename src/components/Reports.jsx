@@ -5,8 +5,11 @@ import {
   Card,
   CardContent,
   Grid,
+  IconButton,
   Typography,
 } from "@mui/material";
+import DoneIcon from "@mui/icons-material/Done";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
 import GenericMultiAutocomplete from "../components/common/GenericMultiAutocomplete";
 import CustomDatePicker from "../components/common/CustomDatePicker";
@@ -23,8 +26,11 @@ import {
   getSupplierVsAmount,
 } from "../service/ChartsService";
 import dayjs from "dayjs";
+import { formatIndianCurrency } from "../utils/currencyUtils";
 
-// Ordered for max contrast between neighbors (warm/cool alternation, no grays/dark runs).
+const formatChartAmount = (value) =>
+  formatIndianCurrency(Math.round(Number(value) || 0));
+
 const CHART_PALETTE = [
   "#2563EB",
   "#F97316",
@@ -599,6 +605,15 @@ const Reports = () => {
           boxHeight: 8,
         },
       },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const label = context.dataset.label || "";
+            const value = context.parsed.y ?? 0;
+            return `${label}: ${formatChartAmount(value)}`;
+          },
+        },
+      },
     },
     scales: {
       x: {
@@ -619,6 +634,9 @@ const Reports = () => {
         title: {
           display: true,
           text: "Amount (₹)",
+        },
+        ticks: {
+          callback: (value) => formatChartAmount(value),
         },
       },
     },
@@ -646,6 +664,19 @@ const Reports = () => {
           boxHeight: 8,
         },
       },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const label = context.dataset.label || "";
+            const value = context.parsed.y ?? 0;
+            const isAmount = context.dataset.yAxisID === "amountAxis";
+            const formatted = isAmount
+              ? formatChartAmount(value)
+              : String(Math.round(value));
+            return `${label}: ${formatted}`;
+          },
+        },
+      },
     },
 
     scales: {
@@ -671,6 +702,10 @@ const Reports = () => {
 
         grid: {
           display: true,
+        },
+
+        ticks: {
+          callback: (value) => formatChartAmount(value),
         },
       },
 
@@ -730,7 +765,7 @@ const Reports = () => {
 
               <Box mb={4}>
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 4,lg: 2.5 }}>
+                  <Grid size={{ xs: 12, md: 4, lg: 3 }}>
                     <GenericMultiAutocomplete
                       label="Suppliers"
                       options={allSuppliers}
@@ -741,7 +776,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 4 ,lg:2.5}}>
+                  <Grid size={{ xs: 12, md: 4, lg: 3 }}>
                     <GenericMultiAutocomplete
                       label="Customers"
                       options={allCustomers}
@@ -752,7 +787,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2,lg:2 }}>
+                  <Grid size={{ xs: 12, md: 2, lg: 2 }}>
                     <CustomDatePicker
                       label="From Date"
                       value={lineChartFilters.fromDate}
@@ -763,7 +798,7 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 2 ,lg:2}}>
+                  <Grid size={{ xs: 12, md: 2, lg: 2 }}>
                     <CustomDatePicker
                       label="To Date"
                       value={lineChartFilters.toDate}
@@ -774,29 +809,41 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 6, md: 2,lg:1.5 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasLineChartFilters(lineChartFilters)}
-                      onClick={handleLineChartApplyFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Apply Filters
-                    </Button>
-                  </Grid>
+                  <IconButton
+                    onClick={handleLineChartApplyFilters}
+                    disabled={!hasLineChartFilters(lineChartFilters)}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <DoneIcon />
+                  </IconButton>
 
-                  <Grid size={{ xs: 6, md: 2,lg:1.5 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasLineChartFilters(lineChartFilters)}
-                      onClick={handleLineChartResetFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </Grid>
+                  <IconButton
+                    disabled={!hasLineChartFilters(lineChartFilters)}
+                    onClick={handleLineChartResetFilters}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <RestartAltIcon />
+                  </IconButton>
                 </Grid>
               </Box>
 
@@ -861,28 +908,41 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 6, md: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasDateRangeFilters(pieChartFilters)}
-                      onClick={handlePieChartApplyFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Apply Filters
-                    </Button>
-                  </Grid>
-                  <Grid size={{ xs: 6, md: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasDateRangeFilters(pieChartFilters)}
-                      onClick={handlePieChartResetFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </Grid>
+                  <IconButton
+                    disabled={!hasDateRangeFilters(pieChartFilters)}
+                    onClick={handlePieChartApplyFilters}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <DoneIcon />
+                  </IconButton>
+
+                  <IconButton
+                    disabled={!hasDateRangeFilters(pieChartFilters)}
+                    onClick={handlePieChartResetFilters}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <RestartAltIcon />
+                  </IconButton>
                 </Grid>
               </Box>
 
@@ -1016,29 +1076,41 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 6, md: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasSupplierBarFilters(supplierBarFilters)}
-                      onClick={handleSupplierBarApplyFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Apply Filters
-                    </Button>
-                  </Grid>
+                  <IconButton
+                    disabled={!hasSupplierBarFilters(supplierBarFilters)}
+                    onClick={handleSupplierBarApplyFilters}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <DoneIcon />
+                  </IconButton>
 
-                  <Grid size={{ xs: 6, md: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasSupplierBarFilters(supplierBarFilters)}
-                      onClick={handleSupplierBarResetFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </Grid>
+                  <IconButton
+                    disabled={!hasSupplierBarFilters(supplierBarFilters)}
+                    onClick={handleSupplierBarResetFilters}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <RestartAltIcon />
+                  </IconButton>
                 </Grid>
               </Box>
 
@@ -1112,29 +1184,41 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 6, md: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasCustomerBarFilters(customerBarFilters)}
-                      onClick={handleCustomerBarApplyFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Apply Filters
-                    </Button>
-                  </Grid>
+                  <IconButton
+                    disabled={!hasCustomerBarFilters(customerBarFilters)}
+                    onClick={handleCustomerBarApplyFilters}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <DoneIcon />
+                  </IconButton>
 
-                  <Grid size={{ xs: 6, md: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      disabled={!hasCustomerBarFilters(customerBarFilters)}
-                      onClick={handleCustomerBarResetFilters}
-                      sx={{ height: "40px" }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </Grid>
+                  <IconButton
+                    disabled={!hasCustomerBarFilters(customerBarFilters)}
+                    onClick={handleCustomerBarResetFilters}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "primary.main",
+                      color: "common.white",
+                      borderRadius: 2,
+                      p: 1,
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <RestartAltIcon />
+                  </IconButton>
                 </Grid>
               </Box>
 
