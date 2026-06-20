@@ -1,1 +1,0 @@
-this project is built on html, css, js, react, tailwind, mui stack. So for working on this project a good knowledge of these stacks is mandatory. 
