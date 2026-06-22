@@ -9,7 +9,10 @@ import { useUnsaved } from "../context/UnsavedChangesContext";
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia("(min-width: 769px)").matches;
+  });
   const [navbarHeight, setNavbarHeight] = useState(0);
   const activeSection = (() => {
     if (location.pathname.startsWith("/graph")) {
@@ -125,6 +128,12 @@ const handleConfirmLeave = () => {
   };
 
   useEffect(() => {
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
     if (isGraphPage) {
       setIsSidebarOpen(false);
     }
@@ -158,7 +167,7 @@ const handleConfirmLeave = () => {
             safeNavigate={safeNavigate}
           />
         )}
-        <main className=" flex-1 min-h-0 px-4 overflow-hidden ">
+        <main className="flex-1 min-h-0 px-4 overflow-hidden transition-all duration-300 ease-in-out">
           <Outlet />
         </main>
       </div>
