@@ -146,7 +146,7 @@ export default function Navbar({
               <option value="master">Master</option>
               <option value="entries">Entries</option>
               <option value="reporting">Reporting</option>
-              <option value="graph">Graph</option>
+              <option value="graph">Monitoring</option>
             </select>
 
             <span
@@ -160,7 +160,7 @@ export default function Navbar({
 
         {/* Right: Profile Menu */}
         <div className="relative profile-dropdown">
-          <Settings onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-5 h-5 md:w-8 md:h-8 text-gray-700 dark:text-white" />
+          <Settings onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-5 h-5 md:w-8 md:h-8 text-gray-700 dark:text-white cursor-pointer" />
 
           {/* Dropdown */}
           {showProfileMenu && (
