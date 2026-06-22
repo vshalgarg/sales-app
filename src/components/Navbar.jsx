@@ -92,7 +92,7 @@ export default function Navbar({
           {showMenuButton && (
             <Menu
               onClick={onMenuClick}
-              className="w-5 h-5 md:w-8 md:h-8 md:hidden mr-3 text-gray-700 dark:text-white"
+              className="w-5 h-5 md:w-8 md:h-8 mr-3 text-gray-700 dark:text-white cursor-pointer"
             />
           )}
 

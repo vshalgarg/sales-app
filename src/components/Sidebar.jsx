@@ -36,7 +36,6 @@ const Sidebar = ({
     ];
   } else if (activeSection === "reporting") {
     menuItems = [
-      // { name: "Bill History", path: "/bill-history" },
       { name: "Bills", path: "/bills" },
       { name: "Credit", path: "/credits" },
       { name: "Purchase", path: "/purchase" },
@@ -50,16 +49,16 @@ const Sidebar = ({
   return (
     <aside
       className={`
-    w-44 md:w-64 bg-gray-100 dark:bg-zinc-800 p-4 border-r
-     border-gray-300 dark:border-gray-700 
-     transition-transform duration-300
-      fixed bottom-0 left-0 z-40
-    transform ${isOpen ? "translate-x-0" : "-translate-x-full"}
-    md:relative md:translate-x-0
-     `}
-      style={{ top: isOpen ? navbarHeight : 0 }}
+        shrink-0 overflow-hidden bg-gray-100 dark:bg-zinc-800
+        border-gray-300 dark:border-gray-700 transition-all duration-300 ease-in-out
+        fixed bottom-0 left-0 z-40 w-44 p-4 border-r
+        transform ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        md:static md:z-auto md:transform-none
+        ${isOpen ? "md:w-64 md:p-4 md:border-r" : "md:w-0 md:p-0 md:border-0"}
+      `}
+      style={{ top: isMobile && isOpen ? navbarHeight : undefined }}
     >
-      <ul>
+      <ul className="w-44 md:w-56 whitespace-nowrap">
         {menuItems.map((item) => (
           <li key={item.name}>
             <NavLink
