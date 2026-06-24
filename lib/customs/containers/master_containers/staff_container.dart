@@ -28,16 +28,12 @@ class StaffContainer extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: AppColors.primaryPurple, width: 4),
-          ),
-          // boxShadow: BoxShadow(color:Colors.black),
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
         ),
         child: IntrinsicHeight(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5),
+            padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -53,7 +49,7 @@ class StaffContainer extends StatelessWidget {
                         softWrap: true,
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.black,
+                          color: AppColors.primaryPurple,
                           fontWeight: FontWeight.w200,
                         ),
                       ),
@@ -66,7 +62,7 @@ class StaffContainer extends StatelessWidget {
                               softWrap: true,
                               maxLines: 3,
 
-                              style: TextStyle(fontSize: 10, color: Colors.grey),
+                              style: TextStyle(fontSize: 10, color: Colors.black),
                             ),
                             Text(overflow: TextOverflow.ellipsis,
                               softWrap: true,
@@ -74,7 +70,7 @@ class StaffContainer extends StatelessWidget {
                               number ?? "",
                               style: TextStyle(
                                 fontSize: 10,
-                                color: AppColors.primaryPurple,
+                                color: Colors.black,
                               ),
                             ),
                           ],
@@ -85,13 +81,13 @@ class StaffContainer extends StatelessWidget {
                         children: [
                           Text(
                             "Joining Date:",
-                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                            style: TextStyle(fontSize: 10, color: Colors.black),
                           ),
                           Text(
                             joiningDate ?? "",
                             style: TextStyle(
                               fontSize: 10,
-                              color: AppColors.primaryPurple,
+                              color: Colors.black,
                             ),
                           ),
                         ],
@@ -99,9 +95,7 @@ class StaffContainer extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
-                Row(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     GestureDetector(
@@ -112,7 +106,7 @@ class StaffContainer extends StatelessWidget {
                         bgColor: AppColors.binRedLight,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(height: 10),
                     GestureDetector(
                       onTap: editIconTap,
                       child: customIcon(

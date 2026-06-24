@@ -27,8 +27,7 @@ class EntryDateTextField extends StatelessWidget {
 
     if (pickedDate != null) {
       controller.text =
-      "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-
+          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
     }
   }
 
@@ -45,8 +44,13 @@ class EntryDateTextField extends StatelessWidget {
         }
       },
       decoration: InputDecoration(
-       border:OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        labelText: label,
+        filled: true,
+        fillColor:Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: BorderSide.none,
+        ),
+        hintText: label,
         suffixIcon: const Icon(Iconsax.calendar_tick),
       ),
     );

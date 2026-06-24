@@ -6,29 +6,32 @@ import 'package:hisabio/master_widgets/basic_info.dart';
 import 'package:hisabio/master_widgets/bottomnavigation_button.dart';
 import 'package:hisabio/master_widgets/contact_info.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
+import 'package:hisabio/screens/master_screens/customer.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/new_test.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/get_customer_byid_model.dart';
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/add_customer.dart';
 import '../../provider/get_customer_byid_provider.dart';
 import '../../provider/get_customers_provider.dart';
 import '../../provider/get_transport_provider.dart';
 import '../../provider/update_customer_provider.dart';
 import 'add_new_supplier.dart';
+
 class AddNewCustomer extends StatefulWidget {
   final num? id;
   final FormMode mode;
-  const AddNewCustomer({
-    super.key,
-    this.id,
-    this.mode = FormMode.add,
-  });
+
+  const AddNewCustomer({super.key, this.id, this.mode = FormMode.add});
+
   @override
   State<AddNewCustomer> createState() => _AddNewCustomerState();
 }
+
 class _AddNewCustomerState extends State<AddNewCustomer> {
+  bool isExpanded = false;
   final nameController = TextEditingController();
 
   final emailController = TextEditingController();
@@ -132,7 +135,8 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       "remarks": remarksController.text,
     };
   }
-  void _populateFormFromCustomer( Data s) {
+
+  void _populateFormFromCustomer(Data s) {
     nameController.text = s.customerName ?? "";
     emailController.text = s.email ?? "";
     groupController.text = s.groupName ?? "";
@@ -174,71 +178,49 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     contacts = [];
 
     if ((s.contacts ?? []).isNotEmpty) {
-
       for (var c in s.contacts!) {
-
         final contact = ContactControllers();
 
         if (c is Map) {
+          contact.name.text = c.contactPerson?.toString() ?? "";
 
-          contact.name.text =
-              c.contactPerson?.toString() ?? "";
+          contact.mobile.text = c.mobileNumber?.toString() ?? "";
 
-          contact.mobile.text =
-              c.mobileNumber?.toString() ?? "";
-
-          contact.type.text =
-              c.type?.toString() ?? "";
-
+          contact.type.text = c.type?.toString() ?? "";
         } else {
-          contact.name.text =
-              c.contactPerson ?? "";
-          contact.mobile.text =
-              c.mobileNumber ?? "";
-          contact.type.text =
-              c.type?.toString() ?? "";
+          contact.name.text = c.contactPerson ?? "";
+          contact.mobile.text = c.mobileNumber ?? "";
+          contact.type.text = c.type?.toString() ?? "";
         }
 
         contacts.add(contact);
       }
-
     } else {
-
       contacts.add(ContactControllers());
     }
   }
 
   Future<void> loadData() async {
-    final transportProvider =
-    context.read<TransportProvider>();
+    final transportProvider = context.read<TransportProvider>();
 
-    final customerProvider =
-    context.read<GetCustomerByIdProvider>();
+    final customerProvider = context.read<GetCustomerByIdProvider>();
 
     await transportProvider.fetchTransports();
 
-    if (widget.mode == FormMode.view ||
-        widget.mode == FormMode.edit) {
-      await customerProvider.getCustomerById(
-        widget.id!.toInt(),
-      );
+    if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
+      await customerProvider.getCustomerById(widget.id!.toInt());
 
-      final customerData =
-          customerProvider.customer;
+      final customerData = customerProvider.customer;
 
-      if (customerData != null &&
-          customerData.data != null) {
-        _populateFormFromCustomer(
-          customerData.data!,
-        );
+      if (customerData != null && customerData.data != null) {
+        _populateFormFromCustomer(customerData.data!);
       }
     } else {
       contacts.add(ContactControllers());
     }
 
     if (mounted) {
-      setState(() {
-      });
+      setState(() {});
     }
   }
 
@@ -246,8 +228,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       loadData();
     });
   }
@@ -264,294 +245,296 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   void addContact() {
     setState(() {
-      contacts.add(ContactControllers()
-      );
-    });
-        }
-
-  void _clearForm() {
-    nameController.clear();
-    emailController.clear();
-    groupController.clear();
-    gstController.clear();
-    msmeController.clear();
-    referenceController.clear();
-
-    bankNameController.clear();
-    ifscController.clear();
-    branchNameController.clear();
-    accountholderNameController.clear();
-    accountNumberController.clear();
-
-    addressLine1Controller.clear();
-    addressLine2Controller.clear();
-    cityController.clear();
-    stateController.clear();
-    pinCodeController.clear();
-    remarksController.clear();
-    preferredTransportController.clear();
-    setState(() {
-      selectedType = null;
-      selectedTransportId = null;
-      for (var c in contacts) {
-        c.dispose();
-      }
-      contacts.clear();
-      addContact();
+      contacts.add(ContactControllers());
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    final getCustomerProvider =
-    context.watch<GetCustomerByIdProvider>();
+    final getCustomerProvider = context.watch<GetCustomerByIdProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        actions: [
+          Consumer2<AddCustomerProvider, UpdateCustomerProvider>(
+            builder: (context, provider, updateProvider, child) {
+              return IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  ExitConfirmationDialog.show(
+                    context,
+                    onSave: provider.isLoading
+                        ? () {}
+                        : () async {
+                            if (nameController.text.isEmpty) {
+                              ScaffoldSnackBar.show(
+                                context,
+                                "Please enter customer name",
+                              );
+                              return;
+                            }
+                            final body = _buildCustomerBody();
+
+                            await provider.addCustomer(body);
+                            if (!context.mounted) return;
+                            if (provider.error == null) {
+                              await context
+                                  .read<CustomersProvider>()
+                                  .fetchCustomers();
+                              if (!context.mounted) return;
+                              ScaffoldSnackBar.show(
+                                context,
+                                provider.message ??
+                                    "Customer Added Successfully",
+                              );
+
+                              Navigator.pop(context);
+                            } else {
+                              ScaffoldSnackBar.show(
+                                context,
+                                provider.error ?? "",
+                              );
+                            }
+                          },
+                    onClose: () {
+                      Navigator.pop(context);
+                    },
+                    onDiscard: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomerScreen(),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ],
         title: widget.mode == FormMode.view
             ? "Customer Details"
             : widget.mode == FormMode.edit
             ? "Update Customer"
             : "Add New Customer",
-            textStyle: TextStyle(
+        textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
           fontSize: 25,
         ),
       ),
       body:
-      getCustomerProvider.isLoading &&
-          (widget.mode == FormMode.view || widget.mode == FormMode.edit)
+          getCustomerProvider.isLoading &&
+              (widget.mode == FormMode.view || widget.mode == FormMode.edit)
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SupplierBasicInfo(
-                mode: widget.mode,
-                showCommissionRate: false,
-                showCommissionScheme: false,
-                nameController: nameController,
-                emailController: emailController,
-                groupController: groupController,
-                gstNoController: gstController,
-                msmeController: msmeController,
-                referenceController: referenceController,
-              ),
-              SizedBox(height: 15),
-              BankDetailsSection(
-                mode: widget.mode,
-                accountNumber: accountNumberController,
-                ifscCode: ifscController,
-                bankName: bankNameController,
-                branchName: branchNameController,
-                accountHolderName: accountholderNameController,
-              ),
-              SizedBox(height: 15),
-              AddressDetails(
-                mode: widget.mode,
-                addressLine1: addressLine1Controller,
-                addressLine2: addressLine2Controller,
-                state: stateController,
-                city: cityController,
-                pinCode: pinCodeController,
-              ),
-              SizedBox(height: 15),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SupplierBasicInfo(
+                      mode: widget.mode,
+                      showCommissionRate: false,
+                      showCommissionScheme: false,
+                      nameController: nameController,
+                      emailController: emailController,
+                      groupController: groupController,
+                      gstNoController: gstController,
+                      msmeController: msmeController,
+                      referenceController: referenceController,
+                    ),
+                    SizedBox(height: 15),
+                    BankDetailsSection(
+                      mode: widget.mode,
+                      accountNumber: accountNumberController,
+                      ifscCode: ifscController,
+                      bankName: bankNameController,
+                      branchName: branchNameController,
+                      accountHolderName: accountholderNameController,
+                    ),
+                    SizedBox(height: 15),
+                    AddressDetails(
+                      mode: widget.mode,
+                      addressLine1: addressLine1Controller,
+                      addressLine2: addressLine2Controller,
+                      state: stateController,
+                      city: cityController,
+                      pinCode: pinCodeController,
+                    ),
+                    SizedBox(height: 15),
 
-              ContactInfo(
-                mode: widget.mode,
-                contacts: contacts,
-                onAdd: addContact,
-                onDelete: deleteContact,
-              ),
-              SizedBox(height: 15),
-             /* Text(
-                "Financial and Logistics",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                    ContactInfo(
+                      mode: widget.mode,
+                      contacts: contacts,
+                      onAdd: addContact,
+                      onDelete: deleteContact,
+                    ),
+                    SizedBox(height: 15),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isExpanded = !isExpanded;
+                        });
+                      },
+                      child: TextFormField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          suffixIcon: Icon(
+                            isExpanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                          ),
+                          iconColor: Colors.white,
+                          filled: true,
+                          fillColor: AppColors.primaryPurple,
+                          hintText: "Financial and Logistics",
+                          hintStyle: TextStyle(color: Colors.white),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (isExpanded) ...[
+                      SizedBox(height: 15),
+                      Text(
+                        "Preferred Transport",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      Consumer<TransportProvider>(
+                        builder: (context, transportProvider, child) {
+                          if (transportProvider.isLoading) {
+                            return const CircularProgressIndicator();
+                          }
+
+                          final transports = transportProvider.transports;
+
+                          return CustomDropdownMenu(
+                            //label: "Preferred Transport",
+                            items: transports.map((e) => e.name ?? "").toList(),
+
+                            initialValue: selectedType,
+
+                            isDisabled: widget.mode == FormMode.view,
+
+                            width: MediaQuery.of(context).size.width,
+
+                            onChanged: (value) {
+                              final selected = transports.firstWhere(
+                                (e) => e.name == value,
+                              );
+
+                              setState(() {
+                                selectedType = selected.name;
+
+                                selectedTransportId = selected.id.toString();
+
+                                preferredTransportController.text =
+                                    selectedType ?? "";
+                              });
+                            },
+                          );
+                        },
+                      ),
+                      SizedBox(height: 15),
+                      Text(
+                        "Remarks (Optional)",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      TextFormField(
+                        enabled: widget.mode != FormMode.view,
+                        controller: remarksController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          labelText: "Remarks (optional)",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ),*/
-              TextFormField(
-                enabled: false,
-                decoration: InputDecoration(
-                  suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
-                  iconColor: Colors.white,
-                  filled:true,
-                  fillColor: AppColors.primaryPurple,
-                  hintText: "Financial and Logistics",hintStyle: TextStyle(color:Colors.white),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
-                ),
-
               ),
-
-              SizedBox(height: 15),
-              Text("Preferred Transport",style:TextStyle(color:Colors.white,fontSize: 18)),
-              Consumer<TransportProvider>(
-                builder: (context, transportProvider, child) {
-                  if (transportProvider.isLoading) {
-                    return const CircularProgressIndicator();
+            ),
+      bottomNavigationBar:
+          Consumer2<AddCustomerProvider, UpdateCustomerProvider>(
+            builder: (context, provider, updateProvider, child) {
+              return BottomNavigationButton(
+                mode: widget.mode,
+                update: () async {
+                  if (nameController.text.isEmpty) {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Please enter customer name",
+                    );
+                    return;
                   }
 
-                  final transports = transportProvider.transports;
+                  final body = updateCustomerBody();
 
-                  return CustomDropdownMenu(
-                    //label: "Preferred Transport",
-                    items: transports.map((e) => e.name ?? "").toList(),
-
-                    initialValue: selectedType,
-
-                    isDisabled: widget.mode == FormMode.view,
-
-
-                    width: MediaQuery
-                        .of(context)
-                        .size
-                        .width,
-
-                    onChanged: (value) {
-                      final selected = transports.firstWhere(
-                            (e) => e.name == value,
-                      );
-
-                      setState(() {
-                        selectedType = selected.name;
-
-                        selectedTransportId = selected.id.toString();
-
-                        preferredTransportController.text =
-                            selectedType ?? "";
-                      });
-                    },
+                  await updateProvider.updateCustomer(
+                    body: body,
+                    id: widget.id!.toInt(),
                   );
+                  if (!context.mounted) return;
+
+                  if (updateProvider.errorMessage == null) {
+                    await context.read<CustomersProvider>().fetchCustomers();
+                    if (!context.mounted) return;
+
+                    ScaffoldSnackBar.show(
+                      context,
+                      updateProvider.updateCustomerResponse?.message ??
+                          "Customer Updated Successfully",
+                    );
+
+                    Navigator.pop(context);
+                  } else {
+                    ScaffoldSnackBar.show(
+                      context,
+                      updateProvider.errorMessage ?? "",
+                    );
+                  }
                 },
-              ),
-              SizedBox(height: 15),
-              Text("Remarks (Optional)",style:TextStyle(color:Colors.white,fontSize: 18)),
-              TextFormField(
-                enabled: widget.mode != FormMode.view,
-                controller: remarksController,
-                decoration: InputDecoration(
-                  filled:true,
-                  fillColor: Colors.white,
-                  labelText: "Remarks (optional)",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-              ),
+                saveSupplier: provider.isLoading
+                    ? () {}
+                    : () async {
+                        if (nameController.text.isEmpty) {
+                          ScaffoldSnackBar.show(
+                            context,
+                            "Please enter customer name",
+                          );
+                          return;
+                        }
+                        final body = _buildCustomerBody();
 
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: Consumer2<AddCustomerProvider,
-          UpdateCustomerProvider>(
-        builder: (context, provider, updateProvider, child) {
-          return BottomNavigationButton(
-            mode: widget.mode,
-            update: () async {
-              if (nameController.text.isEmpty) {
-                ScaffoldSnackBar.show(
-                  context,
-                  "Please enter customer name",
-                );
-                return;
-              }
+                        await provider.addCustomer(body);
+                        if (!context.mounted) return;
+                        if (provider.error == null) {
+                          await context
+                              .read<CustomersProvider>()
+                              .fetchCustomers();
+                          if (!context.mounted) return;
+                          ScaffoldSnackBar.show(
+                            context,
+                            provider.message ?? "Customer Added Successfully",
+                          );
 
-              final body = updateCustomerBody();
-
-              await updateProvider.updateCustomer(
-                body: body,
-                id: widget.id!.toInt(),
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldSnackBar.show(context, provider.error ?? "");
+                        }
+                      },
               );
-              if(!context.mounted)return;
-
-              if (updateProvider.errorMessage == null) {
-                await context
-                    .read<CustomersProvider>()
-                    .fetchCustomers();
-                if(!context.mounted)return;
-
-                ScaffoldSnackBar.show(
-                  context,
-                  updateProvider
-                      .updateCustomerResponse
-                      ?.message ??
-                      "Customer Updated Successfully",
-                );
-
-                Navigator.pop(context);
-              } else {
-                ScaffoldSnackBar.show(
-                  context,
-                  updateProvider.errorMessage ?? "",
-                );
-              }
             },
-            saveSupplier: provider.isLoading
-                ? () {}
-                : () async {
-              if (nameController.text.isEmpty) {
-                ScaffoldSnackBar.show(
-                  context,
-                  "Please enter customer name",
-                );
-                return;
-              }
-              final body = _buildCustomerBody();
-
-              await provider.addCustomer(body);
-              if(!context.mounted)return;
-              if (provider.error == null) {
-                await context.read<CustomersProvider>().fetchCustomers();
-                if(!context.mounted)return;
-                ScaffoldSnackBar.show(
-                  context,
-                  provider.message ?? "Customer Added Successfully",
-                );
-
-                Navigator.pop(context);
-              } else {
-                ScaffoldSnackBar.show(context, provider.error ?? "");
-              }
-            },
-            saveAndAddNew: provider.isLoading
-                ? () {}
-                : () async {
-              if (nameController.text.isEmpty) {
-                ScaffoldSnackBar.show(
-                  context,
-                  "Please enter customer name",
-                );
-                return;
-              }
-              final body = _buildCustomerBody();
-
-              await provider.addCustomer(body);
-              if(!context.mounted)return;
-
-              if (provider.error == null) {
-                await context.read<CustomersProvider>().fetchCustomers();
-                if(!context.mounted)return;
-                ScaffoldSnackBar.show(
-                  context,
-                  provider.message ?? "Customer Added Successfully",
-                );
-
-                _clearForm();
-              } else {
-                ScaffoldSnackBar.show(context, provider.error!);
-              }
-            },
-            cancel: () {
-              Navigator.pop(context);
-            },
-          );
-        },
-      ),
+          ),
     );
   }
 

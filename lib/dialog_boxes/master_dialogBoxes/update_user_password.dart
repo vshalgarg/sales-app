@@ -26,18 +26,19 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text("Change Password: ${widget.name}"),
+    return AlertDialog(backgroundColor: AppColors.bodyFillColor,
+      title: Center(child: Text("Change Password: ${widget.name}",style:TextStyle(fontSize:18))),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
             controller: widget.newPasswordController,
             obscureText: !isPasswordVisible,
-            decoration: InputDecoration(
+            decoration: InputDecoration( filled: true,
+              fillColor: Colors.white,
               labelText: "New Password",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(5),borderSide:BorderSide.none
               ),
               suffixIcon: IconButton(
                 onPressed: () {
@@ -55,10 +56,11 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
           TextFormField(
             controller: widget.confirmPasswordController,
             obscureText: !isPasswordVisible,
-            decoration: InputDecoration(
+            decoration: InputDecoration( filled: true,
+              fillColor: Colors.white,
               labelText: "Confirm Password",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(5),borderSide:BorderSide.none
               ),
               suffixIcon: IconButton(
                 onPressed: () {
@@ -73,7 +75,7 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
             ),
           ),
           SizedBox(height: 15),
-          Row(mainAxisAlignment: MainAxisAlignment.end,
+          Column(mainAxisAlignment: MainAxisAlignment.end,
             children: [
               CustomElevatedButton(
                 text: "Cancel",

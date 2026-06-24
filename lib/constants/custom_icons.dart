@@ -5,21 +5,13 @@ Widget customIcon({
   required Color iconColor,
   required Color bgColor,
 }) {
-  return Container(
-   // height: 40,
-    //width: 40,
-    decoration: BoxDecoration(
-      color: bgColor,
-      shape: BoxShape.circle,
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Center(
-        child: Icon(
-          icon,
-          color: iconColor,
-          size: 22,
-        ),
+  return Padding(
+    padding: const EdgeInsets.all(2.0),
+    child: Center(
+      child: Icon(
+        icon,
+        color: iconColor,
+        size: 22,
       ),
     ),
   );

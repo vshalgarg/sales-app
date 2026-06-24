@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
-import '../../drawers/entries_drawer.dart';
 import '../../entry_widgets/custom_api_textfield.dart';
 import '../../entry_widgets/custom_container_entry.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
@@ -33,6 +32,8 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   List<TextEditingController> depositAmount = [TextEditingController()];
   List<TextEditingController> balancedAmount = [TextEditingController()];
   List<int> suppliers = [0];
+  bool isExpanded=false;
+  bool isSupplierExpanded=false;
 
   void calculateBalance(int index) {
     final total = double.tryParse(totalAmount[index].text) ?? 0.0;
@@ -62,7 +63,12 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<EntriesProvider>();
     return Scaffold(
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: "Retail Entry",
         textStyle: TextStyle(
           color: Colors.white,
@@ -70,23 +76,41 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
           fontSize: 25,
         ),
       ),
-      drawer: EntryDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
+              GestureDetector(onTap:(){setState(() {
+                isExpanded=!isExpanded;
+              });},
+                child: TextFormField(
+                  enabled: false,
+                  decoration: InputDecoration(
+                    filled: true,
+                    suffixIcon: Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,color:Colors.white),
+                    fillColor: AppColors.primaryPurple,
+                    hintText: "Information",
+                    hintStyle: TextStyle(color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
               EntryContainer(
                 children: [
-                  Text(
-                    "Information",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+
+                  if(isExpanded)...[
+                  SizedBox(height: 15),
                   EntryDateTextField(label: "Date", controller: dateController),
+                  SizedBox(height: 15),
                   EntryTextField(
                     controller: nameController,
                     hintText: "Retailer Name",
                   ),
+                  SizedBox(height: 15),
                   CustomApiTextField<GetStaffEntry>(
                     hintText: "Staff",
                     value: selectedStaff,
@@ -98,6 +122,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                       });
                     },
                   ),
+                  SizedBox(height: 15),
                   CustomApiTextField<EntriesCustomerModel>(
                     hintText: "Customer",
                     value: selectedReffered,
@@ -109,7 +134,44 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                       });
                     },
                   ),
-                ],
+                ]],
+              ),
+              SizedBox(height: 15),
+              GestureDetector(onTap:(){setState(() {
+                isSupplierExpanded=!isSupplierExpanded;
+              });},
+                child: TextFormField(
+                  enabled: false,
+                  decoration: InputDecoration(
+                    filled: true,
+                    suffixIcon: Icon(isSupplierExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,color:Colors.white),
+                    fillColor: AppColors.primaryPurple,
+                    hintText: "Suppliers",
+                    hintStyle: TextStyle(color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              if (isSupplierExpanded) ...[
+              SizedBox(height: 15),
+              CustomElevatedButton(
+                color: AppColors.primaryPurple,
+                text: "+ Add More Supplier",
+                textStyle: TextStyle(color: Colors.white),
+                onPressed: () async {
+                  setState(() {
+                    suppliers.add(suppliers.length);
+                    totalAmount.add(TextEditingController());
+                    balancedAmount.add(TextEditingController());
+                    depositAmount.add(TextEditingController());
+
+                    selectedSuppliers.add(null);
+                  });
+                },
+                borderRadius: 5,
               ),
               ListView.builder(
                 shrinkWrap: true,
@@ -117,102 +179,90 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                 itemCount: suppliers.length,
                 itemBuilder: (context, index) => EntryContainer(
                   children: [
+                    SizedBox(height:15),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Suppliers",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        CustomElevatedButton(
-                          color: AppColors.primaryPurple,
-                          text: "+ Add More Supplier",
-                          textStyle: TextStyle(color: Colors.white),
-                          onPressed: () async {
-                            setState(() {
-                              suppliers.add(suppliers.length);
-                              totalAmount.add(TextEditingController());
-                              balancedAmount.add(TextEditingController());
-                              depositAmount.add(TextEditingController());
-
-                              selectedSuppliers.add(null);
-                            });
+                        Text("Supplier ${index + 1} "),
+                        GestureDetector(
+                          onTap: () {
+                            if (suppliers.length > 1) {
+                              setState(() {
+                                suppliers.removeAt(index);
+                                totalAmount.removeAt(index);
+                                balancedAmount.removeAt(index);
+                                depositAmount.removeAt(index);
+                                selectedSuppliers.removeAt(index);
+                              });
+                            }
                           },
-                          borderRadius: 10,
+                          child: Icon(Iconsax.trash, color: Colors.red),
                         ),
                       ],
                     ),
-                    EntryContainer(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Supplier ${index + 1} "),
-                            GestureDetector(
-                              onTap: () {
-                                if (suppliers.length > 1) {
-                                  setState(() {
-                                    suppliers.removeAt(index);
-                                    totalAmount.removeAt(index);
-                                    balancedAmount.removeAt(index);
-                                    depositAmount.removeAt(index);
-                                    selectedSuppliers.removeAt(index);
-                                  });
-                                }
-                              },
-                              child: Icon(Iconsax.trash, color: Colors.red),
-                            ),
-                          ],
-                        ),
-
-                        CustomApiTextField<EntriesModel>(
-                          hintText: "Supplier",
-                          value: selectedSuppliers[index],
-                          items: provider.entries,
-                          itemLabel: (e) => e.supplierName ?? '',
-                          onChanged: (value) {
-                            setState(() {
-                              selectedSuppliers[index] = value;
-                            });
-                          },
-                        ),
-                        EntryTextField(
-                          controller: totalAmount[index],
-                          hintText: "Total Amount",
-                          onChanged: (_) {
-                            calculateBalance(index);
-                          },
-                        ),
-                        EntryTextField(
-                          controller: depositAmount[index],
-                          hintText: "Deposit Amount",
-                          onChanged: (_) {
-                            calculateBalance(index);
-                          },
-                        ),
-                        EntryTextField(
-                          controller: balancedAmount[index],
-                          hintText: "Balance Amount",
-                          enabled: false,
-                        ),
-                      ],
+                    SizedBox(height:15),
+                    CustomApiTextField<EntriesModel>(
+                      hintText: "Supplier",
+                      value: selectedSuppliers[index],
+                      items: provider.entries,
+                      itemLabel: (e) => e.supplierName ?? '',
+                      onChanged: (value) {
+                        setState(() {
+                          selectedSuppliers[index] = value;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 15),
+                    EntryTextField(
+                      controller: totalAmount[index],
+                      hintText: "Total Amount",
+                      onChanged: (_) {
+                        calculateBalance(index);
+                      },
+                    ),
+                    SizedBox(height: 15),
+                    EntryTextField(
+                      controller: depositAmount[index],
+                      hintText: "Deposit Amount",
+                      onChanged: (_) {
+                        calculateBalance(index);
+                      },
+                    ),
+                    SizedBox(height: 15),
+                    EntryTextField(
+                      controller: balancedAmount[index],
+                      hintText: "Balance Amount",
+                      enabled: false,
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
-              Row(
+              ],
+              SizedBox(height: 15),
+              Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   CustomElevatedButton(
                     text: "Reset",
                     textStyle: TextStyle(color: Colors.black, fontSize: 20),
-                    onPressed: () async {},
-                    borderRadius: 10,
+                    onPressed: () async {
+                      setState(() {
+                        dateController.clear();
+                        nameController.clear();
+                        selectedStaff = null;
+                        selectedReffered = null;
+                        suppliers = [0];
+                        selectedSuppliers = [null];
+                        totalAmount = [TextEditingController()];
+                        depositAmount = [TextEditingController()];
+                        balancedAmount = [TextEditingController()];
+                        isExpanded = false;
+                        isSupplierExpanded = false;
+                      });
+                    },
+                    borderRadius: 5,
                   ),
-                  SizedBox(width: 20),
+                  SizedBox(height: 5),
                   CustomElevatedButton(
                     text: "Save",
                     textStyle: TextStyle(color: Colors.white, fontSize: 20),
@@ -241,13 +291,15 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                         final message = await provider.addRetailEntry(payload);
 
                         if (!context.mounted) return;
-                        ScaffoldSnackBar.show(context, message??"Retail Entry Saved");
-
+                        ScaffoldSnackBar.show(
+                          context,
+                          message ?? "Retail Entry Saved",
+                        );
                       } catch (e) {
                         ScaffoldSnackBar.show(context, e.toString());
                       }
                     },
-                    borderRadius: 10,
+                    borderRadius: 5,
                     color: AppColors.primaryPurple,
                   ),
                 ],

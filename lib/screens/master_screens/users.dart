@@ -2,15 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/containers/master_containers/users_container.dart';
-import 'package:hisabio/drawers/master_drawer.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
-import '../../customs/bottom_navigation_bar.dart';
 import '../../dialog_boxes/master_dialogBoxes/add_new_user.dart';
 import '../../dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
 import '../../dialog_boxes/master_dialogBoxes/update_user_password.dart';
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/get_user_provider.dart';
 import '../../provider/user_all_provider.dart';
 
@@ -33,6 +32,7 @@ class _UsersScreenState extends State<UsersScreen> {
       context.read<GetUsersProvider>().getUsers();
     });
   }
+
   @override
   void dispose() {
     userSearchController.dispose();
@@ -40,7 +40,8 @@ class _UsersScreenState extends State<UsersScreen> {
     confirmPassword.dispose();
     super.dispose();
   }
-  void clear(){
+
+  void clear() {
     confirmPassword.clear();
   }
 
@@ -55,9 +56,13 @@ class _UsersScreenState extends State<UsersScreen> {
     if (userProvider.error != null) {
       return Scaffold(body: Center(child: Text(userProvider.error!)));
     }
-     return Scaffold(
-      backgroundColor: Colors.white,
+    return Scaffold(
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: "Users",
         textStyle: TextStyle(
           color: Colors.white,
@@ -65,10 +70,7 @@ class _UsersScreenState extends State<UsersScreen> {
           fontSize: 25,
         ),
       ),
-      drawer: MasterDrawer(),
-      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
-      body:
-      Padding(
+      body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
           children: [
@@ -79,6 +81,11 @@ class _UsersScreenState extends State<UsersScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: SearchBar(
+                shape: WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
                 controller: userSearchController,
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search User...",
@@ -175,7 +182,9 @@ class _UsersScreenState extends State<UsersScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      provider.updatePasswordResponse?.message ??
+                                      provider
+                                              .updatePasswordResponse
+                                              ?.message ??
                                           "Password updated successfully",
                                     ),
                                   ),
@@ -191,37 +200,42 @@ class _UsersScreenState extends State<UsersScreen> {
                   return UserContainer(
                     name: user.username ?? '',
                     trashIconTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => CustomDeleteDialog(
-                          dialogBoxName: "Delete User",
-                          onDelete: () async {
-                            await context.read<UserProvider>().deleteUser(
-                              user.id!.toInt(),
-                            );
-                            if (!context.mounted) return;
+                      ExitConfirmationDialog.show(
+                        context,
+                        saveButtonText: "Delete",
+                        onClose: () {
+                          Navigator.pop(context);
+                        },
+                        onDiscard: () {
+                          Navigator.pop(context);
+                        },
+                        bodyText:
+                            "Are you sure you want to permanently delete ${user.username}? This action cannot be undo.",
+                        onSave: () async {
+                          await context.read<UserProvider>().deleteUser(
+                            user.id!.toInt(),
+                          );
+                          if (!context.mounted) return;
 
-                            final provider = context.read<UserProvider>();
+                          final provider = context.read<UserProvider>();
 
-                            if (provider.errorMessage == null) {
-                              await context.read<GetUsersProvider>().getUsers();
+                          if (provider.errorMessage == null) {
+                            await context.read<GetUsersProvider>().getUsers();
 
-                              if (context.mounted) {
-                                Navigator.pop(context);
+                            if (context.mounted) {
+                              Navigator.pop(context);
 
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      provider.deleteUserResponse?.message ??
-                                          "User deleted successfully",
-                                    ),
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    provider.deleteUserResponse?.message ??
+                                        "User deleted successfully",
                                   ),
-                                );
-                              }
+                                ),
+                              );
                             }
-                          },
-                          name: user.username ?? "",
-                        ),
+                          }
+                        },
                       );
                     },
                     editIconTap: () {
@@ -273,6 +287,6 @@ class _UsersScreenState extends State<UsersScreen> {
         backgroundColor: AppColors.primaryPurple,
         child: Icon(Iconsax.add, color: Colors.white, size: 40),
       ),
-    );}
+    );
   }
-
+}

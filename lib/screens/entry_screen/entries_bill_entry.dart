@@ -1,13 +1,11 @@
-import 'dart:convert';
+
 import 'dart:core';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
-import 'package:hisabio/customs/bottom_navigation_bar.dart';
 import 'package:hisabio/customs/elevated_button.dart';
-import 'package:hisabio/drawers/entries_drawer.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_date_textfield.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
@@ -24,6 +22,7 @@ import '../../model_classes/bill_item_model.dart';
 import '../../model_classes/entries_supplier.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
+import '../home_screen.dart';
 
 class EntriesBillEntry extends StatefulWidget {
   const EntriesBillEntry({super.key});
@@ -33,6 +32,10 @@ class EntriesBillEntry extends StatefulWidget {
 }
 
 class _EntriesBillEntryState extends State<EntriesBillEntry> {
+  bool isExpanded = false;
+  bool isSupplierExpanded = false;
+  bool isCustomerExpanded = false;
+  bool isLogisticExpanded = false;
   List<PlatformFile> uploadedFiles = [];
   List<BillItem> billItems = [];
   EntriesModel? selectedSupplier;
@@ -77,7 +80,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         provider.fetchCustomer(),
         provider.fetchTransport(),
       ]);
-
     });
 
     dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -95,7 +97,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     supplierController.clear();
     // dateController.clear();
     setState(() {
-      uploadedFiles=[];
+      uploadedFiles = [];
       billItems = [];
       selectedSupplier = null;
       selectedCustomer = null;
@@ -108,7 +110,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     final provider = context.watch<EntriesProvider>();
     // final customerProvider=context.watch<EntriesProvider>();
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         title: "Bill Entry",
         textStyle: TextStyle(
@@ -116,111 +118,246 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
           fontWeight: FontWeight.w600,
           fontSize: 25,
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
       ),
-      drawer: EntryDrawer(),
-      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 1),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: SingleChildScrollView(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.end,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              EntryContainer(
-                children: [
-                  Text(
-                    "Order Information",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  EntryDateTextField(label: "Date", controller: dateController),
-                  SizedBox(height: 10),
-                  EntryDateTextField(
-                    label: "Received Date",
-                    controller: receivedDateController,
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    controller: invoiceController,
-                    hintText: "Invoice",
-                  ),
-                  SizedBox(height: 10),
-                ],
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isExpanded = !isExpanded;
+                  });
+                },
+                child: EntryContainer(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        enabled: false,
+                        filled: true,
+                        fillColor: AppColors.primaryPurple,
+                        hintText: "Order Information",
+                        hintStyle: TextStyle(color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    if (isExpanded) ...[
+                      SizedBox(height: 10),
+                      EntryDateTextField(
+                        label: "Date",
+                        controller: dateController,
+                      ),
+                      SizedBox(height: 10),
+                      EntryDateTextField(
+                        label: "Received Date",
+                        controller: receivedDateController,
+                      ),
+                      SizedBox(height: 10),
+                      EntryTextField(
+                        controller: invoiceController,
+                        hintText: "Invoice",
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  ],
+                ),
               ),
-              SizedBox(height: 20),
-              EntryContainer(
-                children: [
-                  Text(
-                    "Supplier Information",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  CustomApiTextField<EntriesModel>(
-                    hintText: "Supplier",
-                    value: selectedSupplier,
-                    items: provider.entries,
-                    itemLabel: (e) => e.supplierName ?? '',
-                    onChanged: (value) {
-                      setState(() {
-                        selectedSupplier = value;
-                      });
+              SizedBox(height: 15),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isSupplierExpanded = !isSupplierExpanded;
+                  });
+                },
+                child: EntryContainer(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        enabled: false,
+                        filled: true,
+                        fillColor: AppColors.primaryPurple,
+                        hintText: "Supplier Information",
+                        hintStyle: TextStyle(color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    if(isSupplierExpanded)...[
+                    SizedBox(height: 10),
+                    CustomApiTextField<EntriesModel>(
+                      hintText: "Supplier",
+                      value: selectedSupplier,
+                      items: provider.entries,
+                      itemLabel: (e) => e.supplierName ?? '',
+                      onChanged: (value) {
+                        setState(() {
+                          selectedSupplier = value;
+                        });
 
-                      supplierGroupController.text = value?.supplierGroup ?? '';
+                        supplierGroupController.text =
+                            value?.supplierGroup ?? '';
 
-                      supplierGstController.text = value?.supplierGstNo ?? '';
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    enabled: false,
-                    hintText: "Supplier Group",
-                    controller: supplierGroupController,
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    enabled: false,
-                    hintText: "GSTIN",
-                    controller: supplierGstController,
-                  ),
-                  SizedBox(height: 10),
-                ],
+                        supplierGstController.text = value?.supplierGstNo ?? '';
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      enabled: false,
+                      hintText: "Supplier Group",
+                      controller: supplierGroupController,
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      enabled: false,
+                      hintText: "GSTIN",
+                      controller: supplierGstController,
+                    ),
+                    SizedBox(height: 10),
+                  ],
+               ] ),
               ),
-              SizedBox(height: 20),
-              EntryContainer(
-                children: [
-                  Text(
-                    "Customer Information",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  CustomApiTextField<EntriesCustomerModel>(
-                    hintText: "Customer",
-                    value: selectedCustomer,
-                    items: provider.customerEntries,
-                    itemLabel: (e) => e.customerName ?? '',
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCustomer = value;
-                      });
+              SizedBox(height: 15),
 
-                      customerGroupController.text = value?.customerGroup ?? '';
+              GestureDetector(onTap:(){setState(() {
+                isCustomerExpanded=!isCustomerExpanded;
+              });},
+                child: EntryContainer(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        enabled: false,
+                        filled: true,
+                        fillColor: AppColors.primaryPurple,
+                        hintText: "Customer Information",
+                        hintStyle: TextStyle(color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    if(isCustomerExpanded)...[
+                    SizedBox(height: 10),
+                    CustomApiTextField<EntriesCustomerModel>(
+                      hintText: "Customer",
+                      value: selectedCustomer,
+                      items: provider.customerEntries,
+                      itemLabel: (e) => e.customerName ?? '',
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCustomer = value;
+                        });
 
-                      customerGstController.text = value?.customerGstNo ?? '';
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    enabled: false,
-                    hintText: "Customer Group",
-                    controller: customerGroupController,
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField( enabled: false,
-                    hintText: "GSTIN",
-                    controller: customerGstController,
-                  ),
-                  SizedBox(height: 10),
-                ],
+                        customerGroupController.text = value?.customerGroup ?? '';
+
+                        customerGstController.text = value?.customerGstNo ?? '';
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      enabled: false,
+                      hintText: "Customer Group",
+                      controller: customerGroupController,
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      enabled: false,
+                      hintText: "GSTIN",
+                      controller: customerGstController,
+                    ),
+                    SizedBox(height: 10),
+                  ],
+                ]),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 15),
+              GestureDetector(onTap:(){
+                setState(() {
+                  isLogisticExpanded=!isLogisticExpanded;
+                });
+              },
+                child: EntryContainer(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        enabled: false,
+                        filled: true,
+                        fillColor: AppColors.primaryPurple,
+                        hintText: "Logistic & Notes",
+                        hintStyle: TextStyle(color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    if(isLogisticExpanded)...[
+                    SizedBox(height: 10),
+                    CustomApiTextField<GetTransportnameIdModel>(
+                      hintText: "Transport",
+                      value: selectedTransport,
+                      items: provider.transportDetails,
+                      itemLabel: (e) => e.name ?? '',
+                      onChanged: (value) {
+                        setState(() {
+                          selectedTransport = value;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      hintText: "LR Number",
+                      controller: lrNumberController,
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      hintText: "Remarks",
+                      controller: remarksController,
+                    ),
+                    SizedBox(height: 10),
+                  ],
+                ]),
+              ),
+              SizedBox(height:15),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -230,7 +367,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         context: context,
                         builder: (context) => const BillEntryUploadDocuments(),
                       );
-
                       if (files != null) {
                         setState(() {
                           uploadedFiles = files;
@@ -240,12 +376,12 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: AppColors.primaryPurpleLight,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(5),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisSize: MainAxisSize.max,
                           children: [
                             Icon(
                               Iconsax.document_upload,
@@ -266,11 +402,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                   SizedBox(width: 10),
                   Text(
                     "${uploadedFiles.length} files",
-                    style: TextStyle(color: Colors.grey, fontSize: 15),
+                    style: TextStyle(color: Colors.white, fontSize: 15),
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 15),
               GestureDetector(
                 onTap: () async {
                   final BillItem? item = await showDialog<BillItem>(
@@ -285,15 +421,18 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                   }
                 },
                 child: Container(
+                  width:double.infinity,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                     color: AppColors.primaryPurple,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "+Add Bill Item",
-                      style: TextStyle(color: Colors.white),
+                    child: Center(
+                      child: Text(
+                        "+Add Bill Item",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
@@ -334,13 +473,13 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 padding: const EdgeInsets.all(3.0),
                                 child: Row(
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
-                                       Text("Pieces = ${item.pieces}"),
+                                        Text("Pieces = ${item.pieces}"),
                                         Text(
                                           "Gross Amount = ${item.grossAmount}",
                                         ),
@@ -351,9 +490,12 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                     ),
                                     Row(
                                       children: [
-                                        GestureDetector(onTap:(){setState(() {
-                                          billItems.removeAt(index);
-                                        });},
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              billItems.removeAt(index);
+                                            });
+                                          },
 
                                           child: customIcon(
                                             iconColor: AppColors.binRed,
@@ -364,11 +506,13 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                         SizedBox(width: 10),
                                         GestureDetector(
                                           onTap: () async {
-                                            final BillItem? updatedItem = await showDialog<BillItem>(
+                                            final BillItem? updatedItem =
+                                            await showDialog<BillItem>(
                                               context: context,
-                                              builder: (context) => AddNewBillItem(
-                                                billItem: item,
-                                              ),
+                                              builder: (context) =>
+                                                  AddNewBillItem(
+                                                    billItem: item,
+                                                  ),
                                             );
 
                                             if (updatedItem != null) {
@@ -395,41 +539,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     ),
                   ],
                 ),
-              SizedBox(height:20),
-              EntryContainer(
-                children: [
-                  Text(
-                    "Logistics & Notes",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  CustomApiTextField<GetTransportnameIdModel>(
-                    hintText: "Transport",
-                    value: selectedTransport,
-                    items: provider.transportDetails,
-                    itemLabel: (e) => e.name ?? '',
-                    onChanged: (value) {
-                      setState(() {
-                        selectedTransport = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    hintText: "LR Number",
-                    controller: lrNumberController,
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    hintText: "Remarks",
-                    controller: remarksController,
-                  ),
-                  SizedBox(height: 10),
-                ],
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Column(
                 children: [
                   CustomElevatedButton(
                     text: "Reset",
@@ -437,28 +547,35 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     onPressed: () async {
                       clearFields();
                     },
-                    borderRadius: 10,
+                    borderRadius: 5,
                   ),
                   SizedBox(width: 20),
                   CustomElevatedButton(
-                      borderRadius: 10,
-                      color: AppColors.primaryPurple,
+                    borderRadius: 5,
+                    color: AppColors.primaryPurple,
                     text: "Save",
                     textStyle: TextStyle(color: Colors.white, fontSize: 20),
                     onPressed: () async {
-                        if(invoiceController.text.isEmpty||selectedSupplier==null||selectedCustomer==null){
-                          ScaffoldSnackBar.show(context,"Please fill all the required fields");
-                          return;
-                        }
-                        if(billItems.isEmpty){
-                          ScaffoldSnackBar.show(context,"Please add atleat one bill item");
-                          return;
-                        }
+                      if (invoiceController.text.isEmpty ||
+                          selectedSupplier == null ||
+                          selectedCustomer == null) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          "Please fill all the required fields",
+                        );
+                        return;
+                      }
+                      if (billItems.isEmpty) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          "Please add atleat one bill item",
+                        );
+                        return;
+                      }
 
                       final payload = {
                         "date": dateController.text,
-                        "receivedDate":
-                        receivedDateController.text.isEmpty
+                        "receivedDate": receivedDateController.text.isEmpty
                             ? null
                             : receivedDateController.text,
                         "order": invoiceController.text,
@@ -466,53 +583,55 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         "customerId": selectedCustomer?.id,
                         "transportId": selectedTransport?.id,
                         "transportName": selectedTransport?.name,
-                       // "transportCity": null,
+                        // "transportCity": null,
                         "lrNumber": lrNumberController.text,
                         "remarks": remarksController.text,
 
                         "taxableValue": billItems.fold(
                           0.0,
-                              (sum, item) => sum + item.taxableValue!.toDouble(),
+                          (sum, item) => sum + item.taxableValue!.toDouble(),
                         ),
 
                         "billAmount": billItems.fold(
                           0.0,
-                              (sum, item) => sum + item.totalAmount!.toDouble(),
+                          (sum, item) => sum + item.totalAmount!.toDouble(),
                         ),
 
-                        "billItems": billItems.map((item) => {
-                          "pieces": item.pieces,
-                          "grossAmount": item.grossAmount,
-                          "discountPercent": item.discountPercent,
-                          "discountAmount": item.discountAmount,
-                          "addOnAmount": item.addOnAmount,
-                          "ecrAmount": item.ecrAmount,
-                          "gstPercent": item.gstPercent,
-                          "gstAmount": item.gstAmount,
-                        }).toList(),
+                        "billItems": billItems
+                            .map(
+                              (item) => {
+                                "pieces": item.pieces,
+                                "grossAmount": item.grossAmount,
+                                "discountPercent": item.discountPercent,
+                                "discountAmount": item.discountAmount,
+                                "addOnAmount": item.addOnAmount,
+                                "ecrAmount": item.ecrAmount,
+                                "gstPercent": item.gstPercent,
+                                "gstAmount": item.gstAmount,
+                              },
+                            )
+                            .toList(),
                       };
                       final images = uploadedFiles
                           .where((e) => e.path != null)
                           .map((e) => File(e.path!))
                           .toList();
-
-                      print(jsonEncode(payload));
                       try {
                         final message = await provider.saveBill(
                           payload: payload,
                           images: images,
                         );
-                        if(!context.mounted)return;
-                        ScaffoldSnackBar.show(context,message??"Bill Saved Successfully");
+                        if (!context.mounted) return;
+                        ScaffoldSnackBar.show(
+                          context,
+                          message ?? "Bill Saved Successfully",
+                        );
 
                         clearFields();
-
                       } catch (e) {
                         ScaffoldSnackBar.show(context, e.toString());
-
                       }
-                    }
-
+                    },
                   ),
                 ],
               ),

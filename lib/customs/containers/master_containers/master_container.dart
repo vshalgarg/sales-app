@@ -40,85 +40,87 @@ class MasterContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5),
+        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 5),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: AppColors.orangeColor,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Text(
-                        code ?? "",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color:Colors.white,
+              Expanded(
+                child: Column(mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: AppColors.orangeColor,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Text(
+                          code ?? "",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color:Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    name ?? "",
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: AppColors.primaryPurple,
-                      fontWeight: FontWeight.w200,
-                    ),
-                  ),
-
-                  SizedBox(height: 5),
-                  Row(
-                    children: [
-                       const Text( "City:",
+                    SizedBox(height: 5),
+                    Text(
+                        name ?? "",
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
-                        maxLines: 3,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: AppColors.primaryPurple,
+                          fontWeight: FontWeight.w200,
+                        ),
+                      ),
 
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
+                    SizedBox(height: 5),
+                    Row(
+                      children: [
+                         const Text( "City:",
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          maxLines: 3,
+
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                      Text(
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: true,
-                        maxLines: 3,
-                        city ?? "",
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
+                        Text(
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          maxLines: 3,
+                          city ?? "",
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  Row(
-                    children: [
-                      Text(
-                        "Mobile:",
-                        style: TextStyle(fontSize: 10, color: Colors.black),
-                      ),
-                      Text(
-                        mobile ?? "",
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
+                      ],
+                    ),
+                    SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Text(
+                          "Mobile:",
+                          style: TextStyle(fontSize: 10, color: Colors.black),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Text(
+                          mobile ?? "",
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
 
              // VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
@@ -126,14 +128,14 @@ class MasterContainer extends StatelessWidget {
                 padding: const EdgeInsets.only(right:20.0),
                 child: Column(
                   children: [
-                    GestureDetector(
-                      onTap: eyeIconTap,
-                      child: customIcon(
-                        icon: Iconsax.eye,
-                        iconColor: AppColors.primaryPurple,
-                        bgColor: AppColors.primaryPurpleLight,
-                      ),
-                    ),
+                  //  GestureDetector(
+                    //  onTap: eyeIconTap,
+                      //child: customIcon(
+                        //icon: Iconsax.eye,
+                        //iconColor: AppColors.primaryPurple,
+                        //bgColor: AppColors.primaryPurpleLight,
+                      //),
+                    //),
                     SizedBox(height: 5),
                     GestureDetector(
                       onTap: trashIconTap,

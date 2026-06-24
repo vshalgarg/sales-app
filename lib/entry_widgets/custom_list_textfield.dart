@@ -19,9 +19,11 @@ class CustomListTextField extends StatelessWidget {
     return DropdownButtonFormField<String>(
       initialValue: value,
       decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
         hintText: hintText,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(5),borderSide: BorderSide.none
         ),
       ),
       items: items.map((e) {

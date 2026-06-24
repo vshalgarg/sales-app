@@ -12,23 +12,17 @@ class EntryContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(elevation: 1,
-      child: Container(
+    return
+       Container(
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: AppColors.primaryPurple, width: 4),
-          ),
-          color: Colors.white,
+          color:AppColors.bodyFillColor,
           borderRadius: BorderRadius.circular(15),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0,horizontal: 5),
-          child: Column(mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: children,
-          ),
+        child: Column(mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
         ),
-      ),
+
     );
   }
 }

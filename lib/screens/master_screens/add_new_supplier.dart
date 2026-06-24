@@ -8,7 +8,6 @@ import 'package:hisabio/master_widgets/contact_info.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/model_classes/get_suppliers_byid.dart';
 import 'package:hisabio/provider/add_newsupplier.dart';
-import 'package:hisabio/provider/get_supplier_provider.dart';
 import 'package:hisabio/provider/get_suppliers_byid_provider.dart';
 import 'package:hisabio/provider/get_transport_provider.dart';
 import 'package:hisabio/provider/update_supplier_provider.dart';
@@ -17,8 +16,9 @@ import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../enums/customer_mode.dart';
-class ContactControllers {
+import '../../pop_ups/general_closing_popup.dart';
 
+class ContactControllers {
   final name = TextEditingController();
 
   final mobile = TextEditingController();
@@ -36,17 +36,14 @@ class AddNewSupplier extends StatefulWidget {
   final num? id;
   final FormMode mode;
 
-  const AddNewSupplier({
-    super.key,
-    this.id,
-    this.mode = FormMode.add,
-  });
+  const AddNewSupplier({super.key, this.id, this.mode = FormMode.add});
 
   @override
   State<AddNewSupplier> createState() => _AddNewSupplierState();
 }
 
 class _AddNewSupplierState extends State<AddNewSupplier> {
+  bool isExpanded = false;
   final nameController = TextEditingController();
 
   final emailController = TextEditingController();
@@ -198,39 +195,26 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     contacts = [];
 
     if ((s.contacts ?? []).isNotEmpty) {
-
       for (var c in s.contacts!) {
-
         final contact = ContactControllers();
 
         if (c is Map) {
+          contact.name.text = c['contactPerson']?.toString() ?? "";
 
-          contact.name.text =
-              c['contactPerson']?.toString() ?? "";
+          contact.mobile.text = c['mobileNumber']?.toString() ?? "";
 
-          contact.mobile.text =
-              c['mobileNumber']?.toString() ?? "";
-
-          contact.type.text =
-              c['type']?.toString() ?? "";
-
+          contact.type.text = c['type']?.toString() ?? "";
         } else {
+          contact.name.text = c.contactPerson ?? "";
 
-          contact.name.text =
-              c.contactPerson ?? "";
+          contact.mobile.text = c.mobileNumber ?? "";
 
-          contact.mobile.text =
-              c.mobileNumber ?? "";
-
-          contact.type.text =
-              c.type ?? "";
+          contact.type.text = c.type ?? "";
         }
 
         contacts.add(contact);
       }
-
     } else {
-
       contacts.add(ContactControllers());
     }
   }
@@ -341,8 +325,64 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:AppColors.bodyFillColor,
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        actions: [
+          Consumer<AddSupplierProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () async {
+                  ExitConfirmationDialog.show(
+                    context,
+                    onSave: provider.isLoading
+                        ? () {}
+                       : () async {
+                      try {
+                        if (nameController.text.isEmpty) {
+                          ScaffoldSnackBar.show(
+                            context,
+                            "Supplier name is required",
+                          );
+                          return;
+                        }
+
+                        final body = submitSupplier();
+                        await provider.addSupplier(body);
+                        if (!context.mounted) return;
+                        if (provider.error != null) {
+                          ScaffoldSnackBar.show(
+                            context,
+                            provider.error!,
+                            backgroundColor: Colors.red,
+                          );
+                        } else {
+                          ScaffoldSnackBar.show(
+                            context,
+                            provider.response!.message ??
+                                "Supplier Added Successfully",
+                          );
+
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => Supplier()),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldSnackBar.show(
+                          context,
+                          "Something went wrong$e",
+                        );
+                      }
+                    },
+                    onClose: () {Navigator.pop(context);},
+                    onDiscard: () {Navigator.push(context, MaterialPageRoute(builder:(context)=>Supplier()));},
+                  );
+                },
+              );
+            },
+          ),
+        ],
         title: widget.mode == FormMode.add
             ? "Add New Supplier"
             : widget.mode == FormMode.edit
@@ -401,76 +441,97 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 onDelete: deleteContact,
               ),
               SizedBox(height: 15),
-             /* Text(
-                "Preferred Transports",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),*/
-              TextFormField(
-                enabled: false,
-                decoration: InputDecoration(
-                  suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
-                  iconColor: Colors.white,
-                  filled:true,
-                  fillColor: AppColors.primaryPurple,
-                  hintText: "Preferred Transports",hintStyle: TextStyle(color:Colors.white),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
-                ),
-
-              ),
-              SizedBox(height: 15),
-              Text("Preferred Transport",style:TextStyle(color:Colors.white,fontSize: 18)),
-              Consumer<TransportProvider>(
-                builder: (context, provider, child) {
-                  final transportIds = provider.transports
-                      .map((t) => t.id.toString())
-                      .toSet();
-                  return DropdownButtonFormField<String>(
-                    initialValue:
-                        selectedTransportId != null &&
-                            transportIds.contains(selectedTransportId)
-                        ? selectedTransportId
-                        : null,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      filled:true,
-                      fillColor: Colors.white,
-                      enabled: widget.mode != FormMode.view,
-                      hintText: "Preferred Transport",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                    items: provider.transports.map((t) {
-                      return DropdownMenuItem<String>(
-                        value: t.id.toString(),
-                        child: Text(t.name ?? ""),
-                      );
-                    }).toList(),
-
-                    onChanged: widget.mode == FormMode.view
-                        ? null
-                        : (value) {
-                            setState(() {
-                              selectedTransportId = value;
-                            });
-                          },
-                  );
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isExpanded = !isExpanded;
+                  });
                 },
-              ),
-              SizedBox(height: 15),
-              Text("Remarks (Optional)",style:TextStyle(color:Colors.white,fontSize: 18)),
-              TextFormField(
-                enabled: widget.mode != FormMode.view,
-                controller: remarksController,
-                decoration: InputDecoration(
-                  filled:true,
-                  fillColor: Colors.white,
-                  hintText: "Remarks (optional)",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
+                child: TextFormField(
+                  enabled: false,
+                  decoration: InputDecoration(
+                    suffixIcon: Icon(
+                      isExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: Colors.white,
+                    ),
+                    iconColor: Colors.white,
+                    filled: true,
+                    fillColor: AppColors.primaryPurple,
+                    hintText: "Preferred Transports",
+                    hintStyle: TextStyle(color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
+              if (isExpanded) ...[
+                SizedBox(height: 15),
+                Text(
+                  "Preferred Transport",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                Consumer<TransportProvider>(
+                  builder: (context, provider, child) {
+                    final transportIds = provider.transports
+                        .map((t) => t.id.toString())
+                        .toSet();
+                    return DropdownButtonFormField<String>(
+                      initialValue:
+                          selectedTransportId != null &&
+                              transportIds.contains(selectedTransportId)
+                          ? selectedTransportId
+                          : null,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabled: widget.mode != FormMode.view,
+                        hintText: "Preferred Transport",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      items: provider.transports.map((t) {
+                        return DropdownMenuItem<String>(
+                          value: t.id.toString(),
+                          child: Text(t.name ?? ""),
+                        );
+                      }).toList(),
+
+                      onChanged: widget.mode == FormMode.view
+                          ? null
+                          : (value) {
+                              setState(() {
+                                selectedTransportId = value;
+                              });
+                            },
+                    );
+                  },
+                ),
+                SizedBox(height: 15),
+                Text(
+                  "Remarks (Optional)",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                TextFormField(
+                  enabled: widget.mode != FormMode.view,
+                  controller: remarksController,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    hintText: "Remarks (optional)",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -514,36 +575,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 ScaffoldSnackBar.show(context, "Something Went wrong $e");
               }
             },
-            saveAndAddNew: provider.isLoading?(){}
-                : () async {
-                    if (nameController.text.isEmpty) {
-                      ScaffoldSnackBar.show(
-                        context,
-                        "Supplier name is required",
-                      );
-                      return;
-                    }
-                    final body = submitSupplier();
-
-                    await provider.addSupplier(body);
-                    if (!context.mounted) return;
-
-                    if (provider.error != null) {
-                      ScaffoldSnackBar.show(
-                        context,
-                        provider.error!,
-                        backgroundColor: Colors.red,
-                      );
-                    } else {
-                      ScaffoldSnackBar.show(
-                        context,
-                        provider.response!.message ??
-                            "Supplier Added Successfully by text",
-                      );
-                      context.read<SupplierProvider>().fetchSuppliers();
-                      clearForm();
-                    }
-                  },
             saveSupplier: provider.isLoading
                 ? () {}
                 : () async {
@@ -581,9 +612,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                       ScaffoldSnackBar.show(context, "Something went wrong$e");
                     }
                   },
-            cancel: () {
-              Navigator.pop(context);
-            },
           );
         },
       ),

@@ -24,10 +24,6 @@ class UserContainer extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: AppColors.primaryPurple, width: 4),
-          ),
-          // boxShadow: BoxShadow(color:Colors.black),
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
         ),
@@ -38,8 +34,7 @@ class UserContainer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -53,23 +48,13 @@ class UserContainer extends StatelessWidget {
                           fontWeight: FontWeight.w200,
                         ),
                       ),
-                      SizedBox(height: 5),
-                      Expanded(
-                        child: Row(
-                          children: [
-
-
-                          ],
-                        ),
-                      ),
 
                     ],
                   ),
                 ),
 
-                VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
                       onTap: trashIconTap,

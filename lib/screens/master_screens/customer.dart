@@ -1,20 +1,19 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/containers/master_containers/master_container.dart';
-import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/master_screens/add_new_customer.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-
+import '../../dialog_boxes/master_dialogBoxes/custom_copy_details_dialog.dart';
 import '../../enums/customer_mode.dart';
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/delete_customer_provider.dart';
 import '../../provider/get_customers_provider.dart';
 import '../../provider/search_customer_provider.dart';
-
+import '../home_screen.dart';
 class CustomerScreen extends StatefulWidget {
   const CustomerScreen({super.key});
 
@@ -56,6 +55,15 @@ class _CustomerScreenState extends State<CustomerScreen> {
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
         title: "Customer",
         textStyle: TextStyle(
           color: Colors.white,
@@ -156,45 +164,58 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                 );
                               },
                               trashIconTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return CustomDeleteDialog(
-                                      dialogBoxName: "Delete Customer",
-                                      name: customer['customerName'],
-                                      onDelete: () async {
-                                        await context
-                                            .read<DeleteCustomerProvider>()
-                                            .deleteCustomer({
-                                              "customerCode": customer['code'],
-                                            });
-                                        if (!context.mounted) {
-                                          return;
-                                        }
+                                ExitConfirmationDialog.show(
+                                  context,
+                                  saveButtonText: "Delete",
+                                  onClose: () {
+                                    Navigator.pop(context);
+                                  },
+                                  onDiscard: () {
+                                    Navigator.pop(context);
+                                  },
+                                  bodyText:
+                                      "Are you sure you want to permanently delete ${isSearching ? customer.customerName : customer['customerName']}? This action cannot be undo.",
+                                  onSave: () async {
+                                    await context
+                                        .read<DeleteCustomerProvider>()
+                                        .deleteCustomer({
+                                          "customerCode": customer['code'],
+                                        });
+                                    if (!context.mounted) {
+                                      return;
+                                    }
 
-                                        if (deleteProvider.errorMessage ==
-                                            null) {
-                                          Navigator.pop(context);
+                                    if (deleteProvider.errorMessage == null) {
+                                      Navigator.pop(context);
 
-                                          context
-                                              .read<CustomersProvider>()
-                                              .fetchCustomers();
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            "Customer Deleted successfully",
-                                          );
-                                        } else {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            deleteProvider.errorMessage!,
-                                          );
-                                        }
-                                      },
-                                    );
+                                      context
+                                          .read<CustomersProvider>()
+                                          .fetchCustomers();
+                                      ScaffoldSnackBar.show(
+                                        context,
+                                        "Customer Deleted successfully",
+                                      );
+                                    } else {
+                                      ScaffoldSnackBar.show(
+                                        context,
+                                        deleteProvider.errorMessage!,
+                                      );
+                                    }
                                   },
                                 );
                               },
-                              copyIconTap: () {},
+
+                              copyIconTap: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return CustomCopyDialog(
+                                          headingText: "Customer Details",
+                                          firmName: isSearching
+                                              ? customer.customerName
+                                              : customer['customerName'] ?? "");
+                                    });
+                              },
                               editIconTap: () {
                                 final id = isSearching
                                     ? customer.id

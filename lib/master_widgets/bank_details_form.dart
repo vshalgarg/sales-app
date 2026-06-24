@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/colors_used.dart';
 import '../enums/customer_mode.dart';
 
-class BankDetailsSection extends StatelessWidget {
+class BankDetailsSection extends StatefulWidget {
   final FormMode? mode;
   final TextEditingController accountNumber;
   final TextEditingController ifscCode;
@@ -21,88 +21,95 @@ class BankDetailsSection extends StatelessWidget {
   });
 
   @override
+  State<BankDetailsSection> createState() => _BankDetailsSectionState();
+}
+
+class _BankDetailsSectionState extends State<BankDetailsSection> {
+  bool isBasicInfoExpanded=false;
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-       /* Text(
-          "Bank Details",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),*/
-        TextFormField(
-          enabled: false,
-          decoration: InputDecoration(
-            suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
-            iconColor: Colors.white,
-            filled:true,
-            fillColor: AppColors.primaryPurple,
-            hintText: "Bank Details",hintStyle: TextStyle(color:Colors.white),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+        GestureDetector(onTap:(){setState(() {
+          isBasicInfoExpanded = !isBasicInfoExpanded;
+        });},
+          child: TextFormField(
+            enabled: false,
+            decoration: InputDecoration(
+              suffixIcon: Icon(isBasicInfoExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.white),
+              iconColor: Colors.white,
+              filled:true,
+              fillColor: AppColors.primaryPurple,
+              hintText: "Bank Details",hintStyle: TextStyle(color:Colors.white),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
+            ),
           ),
-
         ),
 
+        if (isBasicInfoExpanded) ...[
         SizedBox(height: 15),
         Text("Account Number",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(  keyboardType: TextInputType.number,
-          enabled: mode != FormMode.view,
+          enabled: widget.mode != FormMode.view,
 
-          controller: accountNumber,
+          controller: widget.accountNumber,
           decoration: InputDecoration(
             filled:true,
             fillColor: Colors.white,
             hintText: "Account Number",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         SizedBox(height: 15),
         Text("IFSC Code",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
-          enabled: mode != FormMode.view,
-          controller: ifscCode,
+          enabled: widget.mode != FormMode.view,
+          controller: widget.ifscCode,
           decoration: InputDecoration(
             filled:true,
             fillColor: Colors.white,
             hintText: "IFSC Code",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         Text("Bank Name",style:TextStyle(color:Colors.white,fontSize: 18)),
         SizedBox(height: 15),
         TextFormField(
-          enabled: mode != FormMode.view,
-          controller: bankName,
+          enabled: widget.mode != FormMode.view,
+          controller: widget.bankName,
           decoration: InputDecoration(
             filled:true,
             fillColor: Colors.white,
             hintText: "Bank Name",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         SizedBox(height: 15),
         Text("Branch Name",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
-          enabled: mode != FormMode.view,
-          controller: branchName,
+          enabled: widget.mode != FormMode.view,
+          controller: widget.branchName,
           decoration: InputDecoration(
             filled:true,
             fillColor: Colors.white,
             hintText: "Branch Name",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         SizedBox(height: 15),
         Text("Account Holder Name",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
-          enabled: mode != FormMode.view,
-          controller: accountHolderName,
+          enabled: widget.mode != FormMode.view,
+          controller: widget.accountHolderName,
           decoration: InputDecoration(
             filled:true,
             fillColor: Colors.white,
             hintText: "Account Holder Name",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
+        ],
       ],
     );
   }
