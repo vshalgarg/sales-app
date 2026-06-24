@@ -12,6 +12,7 @@ class AppColors {
   static const Color containerFillColor = Color(0xFFF5F2FD);
   static const Color bodyFillColor = Color(0xFF9EA7F0);
   static const Color orangeColor = Color(0xFFFF9F43);
-  //static const Color primaryPurple = Color(0xFF6C63FF);
+  static const Color  lightBlue=Color(0xFF03A9F4);
+  static const Color primaryBlue = Color(0xFF3045D3);
  // static const Color primaryPurpleLight=Color(0xFFE9E7FF);
 }

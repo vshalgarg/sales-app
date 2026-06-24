@@ -1,0 +1,314 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../constants/colors_used.dart';
+import '../../customs/app_bar.dart';
+import '../../provider/entries_provider/entries_section_provider.dart';
+import '../../provider/retail_provider.dart';
+import '../../provider/staff_provider.dart';
+import '../../reporting_widgets/reporting_card.dart';
+import '../../reporting_widgets/reporting_filter_section.dart';
+import '../../screens/entry_screen/retail_entry.dart';
+
+class Retail extends StatefulWidget {
+  const Retail({super.key});
+
+  @override
+  State<Retail> createState() => _RetailState();
+}
+
+class _RetailState extends State<Retail> {
+  final TextEditingController fromDateController = TextEditingController();
+
+  final TextEditingController toDateController = TextEditingController();
+
+  String? selectedSupplier;
+  String? selectedCustomer;
+  String? selectedStaff;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RetailProvider>().fetchRetails();
+    });
+  }
+
+  @override
+  void dispose() {
+    fromDateController.dispose();
+    toDateController.dispose();
+    super.dispose();
+  }
+
+  void _applyFilters() {
+    context.read<RetailProvider>().fetchRetails(
+      fromDate: fromDateController.text.isEmpty
+          ? null
+          : fromDateController.text,
+      toDate: toDateController.text.isEmpty ? null : toDateController.text,
+    );
+  }
+
+  void _clearFilters() {
+    fromDateController.clear();
+    toDateController.clear();
+
+    setState(() {
+      selectedSupplier = null;
+      selectedCustomer = null;
+    });
+
+    context.read<RetailProvider>().fetchRetails();
+  }
+
+  void _showFilterBottomSheet() {
+    final entriesProvider = Provider.of<EntriesProvider>(
+      context,
+      listen: false,
+    );
+    final staffProvider = Provider.of<StaffProvider>(context, listen: false);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, bottomSheetSetState) {
+            return Container(
+              height: 600,
+              decoration: BoxDecoration(
+                color: Color(0xFFF7F6FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
+                ),
+              ),
+              child: ReportingFilterSection(
+                fromDateController: fromDateController,
+                toDateController: toDateController,
+                dropdowns: [
+                  FilterDropdown(
+                    label: "Supplier",
+                    value: selectedSupplier,
+                    items: entriesProvider.entries
+                        .map((e) => e.supplierName ?? '')
+                        .where((e) => e.isNotEmpty)
+                        .toSet()
+                        .toList(),
+                    onChanged: (value) {
+                      bottomSheetSetState(() {
+                        selectedSupplier = value;
+                      });
+
+                      setState(() {
+                        selectedSupplier = value;
+                      });
+                    },
+                  ),
+                  FilterDropdown(
+                    label: "Referred By",
+                    value: selectedCustomer,
+                    items: entriesProvider.customerEntries
+                        .map((e) => e.customerName ?? '')
+                        .where((e) => e.isNotEmpty)
+                        .toSet()
+                        .toList(),
+                    onChanged: (value) {
+                      bottomSheetSetState(() {
+                        selectedCustomer = value;
+                      });
+
+                      setState(() {
+                        selectedCustomer = value;
+                      });
+                    },
+                  ),
+                  FilterDropdown(
+                    label: "Staff",
+                    value: selectedStaff,
+                    items: staffProvider.staffs
+                        .map((e) => e.staffName ?? '')
+                        .where((e) => e.isNotEmpty)
+                        .toSet()
+                        .toList(),
+                    onChanged: (value) {
+                      bottomSheetSetState(() {
+                        selectedStaff = value;
+                      });
+
+                      setState(() {
+                        selectedStaff = value;
+                      });
+                    },
+                  ),
+                ],
+                onApply: () {
+                  Navigator.pop(context);
+                  _applyFilters();
+                },
+                onClear: () {
+                  bottomSheetSetState(() {
+                    fromDateController.clear();
+                    toDateController.clear();
+                    selectedSupplier = null;
+                    selectedCustomer = null;
+                  });
+
+                  setState(() {
+                    selectedSupplier = null;
+                    selectedCustomer = null;
+                  });
+
+                  Navigator.pop(context);
+
+                  _clearFilters();
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    final width = size.width;
+    final height = size.height;
+
+    return Scaffold(
+      backgroundColor: AppColors.bodyFillColor,
+      appBar: CustomAppBar(
+        title: "Retailers",
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 25,
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
+        child: const Icon(Icons.add, color: Color(0xFF9CA4DA)),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RetailEntryScreen()),
+          );
+        },
+      ),
+      body: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: width * 0.04,
+          vertical: height * 0.015,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Align(
+                  alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.filter_alt_outlined,
+                        color: Colors.white,
+                      ),
+                      onPressed: () async {
+                        final entriesProvider = context.read<EntriesProvider>();
+                        final staffProvider = context.read<StaffProvider>();
+
+                        if (entriesProvider.entries.isEmpty) {
+                          await entriesProvider.fetchSuppliers();
+                        }
+
+                        if (entriesProvider.customerEntries.isEmpty) {
+                          await entriesProvider.fetchCustomer();
+                        }
+
+                        if (staffProvider.staffs.isEmpty) {
+                          await staffProvider.fetchStaffs();
+                        }
+
+                        if (!mounted) return;
+
+                        _showFilterBottomSheet();
+                      },
+                    ),
+                  ),
+              ],
+            ),
+
+            SizedBox(height: height * 0.01),
+
+            Expanded(
+              child: Consumer<RetailProvider>(
+                builder: (context, retailProvider, child) {
+                  if (retailProvider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (retailProvider.error != null) {
+                    return Center(
+                      child: Text(
+                        retailProvider.error!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    );
+                  }
+
+                  if (retailProvider.retailEntries.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "No Retailers Found",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    );
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      await retailProvider.fetchRetails();
+                    },
+                    child: ListView.builder(
+                      itemCount: retailProvider.retailEntries.length,
+                      itemBuilder: (context, index) {
+                        final retail = retailProvider.retailEntries[index];
+                        print("Retailer: ${retail.name}");
+                        print("Referred By: ${retail.customerName}");
+                        print("Staff: ${retail.staffName}");
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: height * 0.015),
+                          child: ReportingCard(
+                            fields: [
+                              MapEntry("Date", retail.date),
+                              MapEntry("Retailer", retail.name),
+                              MapEntry("Referred By", retail.customerName),
+                              MapEntry("Staff", retail.staffName),
+                            ],
+                            onView: () {
+                              print("View ${retail.id}");
+                            },
+                            onEdit: () {
+                              print("Edit ${retail.id}");
+                            },
+                            onDelete: () {
+                              print("Delete ${retail.id}");
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

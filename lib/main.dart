@@ -5,6 +5,7 @@ import 'package:hisabio/provider/add_customer.dart';
 import 'package:hisabio/provider/add_new_staff_provider.dart';
 import 'package:hisabio/provider/add_new_transport.dart';
 import 'package:hisabio/provider/add_newsupplier.dart';
+import 'package:hisabio/provider/credit_provider.dart';
 import 'package:hisabio/provider/delete_customer_provider.dart';
 import 'package:hisabio/provider/delete_staff_provider.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
@@ -23,10 +24,14 @@ import 'package:hisabio/provider/get_transport_provider.dart';
 import 'package:hisabio/provider/get_user_provider.dart';
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hisabio/provider/login_provider.dart';
+import 'package:hisabio/provider/purchase_provider.dart';
+import 'package:hisabio/provider/retail_provider.dart';
+import 'package:hisabio/provider/search_bill_provider.dart';
 import 'package:hisabio/provider/search_customer_provider.dart';
 import 'package:hisabio/provider/search_staff_provider.dart';
 import 'package:hisabio/provider/search_supplier_provider.dart';
 import 'package:hisabio/provider/search_transport_provider.dart';
+import 'package:hisabio/provider/staff_provider.dart';
 import 'package:hisabio/provider/update_customer_provider.dart';
 import 'package:hisabio/provider/update_staff_provider.dart';
 import 'package:hisabio/provider/update_supplier_provider.dart';
@@ -70,7 +75,12 @@ void main() async {
         ChangeNotifierProvider(create: (_)=>   UserProvider()),
         ChangeNotifierProvider(create: (_)=>  EntriesProvider()),
         ChangeNotifierProvider(create: (_)=> BillItemProvider()),
-
+        ChangeNotifierProvider(create: (_) => BillsProvider(),),
+        ChangeNotifierProvider(create: (_) => CreditProvider(),),
+        ChangeNotifierProvider(create: (_) => PurchaseProvider(),),
+        ChangeNotifierProvider(create: (_) => StaffProvider(),),
+        ChangeNotifierProvider(create: (_) => RetailProvider(),),
+       // ChangeNotifierProvider(create: (_) => ledgerProvider(),),
       ],
       child: const MyApp(),
 
