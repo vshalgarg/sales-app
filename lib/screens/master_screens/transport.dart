@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
-import 'package:hisabio/customs/bottom_navigation_bar.dart';
-import 'package:hisabio/drawers/master_drawer.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/containers/master_containers/transport_container.dart';
-import '../../dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
+import '../../dialog_boxes/master_dialogBoxes/custom_copy_details_dialog.dart';
 import '../../enums/customer_mode.dart';
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/delete_transport_provider.dart';
 import '../../provider/get_transport_details_provider.dart';
 import '../../provider/search_transport_provider.dart';
+import '../home_screen.dart';
 import 'add_new_transport.dart';
 
 class TransportScreen extends StatefulWidget {
@@ -39,7 +39,9 @@ class _TransportScreenState extends State<TransportScreen> {
   Widget build(BuildContext context) {
     final transportProvider = context.watch<GetTransportProvider>();
     final searchProvider = context.watch<SearchTransportProvider>();
-    final isSearching = searchController.text.trim().isNotEmpty;
+    final isSearching = searchController.text
+        .trim()
+        .isNotEmpty;
     if (transportProvider.isLoading) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -49,8 +51,16 @@ class _TransportScreenState extends State<TransportScreen> {
       );
     }
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () =>
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              ),
+        ),
         title: " Transport Overview",
         textStyle: TextStyle(
           color: Colors.white,
@@ -58,8 +68,6 @@ class _TransportScreenState extends State<TransportScreen> {
           fontSize: 25,
         ),
       ),
-      drawer: MasterDrawer(),
-      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
@@ -71,6 +79,11 @@ class _TransportScreenState extends State<TransportScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: SearchBar(
+                shape: WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
                 controller: searchController,
 
                 onChanged: (value) async {
@@ -140,7 +153,7 @@ class _TransportScreenState extends State<TransportScreen> {
                           : transportProvider.transportData!.content![index];
                       final contacts = transport.contacts ?? [];
                       final firstContact =
-                          contacts != null && contacts.isNotEmpty
+                      contacts != null && contacts.isNotEmpty
                           ? contacts.first
                           : null;
                       return TransportContainer(
@@ -154,23 +167,31 @@ class _TransportScreenState extends State<TransportScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  AddNewTransport(mode: FormMode.edit,
-                                    id: transport.id?.toInt(),),
+                                  AddNewTransport(
+                                    mode: FormMode.edit,
+                                    id: transport.id?.toInt(),
+                                  ),
                             ),
                           );
                         },
                         trashIconTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => CustomDeleteDialog(
-                              dialogBoxName: "Delete Transport",
-                              name: transport.name ?? "",
-                              onDelete: () async {
+                          ExitConfirmationDialog.show(
+                              context,
+                              saveButtonText: "Delete",
+                              onClose: () {
+                                Navigator.pop(context);
+                              },
+                              onDiscard: () {
+                                Navigator.pop(context);
+                              },
+                              bodyText: "Are you sure you want to permanently delete ${transport
+                                  .name}? This action cannot be undo.",
+                              onSave: () async {
                                 final provider =
-                                    Provider.of<DeleteTransportProvider>(
-                                      context,
-                                      listen: false,
-                                    );
+                                Provider.of<DeleteTransportProvider>(
+                                  context,
+                                  listen: false,
+                                );
 
                                 await provider.deleteTransport(
                                   transport.id!.toInt(),
@@ -193,12 +214,17 @@ class _TransportScreenState extends State<TransportScreen> {
                                 await context
                                     .read<GetTransportProvider>()
                                     .getTransportDetails();
-                              },
-                            ),
-                          );
+                              });
                         },
-                        copyIconTap: () {},
-
+                        copyIconTap: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return CustomCopyDialog(
+                                    headingText: "Transport Details",
+                                    firmName: transport.name??"");
+                              });
+                        },
                       );
                     },
                   );

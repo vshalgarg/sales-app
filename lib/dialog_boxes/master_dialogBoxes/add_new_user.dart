@@ -22,7 +22,7 @@ class _AddNewUserState extends State<AddNewUser> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AlertDialog(backgroundColor: AppColors.bodyFillColor,
       title: Text("Add New User"),
       content: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 0),
@@ -34,9 +34,11 @@ class _AddNewUserState extends State<AddNewUser> {
                 TextFormField(
                   controller: userController,
                   decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
                     labelText: "User Name",
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(5),borderSide:BorderSide.none
                     ),
                   ),
                 ),
@@ -45,9 +47,11 @@ class _AddNewUserState extends State<AddNewUser> {
                   controller: passwordController,
                   obscureText: !isPasswordVisible,
                   decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
                     labelText: "Password",
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(5),borderSide: BorderSide.none
                     ),
                     suffixIcon: IconButton(
                       onPressed: () {
@@ -67,9 +71,11 @@ class _AddNewUserState extends State<AddNewUser> {
                 DropdownButtonFormField<String>(
                   initialValue: selectedCity,
                   decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
                     hintText: "Role",
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(5),borderSide:BorderSide.none
                     ),
                   ),
                   items: ["ADMIN", "AGENT"]
@@ -85,7 +91,7 @@ class _AddNewUserState extends State<AddNewUser> {
                   },
                 ),
                 SizedBox(height: 20),
-                Row(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     CustomElevatedButton(

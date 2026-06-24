@@ -22,9 +22,11 @@ class CustomApiTextField<T> extends StatelessWidget {
       initialValue: value,
       isExpanded: true,
       decoration: InputDecoration(
+        fillColor: Colors.white,
+        filled:true,
         hintText: hintText,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none,
         ),
       ),
       items: items.map((item) {

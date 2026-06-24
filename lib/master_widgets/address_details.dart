@@ -28,6 +28,7 @@ class AddressDetails extends StatefulWidget {
 
 class _AddressDetailsState extends State<AddressDetails> {
   String? selectedState;
+   bool isExpanded=false;
 
   @override
   void initState() {
@@ -52,25 +53,27 @@ class _AddressDetailsState extends State<AddressDetails> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-       /* Text(
-          "Address Details",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),*/
-        TextFormField(
-          enabled: false,
-          decoration: InputDecoration(
-            suffixIcon: Icon(Icons.keyboard_arrow_down,color:Colors.white),
-            iconColor: Colors.white,
-            filled:true,
-            fillColor: AppColors.primaryPurple,
-            hintText: "Address Details",hintStyle: TextStyle(color:Colors.white),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
-          ),
 
+        GestureDetector(onTap:(){setState(() {
+          isExpanded=!isExpanded;
+
+        });},
+          child: TextFormField(
+            enabled: false,
+            decoration: InputDecoration(
+              suffixIcon: Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,color:Colors.white),
+              iconColor: Colors.white,
+              filled:true,
+              fillColor: AppColors.primaryPurple,
+              hintText: "Address Details",hintStyle: TextStyle(color:Colors.white),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
+            ),
+
+          ),
         ),
+    if (isExpanded) ...[
 
         SizedBox(height: 15),
-
         Text("Address Line1",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
           enabled: widget.mode != FormMode.view,
@@ -79,7 +82,7 @@ class _AddressDetailsState extends State<AddressDetails> {
             filled:true,
             fillColor: Colors.white,
             hintText: "Address Line1",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
 
@@ -92,7 +95,7 @@ class _AddressDetailsState extends State<AddressDetails> {
             filled:true,
             fillColor: Colors.white,
             hintText: "Address Line2",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         SizedBox(height: 15),
@@ -105,7 +108,7 @@ class _AddressDetailsState extends State<AddressDetails> {
             fillColor: Colors.white,
             enabled: widget.mode != FormMode.view,
             hintText: "State",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 14,
@@ -133,7 +136,7 @@ class _AddressDetailsState extends State<AddressDetails> {
             filled:true,
             fillColor: Colors.white,
             hintText: "city",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         SizedBox(height: 15),
@@ -147,10 +150,10 @@ class _AddressDetailsState extends State<AddressDetails> {
             fillColor: Colors.white,
 
             hintText: "Pin Code",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
-      ],
+     ] ],
     );
   }
 }

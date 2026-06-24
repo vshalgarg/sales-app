@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../../constants/colors_used.dart';
 import '../../enums/staff_mode.dart';
 import '../../pop_ups/scafold_type.dart';
@@ -50,13 +50,10 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
   Map<String, dynamic> getStaffBody() {
 
     return {
-
       "staffName":
       nameController.text.trim(),
-
       "phone":
       phoneController.text.trim(),
-
       "joiningDate":
       dateController.text.trim(),
     };
@@ -105,19 +102,22 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(15.0),
-      child: AlertDialog(
+      child: AlertDialog(backgroundColor: AppColors.bodyFillColor,
         title: widget.mode == StaffMode.add
-            ? Text("Add New Staff")
-            : Text("Update Details"),
+            ? Center(child: Text("Add New Staff",style: TextStyle(color:AppColors.primaryPurple,fontSize: 20),))
+            : Center(child: Text("Update Details",style: TextStyle(color:AppColors.primaryPurple,fontSize: 20),)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
               controller: nameController,
               decoration: InputDecoration(
+                prefixIcon: Icon(Iconsax.user,color:AppColors.primaryPurple),
+                fillColor: Colors.white,
+                filled:true,
                 hintText: "Name",
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none,
                 ),
               ),
             ),
@@ -127,9 +127,12 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               controller: phoneController,
               decoration: InputDecoration(
+                prefixIcon: Icon(Iconsax.mobile,color:AppColors.primaryPurple),
+                filled:true,
+                fillColor: Colors.white,
                 hintText: "phone",
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none,
                 ),
               ),
             ),
@@ -139,10 +142,12 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
               readOnly: true,
               onTap: selectDate,
               decoration: InputDecoration(
-                suffixIcon: Icon(Icons.calendar_month),
+                fillColor: Colors.white,
+                filled:true,
+                prefixIcon: Icon(Iconsax.calendar,color:AppColors.primaryPurple),
                 hintText: "Date Of Joining",
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none,
                 ),
               ),
             ),
@@ -198,7 +203,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryPurple,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
 
@@ -219,7 +224,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
 
               ),
             )],
-            if (widget.mode == StaffMode.add) ...[
+           /* if (widget.mode == StaffMode.add) ...[
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -275,7 +280,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryPurple,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                   ),
 
@@ -294,7 +299,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                         ),
                 ),
               ),
-            ],
+            ],*/
             if(widget.mode==StaffMode.edit)...[
             SizedBox(
               width: double.infinity,
@@ -302,11 +307,9 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 onPressed: updateProvider.isLoading
                     ? null
                     : () async {
-
                   if (nameController.text.isEmpty ||
                       dateController.text.isEmpty ||
                       phoneController.text.isEmpty) {
-
                     ScaffoldSnackBar.show(
                       context,
                       "All the fields are required",
@@ -352,7 +355,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryPurple,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
                 child: updateProvider.isLoading? const SizedBox(
@@ -374,7 +377,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 },
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
                 child: Text("Cancel"),

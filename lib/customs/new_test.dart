@@ -139,32 +139,23 @@ class _CustomDropdownMenuState
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(5),
 
-              borderSide: BorderSide(
-                color: widget.isDisabled?Colors.grey.shade200
-               : Colors.grey.shade400,
-              ),
+              borderSide: BorderSide.none,
             ),
 
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(5),
 
-              borderSide: BorderSide(
-                color: Colors.grey.shade600,
-              ),
+              borderSide: BorderSide.none,
             ),
 
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(5),
 
-              borderSide: const BorderSide(
-                color: Colors.deepPurple,
-                width: 1.8,
-              ),
+              borderSide: BorderSide.none,
             ),
           ),
 
           menuStyle: MenuStyle(
-
             backgroundColor:
             const WidgetStatePropertyAll(
               Colors.white,

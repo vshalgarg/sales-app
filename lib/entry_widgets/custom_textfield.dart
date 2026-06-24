@@ -23,27 +23,26 @@ class EntryTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      onChanged:onChanged,
+      onChanged: onChanged,
       enabled: enabled,
       keyboardType: integerOnly || decimalAllowed
           ? const TextInputType.numberWithOptions(decimal: true)
           : TextInputType.text,
 
       inputFormatters: integerOnly
-          ? [
-        FilteringTextInputFormatter.digitsOnly,
-      ]
+          ? [FilteringTextInputFormatter.digitsOnly]
           : decimalAllowed
-          ? [
-        FilteringTextInputFormatter.allow(
-          RegExp(r'^\d*\.?\d*'),
-        ),
-      ]
+          ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
           : null,
       decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
         hintText: hintText,
 
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }

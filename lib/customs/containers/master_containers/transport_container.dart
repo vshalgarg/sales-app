@@ -36,9 +36,6 @@ class TransportContainer extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: AppColors.primaryPurple, width: 4),
-          ),
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
         ),
@@ -65,20 +62,11 @@ class TransportContainer extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 5),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: AppColors.primaryPurpleLight,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(2.0),
-                          child: Text(
-                            "Phone:$phone",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.primaryPurple,
-                            ),
-                          ),
+                      Text(
+                        "Phone:$phone",
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.black
                         ),
                       ),
                       SizedBox(height: 5),
@@ -93,7 +81,7 @@ class TransportContainer extends StatelessWidget {
 
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Colors.grey,
+                                color: Colors.black,
                               ),
                             ),
                             Text(
@@ -103,7 +91,7 @@ class TransportContainer extends StatelessWidget {
                               gst ?? "",
                               style: TextStyle(
                                 fontSize: 10,
-                                color: AppColors.primaryPurple,
+                                color: Colors.black,
                               ),
                             ),
                           ],
@@ -114,13 +102,13 @@ class TransportContainer extends StatelessWidget {
                         children: [
                           Text(
                             "City:",
-                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                            style: TextStyle(fontSize: 10, color: Colors.black),
                           ),
                           Text(
                             city ?? "",
                             style: TextStyle(
                               fontSize: 10,
-                              color: AppColors.primaryPurple,
+                              color: Colors.black,
                             ),
                           ),
                         ],
@@ -138,10 +126,8 @@ class TransportContainer extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
                       onTap: trashIconTap,

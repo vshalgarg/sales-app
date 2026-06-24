@@ -3,21 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
-import 'package:hisabio/customs/bottom_navigation_bar.dart';
 import 'package:hisabio/customs/containers/master_containers/master_container.dart';
 import 'package:hisabio/dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
-import 'package:hisabio/dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
-import 'package:hisabio/drawers/master_drawer.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/provider/delete_supplier_provider.dart';
 import 'package:hisabio/provider/get_supplier_provider.dart';
 import 'package:hisabio/provider/get_suppliers_byid_provider.dart';
 import 'package:hisabio/provider/search_supplier_provider.dart';
+import 'package:hisabio/screens/home_screen.dart';
 import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
 import '../../enums/customer_mode.dart';
+import '../../pop_ups/general_closing_popup.dart';
 
 class Supplier extends StatefulWidget {
   const Supplier({super.key});
@@ -53,6 +52,15 @@ class _SupplierState extends State<Supplier> {
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
         title: "Supplier",
         textStyle: TextStyle(
           color: Colors.white,
@@ -60,15 +68,16 @@ class _SupplierState extends State<Supplier> {
           fontSize: 25,
         ),
       ),
-     // bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
-     // drawer: MasterDrawer(),
+      // bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
+      // drawer: MasterDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              decoration: BoxDecoration(color:AppColors.containerFillColor,
+              decoration: BoxDecoration(
+                color: AppColors.containerFillColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               height: 40,
@@ -104,15 +113,16 @@ class _SupplierState extends State<Supplier> {
             ),
             SizedBox(height: 25),
             Expanded(
-              child:provider.isLoading?
-                  Center(child: const CircularProgressIndicator())
+              child: provider.isLoading
+                  ? Center(child: const CircularProgressIndicator())
                   : suppliers.isEmpty
                   ? const Center(
                       child: Text(
                         "No Data Found",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.w500,
+                          color: Colors.white,
                         ),
                       ),
                     )
@@ -124,96 +134,110 @@ class _SupplierState extends State<Supplier> {
                       },
                       itemBuilder: (context, index) {
                         final item = suppliers[index];
-                        return MasterContainer(
-                          elevation: 1,
-                          name: item.supplierName,
-                          mobile: item.mobile,
-                          code: item.code,
-                          city: item.city,
-                          eyeIconTap: () {
+                        return GestureDetector(
+                          onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => AddNewSupplier(
                                   id: item.id,
                                   mode: FormMode.view,
-
                                 ),
                               ),
                             );
                           },
-                          trashIconTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return CustomDeleteDialog(
-                                  dialogBoxName: "Delete Supplier",
-                                  name: item.supplierName ?? "",
-                                  onDelete: () async {
-                                    final provider =
-                                        Provider.of<DeleteSupplierProvider>(
-                                          context,
-                                          listen: false,
-                                        );
-                                    await provider.deleteSupplier(item.code!);
-                                    await context
-                                        .read<SupplierProvider>()
-                                        .fetchSuppliers();
-                                    Navigator.pop(context);
-                                    ScaffoldSnackBar.show(
-                                      context,
-                                      provider.message,
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
-                          copyIconTap: () async {
-                            final provider = context
-                                .read<GetSupplierByIdProvider>();
-                            await provider.fetchSupplierById(item.id!.toInt());
-                            final data = provider.supplier;
+                          child: MasterContainer(
+                            elevation: 1,
+                            name: item.supplierName,
+                            mobile: item.mobile,
+                            code: item.code,
+                            city: item.city,
+                            /*    eyeIconTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddNewSupplier(
+                                    id: item.id,
+                                    mode: FormMode.view,
 
-                            if (data == null) return;
+                                  ),
+                                ),
+                              );
+                            },*/
+                            trashIconTap: (){
+                              ExitConfirmationDialog.show(
+                                    context,
+                                    saveButtonText: "Delete",
+                                    onClose:(){Navigator.pop(context);} ,
+                                    onDiscard: (){Navigator.pop(context);},
+                                    bodyText: "Are you sure you want to permanently delete ${item.supplierName}? This action cannot be undo.",
+                                    onSave: () async {
+                                      final provider =
+                                          Provider.of<DeleteSupplierProvider>(
+                                            context,
+                                            listen: false,
+                                          );
+                                      await provider.deleteSupplier(item.code!);
+                                      if(!context.mounted)return;
 
-                            String contactNumber = "";
+                                      await context
+                                          .read<SupplierProvider>()
+                                          .fetchSuppliers();
+                                      Navigator.pop(context);
+                                      ScaffoldSnackBar.show(
+                                        context,
+                                        provider.message,
+                                      );
+                                    },
+                                  );
+                            },
+                            copyIconTap: () async {
+                              final provider = context
+                                  .read<GetSupplierByIdProvider>();
+                              await provider.fetchSupplierById(
+                                item.id!.toInt(),
+                              );
+                              final data = provider.supplier;
 
-                            if (data.contacts != null &&
-                                data.contacts!.isNotEmpty) {
-                              final firstContact = data.contacts![0];
+                              if (data == null) return;
 
-                              if (firstContact is Map) {
-                                contactNumber =
-                                    firstContact['mobileNumber'] ?? "";
+                              String contactNumber = "";
+
+                              if (data.contacts != null &&
+                                  data.contacts!.isNotEmpty) {
+                                final firstContact = data.contacts![0];
+
+                                if (firstContact is Map) {
+                                  contactNumber =
+                                      firstContact['mobileNumber'] ?? "";
+                                }
                               }
-                            }
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return CustomCopyDetailsDialog(
-                                  firmName:
-                                      provider.supplier?.supplierName ?? "",
-                                  contact: contactNumber,
-                                  address:
-                                      provider.supplier?.addressLine1 ?? "",
-                                  gstNo: provider.supplier?.gstNo ?? "",
-                                );
-                              },
-                            );
-                          },
-                          editIconTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AddNewSupplier(
-                                  id: item.id,
-                                  mode: FormMode.edit,
-
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return CustomCopyDetailsDialog(
+                                    firmName:
+                                        provider.supplier?.supplierName ?? "",
+                                    contact: contactNumber,
+                                    address:
+                                        provider.supplier?.addressLine1 ?? "",
+                                    gstNo: provider.supplier?.gstNo ?? "",
+                                  );
+                                },
+                              );
+                            },
+                            editIconTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddNewSupplier(
+                                    id: item.id,
+                                    mode: FormMode.edit,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         );
                       },
                     ),

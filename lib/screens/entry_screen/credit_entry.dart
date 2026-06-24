@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
-import 'package:hisabio/drawers/entries_drawer.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
+import 'package:hisabio/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
-import '../../customs/bottom_navigation_bar.dart';
+
 import '../../customs/elevated_button.dart';
 import '../../entry_widgets/custom_api_textfield.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
@@ -23,6 +23,9 @@ class CreditEntry extends StatefulWidget {
 }
 
 class _CreditEntryState extends State<CreditEntry> {
+  bool isExpanded=false;
+  bool isTransactionExpanded=false;
+  bool isAdditionalExpanded=false;
   EntriesModel? selectedSupplier;
   EntriesCustomerModel? selectedCustomer;
   String? drawType;
@@ -95,8 +98,17 @@ class _CreditEntryState extends State<CreditEntry> {
   Widget build(BuildContext context) {
     final provider = context.watch<EntriesProvider>();
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
         title: "Credit Entry",
         textStyle: TextStyle(
           color: Colors.white,
@@ -104,126 +116,186 @@ class _CreditEntryState extends State<CreditEntry> {
           fontSize: 25,
         ),
       ),
-      drawer: EntryDrawer(),
-      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 1),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              EntryContainer(
-                children: [
-                  Text(
-                    "Party Information",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  CustomApiTextField<EntriesModel>(
-                    hintText: "Supplier",
-                    value: selectedSupplier,
-                    items: provider.entries,
-                    itemLabel: (e) => e.supplierName ?? '',
-                    onChanged: (value) {
-                      setState(() {
-                        selectedSupplier = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  CustomApiTextField<EntriesCustomerModel>(
-                    hintText: "Customer",
-                    value: selectedCustomer,
-                    items: provider.customerEntries,
-                    itemLabel: (e) => e.customerName ?? '',
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCustomer = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                ],
+              GestureDetector(onTap:(){
+                setState(() {
+                  isExpanded=!isExpanded;
+                });
+              },
+                child: EntryContainer(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        enabled: false,
+                        filled: true,
+                        fillColor: AppColors.primaryPurple,
+                        hintText: "Party Information",
+                        hintStyle: TextStyle(color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+               if(isExpanded)...[
+                 SizedBox(height:10),
+                    CustomApiTextField<EntriesModel>(
+                      hintText: "Supplier",
+                      value: selectedSupplier,
+                      items: provider.entries,
+                      itemLabel: (e) => e.supplierName ?? '',
+                      onChanged: (value) {
+                        setState(() {
+                          selectedSupplier = value;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    CustomApiTextField<EntriesCustomerModel>(
+                      hintText: "Customer",
+                      value: selectedCustomer,
+                      items: provider.customerEntries,
+                      itemLabel: (e) => e.customerName ?? '',
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCustomer = value;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                  ],
+               ] ),
               ),
-              SizedBox(height: 20),
-              EntryContainer(
-                children: [
-                  Text(
-                    "Transaction Details",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  CustomListTextField(
-                    hintText: "Payment Mode",
-                    value: paymentMode,
-                    items: paymentModeList,
-                    onChanged: (value) {
-                      setState(() {
-                        paymentMode = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    controller: invoiceController,
-                    hintText: "Invoice Number",
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    controller: receivedAmountController,
-                    hintText: "Received Amount",
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    controller: referenceController,
-                    hintText: "Reference Number",
-                  ),
-                  SizedBox(height: 10),
-                  EntryDateTextField(
-                    label: "Reference Date",
-                    controller: referenceDateController,
-                  ),
-                  SizedBox(height: 10),
-                  EntryDateTextField(
-                    label: "Transaction Date",
-                    controller: transactionDateController,
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    controller: slipController,
-                    hintText: "Slip Number",
-                  ),
-                  SizedBox(height: 10),
-                ],
+              SizedBox(height: 15),
+
+              GestureDetector(onTap:(){setState(() {
+                isTransactionExpanded=!isTransactionExpanded;
+              });},
+                child: EntryContainer(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          isTransactionExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        enabled: false,
+                        filled: true,
+                        fillColor: AppColors.primaryPurple,
+                        hintText: "Transaction Details",
+                        hintStyle: TextStyle(color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                   if(isTransactionExpanded)...[
+                     SizedBox(height:10),
+                    CustomListTextField(
+                      hintText: "Payment Mode",
+                      value: paymentMode,
+                      items: paymentModeList,
+                      onChanged: (value) {
+                        setState(() {
+                          paymentMode = value;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      controller: invoiceController,
+                      hintText: "Invoice Number",
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      controller: receivedAmountController,
+                      hintText: "Received Amount",
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      controller: referenceController,
+                      hintText: "Reference Number",
+                    ),
+                    SizedBox(height: 10),
+                    EntryDateTextField(
+                      label: "Reference Date",
+                      controller: referenceDateController,
+                    ),
+                    SizedBox(height: 10),
+                    EntryDateTextField(
+                      label: "Transaction Date",
+                      controller: transactionDateController,
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      controller: slipController,
+                      hintText: "Slip Number",
+                    ),
+                    SizedBox(height: 10),
+                  ],
+               ] ),
               ),
-              SizedBox(height: 20),
-              EntryContainer(
-                children: [
-                  Text(
-                    "Additional Information",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  CustomListTextField(
-                    hintText: "Draw Type",
-                    value: drawType,
-                    items: drawTypeList,
-                    onChanged: (value) {
-                      setState(() {
-                        drawType = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  EntryTextField(
-                    controller: remarksController,
-                    hintText: "Remarks",
-                  ),
-                  SizedBox(height: 10),
-                ],
+              SizedBox(height: 15),
+              GestureDetector(onTap:  (){setState(() {
+                isAdditionalExpanded=!isAdditionalExpanded;
+              });},
+              child: EntryContainer(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        enabled: false,
+                        filled: true,
+                        fillColor: AppColors.primaryPurple,
+                        hintText: "Additional Information",
+                        hintStyle: TextStyle(color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    if(isAdditionalExpanded)...[
+                    SizedBox(height:10),
+                    CustomListTextField(
+                      hintText: "Draw Type",
+                      value: drawType,
+                      items: drawTypeList,
+                      onChanged: (value) {
+                        setState(() {
+                          drawType = value;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    EntryTextField(
+                      controller: remarksController,
+                      hintText: "Remarks",
+                    ),
+                    SizedBox(height: 10),
+                  ],
+               ] ),
               ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              SizedBox(height: 15),
+              Column(
                 children: [
                   CustomElevatedButton(
                     text: "Reset",
@@ -231,9 +303,9 @@ class _CreditEntryState extends State<CreditEntry> {
                     onPressed: () async {
                       clearFields();
                     },
-                    borderRadius: 10,
+                    borderRadius: 5
                   ),
-                  SizedBox(width: 20),
+                  SizedBox(height: 5),
                   CustomElevatedButton(
                     text: "Save",
                     textStyle: TextStyle(color: Colors.white, fontSize: 20),
@@ -266,7 +338,7 @@ class _CreditEntryState extends State<CreditEntry> {
                         ScaffoldSnackBar.show(context, e.toString());
                       }
                     },
-                    borderRadius: 10,
+                    borderRadius: 5,
                     color: AppColors.primaryPurple,
                   ),
                 ],

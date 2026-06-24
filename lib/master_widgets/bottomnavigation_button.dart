@@ -5,16 +5,12 @@ import '../enums/customer_mode.dart';
 
 class BottomNavigationButton extends StatelessWidget {
   final VoidCallback saveSupplier;
-  final VoidCallback saveAndAddNew;
-  final VoidCallback cancel;
   final VoidCallback update;
   final FormMode? mode;
 
   const BottomNavigationButton({
     super.key,
     required this.saveSupplier,
-    required this.saveAndAddNew,
-    required this.cancel,
     required this.update,
     this.mode,
   });
@@ -63,42 +59,7 @@ class BottomNavigationButton extends StatelessWidget {
               ),
             ),
           ],
-          if (mode == FormMode.add) ...[
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                onPressed: saveAndAddNew,
-                child: const Text(
-                  "Save & Add New",
-                  style: TextStyle(color: AppColors.primaryPurple),
-                ),
-              ),
-            ),
-          ],
-          SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
 
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade200,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              onPressed: cancel,
-              child: const Text(
-                "Cancel",
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-          ),
         ],
       ),
     );
