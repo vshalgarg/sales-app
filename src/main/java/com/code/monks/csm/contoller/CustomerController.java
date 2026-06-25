@@ -5,6 +5,7 @@ import com.code.monks.csm.dto.request.AddCustomerRequestDto;
 import com.code.monks.csm.dto.request.DeleteCustomerRequestDto;
 import com.code.monks.csm.dto.request.UpdateCustomerRequestDto;
 import com.code.monks.csm.dto.response.*;
+import com.code.monks.csm.enums.StatusFilter;
 import com.code.monks.csm.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -38,26 +39,25 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(GET_CUSTOMERS)
-    public ResponseEntity<PagedResponseDto<CustomerListDto>> getCustomers(
+    @GetMapping(CUSTOMER_LIST_WITH_PAGINATION)
+    public ResponseEntity<PagedResponseDto<CustomerListDto>> getCustomerList(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size
     ) {
         log.info("GET customers API called to retrieve customers (page={}, size={})", page, size);
 
-        PagedResponseDto<CustomerListDto> response = customerService.getCustomers(page, size);
+        PagedResponseDto<CustomerListDto> response = customerService.getCustomersWithPagination(page, size);
         log.info("Retrieved {} customers successfully", response.getContent().size());
 
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(GET_CUSTOMERS_V2)
-    public ResponseEntity<List<CustomerSummaryResponseDto>> getAllCustomers() {
-        log.info("GET {} called to retrieve all customers", GET_CUSTOMERS_V2);
+    @GetMapping(GET_ALL_CUSTOMERS)
+    public ResponseEntity<List<CustomerSummaryResponseDto>> getAllCustomers(@RequestParam(value = "filter", defaultValue = "ACTIVE") StatusFilter filter) {
 
-        List<CustomerSummaryResponseDto> response = customerService.getAllCustomers();
-
-        log.info("Retrieved {} customers successfully..", response.size());
+        log.info("GET {} called to retrieve customers with filter={}", GET_ALL_CUSTOMERS, filter);
+        List<CustomerSummaryResponseDto> response = customerService.getAllCustomers(filter);
+        log.info("Retrieved {} customers successfully (filter={})", response.size(), filter);
 
         return ResponseEntity.ok(response);
     }

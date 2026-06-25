@@ -133,12 +133,16 @@ public class CreditServiceImpl implements CreditService {
         Page<CreditEntryEntity> records =
                 creditEntryRepo.findAll(spec, pageable);
 
-        Long totalAmount =
-                aggregateHelper.sumRoundedAmount(
+        Long totalAmountPaisa =
+                aggregateHelper.sumAmount(
                         CreditEntryEntity.class,
                         "receivedAmount",
                         spec
                 );
+
+        Long totalAmount = totalAmountPaisa != null
+                ? MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(totalAmountPaisa)).longValue()
+                : 0L;
 
         log.info("Fetched {} credit records", records.getTotalElements());
 
