@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -12,6 +12,10 @@ const AppLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [navbarHeight, setNavbarHeight] = useState(0);
   const activeSection = (() => {
+    if (location.pathname.startsWith("/graph")) {
+      return "graph";
+    }
+
     if (
       location.pathname.startsWith("/suppliers") ||
       location.pathname.startsWith("/customers") ||
@@ -42,6 +46,7 @@ const AppLayout = () => {
 
     return "master";
   })();
+  const isGraphPage = activeSection === "graph";
   const isMobile = useMediaQuery("(max-width:768px)");
   const [pendingPath, setPendingPath] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -106,6 +111,9 @@ const handleConfirmLeave = () => {
       case "reporting":
         safeNavigate("/bills");
         break;
+      case "graph":
+        safeNavigate("/graph");
+        break;
       default:
         break;
     }
@@ -116,6 +124,12 @@ const handleConfirmLeave = () => {
     setIsSidebarOpen((prev) => !prev);
   };
 
+  useEffect(() => {
+    if (isGraphPage) {
+      setIsSidebarOpen(false);
+    }
+  }, [isGraphPage]);
+
   return (
     <div className="h-screen flex flex-col">
       <Navbar
@@ -124,23 +138,26 @@ const handleConfirmLeave = () => {
         onMenuClick={toggleSidebar}
         isMobile={isMobile}
         setNavbarHeight={setNavbarHeight}
+        showMenuButton={!isGraphPage}
       />
       <div className="flex flex-1 min-h-0">
-        {isSidebarOpen && (
+        {isSidebarOpen && !isGraphPage && (
           <div
             className="fixed inset-x-0 bottom-0 bg-black/40 z-30 md:hidden"
             style={{ top: navbarHeight }}
             onClick={closeSidebar}
           />
         )}
-        <Sidebar
-          activeSection={activeSection}
-          isOpen={isSidebarOpen}
-          isMobile={isMobile}
-          onClose={closeSidebar}
-          navbarHeight={navbarHeight}
-          safeNavigate={safeNavigate}
-        />
+        {!isGraphPage && (
+          <Sidebar
+            activeSection={activeSection}
+            isOpen={isSidebarOpen}
+            isMobile={isMobile}
+            onClose={closeSidebar}
+            navbarHeight={navbarHeight}
+            safeNavigate={safeNavigate}
+          />
+        )}
         <main className=" flex-1 min-h-0 px-4 overflow-hidden ">
           <Outlet />
         </main>

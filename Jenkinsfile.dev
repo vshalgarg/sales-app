@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  options {
+    skipDefaultCheckout true
+  }
+
   environment {
     IMAGE_NAME = "sales-app-ui"
     CONTAINER_NAME = "sales-app-ui"
@@ -8,11 +12,21 @@ pipeline {
   }
 
   stages {
-    
+
     stage('Checkout') {
       steps {
-        echo "Checking out Sales App UI code..."
-        checkout scm
+        script {
+          def branch = params.BRANCH?.trim() ?: 'frontend_sales_dev'
+          branch = branch.replaceFirst(/^origin\//, '')
+          env.DEPLOY_BRANCH = branch
+        }
+        echo "Checking out Sales App UI branch: ${env.DEPLOY_BRANCH}"
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "*/${env.DEPLOY_BRANCH}"]],
+          extensions: [],
+          userRemoteConfigs: scm.userRemoteConfigs,
+        ])
       }
     }
 
@@ -59,7 +73,7 @@ pipeline {
 
   post {
     success {
-     echo "Deployment successful! Sales App UI running on port $PORT"
+      echo "Deployment successful! Sales App UI (${env.DEPLOY_BRANCH}) running on port $PORT"
     }
     failure {
       echo "Deployment failed! Check build logs."

@@ -1,6 +1,6 @@
 // AppRoutes.jsx
 import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import PublicLayout from "../layout/PublicLayout";
 import AppLayout from "../layout/AppLayout";
 import PrivateRoute from "./PrivateRoute";
@@ -18,6 +18,7 @@ import TransportDashboard from "../components/TransportDashboard";
 import Retail from "../components/Retail";
 import Configurations from "../components/Configurations";
 import Ledger from "../components/Ledger";
+import Reports from "../components/Reports";
 
 
 const SupplierDashboard = lazy(() => import("../components/SupplierDashboard"));
@@ -53,6 +54,8 @@ export default function AppRoutes() {
             <Route path="/purchase-entry" element={<PurchaseEntry />} />
             <Route path="/purchase" element={<Purchase />} />
              <Route path="/retail" element={<Retail />} />
+             <Route path="/graph" element={<Reports />} />
+             <Route path="/reports" element={<Navigate to="/graph" replace />} />
             <Route path="/transports" element={<TransportDashboard />} />
             <Route path="/configurations" element={<Configurations />} />
             <Route path="/ledger" element={<Ledger />} />
