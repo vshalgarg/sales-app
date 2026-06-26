@@ -18,9 +18,18 @@ import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FormFooter from "../components/common/FormFooter";
+import FormSection from "../components/common/FormSection";
+import { FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
 import AppButton from "../components/common/AppButton";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import {
+    Building2,
+    MapPin,
+    Phone,
+    Truck,
+    Landmark,
+} from "lucide-react";
 
 
 const UpdateSupplierModal = ({
@@ -231,24 +240,9 @@ const UpdateSupplierModal = ({
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
 
-            <div className="
-        bg-white 
-        w-full 
-        h-full 
-        sm:h-screen
-        md:max-w-4xl 
-        md:max-h-[90vh] 
-        md:rounded-lg 
-        flex 
-        flex-col
-      ">
-
-                {/* Header */}
-                <div className="p-4 md:p-6 border-b flex items-center gap-3">
-                    <IconButton
-                        onClick={handleClose}
-                        className="md:hidden"
-                    >
+            <div className="bg-white dark:bg-gray-900 w-full h-full sm:h-screen md:max-w-5xl md:max-h-[90vh] md:rounded-lg flex flex-col">
+                <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-3">
+                    <IconButton onClick={handleClose} aria-label="Go back">
                         <ArrowBackIcon />
                     </IconButton>
 
@@ -257,17 +251,10 @@ const UpdateSupplierModal = ({
                     </h2>
                 </div>
 
-                    {/* Body */}
-                    <div className="px-6 py-4 overflow-y-auto flex-1 space-y-8">
+                    <div className={`px-4 md:px-6 py-4 overflow-y-auto flex-1 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
 
-                        {/* ================= BASIC INFORMATION ================= */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">
-                                Basic Information
-                            </h3>
-
+                        <FormSection title="Basic Information" icon={Building2} variantIndex={0}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                                 <CustomTextField
                                     name="supplierName"
                                     value={form.supplierName || ""}
@@ -310,17 +297,6 @@ const UpdateSupplierModal = ({
                                     ]}
                                 />
 
-                            </div>
-                        </div>
-
-                        {/* ================= COMMISSION DETAILS ================= */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">
-                                Commission Details
-                            </h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                                 <BasicSelect
                                     name="commissionScheme"
                                     value={form.commissionScheme || ""}
@@ -346,56 +322,11 @@ const UpdateSupplierModal = ({
                                     onChange={handleChange}
                                     label="Reference By"
                                 />
-
                             </div>
-                        </div>
+                        </FormSection>
 
-                        {/* BANK DETAILS */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Bank Details</h3>
+                        <FormSection title="Address Details" icon={MapPin} variantIndex={1}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <CustomTextField
-                                    name="bankName"
-                                    value={form.bankName || ""}
-                                    onChange={handleChange}
-                                    label="Bank Name"
-                                />
-                                <CustomTextField
-                                    name="ifscCode"
-                                    value={form.ifscCode || ""}
-                                    onChange={handleChange}
-                                    label="IFSC Code"
-                                />
-                                <CustomTextField
-                                    name="branchName"
-                                    value={form.branchName || ""}
-                                    onChange={handleChange}
-                                    label="Branch Name"
-                                />
-                                <CustomTextField
-                                    name="accountName"
-                                    value={form.accountName || ""}
-                                    onChange={handleChange}
-                                    label="Account Holder Name"
-                                />
-                                <CustomTextField
-                                    name="accountNumber"
-                                    value={form.accountNumber || ""}
-                                    onChange={handleChange}
-                                    label="Account Number"
-                                    type="number"
-                                />
-                            </div>
-                        </div>
-
-                        {/* ================= ADDRESS DETAILS ================= */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">
-                                Address Details
-                            </h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                                 <CustomTextField
                                     name="addressLine1"
                                     value={form.addressLine1 || ""}
@@ -407,7 +338,7 @@ const UpdateSupplierModal = ({
                                     name="addressLine2"
                                     value={form.addressLine2 || ""}
                                     onChange={handleChange}
-                                    label="Address Line 2"
+                                    label="Address Line 2 (Optional)"
                                 />
 
                                 <StateAutocomplete
@@ -430,16 +361,10 @@ const UpdateSupplierModal = ({
                                     onChange={handleChange}
                                     label="Pin Code"
                                 />
-
                             </div>
-                        </div>
+                        </FormSection>
 
-                        {/* ================= CONTACT INFORMATION ================= */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">
-                                Contact Information
-                            </h3>
-
+                        <FormSection title="Contact Information" icon={Phone} variantIndex={2}>
                             {form.contacts?.map((contact, index) => (
                                 <div key={index} className="mb-6">
 
@@ -536,17 +461,10 @@ const UpdateSupplierModal = ({
                             >
                                 Add Contact
                             </Button>
-                        </div>
+                        </FormSection>
 
-                        {/* ================= TRANSPORT & REMARK ================= */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 border-b pb-2">
-                                Transport & Remarks
-                            </h3>
-
+                        <FormSection title="Preferred Transports" icon={Truck} variantIndex={3}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                {/* Preferred Transport */}
                                 <Autocomplete
                                     multiple
                                     options={allTransports}
@@ -571,19 +489,52 @@ const UpdateSupplierModal = ({
                                     )}
                                 />
 
-                                {/* Remark */}
                                 <CustomTextField
                                     name="remark"
                                     value={form.remark || ""}
                                     onChange={handleChange}
-                                    label="Remarks"
+                                    label="Remarks (optional)"
                                     multiline
                                     rows={0}
                                 />
-
                             </div>
-                        </div>
+                        </FormSection>
 
+                        <FormSection title="Bank Details" icon={Landmark} variantIndex={4}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <CustomTextField
+                                    name="bankName"
+                                    value={form.bankName || ""}
+                                    onChange={handleChange}
+                                    label="Bank Name"
+                                />
+                                <CustomTextField
+                                    name="ifscCode"
+                                    value={form.ifscCode || ""}
+                                    onChange={handleChange}
+                                    label="IFSC Code"
+                                />
+                                <CustomTextField
+                                    name="branchName"
+                                    value={form.branchName || ""}
+                                    onChange={handleChange}
+                                    label="Branch Name"
+                                />
+                                <CustomTextField
+                                    name="accountName"
+                                    value={form.accountName || ""}
+                                    onChange={handleChange}
+                                    label="Account Holder Name"
+                                />
+                                <CustomTextField
+                                    name="accountNumber"
+                                    value={form.accountNumber || ""}
+                                    onChange={handleChange}
+                                    label="Account Number"
+                                    type="number"
+                                />
+                            </div>
+                        </FormSection>
 
                     </div>
 

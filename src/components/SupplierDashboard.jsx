@@ -1,17 +1,23 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { MapPin, MapPinned, Phone, Receipt } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import AddNewSupplier from "../modals/AddNewSupplier";
 import SupplierDetail from "../modals/SupplierDetail";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
-import DataTable from "./DataTable";
-import { Typography } from "@mui/material";
+import EntityCardGrid from "./common/EntityCardGrid";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
 import { getSupplierFormattedText } from "../utils/copyFormatter";
 
+const SUPPLIER_CARD_FIELDS = [
+  { label: "GST", key: "supplierGstNo", icon: Receipt },
+  { label: "City", key: "city", icon: MapPin },
+  { label: "Mobile", key: "mobile", icon: Phone },
+  { label: "Address", key: "address", icon: MapPinned },
+];
 
 export default function SupplierDashboard() {
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -33,53 +39,6 @@ export default function SupplierDashboard() {
   const { isMobile } = useResponsive();
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [supplierToCopy, setSupplierToCopy] = useState(null);
-
-
-  const handleCopyDetails = async (supplier) => {
-  try {
-    const response = await SupplierService.getSupplierById(supplier.id);
-    setSupplierToCopy(response.data);
-    setCopyModalOpen(true);
-  } catch (error) {
-    console.error("Error fetching supplier details:", error);
-    showSnackbar(error.message, "error");
-  }
-};
-
-  const columns = {
-    desktop: [
-      { key: "code", label: "Code", width: "8%" },
-      { key: "supplierName", label: "Name", width: "20%" },
-      { key: "supplierGstNo", label: "GST", width: "16%" },
-      {
-        key: "address",
-        label: "Address",
-        width: "32%",
-        render: (row) => (
-          <Typography
-            variant="body2"
-            noWrap
-            title={row.address}
-            sx={{ width: "100%" }}
-          >
-            {row.address || "-"}
-          </Typography>
-        ),
-      },
-      { key: "city", label: "City", width: "10%" },
-
-      {
-        key: "mobile",
-        label: "Mobile",
-        width: "10%",
-        render: (row) => row.mobile || "-",
-      },
-    ],
-    mobile: [
-      { key: "supplierName", label: "Name" },
-      { key: "city", label: "City" },
-    ],
-  };
 
   const [form, setForm] = useState({
     supplierName: "",
@@ -103,6 +62,40 @@ export default function SupplierDashboard() {
     remark: "",
   });
 
+  const handleCopyDetails = async (supplier) => {
+    try {
+      const response = await SupplierService.getSupplierById(supplier.id);
+      setSupplierToCopy(response.data);
+      setCopyModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching supplier details:", error);
+      showSnackbar(error.message, "error");
+    }
+  };
+
+  const buildSupplierCardProps = (supplier) => ({
+    code: supplier.code,
+    title: supplier.supplierName,
+    fields: SUPPLIER_CARD_FIELDS.map(({ label, key, icon }) => ({
+      label,
+      icon,
+      value: supplier[key],
+    })),
+    onView: () => {
+      setSelectedSupplier(supplier.id);
+      setIsModalOpen(true);
+    },
+    onEdit: () => {
+      setEditingSupplierId(supplier.id);
+      setOpenEdit(true);
+    },
+    onCopy: () => handleCopyDetails(supplier),
+    onDelete: () => {
+      setSupplierToDelete(supplier);
+      setDeleteModalOpen(true);
+    },
+  });
+
   const fetchSuppliers = useCallback(
     async (uiPage = 1) => {
       const backendPage = uiPage - 1;
@@ -121,10 +114,9 @@ export default function SupplierDashboard() {
         setTotalPages(0);
         setTotalItems(0);
         showSnackbar(error.message, "error");
-      } finally {
       }
     },
-    [rowsPerPage],
+    [rowsPerPage, showSnackbar],
   );
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
@@ -196,22 +188,22 @@ export default function SupplierDashboard() {
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      {/* Header Section */}
       <div>
-        <div className="flex justify-between items-center my-2">
-          <h2 className=" text-lg md:text-2xl font-bold">{isMobile ? "Supplier" : "Supplier Overview"}</h2>
+        <div className="flex justify-between items-center my-2 gap-3">
+          <h2 className="text-lg md:text-2xl font-bold">
+            {isMobile ? "Supplier" : "Supplier Overview"}
+          </h2>
           <button
             onClick={() => setOpen(true)}
-            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            className="px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 whitespace-nowrap text-sm md:text-base"
           >
-            Add Supplier
+            + Add Supplier
           </button>
         </div>
 
-        {/* Search Section */}
         <div className="flex items-center mb-2">
           <UniversalSearch
-            placeholder="Search suppliers ..."
+            placeholder="Search suppliers..."
             query={query}
             setQuery={setQuery}
             searchFn={SupplierService.searchSuppliers}
@@ -224,33 +216,19 @@ export default function SupplierDashboard() {
         </div>
       </div>
 
-      {/* Table Section*/}
-      <div className="flex-1 min-h-0  border rounded-lg mb-2 bg-white dark:bg-zinc-900">
-        <DataTable
-          columns={isMobile ? columns.mobile : columns.desktop}
-          data={suppliers}
-          onView={(supplier) => {
-            setSelectedSupplier(supplier.id);
-            setIsModalOpen(true);
-          }}
-          onEdit={(supplier) => {
-            setEditingSupplierId(supplier.id);
-            setOpenEdit(true);
-          }}
-          onDelete={(supplier) => {
-            setSupplierToDelete(supplier);
-            setDeleteModalOpen(true);
-          }}
-            onCopy={handleCopyDetails}
-            emptyMessage="No suppliers found"
-            page={currentPage}
-            totalCount={totalItems}
-            rowsPerPage={rowsPerPage}
-            onPageChange={handleChangePage}
-          />
-        </div>
+      <div className="flex-1 min-h-0 mb-2">
+        <EntityCardGrid
+          items={suppliers}
+          buildCardProps={buildSupplierCardProps}
+          emptyMessage="No suppliers found"
+          page={currentPage}
+          totalCount={totalItems}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          entityLabel="suppliers"
+        />
+      </div>
 
-      {/* Modals */}
       {isModalOpen && selectedSupplier && (
         <SupplierDetail
           supplierId={selectedSupplier}
@@ -286,7 +264,6 @@ export default function SupplierDashboard() {
         />
       )}
 
-
       <DeleteConfirmModal
         open={deleteModalOpen}
         title="Delete Supplier"
@@ -305,7 +282,6 @@ export default function SupplierDashboard() {
         }}
         onConfirm={handleDelete}
       />
-
     </div>
   );
 }

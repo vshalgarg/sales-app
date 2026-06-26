@@ -15,8 +15,17 @@ import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import FormSection from "../components/common/FormSection";
+import { FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import {
+  Building2,
+  MapPin,
+  Phone,
+  Truck,
+  Landmark,
+} from "lucide-react";
 
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
@@ -214,25 +223,27 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     <>
       {open && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start md:items-center justify-center">
-          <div className="bg-white dark:bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-4xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+          <div className="bg-white dark:bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-5xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
             {/* Header */}
-            <div className="p-4 md:p-6 border-b flex items-center gap-3">
-              <IconButton
-                onClick={handleClose}
-                className="md:hidden"
-              >
-                <ArrowBackIcon />
-              </IconButton>
-              <h2 className="text-lg md:text-xl font-semibold">
-                Add New Supplier
-              </h2>
+            <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-700">
+              <div className="flex items-center gap-3">
+                <IconButton onClick={handleClose} aria-label="Go back">
+                  <ArrowBackIcon />
+                </IconButton>
+                <div>
+                  <h2 className="text-lg md:text-xl font-semibold">
+                    Create Supplier
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    Enter supplier details to add a new supplier
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Scrollable form content */}
-            <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-6">
-              {/* Basic Information */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Basic Information</h3>
+            <div className={`flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
+              <FormSection title="Basic Information" icon={Building2} variantIndex={0}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="supplierName"
@@ -311,56 +322,9 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                   />
 
                 </div>
-              </div>
+              </FormSection>
 
-              {/* Bank Details */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Bank Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  <CustomTextField
-                    name="bankName"
-                    value={form.bankName}
-                    onChange={handleFormChange}
-                    label="Bank Name"
-                    type="text"
-                  />
-
-                  <CustomTextField
-                    name="ifscCode"
-                    value={form.ifscCode}
-                    onChange={handleFormChange}
-                    label="IFSC Code"
-                  />
-
-                  <CustomTextField
-                    name="branchName"
-                    value={form.branchName}
-                    onChange={handleFormChange}
-                    label="Branch Name"
-                  />
-
-                  <CustomTextField
-                    name="accountName"
-                    value={form.accountName}
-                    onChange={handleFormChange}
-                    label="Account Holder Name"
-                  />
-
-                  <CustomTextField
-                    name="accountNumber"
-                    value={form.accountNumber}
-                    onChange={handleFormChange}
-                    label="Account Number"
-                    type="number"
-                  />
-
-                </div>
-              </div>
-
-              {/* Address Details */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Address Details</h3>
+              <FormSection title="Address Details" icon={MapPin} variantIndex={1}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="addressLine1"
@@ -399,13 +363,9 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     helperText={errors.pinCode}
                   />
                 </div>
-              </div>
+              </FormSection>
 
-              {/* Contact Information */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">
-                  Contact Information
-                </h3>
+              <FormSection title="Contact Information" icon={Phone} variantIndex={2}>
                 {form.contacts.map((contact, index) => (
                   <div key={index} className="mb-6">
 
@@ -517,11 +477,9 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 >
                   Add Contact
                 </Button>
-              </div>
+              </FormSection>
 
-              {/* Transport Section */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Preferred Transports</h3>
+              <FormSection title="Preferred Transports" icon={Truck} variantIndex={3}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Autocomplete
                     multiple
@@ -582,32 +540,52 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     multiline
                   />
                 </div>
+              </FormSection>
 
-              </div>
+              <FormSection title="Bank Details" icon={Landmark} variantIndex={4}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <CustomTextField
+                    name="bankName"
+                    value={form.bankName}
+                    onChange={handleFormChange}
+                    label="Bank Name"
+                    type="text"
+                  />
+
+                  <CustomTextField
+                    name="ifscCode"
+                    value={form.ifscCode}
+                    onChange={handleFormChange}
+                    label="IFSC Code"
+                  />
+
+                  <CustomTextField
+                    name="branchName"
+                    value={form.branchName}
+                    onChange={handleFormChange}
+                    label="Branch Name"
+                  />
+
+                  <CustomTextField
+                    name="accountName"
+                    value={form.accountName}
+                    onChange={handleFormChange}
+                    label="Account Holder Name"
+                  />
+
+                  <CustomTextField
+                    name="accountNumber"
+                    value={form.accountNumber}
+                    onChange={handleFormChange}
+                    label="Account Number"
+                    type="number"
+                  />
+                </div>
+              </FormSection>
             </div>
 
             {/* Footer*/}
             <FormFooter>
-
-              {/* Save Supplier */}
-              <AppButton
-                type="primary"
-                loading={isSaving}
-                onClick={() => handleAddSupplier({ closeAfterSave: true })}
-              >
-                Save Supplier
-              </AppButton>
-
-              {/* Save & Add New */}
-              <AppButton
-                type="secondary"
-                loading={isSaving}
-                onClick={() => handleAddSupplier({ closeAfterSave: false })}
-              >
-                Save & Add New
-              </AppButton>
-
-              {/* Cancel */}
               <AppButton
                 type="cancel"
                 disabled={isSaving}
@@ -616,6 +594,21 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                 Cancel
               </AppButton>
 
+              <AppButton
+                type="secondary"
+                loading={isSaving}
+                onClick={() => handleAddSupplier({ closeAfterSave: false })}
+              >
+                Save & Add New
+              </AppButton>
+
+              <AppButton
+                type="primary"
+                loading={isSaving}
+                onClick={() => handleAddSupplier({ closeAfterSave: true })}
+              >
+                Save Supplier
+              </AppButton>
             </FormFooter>
 
             <ConfirmDialog

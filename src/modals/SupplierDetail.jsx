@@ -1,10 +1,24 @@
 import { IconButton, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import FormFooter from "../components/common/FormFooter";
-import AppButton from "../components/common/AppButton";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import CopyDetailsModal from "../components/common/CopyDetailsModal";
 import { useState, useEffect } from "react";
+import {
+  Building2,
+  MapPin,
+  Phone,
+  Truck,
+  Landmark,
+} from "lucide-react";
+import FormFooter from "../components/common/FormFooter";
+import FormSection from "../components/common/FormSection";
+import DetailField from "../components/common/DetailField";
+import {
+  FORM_SCROLL_AREA_CLASS,
+  TRANSPORT_CHIP_CLASS,
+  DETAIL_FIELD_VALUE_CLASS,
+} from "../theme/cardTheme";
+import AppButton from "../components/common/AppButton";
+import CopyDetailsModal from "../components/common/CopyDetailsModal";
 import SupplierService from "../service/SupplierService";
 import { getSupplierFormattedText } from "../utils/copyFormatter";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -21,26 +35,36 @@ const SupplierDetail = ({ supplierId, setIsModalOpen }) => {
         setSupplier(res.data);
       } catch (error) {
         console.error(error);
-        showSnackbar( err?.message ||"Failed to load supplier", "error");
-      } 
+        showSnackbar(error?.message || "Failed to load supplier", "error");
+      }
     };
 
     fetchSupplier();
-  }, [supplierId]);
+  }, [supplierId, showSnackbar]);
 
   if (!supplier) return null;
+
+  const fullAddress =
+    [
+      supplier.addressLine1,
+      supplier.addressLine2,
+      supplier.city ? `${supplier.city},` : "",
+      supplier.state ? `${supplier.state} -` : "",
+      supplier.pinCode,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || "-";
 
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:flex md:items-center md:justify-center">
-        <div className="bg-white dark:bg-gray-900 w-full h-screen md:max-w-4xl md:max-h-[90vh]  md:rounded-lg shadow-lg flex flex-col">
-          <div className="px-3 py-2 md:p-6 border-b border-gray-300 sticky top-0 bg-white z-10 flex items-center gap-3">
-
-            {/*Back Button */}
+        <div className="bg-white dark:bg-gray-900 w-full h-screen md:max-w-5xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+          <div className="px-3 py-2 md:p-6 border-b border-gray-300 dark:border-zinc-700 sticky top-0 bg-white dark:bg-gray-900 z-10 flex items-center gap-3">
             <IconButton
               onClick={() => setIsModalOpen(false)}
-              className="md:hidden"
               size="small"
+              aria-label="Go back"
             >
               <ArrowBackIcon />
             </IconButton>
@@ -59,256 +83,124 @@ const SupplierDetail = ({ supplierId, setIsModalOpen }) => {
                 </IconButton>
               </Tooltip>
             </div>
-
           </div>
 
-          <div className="px-6 py-2 md:py-4 overflow-y-auto flex-1 space-y-4 md:space-y-6">
-            {/* Section: Basic Information */}
-            <h3 className="md:text-lg font-semibold md:mb-3">
-              Basic Information
-            </h3>
-            <div className="sup-info grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Supplier Name
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+          <div className={`px-4 md:px-6 py-4 overflow-y-auto flex-1 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
+            <FormSection title="Basic Information" icon={Building2} variantIndex={0}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailField label="Supplier Name">
                   {supplier.supplierName || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Group Name
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                </DetailField>
+                <DetailField label="Email">{supplier.email || "-"}</DetailField>
+                <DetailField label="Group Name">
                   {supplier.groupName || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  GST Number
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-all">
+                </DetailField>
+                <DetailField label="GST Number" valueClassName="break-all">
                   {supplier.gstNo || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">MSME</label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {supplier.msme || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Email
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
-                  {supplier.email || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Commission Scheme
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                </DetailField>
+                <DetailField label="MSME">{supplier.msme || "-"}</DetailField>
+                <DetailField label="Commission Scheme">
                   {supplier.commissionScheme || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Commission %
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                </DetailField>
+                <DetailField label="Commission %">
                   {supplier.commissionRate ?? "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Reference By
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words">
+                </DetailField>
+                <DetailField label="Reference By">
                   {supplier.referenceBy || "-"}
-                </div>
+                </DetailField>
               </div>
+            </FormSection>
 
-            </div>
-
-            <h3 className="md:text-lg font-semibold mb-3">Bank Details</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Bank Name</label>
-                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
-                  {supplier.bankName || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">IFSC Code</label>
-                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
-                  {supplier.ifscCode || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Branch</label>
-                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
-                  {supplier.branchName || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Account Name</label>
-                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
-                  {supplier.accountName || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Account Number</label>
-                <div className="bg-gray-100 border rounded px-3 py-2 text-sm h-9">
-                  {supplier.accountNumber || "-"}
-                </div>
-              </div>
-
-            </div>
-
-            {/* Section: Address Details */}
-            <h3 className="md:text-lg font-semibold mb-3">Address Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Address
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 break-words whitespace-pre-wrap">
-                  {[
-                    supplier.addressLine1,
-                    supplier.addressLine2,
-                    supplier.city ? `${supplier.city},` : "",
-                    supplier.state ? `${supplier.state} -` : "",
-                    supplier.pinCode,
-                  ]
-                    .filter(Boolean)
-                    .join(" ")
-                    .trim() || "-"}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">State</label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {supplier.state || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">City</label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {supplier.city || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Pin Code
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
-                  {supplier.pinCode || "-"}
-                </div>
-              </div>
-            </div>
-
-            {/* Section: Contact Information */}
-            <h3 className="md:text-lg font-semibold mb-3">
-              Contact Information
-            </h3>
-            {supplier.contacts?.length > 0 ? (
-              supplier.contacts.map((c, idx) => (
-                <div
-                  key={idx}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 mb-3"
+            <FormSection title="Address Details" icon={MapPin} variantIndex={1}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailField
+                  label="Address"
+                  valueClassName="whitespace-pre-wrap"
                 >
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Contact Person</label>
-                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                  {fullAddress}
+                </DetailField>
+                <DetailField label="State">{supplier.state || "-"}</DetailField>
+                <DetailField label="City">{supplier.city || "-"}</DetailField>
+                <DetailField label="Pin Code">
+                  {supplier.pinCode || "-"}
+                </DetailField>
+              </div>
+            </FormSection>
+
+            <FormSection title="Contact Information" icon={Phone} variantIndex={2}>
+              {supplier.contacts?.length > 0 ? (
+                supplier.contacts.map((c, idx) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 last:mb-0"
+                  >
+                    <DetailField label="Contact Person">
                       {c.contactPerson || "-"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Mobile No.</label>
-                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm h-9">
+                    </DetailField>
+                    <DetailField label="Mobile No.">
                       {c.mobileNumber || "-"}
-                    </div>
+                    </DetailField>
+                    <DetailField label="Type">{c.type || "-"}</DetailField>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Type</label>
-                    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
-                      {c.type || "-"}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-gray-500">No contacts available</div>
-            )}
+                ))
+              ) : (
+                <div className="text-gray-500">No contacts available</div>
+              )}
+            </FormSection>
 
-            {/* Section: Other Information */}
-            <h3 className="md:text-lg font-semibold mb-3">Other Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Preferred Transport
-                </label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center">
-                  {supplier.preferredTransports ? (
-                    supplier.preferredTransports.length > 0 ? (
-                      supplier.preferredTransports.map(
-                        (transport, idx) => (
-                          <span
-                            key={idx}
-                            className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
-                          >
-                            {transport.name || "Unknown"}
-                          </span>
-                        ),
-                      )
+            <FormSection title="Preferred Transports" icon={Truck} variantIndex={3}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    Preferred Transport
+                  </label>
+                  <div className={`rounded px-3 py-2 text-sm min-h-9 flex flex-wrap gap-2 items-center border ${DETAIL_FIELD_VALUE_CLASS}`}>
+                    {supplier.preferredTransports?.length > 0 ? (
+                      supplier.preferredTransports.map((transport, idx) => (
+                        <span
+                          key={idx}
+                          className={`px-3 py-1 rounded-full text-xs ${TRANSPORT_CHIP_CLASS}`}
+                        >
+                          {transport.name || "Unknown"}
+                        </span>
+                      ))
                     ) : (
-                      <span className="text-gray-500 text-sm">
-                        No transports
-                      </span>
-                    )
-                  ) : (
-                    <span className="text-gray-500 text-sm">-</span>
-                  )}
+                      <span className="text-gray-500 text-sm">No transports</span>
+                    )}
+                  </div>
                 </div>
+                <DetailField label="Remark">{supplier.remark || "-"}</DetailField>
               </div>
+            </FormSection>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Remark</label>
-                <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm min-h-9">
-                  {supplier.remark || "-"}
-                </div>
+            <FormSection title="Bank Details" icon={Landmark} variantIndex={4}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailField label="Bank Name">
+                  {supplier.bankName || "-"}
+                </DetailField>
+                <DetailField label="IFSC Code">
+                  {supplier.ifscCode || "-"}
+                </DetailField>
+                <DetailField label="Branch Name">
+                  {supplier.branchName || "-"}
+                </DetailField>
+                <DetailField label="Account Holder Name">
+                  {supplier.accountName || "-"}
+                </DetailField>
+                <DetailField label="Account Number">
+                  {supplier.accountNumber || "-"}
+                </DetailField>
               </div>
-            </div>
-
+            </FormSection>
           </div>
 
-          {/* Footer Button */}
           <FormFooter>
-
-            <AppButton
-              type="cancel"
-              onClick={() => setIsModalOpen(false)}
-            >
+            <AppButton type="cancel" onClick={() => setIsModalOpen(false)}>
               Cancel
             </AppButton>
-
           </FormFooter>
 
-          {copyModalOpen && (      
+          {copyModalOpen && (
             <CopyDetailsModal
               open={copyModalOpen}
               onClose={() => setCopyModalOpen(false)}
@@ -316,7 +208,6 @@ const SupplierDetail = ({ supplierId, setIsModalOpen }) => {
               formattedText={getSupplierFormattedText(supplier)}
             />
           )}
-
         </div>
       </div>
     </>
