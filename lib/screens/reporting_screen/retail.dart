@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/reporting_widgets/retail_details_bottom_sheet.dart';
+import 'package:hisabio/screens/add_supplier.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
@@ -6,9 +9,12 @@ import '../../customs/app_bar.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/retail_provider.dart';
 import '../../provider/staff_provider.dart';
+import '../../reporting_widgets/edit_retail_bottom_sheet.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../screens/entry_screen/retail_entry.dart';
+import '../../services/get_retail_api.dart';
+import '../home_screen.dart';
 
 class Retail extends StatefulWidget {
   const Retail({super.key});
@@ -23,9 +29,8 @@ class _RetailState extends State<Retail> {
   final TextEditingController toDateController = TextEditingController();
 
   String? selectedSupplier;
-  String? selectedCustomer;
-  String? selectedStaff;
-
+  int? selectedCustomerId;
+  int? selectedStaffId;
   @override
   void initState() {
     super.initState();
@@ -40,6 +45,17 @@ class _RetailState extends State<Retail> {
     fromDateController.dispose();
     toDateController.dispose();
     super.dispose();
+  }
+  Future<void> _showRetailDetails(int retailId) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      builder: (context) =>
+          RetailDetailsBottomSheet(
+            retailId: retailId,
+          ),
+    );
   }
 
   void _applyFilters() {
@@ -57,7 +73,8 @@ class _RetailState extends State<Retail> {
 
     setState(() {
       selectedSupplier = null;
-      selectedCustomer = null;
+      selectedCustomerId = null;
+      selectedStaffId = null;
     });
 
     context.read<RetailProvider>().fetchRetails();
@@ -109,37 +126,55 @@ class _RetailState extends State<Retail> {
                   ),
                   FilterDropdown(
                     label: "Referred By",
-                    value: selectedCustomer,
+                    value: selectedCustomerId == null
+                        ? null
+                        : entriesProvider.customerEntries
+                        .firstWhere(
+                          (e) => e.id!.toInt() == selectedCustomerId,
+                    )
+                        .customerName,
                     items: entriesProvider.customerEntries
-                        .map((e) => e.customerName ?? '')
-                        .where((e) => e.isNotEmpty)
+                        .map((e) => e.customerName ?? "")
                         .toSet()
                         .toList(),
                     onChanged: (value) {
+                      final customer = entriesProvider.customerEntries.firstWhere(
+                            (e) => e.customerName == value,
+                      );
+
                       bottomSheetSetState(() {
-                        selectedCustomer = value;
+                        selectedCustomerId = customer.id!.toInt();
                       });
 
                       setState(() {
-                        selectedCustomer = value;
+                        selectedCustomerId = customer.id!.toInt();
                       });
                     },
                   ),
                   FilterDropdown(
                     label: "Staff",
-                    value: selectedStaff,
+                    value: selectedStaffId == null
+                        ? null
+                        : staffProvider.staffs
+                        .firstWhere(
+                          (e) => e.staffId == selectedStaffId,
+                    )
+                        .staffName,
                     items: staffProvider.staffs
-                        .map((e) => e.staffName ?? '')
-                        .where((e) => e.isNotEmpty)
+                        .map((e) => e.staffName)
                         .toSet()
                         .toList(),
                     onChanged: (value) {
+                      final staff = staffProvider.staffs.firstWhere(
+                            (e) => e.staffName == value,
+                      );
+
                       bottomSheetSetState(() {
-                        selectedStaff = value;
+                        selectedStaffId = staff.staffId;
                       });
 
                       setState(() {
-                        selectedStaff = value;
+                        selectedStaffId = staff.staffId;
                       });
                     },
                   ),
@@ -153,12 +188,12 @@ class _RetailState extends State<Retail> {
                     fromDateController.clear();
                     toDateController.clear();
                     selectedSupplier = null;
-                    selectedCustomer = null;
+                    selectedCustomerId = null;
                   });
 
                   setState(() {
                     selectedSupplier = null;
-                    selectedCustomer = null;
+                    selectedCustomerId = null;
                   });
 
                   Navigator.pop(context);
@@ -183,6 +218,15 @@ class _RetailState extends State<Retail> {
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
         title: "Retailers",
         textStyle: const TextStyle(
           color: Colors.white,
@@ -191,8 +235,9 @@ class _RetailState extends State<Retail> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
-        child: const Icon(Icons.add, color: Color(0xFF9CA4DA)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        backgroundColor: AppColors.primaryPurple,
+        child: const Icon(Iconsax.add, color: Colors.white),
         onPressed: () {
           Navigator.push(
             context,
@@ -289,14 +334,51 @@ class _RetailState extends State<Retail> {
                               MapEntry("Referred By", retail.customerName),
                               MapEntry("Staff", retail.staffName),
                             ],
-                            onView: () {
-                              print("View ${retail.id}");
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (_) => ChangeNotifierProvider(
+                                  create: (_) => RetailDetailsProvider(),
+                                  child: RetailDetailsBottomSheet(
+                                    retailId: retail.retailId,
+                                  ),
+                                ),
+                              );
                             },
-                            onEdit: () {
-                              print("Edit ${retail.id}");
+                            onAdd: () async {
+                              await context.read<EntriesProvider>().fetchSuppliers();
+
+                              showDialog(
+                                context: context,
+                                builder: (_) => const AddSupplier(),
+                              );
+                            },
+                            onEdit: () async {
+                              await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) {
+                                  return MultiProvider(
+                                    providers: [
+                                      ChangeNotifierProvider(
+                                        create: (_) => RetailDetailsProvider(),
+                                      ),
+                                    ],
+                                    child: EditRetailBottomSheet(
+                                      retailId: retail.retailId,
+                                    ),
+                                  );
+                                },
+                              );
+
+                              if (!mounted) return;
+
+                              context.read<RetailProvider>().fetchRetails();
                             },
                             onDelete: () {
-                              print("Delete ${retail.id}");
+
                             },
                           ),
                         );

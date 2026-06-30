@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/containers/new_custom_app_bar.dart';
 import 'package:hisabio/customs/widget_menu.dart';
+import 'package:hisabio/screens/reporting_screen/bills.dart';
+import 'package:hisabio/screens/reporting_screen/credit.dart';
+import 'package:hisabio/screens/reporting_screen/purchase.dart';
+import 'package:hisabio/screens/reporting_screen/retail.dart';
 import '../constants/colors_used.dart';
 import 'master_screens/customer.dart';
 import 'master_screens/staff.dart';
@@ -113,26 +117,38 @@ class HomeScreen extends StatelessWidget {
                       menuItemCard(
                         imagePath: "assets/images/bill.png",
                         title: "Bills",
-                        onTap: () {
+                        onTap: () {Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Bills()));
                         },
                       ),
                       menuItemCard(
                         imagePath: "assets/images/credits.png",
                         title: "Credits",
-                        onTap: () {
+                        onTap: () { Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Credit()));
                         },
                       ),
                       menuItemCard(
                         imagePath: "assets/images/purchase.png",
                         title: "Purchases",
-                        onTap: () {
+                        onTap: () {Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Purchase()));
                         },
                       ),
 
                       menuItemCard(
                         imagePath: "assets/images/retailors.png",
                         title: "Retailors",
-                        onTap: () {}
+                        onTap: () {Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Retail()));}
                       ),
                       menuItemCard(
                         imagePath: "assets/images/ledger.png",

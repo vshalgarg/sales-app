@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../provider/search_bill_provider.dart';
@@ -11,6 +12,7 @@ import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../services/bills_detail_api.dart';
 import '../../services/delete_bills_api.dart';
 import '../entry_screen/entries_bill_entry.dart';
+import '../home_screen.dart';
 
 class Bills extends StatefulWidget {
   const Bills({super.key});
@@ -32,17 +34,11 @@ class _BillsState extends State<Bills> {
   void initState() {
     super.initState();
 
-    Future.microtask(() async {
-      final provider = Provider.of<EntriesProvider>(context, listen: false);
-      await provider.fetchSuppliers();
-      await provider.fetchCustomer();
-      Future.microtask(() async {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.read<BillsProvider>().fetchBills(
-            fromDate: fromDateController.text,
-            toDate: toDateController.text,);
-        });
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<BillsProvider>().fetchBills(
+        fromDate: fromDateController.text,
+        toDate: toDateController.text,
+      );
     });
   }
 
@@ -57,8 +53,6 @@ class _BillsState extends State<Bills> {
     final data = await getBillDetails(billNumber);
 
     if (!mounted) return;
-    debugPrint("VIEW DATA => $data");
-    debugPrint("VIEW ITEMS => ${data['items']}");
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -102,7 +96,7 @@ class _BillsState extends State<Bills> {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
             return Container(
-              height: 500,
+              // height: 500,
               decoration: const BoxDecoration(
                 color: Color(0xFFF7F6FF),
                 borderRadius: BorderRadius.only(
@@ -110,73 +104,72 @@ class _BillsState extends State<Bills> {
                   topRight: Radius.circular(40),
                 ),
               ),
-                  child: ReportingFilterSection(
-                    fromDateController: fromDateController,
-                    toDateController: toDateController,
+              child: ReportingFilterSection(
+                fromDateController: fromDateController,
+                toDateController: toDateController,
 
-                    dropdowns: [
-                      FilterDropdown(
-                        label: "Supplier",
-                        value: selectedSupplier,
-                        items: provider.entries
-                            .map((e) => e.supplierName ?? '')
-                            .where((e) => e.isNotEmpty)
-                            .toList(),
-                        onChanged: (value) {
-                          bottomSheetSetState(() {
-                            selectedSupplier = value;
-                          });
-
-                          setState(() {
-                            selectedSupplier = value;
-                          });
-                        },
-                      ),
-
-                      FilterDropdown(
-                        label: "Customer",
-                        value: selectedCustomer,
-                        items: provider.customerEntries
-                            .map((e) => e.customerName ?? '')
-                            .where((e) => e.isNotEmpty)
-                            .toList(),
-                        onChanged: (value) {
-                          bottomSheetSetState(() {
-                            selectedCustomer = value;
-                          });
-
-                          setState(() {
-                            selectedCustomer = value;
-                          });
-                        },
-                      ),
-                    ],
-
-                    onApply: () {
-                      Navigator.pop(context);
-                      _applyFilters();
-                    },
-
-                    onClear: () {
+                dropdowns: [
+                  FilterDropdown(
+                    label: "Supplier",
+                    value: selectedSupplier,
+                    items: provider.entries
+                        .map((e) => e.supplierName ?? '')
+                        .where((e) => e.isNotEmpty)
+                        .toList(),
+                    onChanged: (value) {
                       bottomSheetSetState(() {
-                        fromDateController.clear();
-                        toDateController.clear();
-
-                        selectedSupplier = null;
-                        selectedCustomer = null;
+                        selectedSupplier = value;
                       });
 
                       setState(() {
-                        fromDateController.clear();
-                        toDateController.clear();
-
-                        selectedSupplier = null;
-                        selectedCustomer = null;
+                        selectedSupplier = value;
                       });
                     },
                   ),
 
-              );
+                  FilterDropdown(
+                    label: "Customer",
+                    value: selectedCustomer,
+                    items: provider.customerEntries
+                        .map((e) => e.customerName ?? '')
+                        .where((e) => e.isNotEmpty)
+                        .toList(),
+                    onChanged: (value) {
+                      bottomSheetSetState(() {
+                        selectedCustomer = value;
+                      });
+
+                      setState(() {
+                        selectedCustomer = value;
+                      });
+                    },
+                  ),
+                ],
+
+                onApply: () {
+                  Navigator.pop(context);
+                  _applyFilters();
+                },
+
+                onClear: () {
+                  bottomSheetSetState(() {
+                    fromDateController.clear();
+                    toDateController.clear();
+
+                    selectedSupplier = null;
+                    selectedCustomer = null;
+                  });
+
+                  setState(() {
+                    fromDateController.clear();
+                    toDateController.clear();
+
+                    selectedSupplier = null;
+                    selectedCustomer = null;
+                  });
+                },
+              ),
+            );
           },
         );
       },
@@ -192,6 +185,15 @@ class _BillsState extends State<Bills> {
       backgroundColor: AppColors.bodyFillColor,
 
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
         title: "Bills",
         textStyle: TextStyle(
           color: Colors.white,
@@ -201,7 +203,8 @@ class _BillsState extends State<Bills> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        backgroundColor: AppColors.primaryPurple,
         onPressed: isOpening
             ? null
             : () async {
@@ -229,7 +232,7 @@ class _BillsState extends State<Bills> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Icon(Icons.add, color: Color(0xFF9CA4DA)),
+            : const Icon(Iconsax.add, color: Colors.white, size: 40),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
@@ -255,48 +258,21 @@ class _BillsState extends State<Bills> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.filter_alt_outlined,
-                      color: Colors.white,
-                    ),
-                      onPressed: () async {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) =>
-                              const Center(child: CircularProgressIndicator()),
-                        );
-
-                        try {
-                          final provider = context.read<EntriesProvider>();
-
-                          await provider.fetchSuppliers();
-                          await provider.fetchCustomer();
-
-                          if (!mounted) return;
-
-                          Navigator.pop(context);
-
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.filter_alt_outlined,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
                           _showFilterBottomSheet();
-                        } catch (e) {
-                          if (!mounted) return;
-
-                          Navigator.pop(context);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Failed to load filters: $e"),
-                            ),
-                          );
-                        }
-                      },
+                        },
+                      ),
                     ),
-                )],
+                  ],
                 ),
 
                 SizedBox(height: height * 0.02),
@@ -342,7 +318,7 @@ class _BillsState extends State<Bills> {
                                     MapEntry("Customer", bill.customerName),
                                   ],
 
-                                  onView: () async {
+                                  onTap: () async {
                                     await _showBillDetails(bill.billNumber);
                                   },
 
@@ -376,8 +352,7 @@ class _BillsState extends State<Bills> {
                                         );
 
                                         for (final bill
-                                            in billsProvider.bills) {
-                                        }
+                                            in billsProvider.bills) {}
 
                                         if (!mounted) return;
 

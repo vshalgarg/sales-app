@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/screens/entry_screen/credit_entry.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
@@ -10,6 +11,7 @@ import '../../reporting_widgets/edit_credit_bottom_sheet.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../services/delete_credit_api.dart';
+import '../home_screen.dart';
 
 class Credit extends StatefulWidget {
   const Credit({super.key});
@@ -201,6 +203,15 @@ class _CreditState extends State<Credit> {
       backgroundColor: AppColors.bodyFillColor,
 
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
         title: "Credits",
         textStyle: TextStyle(
           color: Colors.white,
@@ -209,7 +220,8 @@ class _CreditState extends State<Credit> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        backgroundColor: AppColors.primaryPurple,
         onPressed: isOpening
             ? null
             : () async {
@@ -235,7 +247,7 @@ class _CreditState extends State<Credit> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Icon(Icons.add, color: Color(0xFF9CA4DA)),
+            : const Icon(Iconsax.add, color: Colors.white),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
@@ -367,7 +379,7 @@ class _CreditState extends State<Credit> {
                                       "₹${credit.receivedAmount ?? 0}",
                                     ),
                                   ],
-                                  onView: () async {
+                                  onTap: () async {
                                     setState(() {
                                       isOpeningView = true;
                                     });

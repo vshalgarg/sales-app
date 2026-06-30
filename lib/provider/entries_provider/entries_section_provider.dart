@@ -7,6 +7,7 @@ import 'package:hisabio/model_classes/get_transportname_id_model.dart';
 
 import '../../model_classes/add_newsupplier.dart';
 import '../../model_classes/get_staff_entry.dart';
+import '../../services/add_supplier.dart';
 import '../../services/entries_services/entries_api.dart';
 
 class EntriesProvider extends ChangeNotifier {
@@ -24,7 +25,7 @@ class EntriesProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<GetStaffEntry> staffEntries = [];
-
+  final AddSupplierApi _addSupplierApi = AddSupplierApi();
   List<GetStaffEntry> get staffList => staffEntries;
 
   Future<void> fetchSuppliers() async {
@@ -68,7 +69,19 @@ class EntriesProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+  Future<String> addSupplier(Map<String, dynamic> body) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
 
+      return await _addSupplierApi.addSupplier(body);
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
   void clear() {
     //_entries = null;
     _error = null;

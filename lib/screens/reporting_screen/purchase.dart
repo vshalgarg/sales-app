@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/screens/entry_screen/purchase_entry.dart';
 import 'package:hisabio/shared_preferences/login_token.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
@@ -14,6 +15,7 @@ import '../../reporting_widgets/purchase_details_bottom_sheet.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../services/purchase_details_api.dart';
+import '../home_screen.dart';
 
 class Purchase extends StatefulWidget {
   const Purchase({super.key});
@@ -38,11 +40,16 @@ class _PurchaseState extends State<Purchase> {
   void initState() {
     super.initState();
 
-    Future.microtask(() async {
-      final provider = Provider.of<EntriesProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final entriesProvider = context.read<EntriesProvider>();
+      final purchaseProvider = context.read<PurchaseProvider>();
 
-      await provider.fetchSuppliers();
-      await provider.fetchCustomer();
+      await Future.wait([
+        entriesProvider.fetchSuppliers(),
+        entriesProvider.fetchCustomer(),
+      ]);
+
+      await purchaseProvider.searchPurchases();
     });
   }
 
@@ -109,10 +116,7 @@ class _PurchaseState extends State<Purchase> {
   }
 
   void _showFilterBottomSheet() {
-    final provider = Provider.of<EntriesProvider>(
-      context,
-      listen: false,
-    );
+    final provider = Provider.of<EntriesProvider>(context, listen: false);
 
     showModalBottomSheet(
       context: context,
@@ -121,74 +125,74 @@ class _PurchaseState extends State<Purchase> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
-           return Container(
-            height: 500,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF7F6FF),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40),
-                    topRight: Radius.circular(40),
+            return Container(
+              height: 500,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF7F6FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
+                ),
+              ),
+              child: ReportingFilterSection(
+                fromDateController: fromDateController,
+                toDateController: toDateController,
+                dropdowns: [
+                  FilterDropdown(
+                    label: "Supplier",
+                    value: selectedSupplier,
+                    items: provider.entries
+                        .map((e) => e.supplierName ?? '')
+                        .where((e) => e.isNotEmpty)
+                        .toList(),
+                    onChanged: (value) {
+                      bottomSheetSetState(() {
+                        selectedSupplier = value;
+                      });
+
+                      setState(() {
+                        selectedSupplier = value;
+                      });
+                    },
                   ),
-                ),
-                child: ReportingFilterSection(
-                  fromDateController: fromDateController,
-                  toDateController: toDateController,
-                  dropdowns: [
-                    FilterDropdown(
-                      label: "Supplier",
-                      value: selectedSupplier,
-                      items: provider.entries
-                          .map((e) => e.supplierName ?? '')
-                          .where((e) => e.isNotEmpty)
-                          .toList(),
-                      onChanged: (value) {
-                        bottomSheetSetState(() {
-                          selectedSupplier = value;
-                        });
+                  FilterDropdown(
+                    label: "Customer",
+                    value: selectedCustomer,
+                    items: provider.customerEntries
+                        .map((e) => e.customerName ?? '')
+                        .where((e) => e.isNotEmpty)
+                        .toList(),
+                    onChanged: (value) {
+                      bottomSheetSetState(() {
+                        selectedCustomer = value;
+                      });
 
-                        setState(() {
-                          selectedSupplier = value;
-                        });
-                      },
-                    ),
-                    FilterDropdown(
-                      label: "Customer",
-                      value: selectedCustomer,
-                      items: provider.customerEntries
-                          .map((e) => e.customerName ?? '')
-                          .where((e) => e.isNotEmpty)
-                          .toList(),
-                      onChanged: (value) {
-                        bottomSheetSetState(() {
-                          selectedCustomer = value;
-                        });
+                      setState(() {
+                        selectedCustomer = value;
+                      });
+                    },
+                  ),
+                ],
+                onApply: () {
+                  Navigator.pop(context);
+                  _applyFilters();
+                },
+                onClear: ()async {
+                  bottomSheetSetState(() {
+                    fromDateController.clear();
+                    toDateController.clear();
+                    selectedSupplier = null;
+                    selectedCustomer = null;
+                  });
 
-                        setState(() {
-                          selectedCustomer = value;
-                        });
-                      },
-                    ),
-                  ],
-                  onApply: () {
-                    Navigator.pop(context);
-                    _applyFilters();
-                  },
-                  onClear: () {
-                    bottomSheetSetState(() {
-                      fromDateController.clear();
-                      toDateController.clear();
-                      selectedSupplier = null;
-                      selectedCustomer = null;
-                    });
-
-                    setState(() {
-                      fromDateController.clear();
-                      toDateController.clear();
-                      selectedSupplier = null;
-                      selectedCustomer = null;
-                    });
-                  },
-                ),
+                  setState(() {
+                    fromDateController.clear();
+                    toDateController.clear();
+                    selectedSupplier = null;
+                    selectedCustomer = null;
+                  });
+                },
+              ),
             );
           },
         );
@@ -205,6 +209,15 @@ class _PurchaseState extends State<Purchase> {
       backgroundColor: AppColors.bodyFillColor,
 
       appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        ),
         title: "Purchases",
         textStyle: TextStyle(
           color: Colors.white,
@@ -214,8 +227,9 @@ class _PurchaseState extends State<Purchase> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
-        child: const Icon(Icons.add, color: Color(0xFF9CA4DA)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        backgroundColor: AppColors.primaryPurple,
+        child: const Icon(Iconsax.add, color: Colors.white),
         onPressed: () {
           Navigator.push(
             context,
@@ -251,45 +265,16 @@ class _PurchaseState extends State<Purchase> {
                   children: [
                     Align(
                       alignment: Alignment.topRight,
-                      child:IconButton(
-                      icon: Icon(
-                        Icons.filter_alt_outlined,
-                        size: width * 0.075,
-                        color: Colors.white,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.filter_alt_outlined,
+                          size: width * 0.075,
+                          color: Colors.white,
+                        ),
+                        onPressed: _showFilterBottomSheet
                       ),
-                      onPressed: () async {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) =>
-                              const Center(child: CircularProgressIndicator()),
-                        );
-
-                        try {
-                          final provider = context.read<EntriesProvider>();
-
-                          await provider.fetchSuppliers();
-                          await provider.fetchCustomer();
-
-                          if (!mounted) return;
-
-                          Navigator.pop(context);
-
-                          _showFilterBottomSheet();
-                        } catch (e) {
-                          if (!mounted) return;
-
-                          Navigator.pop(context);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Failed to load filters: $e"),
-                            ),
-                          );
-                        }
-                      },
                     ),
-                    )],
+                  ],
                 ),
 
                 SizedBox(height: height * 0.02),
@@ -328,7 +313,7 @@ class _PurchaseState extends State<Purchase> {
                                 MapEntry("Customer", purchase.customerName),
                                 MapEntry("Remarks", purchase.remarks),
                               ],
-                              onView: () async {
+                              onTap: () async {
                                 showDialog(
                                   context: context,
                                   barrierDismissible: false,
