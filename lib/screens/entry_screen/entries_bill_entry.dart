@@ -32,7 +32,7 @@ class EntriesBillEntry extends StatefulWidget {
 }
 
 class _EntriesBillEntryState extends State<EntriesBillEntry> {
-  bool isExpanded = false;
+  bool isExpanded = true;
   bool isSupplierExpanded = false;
   bool isCustomerExpanded = false;
   bool isLogisticExpanded = false;
@@ -163,16 +163,28 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     ),
                     if (isExpanded) ...[
                       SizedBox(height: 10),
+                      Text(
+                        "Date",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                       EntryDateTextField(
                         label: "Date",
                         controller: dateController,
                       ),
                       SizedBox(height: 10),
+                      Text(
+                        "Received Date",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                       EntryDateTextField(
                         label: "Received Date",
                         controller: receivedDateController,
                       ),
                       SizedBox(height: 10),
+                      Text(
+                        "Invoice",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                       EntryTextField(
                         controller: invoiceController,
                         hintText: "Invoice",
@@ -194,7 +206,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     TextField(
                       decoration: InputDecoration(
                         suffixIcon: Icon(
-                          isExpanded
+                          isSupplierExpanded
                               ? Icons.keyboard_arrow_up
                               : Icons.keyboard_arrow_down,
                           color: Colors.white,
@@ -212,6 +224,10 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     ),
                     if(isSupplierExpanded)...[
                     SizedBox(height: 10),
+                      Text(
+                        "Supplier",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     CustomApiTextField<EntriesModel>(
                       hintText: "Supplier",
                       value: selectedSupplier,
@@ -229,12 +245,20 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       },
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "Supplier Group",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryTextField(
                       enabled: false,
                       hintText: "Supplier Group",
                       controller: supplierGroupController,
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "GSTIN",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryTextField(
                       enabled: false,
                       hintText: "GSTIN",
@@ -254,7 +278,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     TextField(
                       decoration: InputDecoration(
                         suffixIcon: Icon(
-                          isExpanded
+                          isCustomerExpanded
                               ? Icons.keyboard_arrow_up
                               : Icons.keyboard_arrow_down,
                           color: Colors.white,
@@ -272,6 +296,10 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     ),
                     if(isCustomerExpanded)...[
                     SizedBox(height: 10),
+                      Text(
+                        "Customer",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     CustomApiTextField<EntriesCustomerModel>(
                       hintText: "Customer",
                       value: selectedCustomer,
@@ -288,12 +316,20 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       },
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "Customer Group",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryTextField(
                       enabled: false,
                       hintText: "Customer Group",
                       controller: customerGroupController,
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "GSTIN",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryTextField(
                       enabled: false,
                       hintText: "GSTIN",
@@ -314,7 +350,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     TextField(
                       decoration: InputDecoration(
                         suffixIcon: Icon(
-                          isExpanded
+                          isLogisticExpanded
                               ? Icons.keyboard_arrow_up
                               : Icons.keyboard_arrow_down,
                           color: Colors.white,
@@ -332,6 +368,10 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     ),
                     if(isLogisticExpanded)...[
                     SizedBox(height: 10),
+                      Text(
+                        "Transport",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     CustomApiTextField<GetTransportnameIdModel>(
                       hintText: "Transport",
                       value: selectedTransport,
@@ -344,11 +384,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       },
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "LR Number",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryTextField(
                       hintText: "LR Number",
                       controller: lrNumberController,
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "Remarks",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryTextField(
                       hintText: "Remarks",
                       controller: remarksController,
@@ -409,9 +457,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
               SizedBox(height: 15),
               GestureDetector(
                 onTap: () async {
-                  final BillItem? item = await showDialog<BillItem>(
-                    context: context,
-                    builder: (context) => AddNewBillItem(),
+                  final BillItem? item = await Navigator.push<BillItem>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AddNewBillItem(),
+                    ),
                   );
 
                   if (item != null) {

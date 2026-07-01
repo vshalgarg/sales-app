@@ -40,7 +40,7 @@ class MasterContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 5),
+        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -81,13 +81,13 @@ class MasterContainer extends StatelessWidget {
                     SizedBox(height: 5),
                     Row(
                       children: [
-                         const Text( "City:",
+                         const Text( "City: ",
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
                           maxLines: 3,
 
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 13,
                             color: Colors.black,
                           ),
                         ),
@@ -97,23 +97,23 @@ class MasterContainer extends StatelessWidget {
                           maxLines: 3,
                           city ?? "",
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 13,
                             color: Colors.black,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 5),
+                   // SizedBox(height: 5),
                     Row(
                       children: [
                         Text(
-                          "Mobile:",
-                          style: TextStyle(fontSize: 10, color: Colors.black),
+                          "Mobile: ",
+                          style: TextStyle(fontSize: 13, color: Colors.black),
                         ),
                         Text(
                           mobile ?? "",
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 13,
                             color: Colors.black,
                           ),
                         ),
@@ -125,7 +125,7 @@ class MasterContainer extends StatelessWidget {
 
              // VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
               Padding(
-                padding: const EdgeInsets.only(right:20.0),
+                padding: const EdgeInsets.only(),
                 child: Column(
                   children: [
                   //  GestureDetector(

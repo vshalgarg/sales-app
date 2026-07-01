@@ -3,7 +3,6 @@ import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
 import '../../entry_widgets/custom_api_textfield.dart';
@@ -32,7 +31,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   List<TextEditingController> depositAmount = [TextEditingController()];
   List<TextEditingController> balancedAmount = [TextEditingController()];
   List<int> suppliers = [0];
-  bool isExpanded=false;
+  bool isExpanded=true;
   bool isSupplierExpanded=false;
 
   void calculateBalance(int index) {
@@ -101,16 +100,27 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
               ),
               EntryContainer(
                 children: [
-
                   if(isExpanded)...[
                   SizedBox(height: 15),
+                    Text(
+                      "Date",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                   EntryDateTextField(label: "Date", controller: dateController),
                   SizedBox(height: 15),
+                    Text(
+                      "Retailer Name",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                   EntryTextField(
                     controller: nameController,
                     hintText: "Retailer Name",
                   ),
                   SizedBox(height: 15),
+                    Text(
+                      "Staff",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                   CustomApiTextField<GetStaffEntry>(
                     hintText: "Staff",
                     value: selectedStaff,
@@ -123,6 +133,10 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                     },
                   ),
                   SizedBox(height: 15),
+                    Text(
+                      "Customer",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                   CustomApiTextField<EntriesCustomerModel>(
                     hintText: "Customer",
                     value: selectedReffered,
@@ -183,7 +197,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Supplier ${index + 1} "),
+                        Text("Supplier ${index + 1} ",style:TextStyle(color:Colors.white)),
                         GestureDetector(
                           onTap: () {
                             if (suppliers.length > 1) {
@@ -201,6 +215,10 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                       ],
                     ),
                     SizedBox(height:15),
+                    Text(
+                      "Supplier",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                     CustomApiTextField<EntriesModel>(
                       hintText: "Supplier",
                       value: selectedSuppliers[index],
@@ -213,6 +231,10 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                       },
                     ),
                     SizedBox(height: 15),
+                    Text(
+                      "Total Amount",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                     EntryTextField(
                       controller: totalAmount[index],
                       hintText: "Total Amount",
@@ -221,6 +243,10 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                       },
                     ),
                     SizedBox(height: 15),
+                    Text(
+                      "Deposit Amount",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                     EntryTextField(
                       controller: depositAmount[index],
                       hintText: "Deposit Amount",
@@ -229,6 +255,10 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                       },
                     ),
                     SizedBox(height: 15),
+                    Text(
+                      "Balance Amount",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                     EntryTextField(
                       controller: balancedAmount[index],
                       hintText: "Balance Amount",

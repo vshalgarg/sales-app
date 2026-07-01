@@ -22,6 +22,7 @@ class ExitConfirmationDialog {
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
+
               children: [
                 Padding(
                   padding: const EdgeInsets.all(15.0),

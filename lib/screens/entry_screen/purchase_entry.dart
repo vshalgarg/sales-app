@@ -31,7 +31,7 @@ class PurchaseEntryScreen extends StatefulWidget {
 }
 
 class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
-  bool isExpanded=false;
+  bool isExpanded=true;
   bool isSupplierExpanded=false;
   EntriesCustomerModel? selectedCustomer;
   GetStaffEntry? selectedStaff;
@@ -123,6 +123,10 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                     ),
                     if(isExpanded)...[
                     SizedBox(height: 10),
+                      Text(
+                        "Customer",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     CustomApiTextField<EntriesCustomerModel>(
                       hintText: "Customer",
                       value: selectedCustomer,
@@ -135,6 +139,10 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                       },
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "Staff",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     CustomApiTextField<GetStaffEntry>(
                       hintText: "Staff",
                       value: selectedStaff,
@@ -147,6 +155,10 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                       },
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "Transaction Date",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryDateTextField(
                       label: "Transaction Date",
                       controller: transactionController,
@@ -180,6 +192,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                       ),
                     ),
                     if(isSupplierExpanded)...[
+                      SizedBox(height:10),
                     CustomElevatedButton(
                       color: AppColors.primaryPurple,
                       text: "+ Add More Supplier",
@@ -206,7 +219,12 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text(
+                                "Supplier",
+                                style: TextStyle(color: Colors.white, fontSize: 18),
+                              ),
                               CustomApiTextField<EntriesModel>(
                                 hintText: "Supplier",
                                 value: selectedSuppliers[index],
@@ -219,6 +237,10 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                 },
                               ),
                               SizedBox(height: 10),
+                              Text(
+                                "Remarks",
+                                style: TextStyle(color: Colors.white, fontSize: 18),
+                              ),
                               EntryTextField(
                                 controller: remarksControllers[index],
                                 hintText: "Remarks",
@@ -275,7 +297,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                   SizedBox(width: 10),
                                   Text(
                                     "${uploadedFiles.length} Files",
-                                    style: TextStyle(color: Colors.grey),
+                                    style: TextStyle(color: Colors.white),
                                   ),
                                 ],
                               ),

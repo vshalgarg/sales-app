@@ -17,7 +17,7 @@ class GetTransportDetailsApi {
       if (response.statusCode == 200) {
         return GetTransport.fromJson(data);
       } else {
-        throw Exception(data['message'] ?? "Failed to fetch suppliers");
+        throw Exception(data['message'] ?? "Failed to fetch transports");
       }
     } catch (e) {
       throw Exception("Error $e");

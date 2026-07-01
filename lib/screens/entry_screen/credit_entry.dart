@@ -23,7 +23,7 @@ class CreditEntry extends StatefulWidget {
 }
 
 class _CreditEntryState extends State<CreditEntry> {
-  bool isExpanded=false;
+  bool isExpanded=true;
   bool isTransactionExpanded=false;
   bool isAdditionalExpanded=false;
   EntriesModel? selectedSupplier;
@@ -149,6 +149,10 @@ class _CreditEntryState extends State<CreditEntry> {
                     ),
                if(isExpanded)...[
                  SizedBox(height:10),
+                 Text(
+                   "Supplier",
+                   style: TextStyle(color: Colors.white, fontSize: 18),
+                 ),
                     CustomApiTextField<EntriesModel>(
                       hintText: "Supplier",
                       value: selectedSupplier,
@@ -161,6 +165,10 @@ class _CreditEntryState extends State<CreditEntry> {
                       },
                     ),
                     SizedBox(height: 10),
+                 Text(
+                   "Customer",
+                   style: TextStyle(color: Colors.white, fontSize: 18),
+                 ),
                     CustomApiTextField<EntriesCustomerModel>(
                       hintText: "Customer",
                       value: selectedCustomer,
@@ -204,6 +212,10 @@ class _CreditEntryState extends State<CreditEntry> {
                     ),
                    if(isTransactionExpanded)...[
                      SizedBox(height:10),
+                     Text(
+                       "Payment Mode",
+                       style: TextStyle(color: Colors.white, fontSize: 18),
+                     ),
                     CustomListTextField(
                       hintText: "Payment Mode",
                       value: paymentMode,
@@ -215,21 +227,37 @@ class _CreditEntryState extends State<CreditEntry> {
                       },
                     ),
                     SizedBox(height: 10),
+                     Text(
+                       "Invoice Number",
+                       style: TextStyle(color: Colors.white, fontSize: 18),
+                     ),
                     EntryTextField(
                       controller: invoiceController,
                       hintText: "Invoice Number",
                     ),
                     SizedBox(height: 10),
+                     Text(
+                       "Received Amount",
+                       style: TextStyle(color: Colors.white, fontSize: 18),
+                     ),
                     EntryTextField(
                       controller: receivedAmountController,
                       hintText: "Received Amount",
                     ),
                     SizedBox(height: 10),
+                     Text(
+                       "Reference Number",
+                       style: TextStyle(color: Colors.white, fontSize: 18),
+                     ),
                     EntryTextField(
                       controller: referenceController,
                       hintText: "Reference Number",
                     ),
                     SizedBox(height: 10),
+                     Text(
+                       "Reference Date",
+                       style: TextStyle(color: Colors.white, fontSize: 18),
+                     ),
                     EntryDateTextField(
                       label: "Reference Date",
                       controller: referenceDateController,
@@ -240,6 +268,10 @@ class _CreditEntryState extends State<CreditEntry> {
                       controller: transactionDateController,
                     ),
                     SizedBox(height: 10),
+                     Text(
+                       "Slip Number",
+                       style: TextStyle(color: Colors.white, fontSize: 18),
+                     ),
                     EntryTextField(
                       controller: slipController,
                       hintText: "Slip Number",
@@ -257,7 +289,7 @@ class _CreditEntryState extends State<CreditEntry> {
                     TextField(
                       decoration: InputDecoration(
                         suffixIcon: Icon(
-                          isExpanded
+                          isAdditionalExpanded
                               ? Icons.keyboard_arrow_up
                               : Icons.keyboard_arrow_down,
                           color: Colors.white,
@@ -275,6 +307,10 @@ class _CreditEntryState extends State<CreditEntry> {
                     ),
                     if(isAdditionalExpanded)...[
                     SizedBox(height:10),
+                      Text(
+                        "Draw Type",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     CustomListTextField(
                       hintText: "Draw Type",
                       value: drawType,
@@ -286,6 +322,10 @@ class _CreditEntryState extends State<CreditEntry> {
                       },
                     ),
                     SizedBox(height: 10),
+                      Text(
+                        "Remarks",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                     EntryTextField(
                       controller: remarksController,
                       hintText: "Remarks",

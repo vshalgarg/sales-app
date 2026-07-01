@@ -39,7 +39,7 @@ class SupplierBasicInfo extends StatefulWidget {
 class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
   String? selectedMsme;
   String? selectedCommissionScheme;
-  bool isExpanded=false;
+  bool isExpanded=true;
 
   @override
   void initState() {

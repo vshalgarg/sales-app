@@ -18,7 +18,7 @@ class BottomNavigationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.only(left:15,right:15,bottom:50),
 
       child: Column(
         mainAxisSize: MainAxisSize.min,

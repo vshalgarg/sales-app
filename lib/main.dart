@@ -22,6 +22,7 @@ import 'package:hisabio/provider/get_transport_by_id_provider.dart';
 import 'package:hisabio/provider/get_transport_details_provider.dart';
 import 'package:hisabio/provider/get_transport_provider.dart';
 import 'package:hisabio/provider/get_user_provider.dart';
+import 'package:hisabio/provider/ledger_provider.dart';
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hisabio/provider/login_provider.dart';
 import 'package:hisabio/provider/purchase_provider.dart';
@@ -80,7 +81,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PurchaseProvider(),),
         ChangeNotifierProvider(create: (_) => StaffProvider(),),
         ChangeNotifierProvider(create: (_) => RetailProvider(),),
-       // ChangeNotifierProvider(create: (_) => ledgerProvider(),),
+       ChangeNotifierProvider(create: (_) => GetLedgerDetailsProvider(),),
       ],
       child: const MyApp(),
 

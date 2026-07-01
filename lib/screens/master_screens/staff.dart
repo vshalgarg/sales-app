@@ -52,162 +52,169 @@ class _StaffScreenState extends State<StaffScreen> {
       return Scaffold(body: Center(child: Text(staffProvider.errorMessage!)));
     }
     return Scaffold(
-        backgroundColor: AppColors.bodyFillColor,
-        appBar: CustomAppBar(leading: IconButton(
+      backgroundColor: AppColors.bodyFillColor,
+      appBar: CustomAppBar(
+        leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-          title: "Staff Overview",
-          textStyle: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 25,
-          ),
+        title: "Staff Overview",
+        textStyle: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 25,
         ),
-        body: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(5)),
+              height: 40,
+              width: double.infinity,
+              child: SearchBar(
+                shape: WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                controller: searchStaffController,
+                trailing: [
+                  if (searchStaffController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        searchStaffController.clear();
+                        setState(() {});
+                      },
                     ),
-                    height: 40,
-                    width: double.infinity,
-                    child: SearchBar(
-                      shape: WidgetStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                ],
+                onChanged: (value) {
+                  if (_debounce?.isActive ?? false) {
+                    _debounce!.cancel();
+                  }
+                  if (value.trim().isEmpty) {
+                    context.read<SearchStaffProvider>().clearSearch();
+                    return;
+                  }
+                  _debounce = Timer(const Duration(milliseconds: 500), () {
+                    context.read<SearchStaffProvider>().searchStaff(value);
+                  });
+                },
+                elevation: WidgetStatePropertyAll(2),
+                hintText: "Search Staff...",
+                leading: Icon(Icons.search_outlined, size: 30),
+                backgroundColor: WidgetStatePropertyAll(Colors.white),
+              ),
+            ),
+            SizedBox(height: 25),
+            Expanded(
+              child: Consumer<SearchStaffProvider>(
+                builder: (context, searchProvider, child) {
+                  final bool isSearching = searchStaffController.text
+                      .trim()
+                      .isNotEmpty;
+                  final List<dynamic> staffs = isSearching
+                      ? searchProvider.searchStaffModel?.content ?? []
+                      : staffProvider.staffData?.content ?? [];
+                  if (searchProvider.isLoading && isSearching) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (searchProvider.errorMessage != null && isSearching) {
+                    return Center(child: Text(searchProvider.errorMessage!));
+                  }
+                  if (staffs.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "No Staff Found",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
                         ),
                       ),
-                      controller: searchStaffController,
-                      onChanged: (value) {
-                        if (_debounce?.isActive ?? false) {
-                          _debounce!.cancel();
-                        }
-                        if (value
-                            .trim()
-                            .isEmpty) {
-                          context.read<SearchStaffProvider>().clearSearch();
-                          return;
-                        }
-                        _debounce =
-                            Timer(const Duration(milliseconds: 500), () {
-                              context.read<SearchStaffProvider>().searchStaff(
-                                  value);
-                            });
-                      },
-                      elevation: WidgetStatePropertyAll(2),
-                      hintText: "Search Staff...",
-                      leading: Icon(Icons.search_outlined, size: 30),
-                      backgroundColor: WidgetStatePropertyAll(Colors.white),
-                    ),
-                  ),
-                  SizedBox(height: 25),
-                  Expanded(
-                    child: Consumer<SearchStaffProvider>(
-                      builder: (context, searchProvider, child) {
-                        final bool isSearching = searchStaffController.text
-                            .trim()
-                            .isNotEmpty;
-                        final List<dynamic> staffs = isSearching
-                            ? searchProvider.searchStaffModel?.content ?? []
-                            : staffProvider.staffData?.content ?? [];
-                        if (searchProvider.isLoading && isSearching) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                        if (searchProvider.errorMessage != null &&
-                            isSearching) {
-                          return Center(
-                              child: Text(searchProvider.errorMessage!));
-                        }
-                        if (staffs.isEmpty) {
-                          return const Center(child: Text("No Staff Found"));
-                        }
-                        return ListView.separated(
-                          separatorBuilder: (context, index) {
-                            return SizedBox(height: 10);
-                          },
-                          itemCount: staffs.length,
-                          itemBuilder: (context, index) {
-                            final staff = staffs[index];
-                            return StaffContainer(
-                              elevation: 1,
-                              name: staff.staffName ?? "",
-                              number: staff.phone ?? "",
-                              joiningDate: staff.joiningDate ?? "",
-                              editIconTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) =>
-                                      AddStaffDialog(mode: StaffMode.edit,
-                                          id: staff.staffId),
-                                );
-                              },
-                              trashIconTap: () {
-                                ExitConfirmationDialog.show(
+                    );
+                  }
+                  return ListView.separated(
+                    separatorBuilder: (context, index) {
+                      return SizedBox(height: 10);
+                    },
+                    itemCount: staffs.length,
+                    itemBuilder: (context, index) {
+                      final staff = staffs[index];
+                      return StaffContainer(
+                        elevation: 1,
+                        name: staff.staffName ?? "",
+                        number: staff.phone ?? "",
+                        joiningDate: staff.joiningDate ?? "",
+                        editIconTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AddStaffDialog(
+                              mode: StaffMode.edit,
+                              id: staff.staffId,
+                            ),
+                          );
+                        },
+                        trashIconTap: () {
+                          ExitConfirmationDialog.show(
+                            context,
+                            saveButtonText: "Yes",
+                            discardButtonText: "No",
+                            onClose: () {
+                              Navigator.pop(context);
+                            },
+                            onDiscard: () {
+                              Navigator.pop(context);
+                            },
+                            bodyText:
+                                "Are you sure you want to permanently delete ${staff.staffName ?? ""}? This action cannot be undo.",
+
+                            onSave: () async {
+                              await context
+                                  .read<DeleteStaffProvider>()
+                                  .deleteStaff({"staffId": staff.staffId});
+                              if (!context.mounted) return;
+                              Navigator.pop(context);
+                              if (deleteProvider.errorMessage != null) {
+                                ScaffoldSnackBar.show(
                                   context,
-                                  saveButtonText: "Delete",
-                                  onClose: () {
-                                    Navigator.pop(context);
-                                  },
-                                  onDiscard: () {
-                                    Navigator.pop(context);
-                                  },
-                                  bodyText: "Are you sure you want to permanently delete ${staff
-                                      .staffName ??
-                                      ""}? This action cannot be undo.",
-
-                                  onSave: () async {
-                                    await context
-                                        .read<DeleteStaffProvider>()
-                                        .deleteStaff(
-                                        {"staffId": staff.staffId});
-                                    if (!context.mounted) return;
-                                    Navigator.pop(context);
-                                    if (deleteProvider.errorMessage != null) {
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        deleteProvider.errorMessage!,
-                                      );
-
-                                      return;
-                                    }
-                                    if (!context.mounted) return;
-                                    ScaffoldSnackBar.show(
-                                      context,
-                                      deleteProvider
-                                          .deleteStaffResponse
-                                          ?.message ??
-                                          "Deleted Successfully",
-                                    );
-                                    await context
-                                        .read<GetStaffProvider>()
-                                        .getStaff();
-                                  },
+                                  deleteProvider.errorMessage!,
                                 );
-                              },
-                            );
-                          },
-                        );
-                      },
 
-                    ),
-                  ),
-                ],
+                                return;
+                              }
+                              if (!context.mounted) return;
+                              ScaffoldSnackBar.show(
+                                context,
+                                deleteProvider.deleteStaffResponse?.message ??
+                                    "Deleted Successfully",
+                              );
+                              await context.read<GetStaffProvider>().getStaff();
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
+          ],
         ),
+      ),
       floatingActionButton: FloatingActionButton(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-      onPressed: () {
-        showDialog(context: context,
-            builder: (context) => AddStaffDialog(mode: StaffMode.add));
-      },
-      backgroundColor: AppColors.primaryPurple,
-      child: Icon(Iconsax.add, color: Colors.white, size: 40),
-    )
-    ,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => AddStaffDialog(mode: StaffMode.add),
+          );
+        },
+        backgroundColor: AppColors.primaryPurple,
+        child: Icon(Iconsax.add, color: Colors.white, size: 40),
+      ),
     );
   }
 }

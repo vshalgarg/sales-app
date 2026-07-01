@@ -50,6 +50,8 @@ class _AddressDetailsState extends State<AddressDetails> {
 
   @override
   Widget build(BuildContext context) {
+    print("selectedState = $selectedState");
+    print("controllerState = ${widget.state.text}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -99,9 +101,13 @@ class _AddressDetailsState extends State<AddressDetails> {
           ),
         ),
         SizedBox(height: 15),
-        Text("State",style:TextStyle(color:Colors.white,fontSize: 18)),
+
+        Text("State",style:TextStyle(color:Colors.white,fontSize: 18),
+        ),
         DropdownButtonFormField<String>(
-          initialValue: selectedState,
+          initialValue: ListItems.indianStates.contains(selectedState)
+              ? selectedState
+              : null,
           isExpanded: true,
           decoration: InputDecoration(
             filled:true,
@@ -127,6 +133,7 @@ class _AddressDetailsState extends State<AddressDetails> {
                   });
                 },
         ),
+
         SizedBox(height: 15),
         Text("City",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(

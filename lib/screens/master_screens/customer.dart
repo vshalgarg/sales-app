@@ -14,6 +14,7 @@ import '../../provider/delete_customer_provider.dart';
 import '../../provider/get_customers_provider.dart';
 import '../../provider/search_customer_provider.dart';
 import '../home_screen.dart';
+
 class CustomerScreen extends StatefulWidget {
   const CustomerScreen({super.key});
 
@@ -86,6 +87,16 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   ),
                 ),
                 controller: searchController,
+                trailing: [
+                  if (searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        searchController.clear();
+                        setState(() {});
+                      },
+                    ),
+                ],
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search customers...",
                 onChanged: (value) {
@@ -123,7 +134,16 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     final customers = searchData.content ?? [];
 
                     if (customers.isEmpty) {
-                      return const Center(child: Text("No Customers Found"));
+                      return const Center(
+                        child: Text(
+                          "No Customers Found",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
                     }
                   }
                   return customerProvider.isLoading
@@ -166,7 +186,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               trashIconTap: () {
                                 ExitConfirmationDialog.show(
                                   context,
-                                  saveButtonText: "Delete",
+                                  discardButtonText: "No",
+                                  saveButtonText: "Yes",
                                   onClose: () {
                                     Navigator.pop(context);
                                   },
@@ -207,14 +228,16 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
                               copyIconTap: () {
                                 showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return CustomCopyDialog(
-                                          headingText: "Customer Details",
-                                          firmName: isSearching
-                                              ? customer.customerName
-                                              : customer['customerName'] ?? "");
-                                    });
+                                  context: context,
+                                  builder: (context) {
+                                    return CustomCopyDialog(
+                                      headingText: "Customer Details",
+                                      firmName: isSearching
+                                          ? customer.customerName
+                                          : customer['customerName'] ?? "",
+                                    );
+                                  },
+                                );
                               },
                               editIconTap: () {
                                 final id = isSearching

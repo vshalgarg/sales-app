@@ -11,9 +11,7 @@ import '../../services/entries_services/entries_api.dart';
 
 class EntriesProvider extends ChangeNotifier {
   final EntriesApi _api = EntriesApi();
-
   List<EntriesModel> _entries = [];
-
   List<EntriesModel> get entries => _entries;
   List<EntriesCustomerModel>_customerEntries=[];
   List<GetTransportnameIdModel> _transport=[];
@@ -24,13 +22,11 @@ class EntriesProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<GetStaffEntry> staffEntries = [];
-
   List<GetStaffEntry> get staffList => staffEntries;
-
   Future<void> fetchSuppliers() async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    //notifyListeners();
     try {
       _entries = await _api.getEntrySupplier();
     } catch (e) {
@@ -43,7 +39,7 @@ class EntriesProvider extends ChangeNotifier {
   Future<void> fetchCustomer() async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+   // notifyListeners();
 
     try {
       _customerEntries=await _api.getEntryCustomer();

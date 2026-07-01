@@ -57,36 +57,36 @@ class StaffContainer extends StatelessWidget {
                       Expanded(
                         child: Row(
                           children: [
-                            Text("Phone:",
+                            Text("Phone: ",
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
                               maxLines: 3,
 
-                              style: TextStyle(fontSize: 10, color: Colors.black),
+                              style: TextStyle(fontSize: 13, color: Colors.black),
                             ),
                             Text(overflow: TextOverflow.ellipsis,
                               softWrap: true,
                               maxLines: 3,
                               number ?? "",
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 13,
                                 color: Colors.black,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 5),
+                      //SizedBox(height: 5),
                       Row(
                         children: [
                           Text(
-                            "Joining Date:",
-                            style: TextStyle(fontSize: 10, color: Colors.black),
+                            "Joining Date: ",
+                            style: TextStyle(fontSize: 13, color: Colors.black),
                           ),
                           Text(
                             joiningDate ?? "",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 13,
                               color: Colors.black,
                             ),
                           ),
@@ -96,7 +96,7 @@ class StaffContainer extends StatelessWidget {
                   ),
                 ),
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
                       onTap: trashIconTap,

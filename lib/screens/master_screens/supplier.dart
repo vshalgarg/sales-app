@@ -93,6 +93,16 @@ class _SupplierState extends State<Supplier> {
                 hintText: "Search suppliers...",
                 leading: Icon(Icons.search_outlined, size: 30),
                 backgroundColor: WidgetStatePropertyAll(Colors.white),
+                trailing: [
+                  if (searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        searchController.clear();
+                        setState(() {});
+                      },
+                    ),
+                ],
                 onChanged: (value) {
                   if (_debounce?.isActive ?? false) {
                     _debounce!.cancel();
@@ -118,7 +128,7 @@ class _SupplierState extends State<Supplier> {
                   : suppliers.isEmpty
                   ? const Center(
                       child: Text(
-                        "No Data Found",
+                        "No Supplier Found",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w500,
@@ -128,8 +138,7 @@ class _SupplierState extends State<Supplier> {
                     )
                   : ListView.separated(
                       itemCount: suppliers.length,
-
-                      separatorBuilder: (context, index) {
+                         separatorBuilder: (context, index) {
                         return SizedBox(height: 8);
                       },
                       itemBuilder: (context, index) {
@@ -152,22 +161,11 @@ class _SupplierState extends State<Supplier> {
                             mobile: item.mobile,
                             code: item.code,
                             city: item.city,
-                            /*    eyeIconTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AddNewSupplier(
-                                    id: item.id,
-                                    mode: FormMode.view,
-
-                                  ),
-                                ),
-                              );
-                            },*/
                             trashIconTap: (){
                               ExitConfirmationDialog.show(
                                     context,
-                                    saveButtonText: "Delete",
+                                    discardButtonText: "No",
+                                    saveButtonText: "Yes",
                                     onClose:(){Navigator.pop(context);} ,
                                     onDiscard: (){Navigator.pop(context);},
                                     bodyText: "Are you sure you want to permanently delete ${item.supplierName}? This action cannot be undo.",
@@ -179,15 +177,15 @@ class _SupplierState extends State<Supplier> {
                                           );
                                       await provider.deleteSupplier(item.code!);
                                       if(!context.mounted)return;
-
-                                      await context
-                                          .read<SupplierProvider>()
-                                          .fetchSuppliers();
                                       Navigator.pop(context);
                                       ScaffoldSnackBar.show(
                                         context,
                                         provider.message,
                                       );
+                                      await context
+                                          .read<SupplierProvider>()
+                                          .fetchSuppliers();
+
                                     },
                                   );
                             },

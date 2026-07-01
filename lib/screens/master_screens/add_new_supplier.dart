@@ -336,47 +336,55 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   ExitConfirmationDialog.show(
                     context,
                     onSave: provider.isLoading
-                        ? () {}
-                       : () async {
-                      try {
-                        if (nameController.text.isEmpty) {
-                          ScaffoldSnackBar.show(
-                            context,
-                            "Supplier name is required",
-                          );
-                          return;
-                        }
+                        ? () async {}
+                        : () async {
+                            try {
+                              if (nameController.text.isEmpty) {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  "Supplier name is required",
+                                );
+                                return;
+                              }
 
-                        final body = submitSupplier();
-                        await provider.addSupplier(body);
-                        if (!context.mounted) return;
-                        if (provider.error != null) {
-                          ScaffoldSnackBar.show(
-                            context,
-                            provider.error!,
-                            backgroundColor: Colors.red,
-                          );
-                        } else {
-                          ScaffoldSnackBar.show(
-                            context,
-                            provider.response!.message ??
-                                "Supplier Added Successfully",
-                          );
+                              final body = submitSupplier();
+                              await provider.addSupplier(body);
+                              if (!context.mounted) return;
+                              if (provider.error != null) {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  provider.error!,
+                                  backgroundColor: Colors.red,
+                                );
+                              } else {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  provider.response!.message ??
+                                      "Supplier Added Successfully",
+                                );
 
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => Supplier()),
-                          );
-                        }
-                      } catch (e) {
-                        ScaffoldSnackBar.show(
-                          context,
-                          "Something went wrong$e",
-                        );
-                      }
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => Supplier()),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldSnackBar.show(
+                                context,
+                                "Something went wrong$e",
+                              );
+                            }
+                          },
+                    onClose: () {
+                      Navigator.pop(context);
                     },
-                    onClose: () {Navigator.pop(context);},
-                    onDiscard: () {Navigator.push(context, MaterialPageRoute(builder:(context)=>Supplier()));},
+                    onDiscard: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Supplier()),
+                      );
+                    },
                   );
                 },
               );

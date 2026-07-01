@@ -147,7 +147,6 @@ class EntriesApi {
         url, headers: { "Content-Type": "application/json",
         "Authorization": "Bearer $token"},);
       final  List<dynamic>data = jsonDecode(response.body);
-      print(data);
       if (response.statusCode == 200) {
         return data
             .map((e) => GetStaffEntry.fromJson(e))

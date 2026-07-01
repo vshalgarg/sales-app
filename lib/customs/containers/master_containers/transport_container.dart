@@ -50,6 +50,22 @@ class TransportContainer extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.editGreenLight,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: Text(
+                            status ?? "",
+                            style: TextStyle(
+                              color: AppColors.editGreen,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
                       Text(
                         name ?? "",
                         maxLines: 3,
@@ -57,19 +73,16 @@ class TransportContainer extends StatelessWidget {
                         softWrap: true,
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.black,
+                          color: AppColors.primaryPurple,
                           fontWeight: FontWeight.w200,
                         ),
                       ),
                       SizedBox(height: 5),
                       Text(
                         "Phone:$phone",
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black
-                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.black),
                       ),
-                      SizedBox(height: 5),
+                      //SizedBox(height: 5),
                       Expanded(
                         child: Row(
                           children: [
@@ -80,7 +93,7 @@ class TransportContainer extends StatelessWidget {
                               maxLines: 3,
 
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 13,
                                 color: Colors.black,
                               ),
                             ),
@@ -90,39 +103,27 @@ class TransportContainer extends StatelessWidget {
                               maxLines: 3,
                               gst ?? "",
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 13,
                                 color: Colors.black,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 5),
+                      //SizedBox(height: 5),
                       Row(
                         children: [
                           Text(
                             "City:",
-                            style: TextStyle(fontSize: 10, color: Colors.black),
+                            style: TextStyle(fontSize: 13, color: Colors.black),
                           ),
                           Text(
                             city ?? "",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.black,
-                            ),
+                            style: TextStyle(fontSize: 13, color: Colors.black),
                           ),
                         ],
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.editGreenLight,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child:Padding(
-                          padding: const EdgeInsets.all(2.0),
-                          child: Text(status??"",style:TextStyle(color:AppColors.editGreen,fontSize: 12)),
-                        )
-                      ),
+
                     ],
                   ),
                 ),
@@ -137,7 +138,7 @@ class TransportContainer extends StatelessWidget {
                         bgColor: AppColors.binRedLight,
                       ),
                     ),
-                    SizedBox(width: 10),
+                   // SizedBox(width: 10),
                     GestureDetector(
                       onTap: copyIconTap,
                       child: customIcon(
@@ -146,7 +147,7 @@ class TransportContainer extends StatelessWidget {
                         bgColor: AppColors.blueLightCopy,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    //SizedBox(width: 10),
                     GestureDetector(
                       onTap: editIconTap,
                       child: customIcon(
