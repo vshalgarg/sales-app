@@ -197,6 +197,12 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
     EntriesProvider entriesProvider,
     StaffProvider staffProvider,
   ) {
+    final customerIds = entriesProvider.customerEntries
+        .map((e) => e.id?.toInt())
+        .toList();
+
+    final staffIds = staffProvider.staffs.map((e) => e.staffId).toList();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -302,15 +308,15 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 18),
-
                   Row(
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
                           isExpanded: true,
-                          value: selectedCustomerId,
+                          value: customerIds.contains(selectedCustomerId)
+                              ? selectedCustomerId
+                              : null,
                           decoration: const InputDecoration(
                             labelText: "Referred By",
                             border: OutlineInputBorder(),
@@ -336,7 +342,9 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                       Expanded(
                         child: DropdownButtonFormField<int>(
                           isExpanded: true,
-                          value: selectedStaffId,
+                          value: staffIds.contains(selectedStaffId)
+                              ? selectedStaffId
+                              : null,
                           decoration: const InputDecoration(
                             labelText: "Staff",
                             border: OutlineInputBorder(),
@@ -367,19 +375,6 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                         backgroundColor: const Color(0xFF4057A6),
                       ),
                       onPressed: () async {
-                        // final customer = entriesProvider.customerEntries
-                        //     .firstWhere(
-                        //       (e) => e.customerName == selectedCustomerId,
-                        //     );
-                        //
-                        // int? staffId;
-                        //
-                        // if (selectedStaffId != null) {
-                        //   staffId = staffProvider.staffs
-                        //       .firstWhere((e) => e.staffName == selectedStaffId)
-                        //       .staffId;
-                        // }
-
                         final success = await retailProvider.updateRetail(
                           retailId: retail.retailId,
                           name: retailerController.text,
@@ -720,7 +715,8 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                                     await provider.fetchRetailDetails(
                                       widget.retailId,
                                     );
-                                    for (final supplier in provider.retailDetails!.suppliers) {
+                                    for (final supplier
+                                        in provider.retailDetails!.suppliers) {
                                       print(
                                         "${supplier.supplierName} Balance: ${supplier.balanceAmount}",
                                       );

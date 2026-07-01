@@ -377,8 +377,47 @@ class _RetailState extends State<Retail> {
 
                               context.read<RetailProvider>().fetchRetails();
                             },
-                            onDelete: () {
+                            onDelete: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Delete Retail"),
+                                  content: const Text(
+                                    "Are you sure you want to delete this retail?",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                      ),
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text("Delete"),
+                                    ),
+                                  ],
+                                ),
+                              );
 
+                              if (confirm != true) return;
+
+                              final success = await context
+                                  .read<RetailProvider>()
+                                  .deleteRetail(retail.retailId);
+
+                              if (!mounted) return;
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    success
+                                        ? "Retail deleted successfully"
+                                        : "Failed to delete retail",
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         );

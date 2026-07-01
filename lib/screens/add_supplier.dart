@@ -171,11 +171,17 @@ class _AddSupplierState extends State<AddSupplier> {
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size(double.infinity, 48),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: const Text("Cancel"),
+                            child: const Text("CANCEL",style:
+                            TextStyle(
+                              color: Colors.blue,
+                            )),
                           ),
                         ),
 
@@ -184,7 +190,7 @@ class _AddSupplierState extends State<AddSupplier> {
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xff3157D5),
+                              backgroundColor: const Color(0xffffffff),
                               minimumSize: const Size(double.infinity, 48),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -238,7 +244,8 @@ class _AddSupplierState extends State<AddSupplier> {
                             },
                             child: const Text(
                               "ADD SUPPLIER",
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Colors.blue,
+                              ),
                             ),
                           ),
                         ),

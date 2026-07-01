@@ -3,6 +3,7 @@ import '../model_classes/add_deposit_model.dart';
 import '../model_classes/retail_deposit_history_model.dart';
 import '../model_classes/retail_model.dart';
 import '../services/add_deposit_api.dart';
+import '../services/delete_retail_api.dart';
 import '../services/get_retail_api.dart';
 import '../services/get_retail_deposit_history.dart';
 import '../services/search_retail_api.dart';
@@ -11,13 +12,27 @@ import '../services/update_retail_api.dart';
 class RetailProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
-
+  final DeleteRetailApi _deleteRetailApi = DeleteRetailApi();
   List<RetailModel> retailEntries = [];
 
   int page = 0;
   int totalPages = 0;
   bool last = false;
+  Future<bool> deleteRetail(int retailId) async {
+    isLoading = true;
+    notifyListeners();
 
+    final success = await _deleteRetailApi.deleteRetail(retailId);
+
+    if (success) {
+      await fetchRetails();
+    }
+
+    isLoading = false;
+    notifyListeners();
+
+    return success;
+  }
   Future<void> fetchRetails({
     String? fromDate,
     String? toDate,
@@ -91,6 +106,7 @@ bool isUpdating=false;
   List<RetailDepositHistoryModel>
   depositHistory = [];
   String? error;
+
   Future<void> fetchDepositHistory(
       int retailId) async {
 
