@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
+import 'package:iconsax/iconsax.dart';
 
 import '../enums/customer_mode.dart';
 import '../screens/master_screens/add_new_supplier.dart';
@@ -60,33 +61,36 @@ class _ContactInfoState extends State<ContactInfo> {
             children: List.generate(contacts.length, (index) {
               final contact = contacts[index];
               return Padding(
-                padding: const EdgeInsets.only(bottom: 15.0),
+                padding: const EdgeInsets.only(bottom: 0),
                 child: Container(
                   // margin: const EdgeInsets.all(10),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: AppColors.bodyFillColor,
-                    // border: Border.all(color: Colors.grey),
                   ),
-                  child: Column(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             "Contact ${index + 1}",
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold,color:Colors.white),
                           ),
 
                           if (widget.mode != FormMode.view && index > 0)
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: Icon(Iconsax.trash, color: Colors.red),
                               onPressed: () => widget.onDelete(index),
                             ),
                         ],
                       ),
                       SizedBox(height: 15),
+                      Text(
+                        "Contact Person",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                       TextFormField(
                         enabled: widget.mode != FormMode.view,
                         controller: contact.name,
@@ -101,6 +105,10 @@ class _ContactInfoState extends State<ContactInfo> {
                         ),
                       ),
                       SizedBox(height: 15),
+                      Text(
+                        "Mobile No",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                       TextFormField(
                         keyboardType: TextInputType.number,
                         enabled: widget.mode != FormMode.view,
@@ -116,6 +124,10 @@ class _ContactInfoState extends State<ContactInfo> {
                         ),
                       ),
                       SizedBox(height: 15),
+                      Text(
+                        "Type",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                       TextFormField(
                         enabled: widget.mode != FormMode.view,
                         controller: contact.type,

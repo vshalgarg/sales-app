@@ -61,7 +61,7 @@ class _TransportScreenState extends State<TransportScreen> {
                 MaterialPageRoute(builder: (context) => HomeScreen()),
               ),
         ),
-        title: " Transport Overview",
+        title: "Transport Overview",
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -85,7 +85,16 @@ class _TransportScreenState extends State<TransportScreen> {
                   ),
                 ),
                 controller: searchController,
-
+                trailing: [
+                  if (searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        searchController.clear();
+                        setState(() {});
+                      },
+                    ),
+                ],
                 onChanged: (value) async {
                   if (_debounce?.isActive ?? false) {
                     _debounce!.cancel();
@@ -98,22 +107,16 @@ class _TransportScreenState extends State<TransportScreen> {
                       await context
                           .read<GetTransportProvider>()
                           .getTransportDetails();
-
                       return;
                     }
-
                     await context
                         .read<SearchTransportProvider>()
                         .getSearchTransport(keyword);
                   });
                 },
-
                 elevation: WidgetStatePropertyAll(2),
-
                 hintText: "Search Transport...",
-
                 leading: Icon(Icons.search_outlined, size: 30),
-
                 backgroundColor: WidgetStatePropertyAll(Colors.white),
               ),
             ),
@@ -129,13 +132,13 @@ class _TransportScreenState extends State<TransportScreen> {
                     return Center(
                       child: Text(
                         isSearching
-                            ? "No Data Found"
+                            ? "No Transporter Found"
                             : "No Transport Available",
-
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                       ),
                     );
                   }
@@ -177,7 +180,8 @@ class _TransportScreenState extends State<TransportScreen> {
                         trashIconTap: () {
                           ExitConfirmationDialog.show(
                               context,
-                              saveButtonText: "Delete",
+                              saveButtonText: "Yes",
+                              discardButtonText: "No",
                               onClose: () {
                                 Navigator.pop(context);
                               },

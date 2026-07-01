@@ -264,7 +264,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                   ExitConfirmationDialog.show(
                     context,
                     onSave: provider.isLoading
-                        ? () {}
+                        ? ()async {}
                         : () async {
                             if (nameController.text.isEmpty) {
                               ScaffoldSnackBar.show(
@@ -300,6 +300,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                       Navigator.pop(context);
                     },
                     onDiscard: () {
+                      Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(

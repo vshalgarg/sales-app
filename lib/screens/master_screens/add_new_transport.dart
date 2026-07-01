@@ -226,9 +226,12 @@ class _AddNewTransportState extends State<AddNewTransport> {
                   Navigator.pop(context);
                 },
                 onDiscard: () {
+                  Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => TransportScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const TransportScreen(),
+                    ),
                   );
                 },
               );
@@ -279,6 +282,10 @@ class _AddNewTransportState extends State<AddNewTransport> {
               ),
               if (isExpanded) ...[
                 SizedBox(height: 15),
+                Text(
+                  "Transport Name",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
                 TextFormField(
                   controller: transportNameController,
                   decoration: InputDecoration(
@@ -292,6 +299,10 @@ class _AddNewTransportState extends State<AddNewTransport> {
                   ),
                 ),
                 SizedBox(height: 10),
+                Text(
+                  "GST No",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
                 TextFormField(
                   controller: gstNoController,
                   decoration: InputDecoration(
@@ -305,6 +316,10 @@ class _AddNewTransportState extends State<AddNewTransport> {
                   ),
                 ),
                 SizedBox(height: 10),
+                Text(
+                  "Email",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
                 TextFormField(
                   controller: emailController,
                   decoration: InputDecoration(
@@ -366,7 +381,34 @@ class _AddNewTransportState extends State<AddNewTransport> {
             ).getTransportDetails();
           }
         },
-        update: () {},
+        update: () async {
+          final updateProvider = Provider.of<AddNewTransportProvider>(
+            context,
+            listen: false,
+          );
+
+          final body = addTransportBody();
+          final id= widget.id!;
+
+          await updateProvider.updateTransport(body,id);
+          if (!context.mounted) return;
+
+          if (updateProvider.error != null) {
+            ScaffoldSnackBar.show(context, updateProvider.error!);
+            return;
+          } else {
+            ScaffoldSnackBar.show(
+              context,
+              updateProvider.updateResponse?.message ??
+                  "Transport update manully message Successfully",
+            );
+            Navigator.pop(context);
+            await Provider.of<GetTransportProvider>(
+              context,
+              listen: false,
+            ).getTransportDetails();
+          }
+        },
       ),
     );
   }

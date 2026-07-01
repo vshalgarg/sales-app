@@ -28,6 +28,7 @@ class ListItems {
     "Uttar Pradesh",
     "Uttarakhand",
     "West Bengal",
+    "Delhi",
   ];
   static List<String> msmeItems=["Micro","Small","Medium"];
   static List<String> commissionScheme=["Fixed","Percentage","Tiered"];

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model_classes/add_transport_model.dart';
+import '../model_classes/update_customer_model.dart';
 import '../services/add_transport_api.dart';
 
 class AddNewTransportProvider extends ChangeNotifier {
@@ -12,6 +13,9 @@ class AddNewTransportProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   AddTransportModel? _response;
+  UpdateCustomerModel?_updateResponse;
+  UpdateCustomerModel?get updateResponse=>_updateResponse;
+
 
   AddTransportModel? get response =>
       _response;
@@ -36,6 +40,34 @@ class AddNewTransportProvider extends ChangeNotifier {
       await _api.addNewTransport(body);
 
       _response = result;
+
+    } catch (e) {
+
+      _error = e.toString();
+
+    } finally {
+
+      _isLoading = false;
+
+      notifyListeners();
+    }
+  }
+  Future<void> updateTransport(
+      Map<String, dynamic> body, int id
+      ) async {
+
+    _isLoading = true;
+
+    _error = null;
+
+    notifyListeners();
+
+    try {
+
+      final result =
+      await _api.updateTransport(body,id);
+
+      _updateResponse = result;
 
     } catch (e) {
 

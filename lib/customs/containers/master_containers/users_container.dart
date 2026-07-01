@@ -44,7 +44,7 @@ class UserContainer extends StatelessWidget {
                         softWrap: true,
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.black,
+                          color: AppColors.primaryPurple,
                           fontWeight: FontWeight.w200,
                         ),
                       ),
@@ -64,7 +64,7 @@ class UserContainer extends StatelessWidget {
                         bgColor: AppColors.binRedLight,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(height: 10),
                     GestureDetector(
                       onTap: editIconTap,
                       child: customIcon(
