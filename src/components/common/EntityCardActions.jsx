@@ -1,10 +1,23 @@
 import { Eye, Pencil, Copy, Trash2 } from "lucide-react";
+import {
+  CARD_ACTION_BORDER_CLASS,
+  CARD_ACTION_DIVIDER_CLASS,
+} from "../../theme/cardTheme";
 
-const actionButtonClass =
-  "flex flex-1 items-center justify-center rounded-lg border border-gray-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed";
+const actionButtonClass = `flex flex-1 items-center justify-center rounded-lg border ${CARD_ACTION_BORDER_CLASS} bg-white dark:bg-zinc-800 p-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed`;
 
-const EntityCardActions = ({ onView, onEdit, onCopy, onDelete }) => (
-  <div className="grid grid-cols-4 gap-2 pt-3 border-t border-gray-200/80 dark:border-zinc-600/80">
+const getActionGridClass = (count) => {
+  if (count <= 2) return "grid-cols-2";
+  if (count === 3) return "grid-cols-3";
+  return "grid-cols-4";
+};
+
+const EntityCardActions = ({ onView, onEdit, onCopy, onDelete }) => {
+  const actionCount = [onView, onEdit, onCopy, onDelete].filter(Boolean).length;
+  if (!actionCount) return null;
+
+  return (
+  <div className={`grid ${getActionGridClass(actionCount)} gap-2 pt-3 ${CARD_ACTION_DIVIDER_CLASS}`}>
     {onView && (
       <button
         type="button"
@@ -46,6 +59,7 @@ const EntityCardActions = ({ onView, onEdit, onCopy, onDelete }) => (
       </button>
     )}
   </div>
-);
+  );
+};
 
 export default EntityCardActions;

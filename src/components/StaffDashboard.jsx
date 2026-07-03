@@ -1,12 +1,22 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Calendar, Phone } from "lucide-react";
+import dayjs from "dayjs";
 import { getStaffs, searchStaffs, deleteStaff, getStaffById } from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 import AddNewStaff from "../modals/AddNewStaff";
-import DataTable from "./DataTable";
 import UniversalSearch from "./UniversalSearch";
-import dayjs from "dayjs";
+import EntityCardGrid from "./common/EntityCardGrid";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+
+const STAFF_CARD_FIELDS = [
+  { label: "Phone", key: "phone", icon: Phone },
+  { label: "Joining Date", key: "joiningDate", icon: Calendar },
+];
+
+const formatJoiningDate = (date) =>
+  date && dayjs(date).isValid() ? dayjs(date).format("DD-MM-YYYY") : "-";
 
 export default function StaffDashboard() {
   const [open, setOpen] = useState(false);
@@ -14,50 +24,16 @@ export default function StaffDashboard() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [staffs, setStaffs] = useState([]);
   const [query, setQuery] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState(null);
-  const searchRef = useRef(null);
   const { showSnackbar } = useSnackbar();
   const [totalItems, setTotalItems] = useState(0);
   const { isMobile } = useResponsive();
   const [editOpen, setEditOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState(null);
-
-
-  const columns = {
-    desktop: [
-
-      {
-        key: "staffName",
-        label: "Staff Name",
-        width: "40%",
-      },
-      {
-        key: "phone",
-        label: "Phone",
-        width: "30%",
-      },
-      {
-        key: "joiningDate",
-        label: "Joining Date",
-        width: "30%",
-      },
-    ],
-    mobile: [
-      {
-        key: "staffName",
-        label: "Staff Name",
-      },
-      {
-        key: "phone",
-        label: "Phone",
-      }
-    ]
-  }
 
   const [form, setForm] = useState({
     staffName: "",
@@ -72,11 +48,7 @@ export default function StaffDashboard() {
 
       const formatted = (data.content || []).map((s) => ({
         ...s,
-        joiningDate: s.joiningDate
-          ? dayjs(s.joiningDate).isValid()
-            ? dayjs(s.joiningDate).format("DD-MM-YYYY")
-            : "-"
-          : "-",
+        joiningDate: formatJoiningDate(s.joiningDate),
       }));
 
       setStaffs(formatted);
@@ -90,14 +62,39 @@ export default function StaffDashboard() {
       setTotalPages(1);
       setTotalItems(0);
       showSnackbar(error.message, "error");
-    } finally {
     }
-  }, [rowsPerPage]);
-
+  }, [rowsPerPage, showSnackbar]);
 
   useEffect(() => {
     fetchStaffs(1);
   }, [fetchStaffs]);
+
+  const handleSearchResult = (response, searchQuery, page = 1) => {
+    const results = (response.content || []).map((s) => ({
+      ...s,
+      joiningDate: formatJoiningDate(s.joiningDate),
+    }));
+
+    setStaffs(results);
+    setTotalPages(response.totalPages || 1);
+    setTotalItems(response.totalElements || 0);
+    setIsSearchActive(searchQuery.trim() !== "");
+    setCurrentPage(page);
+  };
+
+  const handleRowsPerPageChange = async (newSize) => {
+    setRowsPerPage(newSize);
+    setCurrentPage(1);
+
+    if (isSearchActive && query.trim()) {
+      try {
+        const response = await searchStaffs(query, 0, newSize);
+        handleSearchResult(response, query, 1);
+      } catch (error) {
+        showSnackbar(error.message, "error");
+      }
+    }
+  };
 
   const handleChangePage = async (newPage) => {
     if (newPage < 1 || (totalPages > 0 && newPage > totalPages)) return;
@@ -110,7 +107,7 @@ export default function StaffDashboard() {
         const response = await searchStaffs(
           query,
           backendPage,
-          rowsPerPage
+          rowsPerPage,
         );
         handleSearchResult(response, query, newPage);
       } catch (error) {
@@ -122,7 +119,6 @@ export default function StaffDashboard() {
     }
   };
 
-
   const handleDelete = async () => {
     if (!staffToDelete) return;
     try {
@@ -132,7 +128,7 @@ export default function StaffDashboard() {
 
       if (isSearchActive) {
         const updated = searchResults.filter(
-          (s) => s.staffId !== staffToDelete.staffId
+          (s) => s.staffId !== staffToDelete.staffId,
         );
         setSearchResults(updated);
 
@@ -158,22 +154,8 @@ export default function StaffDashboard() {
     fetchStaffs(1);
   }, [fetchStaffs]);
 
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   const handleEditStaff = async (staffId) => {
     try {
-
       const data = await getStaffById(staffId);
 
       setForm({
@@ -181,78 +163,79 @@ export default function StaffDashboard() {
         phone: data.phone || "",
         joiningDate: data.joiningDate
           ? dayjs(data.joiningDate).format("YYYY-MM-DD")
-          : ""
+          : "",
       });
 
       setSelectedStaffId(staffId);
       setEditOpen(true);
-
     } catch (error) {
       showSnackbar(error.message, "error");
-    } finally {
     }
   };
 
-  const handleSearchResult = (response, searchQuery, page = 1) => {
-    const results = response.content || [];
-    setStaffs(results);
-    setTotalPages(response.totalPages || 1);
-    setTotalItems(response.totalElements || 0);
-    setIsSearchActive(searchQuery.trim() !== "");
-    setCurrentPage(page);
-  };
-
+  const buildStaffCardProps = (staff) => ({
+    title: staff.staffName,
+    fields: STAFF_CARD_FIELDS.map(({ label, key, icon }) => ({
+      label,
+      icon,
+      value: staff[key],
+    })),
+    onEdit: () => handleEditStaff(staff.staffId),
+    onDelete: () => {
+      setStaffToDelete(staff);
+      setDeleteModalOpen(true);
+    },
+  });
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      <div className="pt-4">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg md:text-2xl font-bold">{isMobile ? "Staff" : "Staff Overview"}</h2>
+      <div>
+        <div className="flex justify-between items-center mt-1 mb-3 gap-3">
+          <h2 className={PAGE_TITLE_CLASS}>
+            {isMobile ? "Staff" : "Staff Overview"}
+          </h2>
           <button
             onClick={() => {
               setForm({
                 staffName: "",
                 phone: "",
-                joiningDate: ""
+                joiningDate: "",
               });
               setOpen(true);
             }}
-            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            className="px-3 py-1.5 md:px-4 md:py-2 bg-brand-primary text-white rounded-lg shadow hover:bg-brand-primary-dark whitespace-nowrap text-sm md:text-base"
           >
-            Add Staff
+            + Add Staff
           </button>
         </div>
-      </div>
-      {/* Search */}
-      <div className="flex items-center gap-2 mb-6">
-        <UniversalSearch
-          placeholder="Search staff..."
-          query={query}
-          setQuery={setQuery}
-          searchFn={searchStaffs}
-          onResult={handleSearchResult}
-          onClear={handleClearSearch}
-          suggestionKey="staffName"
-          pageSize={rowsPerPage}
-          showSuggestions={false}
-        />
+
+        <div className="mb-3">
+          <UniversalSearch
+            placeholder="Search staff..."
+            query={query}
+            setQuery={setQuery}
+            searchFn={searchStaffs}
+            onResult={handleSearchResult}
+            onClear={handleClearSearch}
+            suggestionKey="staffName"
+            pageSize={rowsPerPage}
+            showSuggestions={false}
+          />
+        </div>
       </div>
 
-      {/* Staff Table */}
-      <div className="flex-1 min-h-0 border mb-2 rounded-lg bg-white dark:bg-zinc-900">
-        <DataTable
-          columns={isMobile ? columns.mobile : columns.desktop}
-          data={staffs}
+      <div className="flex-1 min-h-0 mb-2">
+        <EntityCardGrid
+          items={staffs}
+          getItemKey={(staff) => staff.staffId}
+          buildCardProps={buildStaffCardProps}
           emptyMessage="No staff found"
           page={currentPage}
           totalCount={isSearchActive ? searchResults.length : totalItems}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
-          onEdit={(staff) => handleEditStaff(staff.staffId)}
-          onDelete={(staff) => {
-            setStaffToDelete(staff);
-            setDeleteModalOpen(true);
-          }}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          entityLabel="staff"
         />
       </div>
 
@@ -299,7 +282,6 @@ export default function StaffDashboard() {
           staffId={selectedStaffId}
         />
       )}
-
     </div>
   );
 }

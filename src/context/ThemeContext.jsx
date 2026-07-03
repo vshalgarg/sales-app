@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { BRAND_COLORS } from "../theme/brandColors";
 
 const ThemeContext = createContext();
 export const useThemeContext = () => useContext(ThemeContext);
@@ -24,7 +25,13 @@ export const ThemeContextProvider = ({ children }) => {
 
   // MUI theme with textfield fixes
   const muiTheme = createTheme({
-    palette: { mode },
+    palette: {
+      mode,
+      primary: {
+        main: BRAND_COLORS.primary,
+        dark: BRAND_COLORS.primaryDark,
+      },
+    },
     components: {
       MuiTextField: {
         styleOverrides: {

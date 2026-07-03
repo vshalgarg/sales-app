@@ -1,4 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { Search } from "lucide-react";
+import {
+  SEARCH_CLEAR_CLASS,
+  SEARCH_ICON_CLASS,
+  SEARCH_INPUT_CLASS,
+  SEARCH_WRAPPER_CLASS,
+  SURFACE_BORDER,
+} from "../theme/appTheme";
 
 export default function UniversalSearch({
   placeholder = "Search...",
@@ -146,59 +154,30 @@ export default function UniversalSearch({
   };
 
   return (
-    <div className="flex items-center w-full">
-      <div className="relative w-full max-w-md lg:max-w-lg">
-        {/* Input Container */}
-        <div className="relative group">
-          {/* Search Icon (left) */}
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-            <svg
-              className="w-5 h-4 md:h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+    <div className="flex items-center">
+      <div className={SEARCH_WRAPPER_CLASS} ref={searchRef}>
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+            <Search className={SEARCH_ICON_CLASS} strokeWidth={1.75} />
           </div>
 
           <input
             ref={inputRef}
             type="text"
-            placeholder={placeholder || "Search staff, name, phone..."}
+            placeholder={placeholder || "Search..."}
             value={query}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={() => setIsDropdownOpen(true)}
             onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
-            className={`
-            w-full 
-            pl-11 pr-28 
-            py-2
-            md:py-2.5
-            bg-white dark:bg-gray-900
-            border border-gray-300 dark:border-gray-600
-            rounded-full
-            text-gray-900 dark:text-gray-100
-            placeholder-gray-500 dark:placeholder-gray-400
-            focus:outline-none 
-         focus:border-black
-            transition-all duration-200
-            shadow-sm hover:shadow
-          `}
+            className={SEARCH_INPUT_CLASS}
             autoComplete="off"
             spellCheck="false"
           />
 
-          {/* Right side buttons (clear + loading) */}
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-2">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 gap-1">
             {isLoading && (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-search-muted border-t-transparent" />
             )}
 
             {query.length > 0 && (
@@ -208,12 +187,11 @@ export default function UniversalSearch({
                   handleChange({ target: { value: "" } });
                   inputRef.current?.focus();
                 }}
-                className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 
-                       text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 
-                       transition-colors"
+                className={SEARCH_CLEAR_CLASS}
+                aria-label="Clear search"
               >
                 <svg
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -230,47 +208,32 @@ export default function UniversalSearch({
           </div>
         </div>
 
-        {/* Suggestions Dropdown */}
         {showSuggestions && isDropdownOpen && (
           <>
             {suggestions.length > 0 ? (
               <ul
-                className={`
-                absolute z-20 w-full mt-1.5
-                bg-white dark:bg-gray-900
-                border border-gray-200 dark:border-gray-700
-                rounded-xl shadow-2xl
-                overflow-hidden
-                max-h-72 overflow-y-auto
-                backdrop-blur-sm
-                divide-y divide-gray-100 dark:divide-gray-800
-              `}
+                className={`absolute z-20 mt-2 w-full overflow-hidden rounded-xl border ${SURFACE_BORDER} bg-white shadow-lg dark:bg-zinc-900 max-h-72 overflow-y-auto divide-y divide-brand-surface-border/80 dark:divide-zinc-700/40`}
               >
                 {suggestions.map((name, index) => (
                   <li
                     key={index}
                     onClick={() => handleSuggestionClick(name)}
-                    className={`
-                    px-5 py-3
-                    cursor-pointer
-                    transition-colors duration-150
-                    ${
-                      index === activeSuggestionIndex
-                        ? "bg-blue-50 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-800/60 text-gray-900 dark:text-gray-100"
-                    }
-                  `}
+                    className="cursor-pointer px-4 py-3 text-sm text-brand-navy transition-colors hover:bg-brand-tab-inactive dark:text-gray-100 dark:hover:bg-zinc-800"
                   >
-                    {highlightMatch ? highlightMatch(name, query) : name}
+                    {name}
                   </li>
                 ))}
               </ul>
             ) : (
               query.trim().length > 1 &&
               !isLoading && (
-                <div className="absolute z-50 w-full mt-1.5 px-5 py-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl text-sm text-gray-500 dark:text-gray-400">
+                <div
+                  className={`absolute z-50 mt-2 w-full rounded-xl border ${SURFACE_BORDER} bg-white px-4 py-3 text-sm text-brand-search-muted shadow-lg dark:bg-zinc-900`}
+                >
                   No results found for{" "}
-                  <span className="font-medium">"{query}"</span>
+                  <span className="font-medium text-brand-navy dark:text-gray-200">
+                    "{query}"
+                  </span>
                 </div>
               )
             )}

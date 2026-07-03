@@ -10,8 +10,11 @@ import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import FormSection from "../components/common/FormSection";
+import { FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
+import { Building2, MapPin, Phone } from "lucide-react";
 
 
 export default function AddNewTransport({
@@ -200,76 +203,84 @@ export default function AddNewTransport({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-start md:items-center justify-center">
-      <div className="bg-white w-full 
-                h-[100dvh] md:h-auto
-                md:max-w-4xl md:max-h-[90vh] 
-                md:rounded-lg shadow-lg 
-                flex flex-col">
-
-        {/* HEADER */}
-        <div className="p-4 md:px-6 md:py-5 border-b flex items-center gap-3">
-          <IconButton
-            onClick={handleClose}
-            className="md:hidden"
-          >
-            <ArrowBackIcon />
-          </IconButton>
-
-          <h2 className="text-lg md:text-xl font-semibold">
-            {editingTransport ? "Edit Transport" : "Add New Transport"}
-          </h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start md:items-center justify-center">
+      <div className="bg-white dark:bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-5xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+        <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-700">
+          <div className="flex items-center gap-3">
+            <IconButton onClick={handleClose} aria-label="Go back">
+              <ArrowBackIcon />
+            </IconButton>
+            <div>
+              <h2 className="text-lg md:text-xl font-semibold">
+                {editingTransport ? "Edit Transport" : "Add New Transport"}
+              </h2>
+              {!editingTransport && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  Enter transport details to add a new transport
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* BODY */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-8">
-
-          {/* ===== BASIC INFORMATION ===== */}
-          <section>
-            <h3 className="text-lg font-semibold mb-3">
-              Basic Information
-            </h3>
-
+        <div
+          className={`flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}
+        >
+          <FormSection title="Basic Information" icon={Building2} variantIndex={0}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <CustomTextField label="Transport Name *" name="name" value={formData.name} onChange={handleChange} error={!!errors.name} helperText={errors.name} />
-              <CustomTextField label="Email" name="email" value={formData.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} />
-              <CustomTextField label="GST Number" name="gstNo" value={formData.gstNo} onChange={handleChange} error={!!errors.gstNo} helperText={errors.gstNo} />
+              <CustomTextField
+                label="Transport Name *"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                error={!!errors.name}
+                helperText={errors.name}
+              />
+              <CustomTextField
+                label="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
+              />
+              <CustomTextField
+                label="GST Number"
+                name="gstNo"
+                value={formData.gstNo}
+                onChange={handleChange}
+                error={!!errors.gstNo}
+                helperText={errors.gstNo}
+              />
             </div>
-          </section>
+          </FormSection>
 
-          {/* ===== ADDRESS DETAILS ===== */}
-          <section>
-            <h3 className="text-lg font-semibold mb-3">
-              Address Details
-            </h3>
-
+          <FormSection title="Address Details" icon={MapPin} variantIndex={1}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              <CustomTextField label="Address Line 1"
+              <CustomTextField
+                label="Address Line 1"
                 name="addressLine1"
                 value={formData.addressLine1}
                 onChange={handleChange}
               />
               <CustomTextField
-                label="Address Line 2"
+                label="Address Line 2 (Optional)"
                 name="addressLine2"
                 value={formData.addressLine2}
                 onChange={handleChange}
               />
-
               <StateAutocomplete
                 value={formData.state}
                 onChange={(val) =>
                   setFormData((prev) => ({ ...prev, state: val }))
                 }
               />
-
-              <CustomTextField label="City"
+              <CustomTextField
+                label="City"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
               />
-
               <CustomTextField
                 label="Pin Code"
                 name="pincode"
@@ -277,25 +288,16 @@ export default function AddNewTransport({
                 onChange={handleChange}
               />
             </div>
-          </section>
+          </FormSection>
 
-          {/* ===== CONTACT INFORMATION ===== */}
-          <section>
-            <h3 className="text-lg font-semibold mb-3">
-              Contact Information
-            </h3>
-
+          <FormSection title="Contact Information" icon={Phone} variantIndex={2}>
             {formData.contacts.map((c, index) => (
               <div key={index} className="mb-6">
-
-                {/* Mobile Contact Card */}
                 <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50">
-
                   <div className="flex justify-between items-center">
                     <h4 className="text-sm font-semibold text-gray-700">
                       Contact {index + 1}
                     </h4>
-
                     {index > 0 && (
                       <IconButton
                         size="small"
@@ -306,7 +308,6 @@ export default function AddNewTransport({
                       </IconButton>
                     )}
                   </div>
-
                   <CustomTextField
                     label="Contact Person"
                     value={c.contactPerson}
@@ -314,7 +315,6 @@ export default function AddNewTransport({
                       handleContactChange(index, "contactPerson", e.target.value)
                     }
                   />
-
                   <CustomTextField
                     label="Contact Number"
                     value={c.contactNumber}
@@ -323,7 +323,6 @@ export default function AddNewTransport({
                       handleContactChange(index, "contactNumber", e.target.value)
                     }
                   />
-
                   <CustomTextField
                     label="Type"
                     value={c.type}
@@ -333,7 +332,6 @@ export default function AddNewTransport({
                   />
                 </div>
 
-                {/* Desktop Layout*/}
                 <div className="hidden md:grid grid-cols-12 gap-4 items-start">
                   <div className="col-span-4">
                     <CustomTextField
@@ -344,7 +342,6 @@ export default function AddNewTransport({
                       }
                     />
                   </div>
-
                   <div className="col-span-4">
                     <CustomTextField
                       label="Contact Number"
@@ -355,7 +352,6 @@ export default function AddNewTransport({
                       }
                     />
                   </div>
-
                   <div className="col-span-3">
                     <CustomTextField
                       label="Type"
@@ -365,14 +361,14 @@ export default function AddNewTransport({
                       }
                     />
                   </div>
-
                   <div className="col-span-1 flex justify-center">
                     {index > 0 && (
                       <IconButton
+                        size="small"
                         color="error"
                         onClick={() => removeContact(index)}
                       >
-                        <DeleteOutlineIcon />
+                        <DeleteOutlineIcon fontSize="small" />
                       </IconButton>
                     )}
                   </div>
@@ -383,38 +379,31 @@ export default function AddNewTransport({
             <Button startIcon={<AddIcon />} onClick={addContact} variant="outlined">
               Add Contact
             </Button>
-          </section>
+          </FormSection>
         </div>
 
-        {/* FOOTER */}
-        <FormFooter background="bg-white border-t">
-
-          {/* Save / Update */}
+        <FormFooter>
           <AppButton
             type="primary"
+            loading={isSaving}
             onClick={() => handleSubmit({ closeAfterSave: true })}
           >
             {editingTransport ? "Update Transport" : "Save Transport"}
           </AppButton>
 
-          {/* Save & Add New (only when adding) */}
           {!editingTransport && (
             <AppButton
               type="secondary"
+              loading={isSaving}
               onClick={() => handleSubmit({ closeAfterSave: false })}
             >
               Save & Add New
             </AppButton>
           )}
 
-          {/* Cancel */}
-          <AppButton
-            type="cancel"
-            onClick={handleClose}
-          >
+          <AppButton type="cancel" disabled={isSaving} onClick={handleClose}>
             Cancel
           </AppButton>
-
         </FormFooter>
 
         <ConfirmDialog
@@ -422,7 +411,6 @@ export default function AddNewTransport({
           onConfirm={handleConfirmLeave}
           onCancel={handleStay}
         />
-
       </div>
     </div>
   );

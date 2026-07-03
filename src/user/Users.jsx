@@ -14,6 +14,7 @@ import UniversalSearch from "../components/UniversalSearch";
 import ChangePasswordModal from "./modals/ChangePasswordModal";
 import AddUserModal from "./modals/AddUserModal";
 import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
+import AppButton from "../components/common/AppButton";
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
@@ -88,13 +89,13 @@ const Users = () => {
         <h1 className="text-2xl font-bold">Users</h1>
 
         {isAdmin && (
-          <button
+          <AppButton
             onClick={() => setIsAddUserOpen(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            variant="primary"
           >
             <Plus size={18} className="mr-2" />
             Add New User
-          </button>
+          </AppButton>
         )}
       </div>
 

@@ -22,18 +22,18 @@ const EntityCard = ({
   <article
     className={`flex flex-col rounded-xl border p-4 shadow-sm h-full ${getCardSurfaceClass(variantIndex)}`}
   >
-    <div className="flex items-center gap-2 mb-2">
-      <span className="text-sm text-gray-500 dark:text-gray-400">
-        {codeLabel}
-      </span>
-      {code && (
+    {code && (
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {codeLabel}
+        </span>
         <span
           className={`rounded-md px-2 py-0.5 text-xs font-semibold ${CODE_BADGE_CLASS}`}
         >
           {code}
         </span>
-      )}
-    </div>
+      </div>
+    )}
 
     <h3
       className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 line-clamp-2"
