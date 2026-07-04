@@ -33,6 +33,13 @@ class ReportingCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   _actionButton(
+                    icon: Icons.add_circle_outline,
+                    color: const Color(0xFF3CB44B),
+                    onTap: onAdd ?? () {},
+                  ),
+                  const SizedBox(width: 8),
+
+                  _actionButton(
                     icon: Icons.edit_square,
                     color: const Color(0xFF00B894),
                     onTap: onEdit ?? () {},

@@ -4,30 +4,64 @@ import '../services/get_customers.dart';
 class CustomersProvider extends ChangeNotifier {
   final GetCustomersApi _api = GetCustomersApi();
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  List<dynamic> customers = [];
 
-  List<dynamic> _customers = [];
-  List<dynamic> get customers => _customers;
+  bool isLoading = false;
+  bool isLoadingMore = false;
+  bool hasMore = true;
 
-  String? _error;
-  String? get error => _error;
+  int _page = 0;
+  final int _size = 10;
 
-  Future<void> fetchCustomers() async {
-    _isLoading = true;
-    _error = null;
+  String? error;
+
+  Future<void> fetchCustomers({bool refresh = false}) async {
+    if (isLoading || isLoadingMore) return;
+
+    if (refresh) {
+      _page = 0;
+      customers.clear();
+      hasMore = true;
+      error = null;
+    }
+
+    if (!hasMore) return;
+
+    if (_page == 0) {
+      isLoading = true;
+    } else {
+      isLoadingMore = true;
+    }
 
     notifyListeners();
 
     try {
-      final response = await _api.getCustomers();
-      _customers = response['content'] ?? [];
+      final response = await _api.getCustomers(
+        page: _page,
+        size: _size,
+      );
 
+      final List<dynamic> newCustomers =
+          response["content"] ?? [];
+
+      customers.addAll(newCustomers);
+
+      hasMore = !(response["last"] ?? true);
+
+      if (hasMore) {
+        _page++;
+      }
     } catch (e) {
-      _error = e.toString();
+      error = e.toString();
     }
 
-    _isLoading = false;
+    isLoading = false;
+    isLoadingMore = false;
+
     notifyListeners();
+  }
+
+  Future<void> refreshCustomers() async {
+    await fetchCustomers(refresh: true);
   }
 }

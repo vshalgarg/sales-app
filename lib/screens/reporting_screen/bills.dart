@@ -22,10 +22,13 @@ class Bills extends StatefulWidget {
 }
 
 class _BillsState extends State<Bills> {
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
-
+  int page = 0;
+  bool isLoadingMore = false;
+  bool hasMore = true;
   String? selectedSupplier;
   String? selectedCustomer;
   bool isOpening = false;
@@ -36,19 +39,53 @@ class _BillsState extends State<Bills> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<BillsProvider>().fetchBills(
+        page: page,
         fromDate: fromDateController.text,
         toDate: toDateController.text,
       );
     });
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     fromDateController.dispose();
     toDateController.dispose();
     super.dispose();
   }
+  Future<void> _loadMore() async {
+    if (isLoadingMore || !hasMore) return;
 
+    setState(() {
+      isLoadingMore = true;
+    });
+
+    page++;
+
+    final provider = context.read<BillsProvider>();
+
+    final fetched = await provider.fetchBills(
+      page: page,
+      fromDate: fromDateController.text,
+      toDate: toDateController.text,
+      isLoadMore: true,
+    );
+
+    if (!fetched) {
+      hasMore = false;
+    }
+
+    setState(() {
+      isLoadingMore = false;
+    });
+  }
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
   Future<void> _showBillDetails(String billNumber) async {
     final data = await getBillDetails(billNumber);
 
@@ -96,7 +133,6 @@ class _BillsState extends State<Bills> {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
             return Container(
-              // height: 500,
               decoration: const BoxDecoration(
                 color: Color(0xFFF7F6FF),
                 borderRadius: BorderRadius.only(
@@ -200,6 +236,17 @@ class _BillsState extends State<Bills> {
           fontWeight: FontWeight.w600,
           fontSize: width < 600 ? 22 : 26,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.filter_alt_outlined,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              _showFilterBottomSheet();
+            },
+          ),
+        ],
       ),
 
       floatingActionButton: FloatingActionButton(
@@ -257,26 +304,6 @@ class _BillsState extends State<Bills> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.filter_alt_outlined,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          _showFilterBottomSheet();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: height * 0.02),
-
                 Expanded(
                   child: Consumer<BillsProvider>(
                     builder: (context, billProvider, child) {
@@ -297,8 +324,19 @@ class _BillsState extends State<Bills> {
                       }
 
                       return ListView.builder(
-                        itemCount: billProvider.bills.length,
+                        controller: _scrollController,
+                        itemCount: billProvider.bills.length + (hasMore ? 1 : 0),
                         itemBuilder: (context, index) {
+                          if (index >= billProvider.bills.length) {
+                            return billProvider.isLoadingMore
+                                ? const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                                : const SizedBox.shrink();
+                          }
                           final bill = billProvider.bills[index];
 
                           return Padding(
@@ -341,8 +379,6 @@ class _BillsState extends State<Bills> {
                                         billData: billDetails,
                                       ),
                                     );
-
-                                    debugPrint("UPDATED RESULT => $updated");
 
                                     if (updated == true) {
                                       try {

@@ -40,7 +40,7 @@ class MasterContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5),
+        padding: const EdgeInsets.all(15),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -55,7 +55,7 @@ class MasterContainer extends StatelessWidget {
                         color: AppColors.orangeColor,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(2.0),
+                        padding: const EdgeInsets.all(5.0),
                         child: Text(
                           code ?? "",
                           style: TextStyle(
@@ -74,7 +74,7 @@ class MasterContainer extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 15,
                           color: AppColors.primaryPurple,
-                          fontWeight: FontWeight.w200,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
 
@@ -88,6 +88,7 @@ class MasterContainer extends StatelessWidget {
 
                           style: TextStyle(
                             fontSize: 13,
+                            fontWeight:FontWeight.w600 ,
                             color: Colors.black,
                           ),
                         ),
@@ -103,12 +104,14 @@ class MasterContainer extends StatelessWidget {
                         ),
                       ],
                     ),
-                   // SizedBox(height: 5),
+                    SizedBox(height: 5),
                     Row(
                       children: [
                         Text(
                           "Mobile: ",
-                          style: TextStyle(fontSize: 13, color: Colors.black),
+                          style: TextStyle(fontSize: 13,
+                              fontWeight:FontWeight.w600 ,
+                              color: Colors.black),
                         ),
                         Text(
                           mobile ?? "",

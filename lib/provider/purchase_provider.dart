@@ -9,32 +9,42 @@ class PurchaseProvider extends ChangeNotifier {
   List<PurchaseEntry> get purchaseEntries => _purchaseEntries;
 
   bool _isLoading = false;
+
   bool get isLoading => _isLoading;
 
   String? _error;
+
   String? get error => _error;
 
   int _page = 0;
+
   int get page => _page;
 
-  int _size = 7;
+  int _size = 20;
+
   int get size => _size;
 
+  int totalPages = 0;
+  bool last = false;
+
   Future<void> searchPurchases({
+    int page = 0,
+    int size = 20,
+    bool isLoadMore = false,
     String? fromDate,
     String? toDate,
     int? supplierId,
     int? customerId,
     int? staffId,
-    int page = 0,
-    int size = 7,
   }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      _purchaseEntries = await searchPurchaseEntries(
+      if (!isLoadMore) {
+        _isLoading = true;
+        _error = null;
+        notifyListeners();
+      }
+
+      final response = await searchPurchaseEntries(
         fromDate: fromDate,
         toDate: toDate,
         supplierId: supplierId,
@@ -44,8 +54,16 @@ class PurchaseProvider extends ChangeNotifier {
         size: size,
       );
 
-      _page = page;
+      if (isLoadMore) {
+        _purchaseEntries.addAll(response.content);
+      } else {
+        _purchaseEntries = response.content;
+      }
+
+      _page = response.page;
       _size = size;
+      totalPages = response.totalPages;
+      last = response.last;
     } catch (e) {
       _error = e.toString();
       debugPrint("Purchase Search Error: $e");
@@ -54,21 +72,25 @@ class PurchaseProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<void> deletePurchaseEntry(int id, String token) async {
     try {
       await deletePurchase(id, token);
 
-      purchaseEntries.removeWhere((e) => e.id == id);
+      _purchaseEntries.removeWhere((e) => e.id == id);
 
       notifyListeners();
     } catch (e) {
       rethrow;
     }
   }
+
   void clearSearch() {
     _purchaseEntries.clear();
     _error = null;
     _page = 0;
+    totalPages = 0;
+    last = false;
     notifyListeners();
   }
 }

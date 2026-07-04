@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../model_classes/search_bills.dart';
 import '../shared_preferences/login_token.dart';
 
 Future<List<BillEntry>> searchBills({
+  int page = 0,
+  int size = 20,
   String? fromDate,
   String? toDate,
   int? supplierId,
@@ -34,7 +35,9 @@ Future<List<BillEntry>> searchBills({
       "Authorization": "Bearer $token",
     },
   );
-
+  if (response.body.isEmpty) {
+    throw Exception("Empty response from server");
+  }
   final data = jsonDecode(response.body);
 
   if (response.statusCode == 200) {

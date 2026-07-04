@@ -150,13 +150,8 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
   }
 
   void _initializeData() {
-    print("========== PURCHASE DATA ==========");
-    print(widget.purchaseData);
 
     final supplier = widget.purchaseData["supplier"] ?? {};
-
-    print("========== SUPPLIER DATA ==========");
-    print(supplier);
 
     existingImageKeys = (supplier["images"] ?? [])
         .map<String>((e) => e["key"].toString())
@@ -169,9 +164,6 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
     existingFileNames = (supplier["images"] ?? [])
         .map<String>((e) => e["fileName"].toString())
         .toList();
-
-    print("========== EXISTING IMAGE KEYS ==========");
-    print(existingImageKeys);
 
     remarksController = TextEditingController(
       text: widget.purchaseData["remarks"] ?? "",
@@ -186,12 +178,6 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
     selectedStaffId = widget.purchaseData["staffId"];
 
     selectedSupplierId = supplier["supplierId"];
-
-    print("========== INITIAL VALUES ==========");
-    print("CustomerId: $selectedCustomerId");
-    print("SupplierId: $selectedSupplierId");
-    print("StaffId: $selectedStaffId");
-    print("Remarks: ${remarksController.text}");
   }
 
   Future<void> _loadData() async {
@@ -251,9 +237,6 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));
-
-      // TEMPORARY TEST
-      // Navigator.pop(context);
     }
   }
 
@@ -304,6 +287,10 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.white),
                     ),
                   ],
                 ),

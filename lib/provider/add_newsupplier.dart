@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/model_classes/add_newsupplier.dart';
 import 'package:hisabio/services/add_newsupplier_api.dart';
-import 'package:hisabio/services/get_suppliers.dart';
 
 
 

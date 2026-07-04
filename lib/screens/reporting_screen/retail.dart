@@ -13,7 +13,6 @@ import '../../reporting_widgets/edit_retail_bottom_sheet.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../screens/entry_screen/retail_entry.dart';
-import '../../services/get_retail_api.dart';
 import '../home_screen.dart';
 
 class Retail extends StatefulWidget {
@@ -24,6 +23,13 @@ class Retail extends StatefulWidget {
 }
 
 class _RetailState extends State<Retail> {
+  final ScrollController _scrollController = ScrollController();
+
+  int _page = 0;
+   int _size = 20;
+
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
@@ -34,17 +40,56 @@ class _RetailState extends State<Retail> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_scrollListener);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _page = 0;
+      _hasMore = true;
       context.read<RetailProvider>().fetchRetails();
+      await context.read<RetailProvider>().fetchRetails(
+        page: _page,
+        size: _size,
+      );
     });
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
     fromDateController.dispose();
     toDateController.dispose();
     super.dispose();
+  }
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200 &&
+        !_isFetchingMore &&
+        _hasMore) {
+      _loadMore();
+    }
+  }
+  Future<void> _loadMore() async {
+    final provider = context.read<RetailProvider>();
+
+    if (provider.last) {
+      setState(() => _hasMore = false);
+      return;
+    }
+
+    _isFetchingMore = true;
+
+    await provider.fetchRetails(
+      page: provider.page + 1,
+      size: _size,
+      isLoadMore: true,
+    );
+
+    _isFetchingMore = false;
+
+    setState(() {
+      _hasMore = !provider.last;
+    });
   }
   Future<void> _showRetailDetails(int retailId) async {
     showModalBottomSheet(
@@ -58,12 +103,18 @@ class _RetailState extends State<Retail> {
     );
   }
 
-  void _applyFilters() {
-    context.read<RetailProvider>().fetchRetails(
+  void _applyFilters()async {
+    _page = 0;
+    _hasMore = true;
+  await  context.read<RetailProvider>().fetchRetails(
+    page: _page,
+    size: _size,
       fromDate: fromDateController.text.isEmpty
           ? null
           : fromDateController.text,
-      toDate: toDateController.text.isEmpty ? null : toDateController.text,
+      toDate: toDateController.text.isEmpty
+          ? null
+          : toDateController.text,
     );
   }
 
@@ -233,6 +284,17 @@ class _RetailState extends State<Retail> {
           fontWeight: FontWeight.w600,
           fontSize: 25,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.filter_alt_outlined,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              _showFilterBottomSheet();
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
@@ -253,43 +315,6 @@ class _RetailState extends State<Retail> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.filter_alt_outlined,
-                        color: Colors.white,
-                      ),
-                      onPressed: () async {
-                        final entriesProvider = context.read<EntriesProvider>();
-                        final staffProvider = context.read<StaffProvider>();
-
-                        if (entriesProvider.entries.isEmpty) {
-                          await entriesProvider.fetchSuppliers();
-                        }
-
-                        if (entriesProvider.customerEntries.isEmpty) {
-                          await entriesProvider.fetchCustomer();
-                        }
-
-                        if (staffProvider.staffs.isEmpty) {
-                          await staffProvider.fetchStaffs();
-                        }
-
-                        if (!mounted) return;
-
-                        _showFilterBottomSheet();
-                      },
-                    ),
-                  ),
-              ],
-            ),
-
-            SizedBox(height: height * 0.01),
-
             Expanded(
               child: Consumer<RetailProvider>(
                 builder: (context, retailProvider, child) {
@@ -318,13 +343,21 @@ class _RetailState extends State<Retail> {
                     onRefresh: () async {
                       await retailProvider.fetchRetails();
                     },
-                    child: ListView.builder(
-                      itemCount: retailProvider.retailEntries.length,
+                    child:ListView.builder(
+                      controller: _scrollController,
+                      itemCount:
+                      retailProvider.retailEntries.length +
+                          (retailProvider.last ? 0 : 1),
                       itemBuilder: (context, index) {
+                        if (index == retailProvider.retailEntries.length) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
                         final retail = retailProvider.retailEntries[index];
-                        print("Retailer: ${retail.name}");
-                        print("Referred By: ${retail.customerName}");
-                        print("Staff: ${retail.staffName}");
                         return Padding(
                           padding: EdgeInsets.only(bottom: height * 0.015),
                           child: ReportingCard(

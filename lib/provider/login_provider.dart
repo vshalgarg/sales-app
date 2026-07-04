@@ -35,7 +35,7 @@ class LoginProvider extends ChangeNotifier {
 
       userData = response;
       await  AppStorage.setToken(userData!.token!);
-
+      await AppStorage.setEmail(userData!.username ?? "");
       return true;
 
     } catch (e) {

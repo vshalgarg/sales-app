@@ -5,22 +5,36 @@ import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:http/http.dart' as http;
 
 class GetSuppliersApi {
-  Future<GetSupplier> getSupplier() async {
+  Future<GetSupplier> getSupplier({int page = 0, int size = 10}) async {
     try {
-      final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/suppliers/get?page=0&size=10");
       final token = await AppStorage.getToken();
+      print("TOKEN => $token");
+
+      if (token == null || token.isEmpty) {
+        throw Exception("Token is null or empty");
+      }
+      final url = Uri.parse(
+        "http://192.168.1.100:8087/csm/api/v1/suppliers/get",
+      ).replace(queryParameters: {"page": "$page", "size": "$size"});
+      print("URL => $url");
       final response = await http.get(
-        url, headers: { "Content-Type": "application/json",
-        "Authorization": "Bearer $token"},);
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+      print("STATUS => ${response.statusCode}");
+      print("BODY => ${response.body}");
       final data = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
         return GetSupplier.fromJson(data);
       } else {
-        throw Exception(data['message'] ?? "Failed to fetch suppliers");
+        throw Exception(data["message"]);
       }
     } catch (e) {
-      throw Exception("Error $e");
+      throw Exception(e.toString());
     }
   }
 }

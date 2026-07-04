@@ -150,6 +150,7 @@ class _AddressDetailsState extends State<AddressDetails> {
         Text("Pin Code",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
           keyboardType: TextInputType.number,
+          maxLength: 6,
           enabled: widget.mode != FormMode.view,
           controller: widget.pinCode,
           decoration: InputDecoration(

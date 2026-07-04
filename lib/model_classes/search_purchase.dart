@@ -32,3 +32,28 @@ class PurchaseEntry {
     );
   }
 }
+
+class PurchaseSearchResponse {
+  final List<PurchaseEntry> content;
+  final int page;
+  final int totalPages;
+  final bool last;
+
+  PurchaseSearchResponse({
+    required this.content,
+    required this.page,
+    required this.totalPages,
+    required this.last,
+  });
+
+  factory PurchaseSearchResponse.fromJson(Map<String, dynamic> json) {
+    return PurchaseSearchResponse(
+      content: (json['content'] as List)
+          .map((e) => PurchaseEntry.fromJson(e))
+          .toList(),
+      page: json['page'] ?? json['number'] ?? 0,
+      totalPages: json['totalPages'] ?? 0,
+      last: json['last'] ?? false,
+    );
+  }
+}

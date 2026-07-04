@@ -23,6 +23,12 @@ class CustomerScreen extends StatefulWidget {
 }
 
 class _CustomerScreenState extends State<CustomerScreen> {
+  String displayValue(dynamic value) {
+    if (value == null) return "-";
+    final text = value.toString().trim();
+    return text.isEmpty ? "-" : text;
+  }
+  final ScrollController _scrollController = ScrollController();
   final searchController = TextEditingController();
   Timer? _debounce;
 
@@ -31,14 +37,21 @@ class _CustomerScreenState extends State<CustomerScreen> {
     super.initState();
 
     Future.microtask(() {
-      context.read<CustomersProvider>().fetchCustomers();
+      context.read<CustomersProvider>().fetchCustomers(refresh: true);
+    });
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        context.read<CustomersProvider>().fetchCustomers();
+      }
     });
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-
+    _scrollController.dispose();
     searchController.dispose();
 
     super.dispose();
@@ -149,26 +162,49 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   return customerProvider.isLoading
                       ? Center(child: const CircularProgressIndicator())
                       : ListView.separated(
+                          controller: _scrollController,
                           separatorBuilder: (context, index) {
                             return SizedBox(height: 8);
                           },
-                          itemCount: customers.length,
+                          itemCount:
+                              customers.length +
+                              ((!isSearching && customerProvider.isLoadingMore)
+                                  ? 1
+                                  : 0),
                           itemBuilder: (context, index) {
+                            if (!isSearching &&
+                                index == customers.length &&
+                                customerProvider.isLoadingMore) {
+                              return const Padding(
+                                padding: EdgeInsets.all(20),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
                             final customer = customers[index];
                             return MasterContainer(
-                              elevation: 1,
-                              name: isSearching
-                                  ? customer.customerName
-                                  : customer['customerName'],
-                              mobile: isSearching
-                                  ? customer.customerGstNo
-                                  : customer['mobileNumber'],
-                              code: isSearching
-                                  ? customer.code
-                                  : customer['code'],
-                              city: isSearching
-                                  ? customer.city
-                                  : customer['city'],
+                                elevation: 1,
+                                name: displayValue(
+                                  isSearching
+                                      ? customer.customerName
+                                      : customer['customerName'],
+                                ),
+                                mobile: displayValue(
+                                  isSearching
+                                      ? customer.customerGstNo
+                                      : customer['mobileNumber'],
+                                ),
+                                code: displayValue(
+                                  isSearching
+                                      ? customer.code
+                                      : customer['code'],
+                                ),
+                                city: displayValue(
+                                  isSearching
+                                      ? customer.city
+                                      : customer['city'],
+                                ),
                               eyeIconTap: () {
                                 final id = isSearching
                                     ? customer.id
@@ -176,10 +212,11 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => AddNewCustomer(
-                                      mode: FormMode.view,
-                                      id: id,
-                                    ),
+                                    builder: (context) =>
+                                        AddNewCustomer(
+                                          mode: FormMode.view,
+                                          id: id,
+                                        ),
                                   ),
                                 );
                               },

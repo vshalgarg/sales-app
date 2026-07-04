@@ -26,6 +26,7 @@ class Supplier extends StatefulWidget {
 }
 
 class _SupplierState extends State<Supplier> {
+  final ScrollController _scrollController = ScrollController();
   final searchController = TextEditingController();
   Timer? _debounce;
 
@@ -34,8 +35,23 @@ class _SupplierState extends State<Supplier> {
     super.initState();
 
     Future.microtask(() {
-      context.read<SupplierProvider>().fetchSuppliers();
+      context.read<SupplierProvider>().fetchSuppliers(refresh: true);
     });
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        context.read<SupplierProvider>().fetchSuppliers();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
   }
 
   @override
@@ -48,7 +64,7 @@ class _SupplierState extends State<Supplier> {
 
     final List<dynamic> suppliers = isSearching
         ? searchProvider.searchSupplier?.content ?? []
-        : provider.data?.content ?? [];
+        : provider.suppliers;
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -78,7 +94,7 @@ class _SupplierState extends State<Supplier> {
             Container(
               decoration: BoxDecoration(
                 color: AppColors.containerFillColor,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               height: 40,
               width: double.infinity,
@@ -91,7 +107,7 @@ class _SupplierState extends State<Supplier> {
                 controller: searchController,
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search suppliers...",
-                leading: Icon(Icons.search_outlined, size: 30),
+                leading: Icon(Icons.search, size: 30),
                 backgroundColor: WidgetStatePropertyAll(Colors.white),
                 trailing: [
                   if (searchController.text.isNotEmpty)
@@ -137,11 +153,22 @@ class _SupplierState extends State<Supplier> {
                       ),
                     )
                   : ListView.separated(
-                      itemCount: suppliers.length,
-                         separatorBuilder: (context, index) {
+                      controller: _scrollController,
+                      itemCount:
+                          suppliers.length +
+                          ((!isSearching && provider.isLoadingMore) ? 1 : 0),
+                      separatorBuilder: (context, index) {
                         return SizedBox(height: 8);
                       },
                       itemBuilder: (context, index) {
+                        if (!isSearching &&
+                            index == suppliers.length &&
+                            provider.isLoadingMore) {
+                          return const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
                         final item = suppliers[index];
                         return GestureDetector(
                           onTap: () {
@@ -157,37 +184,52 @@ class _SupplierState extends State<Supplier> {
                           },
                           child: MasterContainer(
                             elevation: 1,
-                            name: item.supplierName,
-                            mobile: item.mobile,
-                            code: item.code,
-                            city: item.city,
-                            trashIconTap: (){
-                              ExitConfirmationDialog.show(
-                                    context,
-                                    discardButtonText: "No",
-                                    saveButtonText: "Yes",
-                                    onClose:(){Navigator.pop(context);} ,
-                                    onDiscard: (){Navigator.pop(context);},
-                                    bodyText: "Are you sure you want to permanently delete ${item.supplierName}? This action cannot be undo.",
-                                    onSave: () async {
-                                      final provider =
-                                          Provider.of<DeleteSupplierProvider>(
-                                            context,
-                                            listen: false,
-                                          );
-                                      await provider.deleteSupplier(item.code!);
-                                      if(!context.mounted)return;
-                                      Navigator.pop(context);
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        provider.message,
-                                      );
-                                      await context
-                                          .read<SupplierProvider>()
-                                          .fetchSuppliers();
+                            name: (item.supplierName?.toString().trim().isNotEmpty ?? false)
+                                ? item.supplierName!
+                                : "-",
 
-                                    },
+                            mobile: (item.mobile?.toString().trim().isNotEmpty ?? false)
+                                ? item.mobile!
+                                : "-",
+
+                            code: (item.code?.toString().trim().isNotEmpty ?? false)
+                                ? item.code!
+                                : "-",
+
+                            city: (item.city?.toString().trim().isNotEmpty ?? false)
+                                ? item.city!
+                                : "-",
+                            trashIconTap: () {
+                              ExitConfirmationDialog.show(
+                                context,
+                                discardButtonText: "No",
+                                saveButtonText: "Yes",
+                                onClose: () {
+                                  Navigator.pop(context);
+                                },
+                                onDiscard: () {
+                                  Navigator.pop(context);
+                                },
+                                bodyText:
+                                    "Are you sure you want to permanently delete ${item.supplierName}? This action cannot be undo.",
+                                onSave: () async {
+                                  final provider =
+                                      Provider.of<DeleteSupplierProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  await provider.deleteSupplier(item.code!);
+                                  if (!context.mounted) return;
+                                  Navigator.pop(context);
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    provider.message,
                                   );
+                                  await context
+                                      .read<SupplierProvider>()
+                                      .fetchSuppliers();
+                                },
+                              );
                             },
                             copyIconTap: () async {
                               final provider = context
@@ -255,13 +297,5 @@ class _SupplierState extends State<Supplier> {
         child: Icon(Iconsax.add, color: Colors.white, size: 40),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    _debounce?.cancel();
-
-    super.dispose();
   }
 }

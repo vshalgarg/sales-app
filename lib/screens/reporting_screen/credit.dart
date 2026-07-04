@@ -21,10 +21,17 @@ class Credit extends StatefulWidget {
 }
 
 class _CreditState extends State<Credit> {
+  final ScrollController _scrollController = ScrollController();
+
+  int _page = 0;
+  final int _size = 20;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
   bool isDeleting = false;
   bool isOpeningView = false;
   bool isOpeningEdit = false;
   bool isOpening = false;
+
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
@@ -37,20 +44,58 @@ class _CreditState extends State<Credit> {
     super.initState();
 
     Future.microtask(() async {
-      final provider = Provider.of<EntriesProvider>(context, listen: false);
+      final entriesProvider = context.read<EntriesProvider>();
+      final creditProvider = context.read<CreditProvider>();
 
-      await provider.fetchSuppliers();
-      await provider.fetchCustomer();
+      _page = 0;
+      _hasMore = true;
+
+      await creditProvider.fetchCredits(
+        page: _page,
+        size: _size,
+      );
+
+      await entriesProvider.fetchSuppliers();
+      await entriesProvider.fetchCustomer();
     });
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     fromDateController.dispose();
     toDateController.dispose();
     super.dispose();
   }
+  void _scrollListener() async {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200 &&
+        !_isFetchingMore &&
+        _hasMore) {
+      _loadMore();
+    }
+  }
+  Future<void> _loadMore() async {
+    _isFetchingMore = true;
 
+    _page++;
+
+    final provider = context.read<CreditProvider>();
+
+    final oldCount = provider.credits.length;
+
+    await provider.fetchCredits(
+      page: _page,
+      size: _size,
+      isLoadMore: true,
+    );
+
+    if (provider.credits.length == oldCount) {
+      _hasMore = false;
+    }
+
+    _isFetchingMore = false;
+  }
   void _applyFilters() async {
     final provider = Provider.of<EntriesProvider>(context, listen: false);
 
@@ -113,7 +158,6 @@ class _CreditState extends State<Credit> {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
             return Container(
-              height: 500,
                 decoration: const BoxDecoration(
                   color: Color(0xFFF7F6FF),
                   borderRadius: BorderRadius.only(
@@ -218,6 +262,17 @@ class _CreditState extends State<Credit> {
           fontWeight: FontWeight.w600,
           fontSize: width < 600 ? 22 : 26,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.filter_alt_outlined,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              _showFilterBottomSheet();
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
@@ -272,53 +327,6 @@ class _CreditState extends State<Credit> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Align(alignment: Alignment.topRight,
-                      child: IconButton(
-                      icon: Icon(
-                        Icons.filter_alt_outlined,
-                        size: width * 0.075,
-                        color: Colors.white,
-                      ),
-                      onPressed: () async {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) =>
-                              const Center(child: CircularProgressIndicator()),
-                        );
-
-                        try {
-                          final provider = context.read<EntriesProvider>();
-
-                          await provider.fetchSuppliers();
-                          await provider.fetchCustomer();
-
-                          if (!mounted) return;
-
-                          Navigator.pop(context); // close loader
-
-                          _showFilterBottomSheet();
-                        } catch (e) {
-                          if (!mounted) return;
-
-                          Navigator.pop(context);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Failed to load filters: $e"),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    )],
-                ),
-
-                SizedBox(height: height * 0.02),
-
                 Expanded(
                   child: Consumer<CreditProvider>(
                     builder: (context, creditProvider, child) {
@@ -339,8 +347,17 @@ class _CreditState extends State<Credit> {
                       }
 
                       return ListView.builder(
-                        itemCount: creditProvider.credits.length,
+                        controller: _scrollController,
+                        itemCount: creditProvider.credits.length + (_hasMore ? 1 : 0),
                         itemBuilder: (context, index) {
+                          if (index == creditProvider.credits.length) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
                           final credit = creditProvider.credits[index];
                           return Padding(
                             padding: EdgeInsets.only(bottom: height * 0.015),
@@ -404,50 +421,29 @@ class _CreditState extends State<Credit> {
                                     );
                                   },
 
-                                    onEdit: () async {
-                                      setState(() {
-                                        isOpeningEdit = true;
-                                      });
+                                  onEdit: () async {
+                                    if (!mounted) return;
 
-                                      await Future.delayed(
-                                        const Duration(milliseconds: 300),
-                                      );
-
-                                      if (!mounted) return;
-
-                                      setState(() {
-                                        isOpeningEdit = false;
-                                      });
-
-                                      final provider = context.read<CreditProvider>();
-
-                                      final updated = await showModalBottomSheet<bool>(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        builder: (_) => EditCreditBottomSheet(
+                                    final updated = await showModalBottomSheet<bool>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      useSafeArea: true,
+                                      backgroundColor: Colors.transparent,
+                                      enableDrag: true,
+                                      builder: (context) {
+                                        return EditCreditBottomSheet(
                                           credit: credit,
-                                        ),
-                                      );
-
-                                      if (!mounted) return;
-
-                                      if (updated == true) {
-                                        await provider.fetchCredits(
-                                          page: 0,
-                                          size: 50,
                                         );
-            final index = provider.credits.indexWhere(
-            (e) => e.id == credit.id,
-            );
-
-            if (index != -1) {
-            final updatedCredit = provider.credits.removeAt(index);
-            provider.credits.insert(0, updatedCredit);
-            provider.notifyListeners();
-            }
-            }
                                       },
+                                    );
 
+                                    if (updated == true && mounted) {
+                                      context.read<CreditProvider>().fetchCredits(
+                                        page: 0,
+                                        size: 50,
+                                      );
+                                    }
+                                  },
                                   onDelete: () async {
                                     final confirm = await showDialog<bool>(
                                       context: context,

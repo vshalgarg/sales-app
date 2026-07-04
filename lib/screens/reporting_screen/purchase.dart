@@ -5,11 +5,9 @@ import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
-import '../../customs/bottom_navigation_bar.dart';
-import '../../drawers/reporting_drawer.dart';
+
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/purchase_provider.dart';
-import '../../provider/staff_provider.dart';
 import '../../reporting_widgets/edit_purchase_bottom_sheet.dart';
 import '../../reporting_widgets/purchase_details_bottom_sheet.dart';
 import '../../reporting_widgets/reporting_card.dart';
@@ -25,6 +23,13 @@ class Purchase extends StatefulWidget {
 }
 
 class _PurchaseState extends State<Purchase> {
+  final ScrollController _scrollController = ScrollController();
+
+  int _page = 0;
+  int _size = 20;
+
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
   bool isDeleting = false;
   bool isOpeningView = false;
   bool isOpeningEdit = false;
@@ -40,6 +45,8 @@ class _PurchaseState extends State<Purchase> {
   void initState() {
     super.initState();
 
+    _scrollController.addListener(_scrollListener);
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final entriesProvider = context.read<EntriesProvider>();
       final purchaseProvider = context.read<PurchaseProvider>();
@@ -49,15 +56,52 @@ class _PurchaseState extends State<Purchase> {
         entriesProvider.fetchCustomer(),
       ]);
 
-      await purchaseProvider.searchPurchases();
+      _page = 0;
+      _hasMore = true;
+
+      await purchaseProvider.searchPurchases(page: _page, size: _size);
     });
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
     fromDateController.dispose();
     toDateController.dispose();
     super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_isFetchingMore &&
+        _hasMore) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadMore() async {
+    final provider = context.read<PurchaseProvider>();
+
+    if (provider.last) {
+      setState(() => _hasMore = false);
+      return;
+    }
+
+    _isFetchingMore = true;
+
+    await provider.searchPurchases(
+      page: provider.page + 1,
+      size: _size,
+      isLoadMore: true,
+    );
+
+    _isFetchingMore = false;
+
+    setState(() {
+      _hasMore = !provider.last;
+    });
   }
 
   void _applyFilters() async {
@@ -92,10 +136,6 @@ class _PurchaseState extends State<Purchase> {
     String? toDate = toDateController.text.isEmpty
         ? null
         : toDateController.text;
-    print("FROM DATE => $fromDate");
-    print("TO DATE => $toDate");
-    print("SUPPLIER ID => $supplierId");
-    print("CUSTOMER ID => $customerId");
     await purchaseProvider.searchPurchases(
       fromDate: fromDate,
       toDate: toDate,
@@ -177,7 +217,7 @@ class _PurchaseState extends State<Purchase> {
                   Navigator.pop(context);
                   _applyFilters();
                 },
-                onClear: ()async {
+                onClear: () async {
                   bottomSheetSetState(() {
                     fromDateController.clear();
                     toDateController.clear();
@@ -224,6 +264,14 @@ class _PurchaseState extends State<Purchase> {
           fontWeight: FontWeight.w600,
           fontSize: width < 600 ? 22 : 26,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_alt_outlined, color: Colors.white),
+            onPressed: () {
+              _showFilterBottomSheet();
+            },
+          ),
+        ],
       ),
 
       floatingActionButton: FloatingActionButton(
@@ -260,24 +308,6 @@ class _PurchaseState extends State<Purchase> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.filter_alt_outlined,
-                          size: width * 0.075,
-                          color: Colors.white,
-                        ),
-                        onPressed: _showFilterBottomSheet
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: height * 0.02),
                 Expanded(
                   child: Consumer<PurchaseProvider>(
                     builder: (context, purchaseProvider, child) {
@@ -298,8 +328,18 @@ class _PurchaseState extends State<Purchase> {
                       }
 
                       return ListView.builder(
-                        itemCount: purchaseProvider.purchaseEntries.length,
+                        controller: _scrollController,
+                        itemCount:
+                            purchaseProvider.purchaseEntries.length +
+                            (purchaseProvider.last ? 0 : 1),
                         itemBuilder: (context, index) {
+                          if (index ==
+                              purchaseProvider.purchaseEntries.length) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
                           final purchase =
                               purchaseProvider.purchaseEntries[index];
 

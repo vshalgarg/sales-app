@@ -16,7 +16,7 @@ class RetailDetailsBottomSheet extends StatefulWidget {
 
 class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
   bool showRetailInfo = true;
-  bool showHistory = true;
+  bool showHistory = false;
 
   @override
   void initState() {
@@ -42,7 +42,7 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
           );
         }
 
-        final retail = provider?.retailDetails;
+        final retail = provider.retailDetails;
 
         if (retail == null) {
           return const SizedBox(
@@ -76,8 +76,7 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close,
-                      color: Colors.white,),
+                      icon: const Icon(Icons.close, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -93,9 +92,7 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(
-                            color: const Color(0xFFD9D9D9),
-                          ),
+                          border: Border.all(color: const Color(0xFFD9D9D9)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -124,6 +121,10 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                 onTap: () {
                                   setState(() {
                                     showRetailInfo = !showRetailInfo;
+
+                                    if (showRetailInfo) {
+                                      showHistory = false;
+                                    }
                                   });
                                 },
                               ),
@@ -131,40 +132,19 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
 
                             if (showRetailInfo)
                               Padding(
-                                padding: const EdgeInsets.all(24),
+                                padding: const EdgeInsets.all(20),
                                 child: Column(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _infoItem(
-                                            "Retailer",
-                                            retail.name,
+                                    _infoItem("Retailer", retail.name),
+                                    const SizedBox(height: 16),
 
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: _infoItem("Date", retail.date),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 28),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _infoItem(
-                                            "Referred By",
-                                            retail.customerName,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: _infoItem(
-                                            "Staff",
-                                            retail.staffName,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    _infoItem("Date", retail.date),
+                                    const SizedBox(height: 16),
+
+                                    _infoItem("Referred By", retail.customerName),
+                                    const SizedBox(height: 16),
+
+                                    _infoItem("Staff", retail.staffName),
                                   ],
                                 ),
                               ),
@@ -207,19 +187,22 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                 onTap: () {
                                   setState(() {
                                     showHistory = !showHistory;
+
+                                    if (showHistory) {
+                                      showRetailInfo = false;
+                                    }
                                   });
                                 },
                               ),
                             ),
 
                             if (showHistory)
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: retail.suppliers.length,
-                                separatorBuilder: (_, __) =>
-                                    const Divider(height: 1),
-                                itemBuilder: (context, index) {
+        ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: retail.suppliers.length,
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemBuilder: (context, index) {
                                   final supplier = retail.suppliers[index];
 
                                   return Padding(
@@ -246,10 +229,16 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                               "Total: ${formatAmount(supplier.totalAmount)}",
                                               Colors.grey,
                                             ),
+
+                                            const SizedBox(height: 12),
+
                                             _chip(
                                               "Deposited: ${formatAmount(supplier.depositAmount)}",
                                               Colors.green,
                                             ),
+
+                                            const SizedBox(height: 12),
+
                                             _chip(
                                               "Remaining: ${formatAmount(supplier.balanceAmount)}",
                                               supplier.balanceAmount > 0
@@ -276,7 +265,6 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
       },
     );
   }
-
   Widget _infoItem(String title, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,16 +272,37 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
         Text(
           title,
           style: const TextStyle(
-            color:Color(0xFF6B6B6B),
+            fontSize: 14,
             fontWeight: FontWeight.w600,
+            color: Color(0xFF666666),
           ),
         ),
         const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontSize: 16)),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F9FC),
+            border: Border.all(
+              color: const Color(0xFFD9D9D9),
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            value.isEmpty ? "-" : value,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
       ],
     );
   }
-
   Widget _chip(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

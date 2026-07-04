@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../model_classes/add_deposit_model.dart';
 import '../model_classes/retail_deposit_history_model.dart';
 import '../model_classes/retail_model.dart';
@@ -12,44 +13,52 @@ import '../services/update_retail_api.dart';
 class RetailProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
+
   final DeleteRetailApi _deleteRetailApi = DeleteRetailApi();
+
   List<RetailModel> retailEntries = [];
 
   int page = 0;
   int totalPages = 0;
   bool last = false;
+
   Future<bool> deleteRetail(int retailId) async {
+    if (isLoading) return false;
+
     isLoading = true;
     notifyListeners();
 
-    final success = await _deleteRetailApi.deleteRetail(retailId);
+    try {
+      final success = await _deleteRetailApi.deleteRetail(retailId);
 
-    if (success) {
-      await fetchRetails();
+      if (success) {
+        retailEntries.removeWhere((e) => e.retailId == retailId);
+        notifyListeners();
+      }
+
+      return success;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    isLoading = false;
-    notifyListeners();
-
-    return success;
   }
+
   Future<void> fetchRetails({
+    int page = 0,
+    int size = 20,
+    bool isLoadMore = false,
     String? fromDate,
     String? toDate,
     int? customerId,
     int? staffId,
     int? supplierId,
-    bool reset = true,
   }) async {
     try {
-      if (reset) {
-        page = 0;
-        retailEntries.clear();
+      if (!isLoadMore) {
+        isLoading = true;
+        error = null;
+        notifyListeners();
       }
-
-      isLoading = true;
-      error = null;
-      notifyListeners();
 
       final result = await RetailApi().searchRetail(
         fromDate: fromDate,
@@ -58,106 +67,83 @@ class RetailProvider extends ChangeNotifier {
         staffId: staffId,
         supplierId: supplierId,
         page: page,
+        size: size,
       );
 
-      retailEntries.addAll(
-        result["retails"] as List<RetailModel>,
-      );
+      final List<RetailModel> data =
+      result["retails"] as List<RetailModel>;
 
+      if (isLoadMore) {
+        retailEntries.addAll(data);
+      } else {
+        retailEntries = data;
+      }
+
+      this.page = result["page"];
       totalPages = result["totalPages"];
       last = result["last"];
-
-      isLoading = false;
-      notifyListeners();
     } catch (e) {
       error = e.toString();
-
+    } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> loadMore({
-    String? fromDate,
-    String? toDate,
-    int? customerId,
-    int? staffId,
-    int? supplierId,
-  }) async {
-    if (last || isLoading) return;
-
-    page++;
-
-    await fetchRetails(
-      fromDate: fromDate,
-      toDate: toDate,
-      customerId: customerId,
-      staffId: staffId,
-      supplierId: supplierId,
-      reset: false,
-    );
-  }
-}
-class RetailDetailsProvider extends ChangeNotifier {
-  bool isLoading = false;
-bool isUpdating=false;
-  bool isSavingDeposits = false;
-  RetailModel? retailDetails;
-  List<RetailDepositHistoryModel>
-  depositHistory = [];
-  String? error;
-
-  Future<void> fetchDepositHistory(
-      int retailId) async {
-
-    depositHistory =
-    await getRetailDepositHistory(
-        retailId);
-
+  void clearRetails() {
+    retailEntries.clear();
+    page = 0;
+    totalPages = 0;
+    last = false;
     notifyListeners();
   }
-  Future<bool> addDeposits(
-      AddDepositModel model,
-      ) async {
-    try {
-      isSavingDeposits = true;
+}
 
-      notifyListeners();
+class RetailDetailsProvider extends ChangeNotifier {
+  bool isLoading = false;
+  bool isUpdating = false;
+  bool isSavingDeposits = false;
 
-      final success =
-      await AddDepositApi()
-          .addDeposits(model);
+  RetailModel? retailDetails;
 
-      isSavingDeposits = false;
+  List<RetailDepositHistoryModel> depositHistory = [];
 
-      notifyListeners();
+  String? error;
 
-      return success;
-    } catch (e) {
-      isSavingDeposits = false;
-
-      notifyListeners();
-
-      rethrow;
-    }
-  }
   Future<void> fetchRetailDetails(int retailId) async {
+    if (isLoading) return;
+
+    isLoading = true;
+    error = null;
+    notifyListeners();
+
     try {
-      isLoading = true;
-      error = null;
-
-      notifyListeners();
-
-      retailDetails = await getRetailDetails(
-        retailId,
-      );
-
-      isLoading = false;
-      notifyListeners();
+      retailDetails = await getRetailDetails(retailId);
     } catch (e) {
       error = e.toString();
-
+    } finally {
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDepositHistory(int retailId) async {
+    try {
+      depositHistory = await getRetailDepositHistory(retailId);
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<bool> addDeposits(AddDepositModel model) async {
+    if (isSavingDeposits) return false;
+
+    isSavingDeposits = true;
+    notifyListeners();
+
+    try {
+      return await AddDepositApi().addDeposits(model);
+    } finally {
+      isSavingDeposits = false;
       notifyListeners();
     }
   }
@@ -169,19 +155,19 @@ bool isUpdating=false;
     required int referredByCustomerId,
     int? staffId,
   }) async {
-    try {
-      isUpdating = true;
-      notifyListeners();
+    if (isUpdating) return false;
 
-      final success = await UpdateRetailApi().updateRetail(
+    isUpdating = true;
+    notifyListeners();
+
+    try {
+      return await UpdateRetailApi().updateRetail(
         retailId: retailId,
         name: name,
         date: date,
         referredByCustomerId: referredByCustomerId,
         staffId: staffId,
       );
-
-      return success;
     } finally {
       isUpdating = false;
       notifyListeners();

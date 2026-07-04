@@ -27,13 +27,9 @@ class ExitConfirmationDialog {
                 Padding(
                   padding: const EdgeInsets.all(15.0),
                   child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(
-                      20,
-                      35,
-                      20,
-                      60,//40
-                    ),
+                    width:350,
+                    height:150,
+                    padding: const EdgeInsets.all(50),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(5),
@@ -42,7 +38,7 @@ class ExitConfirmationDialog {
                       bodyText ?? "Do you want to save your progress before exiting?",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -55,8 +51,8 @@ class ExitConfirmationDialog {
                   child: GestureDetector(
                     onTap: onClose,
                     child: Container(
-                      height: 40,
-                      width: 40,
+                      height: 30,
+                      width: 30,
                       decoration: const BoxDecoration(
                         color: Colors.red,
                         shape: BoxShape.circle,
@@ -78,23 +74,25 @@ class ExitConfirmationDialog {
 
                 Positioned(
                   bottom: 0 ,//-50,
-                  left: 30,
-                  right: 30,
+                  left: 20,
+                  right: 20,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
+                      SizedBox(
+                        width: 130, // Change as needed
                         child: ElevatedButton(
                           onPressed: onSave,
                           style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(120, 45),
                             backgroundColor: const Color(0xff00A86B),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
                             ),
-                            elevation: 5,
                           ),
-                          child: Text(saveButtonText??
-                            "Save & Exit",
-                            style: TextStyle(
+                          child: Text(
+                            saveButtonText ?? "Save & Exit",
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 15,
                             ),
@@ -102,21 +100,22 @@ class ExitConfirmationDialog {
                         ),
                       ),
 
-                      const SizedBox(width: 15),
+                      const SizedBox(width: 12),
 
-                      Expanded(
+                      SizedBox(
+                        width: 130, // Change as needed
                         child: ElevatedButton(
                           onPressed: onDiscard,
                           style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(120, 45),
                             backgroundColor: Colors.red,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
                             ),
-                            elevation: 5,
                           ),
-                          child: Text( discardButtonText??
-                            "Discard",
-                            style: TextStyle(
+                          child: Text(
+                            discardButtonText ?? "Discard",
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 15,
                             ),
@@ -124,7 +123,7 @@ class ExitConfirmationDialog {
                         ),
                       ),
                     ],
-                  ),
+                  )
                 ),
               ],
             ),

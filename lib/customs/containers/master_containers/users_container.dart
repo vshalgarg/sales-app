@@ -53,7 +53,7 @@ class UserContainer extends StatelessWidget {
                   ),
                 ),
 
-                Column(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
@@ -64,7 +64,7 @@ class UserContainer extends StatelessWidget {
                         bgColor: AppColors.binRedLight,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(width: 15),
                     GestureDetector(
                       onTap: editIconTap,
                       child: customIcon(

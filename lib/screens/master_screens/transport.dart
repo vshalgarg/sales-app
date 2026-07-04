@@ -39,9 +39,7 @@ class _TransportScreenState extends State<TransportScreen> {
   Widget build(BuildContext context) {
     final transportProvider = context.watch<GetTransportProvider>();
     final searchProvider = context.watch<SearchTransportProvider>();
-    final isSearching = searchController.text
-        .trim()
-        .isNotEmpty;
+    final isSearching = searchController.text.trim().isNotEmpty;
     if (transportProvider.isLoading) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -55,11 +53,10 @@ class _TransportScreenState extends State<TransportScreen> {
       appBar: CustomAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () =>
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              ),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          ),
         ),
         title: "Transport Overview",
         textStyle: TextStyle(
@@ -135,10 +132,10 @@ class _TransportScreenState extends State<TransportScreen> {
                             ? "No Transporter Found"
                             : "No Transport Available",
                         style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
                       ),
                     );
                   }
@@ -156,78 +153,94 @@ class _TransportScreenState extends State<TransportScreen> {
                           : transportProvider.transportData!.content![index];
                       final contacts = transport.contacts ?? [];
                       final firstContact =
-                      contacts != null && contacts.isNotEmpty
+                          contacts != null && contacts.isNotEmpty
                           ? contacts.first
                           : null;
                       return TransportContainer(
-                        name: transport.name ?? "",
-                        status: transport.status ?? "",
-                        gst: transport.gstNo ?? "",
-                        city: transport.city ?? "",
-                        phone: firstContact?.contactNumber ?? "",
+                        name: (transport.name?.trim().isNotEmpty ?? false)
+                            ? transport.name!
+                            : "-",
+
+                        status: (transport.status?.trim().isNotEmpty ?? false)
+                            ? transport.status!
+                            : "-",
+
+                        gst: (transport.gstNo?.trim().isNotEmpty ?? false)
+                            ? transport.gstNo!
+                            : "-",
+
+                        city: (transport.city?.trim().isNotEmpty ?? false)
+                            ? transport.city!
+                            : "-",
+
+                        phone: (firstContact?.contactNumber?.trim().isNotEmpty ?? false)
+                            ? firstContact!.contactNumber!
+                            : "-",
                         editIconTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  AddNewTransport(
-                                    mode: FormMode.edit,
-                                    id: transport.id?.toInt(),
-                                  ),
+                              builder: (context) => AddNewTransport(
+                                mode: FormMode.edit,
+                                id: transport.id?.toInt(),
+                              ),
                             ),
                           );
                         },
                         trashIconTap: () {
                           ExitConfirmationDialog.show(
-                              context,
-                              saveButtonText: "Yes",
-                              discardButtonText: "No",
-                              onClose: () {
-                                Navigator.pop(context);
-                              },
-                              onDiscard: () {
-                                Navigator.pop(context);
-                              },
-                              bodyText: "Are you sure you want to permanently delete ${transport
-                                  .name}? This action cannot be undo.",
-                              onSave: () async {
-                                final provider =
-                                Provider.of<DeleteTransportProvider>(
-                                  context,
-                                  listen: false,
-                                );
+                            context,
+                            saveButtonText: "Yes",
+                            discardButtonText: "No",
+                            onClose: () {
+                              Navigator.pop(context);
+                            },
+                            onDiscard: () {
+                              Navigator.pop(context);
+                            },
+                            bodyText:
+                                "Are you sure you want to permanently delete ${transport.name}? This action cannot be undo.",
+                            onSave: () async {
+                              final provider =
+                                  Provider.of<DeleteTransportProvider>(
+                                    context,
+                                    listen: false,
+                                  );
 
-                                await provider.deleteTransport(
-                                  transport.id!.toInt(),
+                              await provider.deleteTransport(
+                                transport.id!.toInt(),
+                              );
+                              if (!context.mounted) return;
+                              Navigator.pop(context);
+                              if (provider.error != null) {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  provider.error!,
+                                  backgroundColor: Colors.red,
                                 );
-                                if (!context.mounted) return;
-                                Navigator.pop(context);
-                                if (provider.error != null) {
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    provider.error!,
-                                    backgroundColor: Colors.red,
-                                  );
-                                } else {
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    provider.deleteResponse?.message ??
-                                        "Transport deleted successfully",
-                                  );
-                                }
-                                await context
-                                    .read<GetTransportProvider>()
-                                    .getTransportDetails();
-                              });
+                              } else {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  provider.deleteResponse?.message ??
+                                      "Transport deleted successfully",
+                                );
+                              }
+                              await context
+                                  .read<GetTransportProvider>()
+                                  .getTransportDetails();
+                            },
+                          );
                         },
                         copyIconTap: () {
                           showDialog(
-                              context: context,
-                              builder: (context) {
-                                return CustomCopyDialog(
-                                    headingText: "Transport Details",
-                                    firmName: transport.name??"");
-                              });
+                            context: context,
+                            builder: (context) {
+                              return CustomCopyDialog(
+                                headingText: "Transport Details",
+                                firmName: transport.name ?? "",
+                              );
+                            },
+                          );
                         },
                       );
                     },

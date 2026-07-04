@@ -20,8 +20,6 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("FULL DATA => ${widget.data}");
-    debugPrint("ITEMS => ${widget.data['items']}");
     return Scaffold(
       backgroundColor: const Color(0xFF9CA4DA),
       body: SafeArea(

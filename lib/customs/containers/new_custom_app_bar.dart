@@ -1,57 +1,99 @@
 import 'package:flutter/material.dart';
-
 import '../../constants/colors_used.dart';
+import '../../pop_ups/general_closing_popup.dart';
+import '../../shared_preferences/login_token.dart';
 
-class NewCustomAppBar extends StatelessWidget implements  PreferredSizeWidget {
+class NewCustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const NewCustomAppBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(60);
 
+  @override
+  State<NewCustomAppBar> createState() => _NewCustomAppBarState();
+}
+
+class _NewCustomAppBarState extends State<NewCustomAppBar> {
+  String email = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmail();
+  }
+
+  Future<void> _loadEmail() async {
+    final value = await AppStorage.getEmail();
+
+    if (!mounted) return;
+
+    setState(() {
+      email = value ?? "";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       leading: Padding(
-        padding: const EdgeInsets.all(7.0),
+        padding: const EdgeInsets.all(7),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
             color: AppColors.primaryPurple,
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Center(
+          child: const Center(
             child: Text(
               "h",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,fontSize: 18),
-            ),
-          ),
-        ),
-      ),
-      title: Text(
-        "hissabio",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: AppColors.primaryPurple,
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.all(7.0),
-          child: CircleAvatar(
-            backgroundColor: AppColors.primaryPurpleLight,
-            child: Text(
-              "A",
               style: TextStyle(
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primaryPurple,
+                fontSize: 18,
               ),
             ),
           ),
         ),
+      ),
+      title: const Text(
+        "hissabio",
+        style: TextStyle(
+          color: AppColors.primaryPurple,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed:(){
+            ExitConfirmationDialog.show(
+              context,
+              bodyText: "Are you sure you want to logout?",
+              saveButtonText: "Logout",
+              discardButtonText: "Cancel",
 
+              onSave: () async {
+                // Clear local storage
+                await AppStorage.clear();
+
+                if (!context.mounted) return;
+
+                Navigator.pop(context); // Close dialog
+
+                // Navigate to login screen if needed
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+
+              onDiscard: () {
+                Navigator.pop(context); // Close dialog
+              },
+
+              onClose: () {
+                Navigator.pop(context); // Close dialog
+              },
+            );
+          },
+        ),
       ],
     );
   }
-
-
 }

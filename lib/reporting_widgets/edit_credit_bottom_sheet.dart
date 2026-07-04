@@ -116,19 +116,18 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
 
     paymentType = widget.credit.paymentType;
     drawType = widget.credit.drawType;
-    print("PAYMENT TYPE => ${widget.credit.paymentType}");
-    print("DRAW TYPE => ${widget.credit.drawType}");
     supplier = widget.credit.supplierName;
     customer = widget.credit.customerName;
 
-    Future.microtask(() async {
-      final provider = Provider.of<EntriesProvider>(context, listen: false);
+    final provider = Provider.of<EntriesProvider>(context, listen: false);
+    if (provider.entries.isEmpty) {
+      provider.fetchSuppliers();
+    }
 
-      await provider.fetchSuppliers();
-      await provider.fetchCustomer();
-    });
+    if (provider.customerEntries.isEmpty) {
+      provider.fetchCustomer();
+    }
   }
-
   @override
   void dispose() {
     invoiceController.dispose();
@@ -161,8 +160,8 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
     final width = MediaQuery.of(context).size.width;
 
     return SafeArea(
-      child: Container(
-        color: Color(0xFF9CA4DA),
+      child: Material(
+        color:const  Color(0xFF9CA4DA),
         child: Column(
           children: [
             Container(
@@ -185,6 +184,10 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
                     ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white),
                   ),
                 ],
               ),
@@ -347,8 +350,6 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                                 ),
                                 onPressed: () async {
                                   try {
-                                    print("SENDING DATE => ${dateController.text}");
-
                                     await updateCredit(
                                       id: widget.credit.id!,
                                       date: dateController.text,

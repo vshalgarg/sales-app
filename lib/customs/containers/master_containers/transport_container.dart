@@ -41,7 +41,7 @@ class TransportContainer extends StatelessWidget {
         ),
         child: IntrinsicHeight(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5),
+            padding: const EdgeInsets.all(15),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -56,7 +56,7 @@ class TransportContainer extends StatelessWidget {
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(2.0),
+                          padding: const EdgeInsets.all(5.0),
                           child: Text(
                             status ?? "",
                             style: TextStyle(
@@ -66,6 +66,7 @@ class TransportContainer extends StatelessWidget {
                           ),
                         ),
                       ),
+                      SizedBox(height: 5),
                       Text(
                         name ?? "",
                         maxLines: 3,
@@ -74,15 +75,31 @@ class TransportContainer extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 15,
                           color: AppColors.primaryPurple,
-                          fontWeight: FontWeight.w200,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       SizedBox(height: 5),
-                      Text(
-                        "Phone:$phone",
-                        style: TextStyle(fontSize: 13, color: Colors.black),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "Phone: ",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            phone!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
-                      //SizedBox(height: 5),
+                      SizedBox(height: 5),
                       Expanded(
                         child: Row(
                           children: [
@@ -94,6 +111,7 @@ class TransportContainer extends StatelessWidget {
 
                               style: TextStyle(
                                 fontSize: 13,
+                                fontWeight:FontWeight.w600 ,
                                 color: Colors.black,
                               ),
                             ),
@@ -110,12 +128,14 @@ class TransportContainer extends StatelessWidget {
                           ],
                         ),
                       ),
-                      //SizedBox(height: 5),
+                      SizedBox(height: 5),
                       Row(
                         children: [
                           Text(
                             "City:",
-                            style: TextStyle(fontSize: 13, color: Colors.black),
+                            style: TextStyle(fontSize: 13,
+                                fontWeight:FontWeight.w600 ,
+                                color: Colors.black),
                           ),
                           Text(
                             city ?? "",

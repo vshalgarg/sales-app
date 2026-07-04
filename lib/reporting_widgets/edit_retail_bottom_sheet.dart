@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/colors_used.dart';
@@ -35,8 +36,8 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
   // Expand/Collapse
 
   bool retailerExpanded = true;
-  bool depositExpanded = true;
-  bool historyExpanded = true;
+  bool depositExpanded = false;
+  bool historyExpanded = false;
 
   // Loading
 
@@ -50,34 +51,32 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final retailProvider = context.read<RetailDetailsProvider>();
-
       final entriesProvider = context.read<EntriesProvider>();
-
       final staffProvider = context.read<StaffProvider>();
 
       await Future.wait([
         retailProvider.fetchRetailDetails(widget.retailId),
-
         retailProvider.fetchDepositHistory(widget.retailId),
-
-        entriesProvider.fetchCustomer(),
-
-        staffProvider.fetchStaffs(),
       ]);
 
+      if (entriesProvider.customerEntries.isEmpty) {
+        await entriesProvider.fetchCustomer();
+      }
+
+      if (staffProvider.staffs.isEmpty) {
+        await staffProvider.fetchStaffs();
+      }
       final retail = retailProvider.retailDetails;
+
       depositAmountControllers.clear();
       depositDateControllers.clear();
       if (retail != null) {
         for (int i = 0; i < retail.suppliers.length; i++) {
           depositAmountControllers.add(TextEditingController());
-
           depositDateControllers.add(TextEditingController());
         }
         retailerController.text = retail.name;
-
         dateController.text = retail.date;
-
         selectedCustomerId = retail.customerId;
         selectedStaffId = retail.staffId;
       }
@@ -120,74 +119,133 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
     );
 
     if (picked != null) {
-      dateController.text = picked.toIso8601String().split("T").first;
-
-      setState(() {});
+      dateController.text = DateFormat('dd-MM-yyyy').format(picked);
     }
   }
 
   // Build
+  Widget _historyButton({
+    required String title,
+    required String value,
+    required Color color,
+    required int index,
+  }) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (expandedSupplierIndex == index) {
+            expandedSupplierIndex = null;
+          } else {
+            expandedSupplierIndex = index;
+          }
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: color),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: Column(
+          children: [
+            Text(
+              title,
+              style: TextStyle(color: color, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              "Edit Retail",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context,true),
+            icon: Icon(Icons.close, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<RetailDetailsProvider, EntriesProvider, StaffProvider>(
-      builder:
-          (context, retailProvider, entriesProvider, staffProvider, child) {
-            if (retailProvider.isLoading || !initialized) {
-              return const SizedBox(
-                height: 500,
+    final retailProvider = context.read<RetailDetailsProvider>();
+    final entriesProvider = context.read<EntriesProvider>();
+    final staffProvider = context.read<StaffProvider>();
 
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
+    if (retailProvider.isLoading || !initialized) {
+      return const SizedBox(
+        height: 500,
+        child: Center(
+            child: CircularProgressIndicator()),
+      );
+    }
 
-            final retail = retailProvider.retailDetails!;
+    final retail = retailProvider.retailDetails!;
 
-            return Container(
-              height: MediaQuery.of(context).size.height * .92,
+    return Container(
+      height: MediaQuery.of(context).size.height * .92,
 
-              decoration: const BoxDecoration(
-                color: AppColors.bodyFillColor,
+      decoration: const BoxDecoration(
+        color: AppColors.bodyFillColor,
 
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(25),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(25),
 
-                  topRight: Radius.circular(25),
-                ),
-              ),
+          topRight: Radius.circular(25),
+        ),
+      ),
 
-              child: SafeArea(
+      child: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+
                 child: Column(
                   children: [
-                    _buildHeader(),
-
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-
-                        child: Column(
-                          children: [
-                            _buildRetailInfo(
-                              retail,
-                              retailProvider,
-                              entriesProvider,
-                              staffProvider,
-                            ),
-
-                            const SizedBox(height: 20),
-                            _buildDepositSection(retail),
-
-                            const SizedBox(height: 20),
-                            _buildHistorySection(retailProvider),
-                          ],
-                        ),
-                      ),
+                    _buildRetailInfo(
+                      retail,
+                      retailProvider,
+                      entriesProvider,
+                      staffProvider,
                     ),
+
+                    const SizedBox(height: 20),
+                    _buildDepositSection(retail),
+
+                    const SizedBox(height: 20),
+                    _buildHistorySection(retailProvider),
                   ],
                 ),
               ),
-            );
-          },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -214,7 +272,13 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
           InkWell(
             onTap: () {
               setState(() {
-                retailerExpanded = !retailerExpanded;
+                if (!retailerExpanded) {
+                  retailerExpanded = true;
+                  depositExpanded = false;
+                  historyExpanded = false;
+                } else {
+                  retailerExpanded = false;
+                }
               });
             },
             child: Container(
@@ -254,153 +318,135 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Retailer",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            TextFormField(
-                              controller: retailerController,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ],
-                        ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: retailerController,
+                    decoration: const InputDecoration(
+                      labelText: "Retailer",
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: dateController,
+                    readOnly: true,
+                    onTap: pickDate,
+                    decoration: InputDecoration(
+                      labelText: "Date",
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.calendar_today),
+                        onPressed: pickDate,
+                      ),
+                    ),
+                  ),
 
-                      const SizedBox(width: 12),
+                  const SizedBox(height: 16),
 
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Date",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
+                  DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    value: customerIds.contains(selectedCustomerId)
+                        ? selectedCustomerId
+                        : null,
+                    decoration: const InputDecoration(
+                      labelText: "Referred By",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: entriesProvider.customerEntries.map((customer) {
+                      return DropdownMenuItem<int>(
+                        value: customer.id!.toInt(),
+                        child: Text(customer.customerName ?? ""),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCustomerId = value;
+                      });
+                    },
+                  ),
 
-                            const SizedBox(height: 8),
+                  const SizedBox(height: 16),
 
-                            TextFormField(
-                              controller: dateController,
-                              readOnly: true,
-                              onTap: pickDate,
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                suffixIcon: IconButton(
-                                  icon: const Icon(Icons.calendar_today),
-                                  onPressed: pickDate,
+                  DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    value: staffIds.contains(selectedStaffId)
+                        ? selectedStaffId
+                        : null,
+                    decoration: const InputDecoration(
+                      labelText: "Staff",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: staffProvider.staffs.map((staff) {
+                      return DropdownMenuItem<int>(
+                        value: staff.staffId,
+                        child: Text(staff.staffName),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedStaffId = value;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+                  Center(
+                    child: SizedBox(
+                      width: 220,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4057A6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                        ),
+                        ),
+                        onPressed: () async {
+                          final success = await retailProvider.updateRetail(
+                            retailId: retail.retailId,
+                            name: retailerController.text,
+                            date: dateController.text,
+                            referredByCustomerId: selectedCustomerId!,
+                            staffId: selectedStaffId,
+                          );
+
+                          if (success && mounted) {
+                            context.read<RetailProvider>().fetchRetails();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Retail Updated Successfully"),
+                              ),
+                            );
+                          }
+                        },
+                        child: retailProvider.isUpdating
+                            ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                            : Text(
+                                "SAVE INFO",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<int>(
-                          isExpanded: true,
-                          value: customerIds.contains(selectedCustomerId)
-                              ? selectedCustomerId
-                              : null,
-                          decoration: const InputDecoration(
-                            labelText: "Referred By",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: entriesProvider.customerEntries.map((
-                            customer,
-                          ) {
-                            return DropdownMenuItem<int>(
-                              value: customer.id!.toInt(),
-                              child: Text(customer.customerName ?? ""),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedCustomerId = value;
-                            });
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      Expanded(
-                        child: DropdownButtonFormField<int>(
-                          isExpanded: true,
-                          value: staffIds.contains(selectedStaffId)
-                              ? selectedStaffId
-                              : null,
-                          decoration: const InputDecoration(
-                            labelText: "Staff",
-                            border: OutlineInputBorder(),
-                          ),
-                          items: staffProvider.staffs.map((staff) {
-                            return DropdownMenuItem<int>(
-                              value: staff.staffId,
-                              child: Text(staff.staffName),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedStaffId = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4057A6),
-                      ),
-                      onPressed: () async {
-                        final success = await retailProvider.updateRetail(
-                          retailId: retail.retailId,
-                          name: retailerController.text,
-                          date: dateController.text,
-                          referredByCustomerId: selectedCustomerId!,
-                          staffId: selectedStaffId,
-                        );
-                        if (success && mounted) {
-                          context.read<RetailProvider>().fetchRetails();
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Retail Updated Successfully"),
-                            ),
-                          );
-                        }
-                      },
-                      child: retailProvider.isUpdating
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              "SAVE INFO",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                     ),
                   ),
                 ],
@@ -430,7 +476,13 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
           InkWell(
             onTap: () {
               setState(() {
-                depositExpanded = !depositExpanded;
+                if (!depositExpanded) {
+                  depositExpanded = true;
+                  retailerExpanded = false;
+                  historyExpanded = false;
+                } else {
+                  depositExpanded = false;
+                }
               });
             },
             child: Container(
@@ -471,11 +523,8 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: retail.suppliers.length,
-                    itemBuilder: (context, index) {
+                  Column(
+                    children: List.generate(retail.suppliers.length, (index) {
                       final supplier = retail.suppliers[index];
 
                       return Container(
@@ -485,285 +534,195 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                           border: Border.all(color: const Color(0xFFE2E2E2)),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            if (constraints.maxWidth > 700) {
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: TextFormField(
-                                      readOnly: true,
-                                      initialValue: supplier.supplierName,
-                                      decoration: const InputDecoration(
-                                        labelText: "Supplier",
-                                        border: OutlineInputBorder(),
-                                      ),
-                                    ),
-                                  ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: "Supplier",
+                                border: OutlineInputBorder(),
+                              ),
+                              child: Text(supplier.supplierName),
+                            ),
+                            const SizedBox(height: 16),
 
-                                  const SizedBox(width: 12),
+                            InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: "Balance",
+                                border: OutlineInputBorder(),
+                              ),
+                              child: Text(
+                                supplier.balanceAmount.toString(),
+                              ),
+                            ),
 
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      readOnly: true,
-                                      initialValue: supplier.balanceAmount
-                                          .toString(),
-                                      decoration: const InputDecoration(
-                                        labelText: "Balance",
-                                        border: OutlineInputBorder(),
-                                      ),
-                                    ),
-                                  ),
+                            const SizedBox(height: 16),
 
-                                  const SizedBox(width: 12),
+                            TextFormField(
+                              controller: depositDateControllers[index],
+                              readOnly: true,
+                              onTap: () async {
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2024),
+                                  lastDate: DateTime(2100),
+                                );
 
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      controller: depositDateControllers[index],
-                                      readOnly: true,
-                                      onTap: () async {
-                                        final picked = await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime.now(),
-                                          firstDate: DateTime(2024),
-                                          lastDate: DateTime(2100),
-                                        );
+                                if (picked != null) {
+                                  depositDateControllers[index].text =
+                                      DateFormat('dd-MM-yyyy').format(picked);
+                                }
+                              },
+                              decoration: const InputDecoration(
+                                labelText: "Date",
+                                border: OutlineInputBorder(),
+                                suffixIcon: Icon(Icons.calendar_today),
+                              ),
+                            ),
 
-                                        if (picked != null) {
-                                          depositDateControllers[index].text =
-                                              picked
-                                                  .toIso8601String()
-                                                  .split('T')
-                                                  .first;
-                                        }
-                                      },
-                                      decoration: const InputDecoration(
-                                        labelText: "Date",
-                                        border: OutlineInputBorder(),
-                                        suffixIcon: Icon(Icons.calendar_today),
-                                      ),
-                                    ),
-                                  ),
+                            const SizedBox(height: 16),
 
-                                  const SizedBox(width: 12),
-
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      controller:
-                                          depositAmountControllers[index],
-                                      keyboardType: TextInputType.number,
-                                      decoration: const InputDecoration(
-                                        labelText: "Amount",
-                                        border: OutlineInputBorder(),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-
-                            return Column(
-                              children: [
-                                TextFormField(
-                                  readOnly: true,
-                                  initialValue: supplier.supplierName,
-                                  decoration: const InputDecoration(
-                                    labelText: "Supplier",
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 12),
-
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextFormField(
-                                        readOnly: true,
-                                        initialValue: supplier.balanceAmount
-                                            .toString(),
-                                        decoration: const InputDecoration(
-                                          labelText: "Balance",
-                                          border: OutlineInputBorder(),
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(width: 12),
-
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller:
-                                            depositDateControllers[index],
-                                        readOnly: true,
-                                        onTap: () async {
-                                          final picked = await showDatePicker(
-                                            context: context,
-                                            initialDate: DateTime.now(),
-                                            firstDate: DateTime(2024),
-                                            lastDate: DateTime(2100),
-                                          );
-
-                                          if (picked != null) {
-                                            depositDateControllers[index].text =
-                                                picked
-                                                    .toIso8601String()
-                                                    .split('T')
-                                                    .first;
-                                          }
-                                        },
-                                        decoration: const InputDecoration(
-                                          labelText: "Date",
-                                          border: OutlineInputBorder(),
-                                          suffixIcon: Icon(
-                                            Icons.calendar_today,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 12),
-
-                                TextFormField(
-                                  controller: depositAmountControllers[index],
-                                  keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    labelText: "Amount",
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
+                            TextFormField(
+                              controller: depositAmountControllers[index],
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: "Amount",
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ],
                         ),
                       );
-                    },
+                    }),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
 
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: Consumer<RetailDetailsProvider>(
-                      builder: (context, provider, child) {
-                        return ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4057A6),
-                          ),
-                          onPressed: provider.isSavingDeposits
-                              ? null
-                              : () async {
-                                  final List<DepositItem> items = [];
+                  Center(
+                    child: SizedBox(
+                      width: 220,
+                      height: 50,
+                      child: Consumer<RetailDetailsProvider>(
+                        builder: (context, provider, child) {
+                          return ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4057A6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: provider.isSavingDeposits
+                                ? null
+                                : () async {
+                                    final List<DepositItem> items = [];
 
-                                  for (
-                                    int i = 0;
-                                    i < retail.suppliers.length;
-                                    i++
-                                  ) {
-                                    final amount = depositAmountControllers[i]
-                                        .text
-                                        .trim();
+                                    for (
+                                      int i = 0;
+                                      i < retail.suppliers.length;
+                                      i++
+                                    ) {
+                                      final amount = depositAmountControllers[i]
+                                          .text
+                                          .trim();
 
-                                    final date = depositDateControllers[i].text
-                                        .trim();
+                                      final date = depositDateControllers[i]
+                                          .text
+                                          .trim();
 
-                                    if (amount.isEmpty || date.isEmpty) {
-                                      continue;
-                                    }
+                                      if (amount.isEmpty || date.isEmpty) {
+                                        continue;
+                                      }
 
-                                    final parsedAmount = int.tryParse(amount);
+                                      final parsedAmount = int.tryParse(amount);
 
-                                    if (parsedAmount == null) {
-                                      continue;
-                                    }
+                                      if (parsedAmount == null) {
+                                        continue;
+                                      }
 
-                                    items.add(
-                                      DepositItem(
-                                        retailSupplierId: retail
-                                            .suppliers[i]
-                                            .retailSupplierId,
-                                        depositDate: date,
-                                        amount: parsedAmount,
-                                      ),
-                                    );
-                                  }
-
-                                  if (items.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Please enter at least one deposit",
+                                      items.add(
+                                        DepositItem(
+                                          retailSupplierId: retail
+                                              .suppliers[i]
+                                              .retailSupplierId,
+                                          depositDate: date,
+                                          amount: parsedAmount,
                                         ),
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  print("Saving Deposits...");
-                                  final success = await provider.addDeposits(
-                                    AddDepositModel(deposits: items),
-                                  );
-                                  print("Success: $success");
-                                  if (!mounted) return;
-
-                                  if (success) {
-                                    await provider.fetchRetailDetails(
-                                      widget.retailId,
-                                    );
-                                    for (final supplier
-                                        in provider.retailDetails!.suppliers) {
-                                      print(
-                                        "${supplier.supplierName} Balance: ${supplier.balanceAmount}",
                                       );
                                     }
-                                    await provider.fetchDepositHistory(
-                                      widget.retailId,
-                                    );
 
+                                    if (items.isEmpty) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Please enter at least one deposit",
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    final success = await provider.addDeposits(
+                                      AddDepositModel(deposits: items),
+                                    );
+                                    debugPrint("Success: $success");
                                     if (!mounted) return;
 
-                                    for (final controller
-                                        in depositAmountControllers) {
-                                      controller.clear();
-                                    }
+                                    if (success) {
+                                      await provider.fetchRetailDetails(
+                                        widget.retailId,
+                                      );
+                                      for (final supplier
+                                          in provider
+                                              .retailDetails!
+                                              .suppliers) {
+                                      }
+                                      await provider.fetchDepositHistory(
+                                        widget.retailId,
+                                      );
 
-                                    for (final controller
-                                        in depositDateControllers) {
-                                      controller.clear();
-                                    }
+                                      if (!mounted) return;
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Deposits Added Successfully",
+                                      for (final controller
+                                          in depositAmountControllers) {
+                                        controller.clear();
+                                      }
+
+                                      for (final controller
+                                          in depositDateControllers) {
+                                        controller.clear();
+                                      }
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Deposits Added Successfully",
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }
-                                },
-                          child: provider.isSavingDeposits
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
+                                      );
+                                    }
+                                  },
+                            child: provider.isSavingDeposits
+                                ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                                : const Text(
+                                    "SAVE DEPOSITS",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                )
-                              : const Text(
-                                  "SAVE DEPOSITS",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -786,7 +745,13 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
           InkWell(
             onTap: () {
               setState(() {
-                historyExpanded = !historyExpanded;
+                if (!historyExpanded) {
+                  historyExpanded = true;
+                  retailerExpanded = false;
+                  depositExpanded = false;
+                } else {
+                  historyExpanded = false;
+                }
               });
             },
             child: Container(
@@ -824,11 +789,8 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
           ),
 
           if (historyExpanded)
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: provider.depositHistory.length,
-              itemBuilder: (context, index) {
+            Column(
+              children: List.generate(provider.depositHistory.length, (index) {
                 final supplier = provider.depositHistory[index];
 
                 return Padding(
@@ -923,33 +885,39 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                                 ),
                               ),
 
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: supplier.deposits.length,
-                                separatorBuilder: (_, __) =>
-                                    const Divider(height: 1),
-                                itemBuilder: (_, i) {
-                                  final deposit = supplier.deposits[i];
+                              Column(
+                                children: List.generate(
+                                  supplier.deposits.length,
+                                  (i) {
+                                    final deposit = supplier.deposits[i];
 
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    child: Row(
+                                    return Column(
                                       children: [
-                                        Expanded(child: Text(deposit.date)),
-                                        Expanded(
-                                          child: Text(
-                                            "₹${deposit.amount}",
-                                            textAlign: TextAlign.end,
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(deposit.date),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  "₹${deposit.amount}",
+                                                  textAlign: TextAlign.end,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
+                                        if (i != supplier.deposits.length - 1)
+                                          const Divider(height: 1),
                                       ],
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -958,71 +926,8 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                     ],
                   ),
                 );
-              },
+              }),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _historyButton({
-    required String title,
-    required String value,
-    required Color color,
-    required int index,
-  }) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          if (expandedSupplierIndex == index) {
-            expandedSupplierIndex = null;
-          } else {
-            expandedSupplierIndex = index;
-          }
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          border: Border.all(color: color),
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: Column(
-          children: [
-            Text(
-              title,
-              style: TextStyle(color: color, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: Row(
-        children: [
-          const Expanded(
-            child: Text(
-              "Edit Retail",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close, color: Colors.white),
-          ),
         ],
       ),
     );

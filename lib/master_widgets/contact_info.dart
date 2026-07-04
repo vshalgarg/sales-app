@@ -111,6 +111,7 @@ class _ContactInfoState extends State<ContactInfo> {
                       ),
                       TextFormField(
                         keyboardType: TextInputType.number,
+                        maxLength: 10,
                         enabled: widget.mode != FormMode.view,
                         controller: contact.mobile,
                         decoration: InputDecoration(
@@ -151,23 +152,26 @@ class _ContactInfoState extends State<ContactInfo> {
           SizedBox(height: 10),
           widget.mode == FormMode.view
               ? SizedBox()
-              : Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: Colors.white),
-                  ),
-                  child: TextButton(
-                    onPressed: widget.onAdd,
-                    child: const Text(
-                      "+ ADD CONTACT",
-                      style: TextStyle(
-                        color: AppColors.primaryPurple,
-                        fontSize: 15,
-                      ),
-                    ),
+              : Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(color: Colors.white),
+              ),
+              child: TextButton(
+                onPressed: widget.onAdd,
+                child: const Text(
+                  "+ ADD CONTACT",
+                  style: TextStyle(
+                    color: AppColors.primaryPurple,
+                    fontSize: 15,
                   ),
                 ),
+              ),
+            ),
+          ),
         ],
       ],
     );

@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -9,7 +10,6 @@ class LoginApi {
 //var baseurl=
 
     final url = Uri.parse("http://192.168.1.100:8087/csm/api/v1/login");
-    print("Login URL => $url");
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},

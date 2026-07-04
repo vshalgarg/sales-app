@@ -304,11 +304,11 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                         onPressed: () {
                           final text =
                               '''
-Firm Name : ${firmName ?? ""}
-Address   : ${address ?? ""}
-Contacts  : ${contact ?? ""}
-Email     : ${emails ?? ""}
-GST       : ${gstNo ?? ""}
+*Firm Name* : ${firmName ?? ""}
+*Address*   : ${address ?? ""}
+*Contacts*  : ${contact ?? ""}
+*Email*     : ${emails ?? ""}
+*GST*       : ${gstNo ?? ""}
 ''';
 
                           Clipboard.setData(ClipboardData(text: text));

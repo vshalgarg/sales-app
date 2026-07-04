@@ -3,18 +3,41 @@ import 'package:hisabio/customs/containers/new_custom_app_bar.dart';
 import 'package:hisabio/customs/widget_menu.dart';
 import 'package:hisabio/screens/reporting_screen/bills.dart';
 import 'package:hisabio/screens/reporting_screen/credit.dart';
+import 'package:hisabio/screens/reporting_screen/ledger.dart';
 import 'package:hisabio/screens/reporting_screen/purchase.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
 import '../constants/colors_used.dart';
+import '../shared_preferences/login_token.dart';
 import 'master_screens/customer.dart';
 import 'master_screens/staff.dart';
 import 'master_screens/supplier.dart';
 import 'master_screens/transport.dart';
 import 'master_screens/users.dart';
+import 'monitoring_screens/charts_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+class _HomeScreenState extends State<HomeScreen> {
+  String email = "";
+  @override
+  void initState() {
+    super.initState();
+    _loadEmail();
+  }
+  Future<void> _loadEmail() async {
+    final value = await AppStorage.getEmail();
 
+    setState(() {
+      if (value != null && value.contains("@")) {
+        email = value.split("@").first;
+      } else {
+        email = value ?? "";
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,9 +54,9 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.only(left: 20.0, top: 20, bottom: 10),
+                padding: const EdgeInsets.all(15),
                 child: Text(
-                  "Hello Amit",
+                  "Hello $email",
                   style: TextStyle(
                     fontSize: 18,
                     color: AppColors.primaryPurple,
@@ -42,8 +65,9 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
+            SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(30.0),
               child: Column(
                 children: [
                   GridView.count(
@@ -153,12 +177,15 @@ class HomeScreen extends StatelessWidget {
                       menuItemCard(
                         imagePath: "assets/images/ledger.png",
                         title: "Ledger",
-                        onTap: () {},
+                        onTap: () {Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => LedgerReporting()));},
                       ),
                       menuItemCard(
                         imagePath: "assets/images/charts.png",
                         title: "Charts",
-                        onTap: () {},
+                        onTap: () {Navigator.push(context, MaterialPageRoute(builder:(context)=>ChartsScreen()));},
                       ),
                     ],
                   ),

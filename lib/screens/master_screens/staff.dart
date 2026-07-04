@@ -21,6 +21,7 @@ class StaffScreen extends StatefulWidget {
 }
 
 class _StaffScreenState extends State<StaffScreen> {
+  final ScrollController _scrollController = ScrollController();
   final searchStaffController = TextEditingController();
   Timer? _debounce;
 
@@ -29,12 +30,20 @@ class _StaffScreenState extends State<StaffScreen> {
     super.initState();
 
     Future.microtask(() {
-      context.read<GetStaffProvider>().getStaff();
+      context.read<GetStaffProvider>().getStaff(refresh: true);
+    });
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        context.read<GetStaffProvider>().getStaff();
+      }
     });
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     searchStaffController.dispose();
     _debounce?.cancel();
     super.dispose();
@@ -66,7 +75,7 @@ class _StaffScreenState extends State<StaffScreen> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             Container(
@@ -117,7 +126,7 @@ class _StaffScreenState extends State<StaffScreen> {
                       .isNotEmpty;
                   final List<dynamic> staffs = isSearching
                       ? searchProvider.searchStaffModel?.content ?? []
-                      : staffProvider.staffData?.content ?? [];
+                      : staffProvider.staffs;
                   if (searchProvider.isLoading && isSearching) {
                     return const Center(child: CircularProgressIndicator());
                   }
@@ -136,13 +145,25 @@ class _StaffScreenState extends State<StaffScreen> {
                       ),
                     );
                   }
-                  return ListView.separated(
-                    separatorBuilder: (context, index) {
-                      return SizedBox(height: 10);
-                    },
-                    itemCount: staffs.length,
+               return ListView.separated(
+                    controller: _scrollController,
+                    separatorBuilder: (context, index) => const SizedBox(height: 10),
+                    itemCount: staffs.length +
+                        ((!isSearching && staffProvider.isLoadingMore) ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (!isSearching &&
+                          index == staffs.length &&
+                          staffProvider.isLoadingMore) {
+                        return const Padding(
+                          padding: EdgeInsets.all(15),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
                       final staff = staffs[index];
+
                       return StaffContainer(
                         elevation: 1,
                         name: staff.staffName ?? "",
@@ -151,7 +172,7 @@ class _StaffScreenState extends State<StaffScreen> {
                         editIconTap: () {
                           showDialog(
                             context: context,
-                            builder: (context) => AddStaffDialog(
+                            builder: (_) => AddStaffDialog(
                               mode: StaffMode.edit,
                               id: staff.staffId,
                             ),
@@ -162,36 +183,34 @@ class _StaffScreenState extends State<StaffScreen> {
                             context,
                             saveButtonText: "Yes",
                             discardButtonText: "No",
-                            onClose: () {
-                              Navigator.pop(context);
-                            },
-                            onDiscard: () {
-                              Navigator.pop(context);
-                            },
+                            onClose: () => Navigator.pop(context),
+                            onDiscard: () => Navigator.pop(context),
                             bodyText:
-                                "Are you sure you want to permanently delete ${staff.staffName ?? ""}? This action cannot be undo.",
-
+                            "Are you sure you want to permanently delete ${staff.staffName ?? ""}? This action cannot be undo.",
                             onSave: () async {
-                              await context
-                                  .read<DeleteStaffProvider>()
-                                  .deleteStaff({"staffId": staff.staffId});
+                              await context.read<DeleteStaffProvider>().deleteStaff({
+                                "staffId": staff.staffId,
+                              });
+
                               if (!context.mounted) return;
+
                               Navigator.pop(context);
+
                               if (deleteProvider.errorMessage != null) {
                                 ScaffoldSnackBar.show(
                                   context,
                                   deleteProvider.errorMessage!,
                                 );
-
                                 return;
                               }
-                              if (!context.mounted) return;
+
                               ScaffoldSnackBar.show(
                                 context,
                                 deleteProvider.deleteStaffResponse?.message ??
                                     "Deleted Successfully",
                               );
-                              await context.read<GetStaffProvider>().getStaff();
+
+                              await context.read<GetStaffProvider>().refreshStaff();
                             },
                           );
                         },

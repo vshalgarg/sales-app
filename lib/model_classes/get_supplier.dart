@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// content : [{"id":1636,"code":"S001626","supplierName":"QSSD","supplierGstNo":null,"address":"","city":null,"mobile":"98888888888"},{"id":1635,"code":"S001625","supplierName":"tarun Traders","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1634,"code":"S001624","supplierName":"ABCd Traders","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1633,"code":"S001623","supplierName":"ABCd Traders","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1632,"code":"S001622","supplierName":"ABCd Traders","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1631,"code":"S001621","supplierName":"ABCd Traders","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1630,"code":"S001620","supplierName":"ABCd Traders","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1629,"code":"S001619","supplierName":"Owais Welders Pvt. Ltd.","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1628,"code":"S001618","supplierName":"ABCd Traders","supplierGstNo":null,"address":"","city":null,"mobile":null},{"id":1627,"code":"S001617","supplierName":"test search","supplierGstNo":null,"address":"","city":null,"mobile":"995306061234453"}]
 /// page : 1
 /// size : 10
@@ -12,14 +14,14 @@ class GetSupplier {
       num? size, 
       num? totalElements, 
       num? totalPages, 
-      bool? last,}){
+      bool? last,}) {
     _content = content;
     _page = page;
     _size = size;
     _totalElements = totalElements;
     _totalPages = totalPages;
     _last = last;
-}
+  }
 
   GetSupplier.fromJson(dynamic json) {
     if (json['content'] != null) {

@@ -38,6 +38,7 @@ import 'package:hisabio/provider/update_staff_provider.dart';
 import 'package:hisabio/provider/update_supplier_provider.dart';
 import 'package:hisabio/provider/user_all_provider.dart';
 import 'package:hisabio/screens/login_screen.dart';
+import 'package:hisabio/screens/splash_screen.dart';
 //import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:provider/provider.dart';
 
@@ -94,7 +95,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+     // title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textTheme: GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
@@ -116,7 +117,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryPurple),
       ),
-      home: const LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }

@@ -13,16 +13,19 @@ class CreditProvider extends ChangeNotifier {
   bool last = false;
 
   Future<void> fetchCredits({
+    int page = 0,
+    int size = 20,
+    bool isLoadMore = false,
     String? fromDate,
     String? toDate,
     int? supplierId,
     int? customerId,
-    int page = 0,
-    int size = 7,
   }) async {
     try {
-      isLoading = true;
-      notifyListeners();
+      if (!isLoadMore) {
+        isLoading = true;
+        notifyListeners();
+      }
 
       final response = await searchCredits(
         fromDate: fromDate,
@@ -33,19 +36,18 @@ class CreditProvider extends ChangeNotifier {
         size: size,
       );
 
-      credits = response.content;
+      if (isLoadMore) {
+        credits.addAll(response.content);
+      } else {
+        credits = response.content;
+      }
 
-      // ASCENDING ORDER BY ID
+      // Sort descending by bill number
       credits.sort((a, b) {
-        final aNum = int.tryParse(
-          (a.billNumber ?? "0").split('-').last,
-        ) ??
-            0;
-
-        final bNum = int.tryParse(
-          (b.billNumber ?? "0").split('-').last,
-        ) ??
-            0;
+        final aNum =
+            int.tryParse((a.billNumber ?? "0").split('-').last) ?? 0;
+        final bNum =
+            int.tryParse((b.billNumber ?? "0").split('-').last) ?? 0;
 
         return bNum.compareTo(aNum);
       });
@@ -55,9 +57,7 @@ class CreditProvider extends ChangeNotifier {
       last = response.last;
 
       for (final item in credits) {
-        debugPrint(
-          "ID=${item.id} DATE=${item.date}",
-        );
+        debugPrint("ID=${item.id} DATE=${item.date}");
       }
     } catch (e) {
       debugPrint("Credit Error: $e");
@@ -66,9 +66,11 @@ class CreditProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
   void clearCredits() {
     credits.clear();
+    page = 0;
+    totalPages = 0;
+    last = false;
     notifyListeners();
   }
 }

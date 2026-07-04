@@ -33,7 +33,7 @@ class StaffContainer extends StatelessWidget {
         ),
         child: IntrinsicHeight(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5),
+            padding: const EdgeInsets.all(15),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -62,7 +62,9 @@ class StaffContainer extends StatelessWidget {
                               softWrap: true,
                               maxLines: 3,
 
-                              style: TextStyle(fontSize: 13, color: Colors.black),
+                              style: TextStyle(fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black),
                             ),
                             Text(overflow: TextOverflow.ellipsis,
                               softWrap: true,
@@ -81,7 +83,9 @@ class StaffContainer extends StatelessWidget {
                         children: [
                           Text(
                             "Joining Date: ",
-                            style: TextStyle(fontSize: 13, color: Colors.black),
+                            style: TextStyle(fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black),
                           ),
                           Text(
                             joiningDate ?? "",

@@ -3,36 +3,76 @@ import 'package:hisabio/model_classes/get_supplier.dart';
 import 'package:hisabio/services/get_suppliers.dart';
 
 class SupplierProvider extends ChangeNotifier {
-
   final GetSuppliersApi _api = GetSuppliersApi();
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  final List<Content> suppliers = [];
 
-  String? _error;
-  String? get error => _error;
+  bool isLoading = false;
+  bool isLoadingMore = false;
+  bool hasMore = true;
 
-  GetSupplier? supplierData;
-  GetSupplier? get data => supplierData;
+  int _page = 1;
+  final int _size = 10;
 
-  Future<void> fetchSuppliers() async {
+  String? error;
 
-    _isLoading = true;
-    _error = null;
+  Future<void> fetchSuppliers({bool refresh = false}) async {
+    if (isLoading || isLoadingMore) return;
+
+    if (refresh) {
+      _page = 1;
+      suppliers.clear();
+      hasMore = true;
+      error = null;
+    }
+
+    if (!hasMore) return;
+
+    if (_page == 1) {
+      isLoading = true;
+    } else {
+      isLoadingMore = true;
+    }
+
     notifyListeners();
 
     try {
+      print("Loading page: $_page");
 
-      supplierData = await _api.getSupplier();
+      final response = await _api.getSupplier(
+        page: _page,
+        size: _size,
+      );
 
-    } catch (e) {
+      print("Response Page: ${response.page}");
+      print("Response Last: ${response.last}");
+      print("Response Count: ${response.content?.length}");
 
-      _error = e.toString();
+      final List<Content> newSuppliers = response.content ?? [];
 
-    } finally {
+      suppliers.addAll(newSuppliers);
 
-      _isLoading = false;
+      print("Total Suppliers: ${suppliers.length}");
+
+      hasMore = !(response.last ?? true);
+
+      if (hasMore) {
+        _page++;
+      }
+
+      error = null;
+    } catch (e, stackTrace) {
+      print("Supplier Exception: $e");
+      print(stackTrace);
+      error = e.toString();
+    }
+
+      isLoading = false;
+      isLoadingMore = false;
       notifyListeners();
     }
+
+  Future<void> refreshSuppliers() async {
+    await fetchSuppliers(refresh: true);
   }
 }

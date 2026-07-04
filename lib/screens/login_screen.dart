@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Image.asset("assets/images/sanjivagency.jpeg"),
+                    Image.asset("assets/images/sanjivagency.jpeg"),
                     Text(
                       "Username",
                       style: TextStyle(color: Colors.black, fontSize: 15),
@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: usernameController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        hintText: "Enter your username",
+                        hintText: "Enter your Username",
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey, width: 01),

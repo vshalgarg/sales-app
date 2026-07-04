@@ -204,9 +204,6 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
         .map((e) => e.split('/').last)
         .toList();
     items = List<Map<String, dynamic>>.from(widget.billData['items'] ?? []);
-    debugPrint("BILL DATA => ${widget.billData}");
-    debugPrint("ITEMS => $items");
-    debugPrint("ITEMS LENGTH => ${items.length}");
     if (items.isEmpty) {
       items.add({
         "pieces": "",
@@ -221,12 +218,27 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
     }
 
     Future.microtask(() async {
-      await Provider.of<EntriesProvider>(
+      final provider = Provider.of<EntriesProvider>(
         context,
         listen: false,
-      ).fetchTransport();
-    });
+      );
 
+      await Future.wait([
+        provider.fetchSuppliers(),
+        provider.fetchCustomer(),
+        provider.fetchTransport(),
+      ]);
+
+      if (!mounted) return;
+
+      setState(() {
+        selectedSupplierId =
+            widget.billData['supplierId']?.toInt();
+
+        selectedCustomerId =
+            widget.billData['customerId']?.toInt();
+      });
+    });
     selectedTransport = widget.billData['transport'];
     dateController = TextEditingController(text: widget.billData['date'] ?? '');
 
@@ -378,13 +390,24 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                     ),
 
                     const SizedBox(width: 8),
-
-                    const Text(
+                    const Expanded(
+                      child: Text(
                       "Edit Bill",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 28,
                       ),
                     ),
                   ],
@@ -541,11 +564,8 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               child: DropdownButton<int>(
                                 isExpanded: true,
 
-                                value:
-                                    provider.entries.any(
-                                      (e) =>
-                                          e.id?.toInt() == selectedSupplierId,
-                                    )
+                                value: provider.entries
+                                    .any((e) => e.id == selectedSupplierId)
                                     ? selectedSupplierId
                                     : null,
 
@@ -660,11 +680,8 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               child: DropdownButton<int>(
                                 isExpanded: true,
 
-                                value:
-                                    provider.customerEntries.any(
-                                      (e) =>
-                                          e.id?.toInt() == selectedCustomerId,
-                                    )
+                                value: provider.customerEntries
+                                    .any((e) => e.id == selectedCustomerId)
                                     ? selectedCustomerId
                                     : null,
 
@@ -688,7 +705,6 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                           );
                         },
                       );
-
                       Widget groupField = _buildField(
                         label: "Customer Group",
                         child: TextFormField(
