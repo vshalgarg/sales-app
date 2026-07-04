@@ -48,16 +48,22 @@ class _CustomMultiSelectState<T> extends State<CustomMultiSelect<T>> {
     TextEditingController searchController = TextEditingController();
 
     await showDialog(
+
       context: context,
+
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
               content: SizedBox(
+                width: double.maxFinite,
+                height: 450,
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: searchController,
@@ -86,7 +92,7 @@ class _CustomMultiSelectState<T> extends State<CustomMultiSelect<T>> {
                       controlAffinity: ListTileControlAffinity.leading,
                       onChanged: (value) {
                         setDialogState(() {
-                          selectAll = value!;
+                          selectAll = value ?? false;
 
                           if (selectAll) {
                             tempSelected = List.from(widget.items);
@@ -97,6 +103,8 @@ class _CustomMultiSelectState<T> extends State<CustomMultiSelect<T>> {
                       },
                     ),
 
+                    const Divider(),
+
                     Expanded(
                       child: ListView.builder(
                         itemCount: filteredItems.length,
@@ -104,20 +112,18 @@ class _CustomMultiSelectState<T> extends State<CustomMultiSelect<T>> {
                           final item = filteredItems[index];
 
                           return CheckboxListTile(
-                            controlAffinity:
-                            ListTileControlAffinity.leading,
+                            controlAffinity: ListTileControlAffinity.leading,
                             title: Text(widget.itemLabel(item)),
                             value: tempSelected.contains(item),
                             onChanged: (value) {
                               setDialogState(() {
-                                if (value!) {
+                                if (value == true) {
                                   tempSelected.add(item);
                                 } else {
                                   tempSelected.remove(item);
                                 }
 
-                                selectAll = tempSelected.length ==
-                                    widget.items.length;
+                                selectAll = tempSelected.length == widget.items.length;
                               });
                             },
                           );
@@ -127,7 +133,6 @@ class _CustomMultiSelectState<T> extends State<CustomMultiSelect<T>> {
                   ],
                 ),
               ),
-
               actions: [
 
                 TextButton(

@@ -25,6 +25,7 @@ import 'package:hisabio/provider/get_user_provider.dart';
 import 'package:hisabio/provider/ledger_provider.dart';
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hisabio/provider/login_provider.dart';
+import 'package:hisabio/provider/monitoring_provider/graph_provider.dart';
 import 'package:hisabio/provider/purchase_provider.dart';
 import 'package:hisabio/provider/retail_provider.dart';
 import 'package:hisabio/provider/search_bill_provider.dart';
@@ -83,6 +84,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => StaffProvider(),),
         ChangeNotifierProvider(create: (_) => RetailProvider(),),
        ChangeNotifierProvider(create: (_) => GetLedgerDetailsProvider(),),
+        ChangeNotifierProvider(create: (_) => GraphProvider(),),
       ],
       child: const MyApp(),
 
