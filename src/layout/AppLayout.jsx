@@ -199,7 +199,7 @@ const AppLayout = () => {
       </div>
 
       <main
-        className={`row-start-2 min-h-0 min-w-0 overflow-hidden px-4 bg-white dark:bg-zinc-950 ${
+        className={`row-start-2 min-h-0 min-w-0 overflow-hidden px-4 pb-4 bg-white dark:bg-zinc-950 ${
           isGraphPage ? "col-start-1" : "col-start-2"
         }`}
       >

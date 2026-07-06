@@ -34,7 +34,7 @@ export const TRANSPORT_CHIP_CLASS =
   "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200";
 
 export const CARD_GRID_SHELL_CLASS =
-  "border border-brand-surface-border dark:border-zinc-700/40 rounded-lg bg-white dark:bg-zinc-900";
+  "border border-brand-surface-border mt-2 dark:border-zinc-700/40 rounded-lg bg-white dark:bg-zinc-900";
 
 export const CARD_ACTION_BORDER_CLASS =
   "border-brand-surface-border dark:border-zinc-600/50";

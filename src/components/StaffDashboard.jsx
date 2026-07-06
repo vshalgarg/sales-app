@@ -190,7 +190,7 @@ export default function StaffDashboard() {
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       <div>
-        <div className="flex justify-between items-center mt-1 mb-3 gap-3">
+        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
           <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Staff" : "Staff Overview"}
           </h2>
@@ -224,7 +224,7 @@ export default function StaffDashboard() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 mb-2">
+      <div className="flex-1 min-h-0">
         <EntityCardGrid
           items={staffs}
           getItemKey={(staff) => staff.staffId}
