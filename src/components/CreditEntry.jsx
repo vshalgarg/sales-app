@@ -13,6 +13,12 @@ import GenericAutocomplete from "./common/GenericAutocomplete";
 import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
+import FormSection from "./common/FormSection";
+import FormFooter from "./common/FormFooter";
+import AppButton from "./common/AppButton";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { CARD_GRID_SHELL_CLASS, FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
+import { Users, Receipt, FileText } from "lucide-react";
 
 export default function CreditEntryForm() {
   const { showSnackbar } = useSnackbar();
@@ -274,39 +280,17 @@ export default function CreditEntryForm() {
 
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      {/* Card */}
-      <div className="bg-gray-50 w-full h-[91vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
-        {/* Header */}
-        <div className="
-  px-4 sm:px-6 py-3 
-  border-b border-gray-200 
-  shrink-0 
-  bg-gradient-to-r from-gray-50 to-white
-  sticky top-0 z-20
-">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-            Credit Entry
-          </h2>
-          <p className="text-sm sm:text-sm text-gray-500 mt-1">
+    <div className="flex flex-col h-full min-h-0">
+      <div className={`flex flex-col h-full min-h-0 overflow-hidden ${CARD_GRID_SHELL_CLASS}`}>
+        <div className="px-4 md:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700 shrink-0 bg-white dark:bg-zinc-900">
+          <h2 className={PAGE_TITLE_CLASS}>Credit Entry</h2>
+          <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
             Record and manage all credit transactions and payments
           </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 sm:px-8 sm:py-6 space-y-6">
-
-          {/* Party Information Card */}
-          <div className="border border-gray-200 p-4 sm:p-6 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-start mb-5">
-              <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Party Information
-                </h3>
-              </div>
-            </div>
-
-
+        <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
+          <FormSection title="Party Information" icon={Users} variantIndex={0}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Customer */}
@@ -348,21 +332,9 @@ export default function CreditEntryForm() {
               />
 
             </div>
-          </div>
+          </FormSection>
 
-
-          {/* Transaction Details Card */}
-          <div className="border border-gray-200 p-4 rounded-xl bg-white shadow-sm">
-            <div className="flex items-start mb-5">
-              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full mr-3"></div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Transaction Details
-                </h3>
-              </div>
-            </div>
-
+          <FormSection title="Transaction Details" icon={Receipt} variantIndex={1}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Payment Mode */}
               <BasicSelect
@@ -451,22 +423,12 @@ export default function CreditEntryForm() {
               />
 
             </div>
-          </div>
+          </FormSection>
 
-          {/* Additional Information */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white">
-            <div className="flex items-start mb-5">
-              <div className="w-1 h-10 bg-gradient-to-b from-orange-500 to-orange-700 rounded-full mr-3"></div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Additional Information
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Optional details
-                </p>
-              </div>
-            </div>
-
+          <FormSection title="Additional Information" icon={FileText} variantIndex={2}>
+            <p className="text-sm text-brand-search-muted dark:text-gray-400 -mt-2 mb-4">
+              Optional details
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <BasicSelect
                 name="drawType"
@@ -488,34 +450,17 @@ export default function CreditEntryForm() {
                 minRows={0}
               />
             </div>
-          </div>
-
+          </FormSection>
         </div>
 
-        {/* Footer */}
-        <div className="px-4 sm:px-8 py-3 border-t border-gray-200 bg-white shrink-0 shadow-sm">
-
-          <div className="flex items-center justify-end gap-3">
-
-            <button
-              onClick={handleReset}
-              type="button"
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Reset
-            </button>
-
-            <button
-              onClick={handleSubmit}
-              type="button"
-              className="px-5 py-2 text-sm font-semibold text-white rounded-lg bg-blue-600 hover:bg-blue-700 shadow-md"
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </button>
-
-          </div>
-        </div>
-
+        <FormFooter background="bg-white dark:bg-zinc-900 border-brand-surface-border dark:border-zinc-700">
+          <AppButton type="secondary" onClick={handleReset}>
+            Reset
+          </AppButton>
+          <AppButton type="primary" onClick={handleSubmit} loading={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </AppButton>
+        </FormFooter>
       </div>
     </div>
   );
