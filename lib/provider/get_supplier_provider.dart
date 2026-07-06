@@ -44,16 +44,11 @@ class SupplierProvider extends ChangeNotifier {
         size: _size,
       );
 
-      print("Response Page: ${response.page}");
-      print("Response Last: ${response.last}");
-      print("Response Count: ${response.content?.length}");
-
       final List<Content> newSuppliers = response.content ?? [];
 
       suppliers.addAll(newSuppliers);
 
       print("Total Suppliers: ${suppliers.length}");
-
       hasMore = !(response.last ?? true);
 
       if (hasMore) {

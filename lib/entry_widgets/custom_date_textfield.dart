@@ -7,7 +7,7 @@ class EntryDateTextField extends StatelessWidget {
   final DateTime? firstDate;
   final DateTime? lastDate;
   final VoidCallback? onTap;
-
+  final String? Function(String?)? validator;
   const EntryDateTextField({
     super.key,
     required this.label,
@@ -15,6 +15,7 @@ class EntryDateTextField extends StatelessWidget {
     this.firstDate,
     this.lastDate,
     this.onTap,
+    this.validator
   });
 
   Future<void> _selectDate(BuildContext context) async {
@@ -35,6 +36,7 @@ class EntryDateTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      validator: validator,
       readOnly: true,
       onTap: () async {
         if (onTap != null) {
@@ -46,10 +48,35 @@ class EntryDateTextField extends StatelessWidget {
       decoration: InputDecoration(
         filled: true,
         fillColor:Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5),
-          borderSide: BorderSide.none,
-        ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Colors.blue),
+          ),
+
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 1.5,
+            ),
+          ),
+
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 2,
+            ),
+          ),
         hintText: label,
         suffixIcon: const Icon(Iconsax.calendar_tick),
       ),

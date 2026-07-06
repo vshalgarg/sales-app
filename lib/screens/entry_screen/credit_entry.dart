@@ -3,6 +3,7 @@ import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
 import 'package:hisabio/screens/home_screen.dart';
+import 'package:hisabio/screens/reporting_screen/credit.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 
@@ -23,6 +24,7 @@ class CreditEntry extends StatefulWidget {
 }
 
 class _CreditEntryState extends State<CreditEntry> {
+  final _formKey = GlobalKey<FormState>();
   bool isExpanded=true;
   bool isTransactionExpanded=false;
   bool isAdditionalExpanded=false;
@@ -79,6 +81,8 @@ class _CreditEntryState extends State<CreditEntry> {
   }
 
   void clearFields() {
+    _formKey.currentState?.reset();
+
     invoiceController.clear();
     receivedAmountController.clear();
     remarksController.clear();
@@ -118,7 +122,9 @@ class _CreditEntryState extends State<CreditEntry> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
-        child: SingleChildScrollView(
+       child: Form(
+          key: _formKey,
+          child:  SingleChildScrollView(
           child: Column(
             children: [
               GestureDetector(onTap:(){
@@ -154,10 +160,16 @@ class _CreditEntryState extends State<CreditEntry> {
                    style: TextStyle(color: Colors.white, fontSize: 18),
                  ),
                     CustomApiTextField<EntriesModel>(
-                      hintText: "Supplier",
+                      hintText: "Supplier*",
                       value: selectedSupplier,
                       items: provider.entries,
                       itemLabel: (e) => e.supplierName ?? '',
+                      validator: (value) {
+                        if (value == null) {
+                          return "Supplier is required";
+                        }
+                        return null;
+                      },
                       onChanged: (value) {
                         setState(() {
                           selectedSupplier = value;
@@ -170,10 +182,16 @@ class _CreditEntryState extends State<CreditEntry> {
                    style: TextStyle(color: Colors.white, fontSize: 18),
                  ),
                     CustomApiTextField<EntriesCustomerModel>(
-                      hintText: "Customer",
+                      hintText: "Customer*",
                       value: selectedCustomer,
                       items: provider.customerEntries,
                       itemLabel: (e) => e.customerName ?? '',
+                      validator: (value) {
+                        if (value == null) {
+                          return "Customer is required";
+                        }
+                        return null;
+                      },
                       onChanged: (value) {
                         setState(() {
                           selectedCustomer = value;
@@ -217,9 +235,15 @@ class _CreditEntryState extends State<CreditEntry> {
                        style: TextStyle(color: Colors.white, fontSize: 18),
                      ),
                     CustomListTextField(
-                      hintText: "Payment Mode",
+                      hintText: "Payment Mode*",
                       value: paymentMode,
                       items: paymentModeList,
+                      validator: (value) {
+                        if (value == null) {
+                          return "Payment Mode is required";
+                        }
+                        return null;
+                      },
                       onChanged: (value) {
                         setState(() {
                           paymentMode = value;
@@ -251,7 +275,13 @@ class _CreditEntryState extends State<CreditEntry> {
                      ),
                     EntryTextField(
                       controller: referenceController,
-                      hintText: "Reference Number",
+                      hintText: "Reference Number*",
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Reference Number is required";
+                        }
+                        return null;
+                      },
                     ),
                     SizedBox(height: 10),
                      Text(
@@ -259,8 +289,14 @@ class _CreditEntryState extends State<CreditEntry> {
                        style: TextStyle(color: Colors.white, fontSize: 18),
                      ),
                     EntryDateTextField(
-                      label: "Reference Date",
+                      label: "Reference Date*",
                       controller: referenceDateController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Reference Date is required";
+                        }
+                        return null;
+                      },
                     ),
                     SizedBox(height: 10),
                     EntryDateTextField(
@@ -350,11 +386,7 @@ class _CreditEntryState extends State<CreditEntry> {
                     text: "Save",
                     textStyle: TextStyle(color: Colors.white, fontSize: 20),
                     onPressed: () async {
-                      if (selectedCustomer == null ||
-                          selectedSupplier == null ||
-                          paymentMode == null ||
-                          referenceController.text.isEmpty ||
-                          referenceDateController.text.isEmpty) {
+                      if (!_formKey.currentState!.validate()) {
                         ScaffoldSnackBar.show(
                           context,
                           "Please fill all the required fields",
@@ -372,7 +404,7 @@ class _CreditEntryState extends State<CreditEntry> {
                           context,
                           response?.message ?? "Success",
                         );
-                        clearFields();
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>Credit()));
                       } catch (e) {
                         if (!mounted) return;
                         ScaffoldSnackBar.show(context, e.toString());
@@ -383,10 +415,11 @@ class _CreditEntryState extends State<CreditEntry> {
                   ),
                 ],
               ),
+              SizedBox(height: 40),
             ],
           ),
         ),
       ),
-    );
+    ));
   }
 }

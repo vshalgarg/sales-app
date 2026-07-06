@@ -413,7 +413,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     onTap: () async {
                       final files = await showDialog<List<PlatformFile>>(
                         context: context,
-                        builder: (context) => const BillEntryUploadDocuments(),
+                        builder: (context) => BillEntryUploadDocuments(
+                          files: uploadedFiles,
+                        ),
                       );
                       if (files != null) {
                         setState(() {
@@ -685,6 +687,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                   ),
                 ],
               ),
+              SizedBox(height: 40),
             ],
           ),
         ),

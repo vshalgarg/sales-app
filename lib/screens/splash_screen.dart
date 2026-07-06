@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../shared_preferences/login_token.dart';
+import 'home_screen.dart';
 import 'login_screen.dart'; // Change to your next screen
 
 class SplashScreen extends StatefulWidget {
@@ -14,7 +16,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 1), () {
+    _navigate();
+    Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -22,6 +25,25 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     });
+  }
+  Future<void> _navigate() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    final isLoggedIn = await AppStorage.isLoggedIn();
+
+    if (!mounted) return;
+
+    final token = await AppStorage.getToken();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+        (token != null && token.isNotEmpty)
+            ? const HomeScreen()
+            : const LoginScreen(),
+      ),
+    );
   }
 
   @override

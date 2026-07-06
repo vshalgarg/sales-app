@@ -128,36 +128,31 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
     required String title,
     required String value,
     required Color color,
-    required int index,
+    required VoidCallback onTap,
   }) {
     return InkWell(
-      onTap: () {
-        setState(() {
-          if (expandedSupplierIndex == index) {
-            expandedSupplierIndex = null;
-          } else {
-            expandedSupplierIndex = index;
-          }
-        });
-      },
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           border: Border.all(color: color),
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(20),
         ),
-        child: Column(
-          children: [
-            Text(
-              title,
-              style: TextStyle(color: color, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
-            ),
-          ],
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(color: color, fontSize: 14),
+            children: [
+              TextSpan(
+                text: "$title: ",
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              TextSpan(
+                text: value,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -179,7 +174,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
             ),
           ),
           IconButton(
-            onPressed: () => Navigator.pop(context,true),
+            onPressed: () => Navigator.pop(context, true),
             icon: Icon(Icons.close, color: Colors.white),
           ),
         ],
@@ -196,8 +191,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
     if (retailProvider.isLoading || !initialized) {
       return const SizedBox(
         height: 500,
-        child: Center(
-            child: CircularProgressIndicator()),
+        child: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -409,7 +403,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                           backgroundColor: const Color(0xFF4057A6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                        ),
+                          ),
                         ),
                         onPressed: () async {
                           final success = await retailProvider.updateRetail(
@@ -432,13 +426,13 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                         },
                         child: retailProvider.isUpdating
                             ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : Text(
                                 "SAVE INFO",
                                 style: TextStyle(
@@ -486,7 +480,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
               });
             },
             child: Container(
-              height: 55,
+               height: 55,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: const BoxDecoration(
                 color: Color(0xFF4057A6),
@@ -551,9 +545,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                                 labelText: "Balance",
                                 border: OutlineInputBorder(),
                               ),
-                              child: Text(
-                                supplier.balanceAmount.toString(),
-                              ),
+                              child: Text(supplier.balanceAmount.toString()),
                             ),
 
                             const SizedBox(height: 16),
@@ -675,8 +667,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                                       for (final supplier
                                           in provider
                                               .retailDetails!
-                                              .suppliers) {
-                                      }
+                                              .suppliers) {}
                                       await provider.fetchDepositHistory(
                                         widget.retailId,
                                       );
@@ -706,13 +697,13 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                                   },
                             child: provider.isSavingDeposits
                                 ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
                                 : const Text(
                                     "SAVE DEPOSITS",
                                     style: TextStyle(
@@ -793,138 +784,174 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
               children: List.generate(provider.depositHistory.length, (index) {
                 final supplier = provider.depositHistory[index];
 
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        supplier.supplierName,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
                       ),
-
-                      const SizedBox(height: 15),
-
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _historyButton(
-                            title: "Total",
-                            value: "₹${supplier.totalAmount}",
-                            color: Colors.grey,
-                            index: index,
+                          Text(
+                            supplier.supplierName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          _historyButton(
-                            title: "Deposited",
-                            value: "₹${supplier.depositAmount}",
-                            color: Colors.green,
-                            index: index,
-                          ),
-                          _historyButton(
-                            title: "Remaining",
-                            value: "₹${supplier.balanceAmount}",
-                            color: supplier.balanceAmount > 0
-                                ? Colors.red
-                                : Colors.green,
-                            index: index,
-                          ),
-                        ],
-                      ),
-                      AnimatedCrossFade(
-                        duration: const Duration(milliseconds: 250),
-                        crossFadeState: expandedSupplierIndex == index
-                            ? CrossFadeState.showSecond
-                            : CrossFadeState.showFirst,
-                        firstChild: const SizedBox(),
-                        secondChild: Container(
-                          margin: const EdgeInsets.only(top: 16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
+
+                          const SizedBox(height: 10),
+
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 8,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF4057A6),
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(8),
-                                    topRight: Radius.circular(8),
-                                  ),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        "Date",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        "Deposit Amount",
-                                        textAlign: TextAlign.end,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              _historyButton(
+                                title: "Total",
+                                value: "₹${supplier.totalAmount}",
+                                color: Colors.grey,
+                                onTap: () {
+                                  setState(() {
+                                    expandedSupplierIndex =
+                                        expandedSupplierIndex == index
+                                        ? null
+                                        : index;
+                                  });
+                                },
                               ),
 
-                              Column(
-                                children: List.generate(
-                                  supplier.deposits.length,
-                                  (i) {
-                                    final deposit = supplier.deposits[i];
+                              _historyButton(
+                                title: "Deposited",
+                                value: "₹${supplier.depositAmount}",
+                                color: Colors.green,
+                                onTap: () {
+                                  setState(() {
+                                    expandedSupplierIndex =
+                                        expandedSupplierIndex == index
+                                        ? null
+                                        : index;
+                                  });
+                                },
+                              ),
 
-                                    return Column(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 12,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(deposit.date),
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  "₹${deposit.amount}",
-                                                  textAlign: TextAlign.end,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        if (i != supplier.deposits.length - 1)
-                                          const Divider(height: 1),
-                                      ],
-                                    );
-                                  },
-                                ),
+                              _historyButton(
+                                title: "Remaining",
+                                value: "₹${supplier.balanceAmount}",
+                                color: supplier.balanceAmount > 0
+                                    ? Colors.orange
+                                    : Colors.green,
+                                onTap: () {
+                                  setState(() {
+                                    expandedSupplierIndex =
+                                        expandedSupplierIndex == index
+                                        ? null
+                                        : index;
+                                  });
+                                },
                               ),
                             ],
                           ),
-                        ),
+
+                          const SizedBox(height: 10),
+
+                          AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 250),
+                            crossFadeState: expandedSupplierIndex == index
+                                ? CrossFadeState.showSecond
+                                : CrossFadeState.showFirst,
+                            firstChild: const SizedBox(),
+                            secondChild: Container(
+                              margin: const EdgeInsets.only(top: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF4057A6),
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(8),
+                                        topRight: Radius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            "Date",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            "Deposit Amount",
+                                            textAlign: TextAlign.end,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  Column(
+                                    children: List.generate(
+                                      supplier.deposits.length,
+                                      (i) {
+                                        final deposit = supplier.deposits[i];
+
+                                        return Column(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 12,
+                                                  ),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(deposit.date),
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      "₹${deposit.amount}",
+                                                      textAlign: TextAlign.end,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if (i !=
+                                                supplier.deposits.length - 1)
+                                              const Divider(height: 1),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               }),
             ),

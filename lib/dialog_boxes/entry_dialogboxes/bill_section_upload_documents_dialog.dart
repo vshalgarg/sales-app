@@ -1,12 +1,17 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
 
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
 import '../../entry_document_upload/entry_upload_files.dart';
 
 class BillEntryUploadDocuments extends StatefulWidget {
-  const BillEntryUploadDocuments({super.key});
+  final List<PlatformFile> files;
+  const BillEntryUploadDocuments({
+    super.key,
+    required this.files,
+  });
 
   @override
   State<BillEntryUploadDocuments> createState() => _BillEntryUploadDocumentsState();
@@ -14,7 +19,11 @@ class BillEntryUploadDocuments extends StatefulWidget {
 
 class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
   List<PlatformFile> selectedFiles = [];
-
+  @override
+  void initState() {
+    super.initState();
+    selectedFiles = List<PlatformFile>.from(widget.files);
+  }
   Future<void> selectFiles() async {
     final files = await pickFiles();
     setState(() {
@@ -27,6 +36,7 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
     return Dialog(
         child: Padding(
           padding: const EdgeInsets.all(15.0),
+
           child: Column(mainAxisSize: MainAxisSize.min,
               children: [
                 Text("Bill Upload Documents",
@@ -34,7 +44,15 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                 if (selectedFiles.isNotEmpty)
                   Column(
                     children: selectedFiles.map((file) {
-                      return Container(
+
+                      return InkWell(
+                          onTap: () async {
+                            if (file.path != null) {
+                              final result = await OpenFilex.open(file.path!);
+                              print(result.message);
+                            }
+                          },
+                          child: Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -85,7 +103,7 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                             ),
                           ],
                         ),
-                      );
+                      ));
                     }).toList(),
                   ),
                 SizedBox(height:10),
@@ -129,7 +147,7 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                 Row(mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     CustomElevatedButton(
-                      text: "cancel",
+                      text: "Cancel",
                       textStyle: TextStyle(color: Colors.black, fontSize: 20),
                       onPressed: ()async{Navigator.pop(context);},
                       borderRadius: 10,

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
+
+import '../constants/custom_icons.dart';
 
 class ReportingCard extends StatelessWidget {
   final List<MapEntry<String, String>> fields;
@@ -26,61 +29,70 @@ class ReportingCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
+          child:Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Right Actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              /// Left side - Fields
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: fields
+                      .map(
+                        (field) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 90,
+                            child: Text(
+                              field.key,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              field.value.trim().isEmpty ? "-" : field.value,
+                              maxLines: 1,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                      .toList(),
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              /// Right side - Icons
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   _actionButton(
-                    icon: Icons.edit_square,
+                    icon: Iconsax.edit,
                     color: const Color(0xFF00B894),
                     onTap: onEdit ?? () {},
                   ),
-                  const SizedBox(width: 8),
+
+                  const SizedBox(height: 8),
 
                   _actionButton(
-                    icon: Icons.delete_outline,
+                    icon: Iconsax.trash,
                     color: const Color(0xFFFF3B30),
                     onTap: onDelete ?? () {},
                   ),
                 ],
               ),
-
-              const SizedBox(height: 8),
-
-              // Fields
-              ...fields.map(
-                    (field) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          field.key,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          field.value,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
+          )
           ),
         ),
-      ),
     );
   }
 
@@ -92,19 +104,13 @@ class ReportingCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
         onTap: onTap,
-        child: Container(
-          height: 36,
-          width: 36,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 28,
+        child: Padding(
+          padding: const EdgeInsets.all(2.0),
+          child: customIcon(
+            icon:icon,
+            iconColor: color,
+            bgColor: color,
           ),
         ),
       ),

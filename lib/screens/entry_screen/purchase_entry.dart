@@ -10,6 +10,7 @@ import 'package:hisabio/entry_widgets/custom_api_textfield.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
 import 'package:hisabio/model_classes/get_staff_entry.dart';
+import 'package:hisabio/screens/reporting_screen/purchase.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -40,7 +41,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
   List<TextEditingController> remarksControllers = [TextEditingController()];
 
   List<EntriesModel?> selectedSuppliers = [null];
-  List<PlatformFile> uploadedFiles = [];
+  List<List<PlatformFile>> uploadedFiles = [[]];
 
   void clearFields() {
     transactionController.clear();
@@ -51,6 +52,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       remarksControllers = [TextEditingController()];
       selectedSuppliers = [null];
       uploadedFiles = [];
+      uploadedFiles.add([]);
     });
   }
 
@@ -128,10 +130,16 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     CustomApiTextField<EntriesCustomerModel>(
-                      hintText: "Customer",
+                      hintText: "Customer*",
                       value: selectedCustomer,
                       items: provider.customerEntries,
                       itemLabel: (e) => e.customerName ?? '',
+                      validator: (value) {
+                        if (value == null) {
+                          return "Customer is required";
+                        }
+                        return null;
+                      },
                       onChanged: (value) {
                         setState(() {
                           selectedCustomer = value;
@@ -201,8 +209,8 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                         setState(() {
                           suppliers.add(suppliers.length);
                           remarksControllers.add(TextEditingController());
-
                           selectedSuppliers.add(null);
+                          uploadedFiles.add([]);
                         });
                       },
                       borderRadius: 5,
@@ -226,7 +234,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                 style: TextStyle(color: Colors.white, fontSize: 18),
                               ),
                               CustomApiTextField<EntriesModel>(
-                                hintText: "Supplier",
+                                hintText: index == 0 ? "Supplier *" : "Supplier",
                                 value: selectedSuppliers[index],
                                 items: provider.entries,
                                 itemLabel: (e) => e.supplierName ?? '',
@@ -256,12 +264,14 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                           >(
                                             context: context,
                                             builder: (context) =>
-                                                const BillEntryUploadDocuments(),
+                                                 BillEntryUploadDocuments(
+                                                   files: uploadedFiles[index],
+                                                ),
                                           );
 
                                       if (files != null) {
                                         setState(() {
-                                          uploadedFiles = files;
+                                          uploadedFiles[index] = files;
                                         });
                                       }
                                     },
@@ -296,7 +306,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                   ),
                                   SizedBox(width: 10),
                                   Text(
-                                    "${uploadedFiles.length} Files",
+                                    "${uploadedFiles[index].length} Files",
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ],
@@ -309,7 +319,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                   ],
                ] ),
               ),
-              SizedBox(height: 15),
+              SizedBox(height: 10),
               Column(
                 children: [
                   CustomElevatedButton(
@@ -343,11 +353,11 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                         ),
                       };
                       final images = uploadedFiles
+                          .expand((files) => files)
                           .where((e) => e.path != null)
                           .map((e) => File(e.path!))
                           .toList();
 
-                      print(jsonEncode(payload));
                       try {
                         final message = await provider.savePurchase(
                           payload: payload,
@@ -358,8 +368,8 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                           context,
                           message ?? "Purchase Saved Successfully",
                         );
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=>Purchase()));
 
-                        clearFields();
                       } catch (e) {
                         ScaffoldSnackBar.show(context, e.toString());
                       }
@@ -368,6 +378,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                   ),
                 ],
               ),
+              SizedBox(height: 40),
             ],
           ),
         ),

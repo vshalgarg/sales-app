@@ -8,7 +8,7 @@ class EntryTextField extends StatelessWidget {
   final bool? enabled;
   final bool integerOnly;
   final bool decimalAllowed;
-
+  final String? Function(String?)? validator;
   const EntryTextField({
     super.key,
     required this.controller,
@@ -17,12 +17,14 @@ class EntryTextField extends StatelessWidget {
     this.enabled,
     this.integerOnly = false,
     this.decimalAllowed = false,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      validator: validator,
       onChanged: onChanged,
       enabled: enabled,
       keyboardType: integerOnly || decimalAllowed
@@ -38,11 +40,35 @@ class EntryTextField extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         hintText: hintText,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
 
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5),
-          borderSide: BorderSide.none,
-        ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Colors.blue),
+          ),
+
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 1.5,
+            ),
+          ),
+
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 2,
+            ),
+          ),
       ),
     );
   }

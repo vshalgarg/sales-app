@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/screens/login_screen.dart';
 import '../../constants/colors_used.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../shared_preferences/login_token.dart';
@@ -75,12 +76,9 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
                 // Clear local storage
                 await AppStorage.clear();
 
-                if (!context.mounted) return;
-
-                Navigator.pop(context); // Close dialog
-
+              //  if (!context.mounted) return;
                 // Navigate to login screen if needed
-                Navigator.pushReplacementNamed(context, '/login');
+                Navigator.push(context,MaterialPageRoute(builder: (context)=>LoginScreen()));
               },
 
               onDiscard: () {

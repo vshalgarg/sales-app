@@ -166,7 +166,7 @@ class _PurchaseState extends State<Purchase> {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
             return Container(
-              height: 500,
+              //height: 500,
               decoration: const BoxDecoration(
                 color: Color(0xFFF7F6FF),
                 borderRadius: BorderRadius.only(

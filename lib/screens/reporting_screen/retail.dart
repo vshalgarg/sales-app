@@ -6,12 +6,14 @@ import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/retail_provider.dart';
 import '../../provider/staff_provider.dart';
 import '../../reporting_widgets/edit_retail_bottom_sheet.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
+import '../../reporting_widgets/retail_card.dart';
 import '../../screens/entry_screen/retail_entry.dart';
 import '../home_screen.dart';
 
@@ -45,7 +47,6 @@ class _RetailState extends State<Retail> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _page = 0;
       _hasMore = true;
-      context.read<RetailProvider>().fetchRetails();
       await context.read<RetailProvider>().fetchRetails(
         page: _page,
         size: _size,
@@ -145,7 +146,7 @@ class _RetailState extends State<Retail> {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
             return Container(
-              height: 600,
+             // height: 600,
               decoration: BoxDecoration(
                 color: Color(0xFFF7F6FF),
                 borderRadius: BorderRadius.only(
@@ -323,7 +324,7 @@ class _RetailState extends State<Retail> {
                   }
 
                   if (retailProvider.error != null) {
-                    return Center(
+                   return Center(
                       child: Text(
                         retailProvider.error!,
                         style: const TextStyle(color: Colors.red),
@@ -359,8 +360,8 @@ class _RetailState extends State<Retail> {
                         }
                         final retail = retailProvider.retailEntries[index];
                         return Padding(
-                          padding: EdgeInsets.only(bottom: height * 0.015),
-                          child: ReportingCard(
+                          padding: EdgeInsets.all(5),
+                          child: RetailCard(
                             fields: [
                               MapEntry("Date", retail.date),
                               MapEntry("Retailer", retail.name),
@@ -411,45 +412,39 @@ class _RetailState extends State<Retail> {
                               context.read<RetailProvider>().fetchRetails();
                             },
                             onDelete: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text("Delete Retail"),
-                                  content: const Text(
-                                    "Are you sure you want to delete this retail?",
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
-                                      child: const Text("Cancel"),
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
+                              ExitConfirmationDialog.show(
+                                context,
+                                bodyText: "Are you sure you want to delete this retail?",
+                                saveButtonText: "Delete",
+                                discardButtonText: "Cancel",
+
+                                onClose: () {
+                                  Navigator.pop(context);
+                                },
+
+                                onDiscard: () {
+                                  Navigator.pop(context);
+                                },
+
+                                onSave: () async {
+                                  Navigator.pop(context);
+
+                                  final success = await context
+                                      .read<RetailProvider>()
+                                      .deleteRetail(retail.retailId);
+
+                                  if (!mounted) return;
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? "Retail deleted successfully"
+                                            : "Failed to delete retail",
                                       ),
-                                      onPressed: () => Navigator.pop(context, true),
-                                      child: const Text("Delete"),
                                     ),
-                                  ],
-                                ),
-                              );
-
-                              if (confirm != true) return;
-
-                              final success = await context
-                                  .read<RetailProvider>()
-                                  .deleteRetail(retail.retailId);
-
-                              if (!mounted) return;
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    success
-                                        ? "Retail deleted successfully"
-                                        : "Failed to delete retail",
-                                  ),
-                                ),
+                                  );
+                                },
                               );
                             },
                           ),
