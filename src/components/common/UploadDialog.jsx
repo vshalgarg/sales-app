@@ -3,6 +3,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import FileUploader from "./FileUploader";
+import AppButton from "./AppButton";
 
 const UploadDialog = ({
   open,
@@ -33,20 +34,13 @@ const UploadDialog = ({
       </DialogContent>
 
       {/* FOOTER */}
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <button
-          onClick={onClose}
-          className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100"
-        >
+      <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+        <AppButton type="secondary" onClick={onClose}>
           Cancel
-        </button>
-
-        <button
-          onClick={onSave}
-          className="px-5 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
+        </AppButton>
+        <AppButton type="primary" onClick={onSave}>
           Save
-        </button>
+        </AppButton>
       </DialogActions>
 
     </Dialog>

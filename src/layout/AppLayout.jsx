@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import Sidebar, { SidebarNavList } from "../components/Sidebar";
+import BrandLogo from "../components/common/BrandLogo";
+import {
+  GRID_SIDEBAR_BRAND_CLASS,
+  GRID_SIDEBAR_COLUMN_CLASS,
+  GRID_SIDEBAR_NAV_CLASS,
+} from "../theme/appTheme";
 import { useMediaQuery } from "@mui/material";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import { useUnsaved } from "../context/UnsavedChangesContext";
@@ -13,7 +19,6 @@ const AppLayout = () => {
     if (typeof window === "undefined") return true;
     return window.matchMedia("(min-width: 769px)").matches;
   });
-  const [navbarHeight, setNavbarHeight] = useState(0);
   const activeSection = (() => {
     if (location.pathname.startsWith("/graph")) {
       return "graph";
@@ -59,6 +64,7 @@ const AppLayout = () => {
     location.pathname.startsWith(path)
   );
 
+  const showDesktopSidebar = !isGraphPage && !isMobile && isSidebarOpen;
 
   const safeNavigate = (path) => {
     if (isDirty && isEntryPage) {
@@ -70,12 +76,11 @@ const AppLayout = () => {
     navigate(path);
   };
 
-const handleConfirmLeave = () => {
-  setShowConfirm(false);
-  setIsDirty(false);
-  console.log("app layout == ",isDirty)
-  navigate(pendingPath);
-};
+  const handleConfirmLeave = () => {
+    setShowConfirm(false);
+    setIsDirty(false);
+    navigate(pendingPath);
+  };
 
   const handleStay = () => {
     setShowConfirm(false);
@@ -87,7 +92,6 @@ const handleConfirmLeave = () => {
       localStorage.setItem("lastRoute", location.pathname);
     }
   }, [location.pathname]);
-
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -101,9 +105,7 @@ const handleConfirmLeave = () => {
     }
   }, [location.pathname, navigate]);
 
-
   const handleSectionChange = (section) => {
-
     switch (section) {
       case "master":
         safeNavigate("/suppliers");
@@ -139,38 +141,70 @@ const handleConfirmLeave = () => {
     }
   }, [isGraphPage]);
 
+  const sidebarNavProps = {
+    activeSection,
+    isOpen: isSidebarOpen,
+    isMobile,
+    onClose: closeSidebar,
+    safeNavigate,
+  };
+
+  const gridCols = isGraphPage
+    ? "1fr"
+    : showDesktopSidebar
+      ? "16rem 1fr"
+      : "0px 1fr";
+
   return (
-    <div className="h-screen flex flex-col">
-      <Navbar
-        onSectionChange={handleSectionChange}
-        activeSection={activeSection}
-        onMenuClick={toggleSidebar}
-        isMobile={isMobile}
-        setNavbarHeight={setNavbarHeight}
-        showMenuButton={!isGraphPage}
-      />
-      <div className="flex flex-1 min-h-0">
-        {isSidebarOpen && !isGraphPage && (
-          <div
-            className="fixed inset-x-0 bottom-0 bg-black/40 z-30 md:hidden"
-            style={{ top: navbarHeight }}
-            onClick={closeSidebar}
-          />
-        )}
-        {!isGraphPage && (
-          <Sidebar
-            activeSection={activeSection}
-            isOpen={isSidebarOpen}
-            isMobile={isMobile}
-            onClose={closeSidebar}
-            navbarHeight={navbarHeight}
-            safeNavigate={safeNavigate}
-          />
-        )}
-        <main className="flex-1 min-h-0 px-4 overflow-hidden transition-all duration-300 ease-in-out">
-          <Outlet />
-        </main>
+    <div
+      className="relative h-screen min-h-0 grid transition-[grid-template-columns] duration-300 ease-in-out"
+      style={{
+        gridTemplateColumns: gridCols,
+        gridTemplateRows: "4rem 1fr",
+      }}
+    >
+      {isSidebarOpen && !isGraphPage && isMobile && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {!isGraphPage && (
+        <>
+          <div className={GRID_SIDEBAR_COLUMN_CLASS}>
+            <div className={GRID_SIDEBAR_BRAND_CLASS}>
+              {showDesktopSidebar && <BrandLogo />}
+            </div>
+            <div className={GRID_SIDEBAR_NAV_CLASS}>
+              {showDesktopSidebar && <SidebarNavList {...sidebarNavProps} />}
+            </div>
+          </div>
+          <Sidebar {...sidebarNavProps} />
+        </>
+      )}
+
+      <div
+        className={`row-start-1 min-w-0 ${
+          isGraphPage ? "col-start-1" : "col-start-2"
+        }`}
+      >
+        <Navbar
+          onSectionChange={handleSectionChange}
+          activeSection={activeSection}
+          onMenuClick={toggleSidebar}
+          showMenuButton={!isGraphPage}
+          className="w-full"
+        />
       </div>
+
+      <main
+        className={`row-start-2 min-h-0 min-w-0 overflow-hidden px-4 pb-4 bg-white dark:bg-zinc-950 ${
+          isGraphPage ? "col-start-1" : "col-start-2"
+        }`}
+      >
+        <Outlet />
+      </main>
 
       <ConfirmDialog
         open={showConfirm}

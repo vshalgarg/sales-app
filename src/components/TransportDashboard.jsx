@@ -1,18 +1,44 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { MapPin, Phone, Receipt, MapPinned, CircleDot } from "lucide-react";
 import TransportService from "../service/TransportService";
 import AddNewTransport from "../modals/AddNewTransport";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
-import DataTable from "./DataTable";
+import EntityCardGrid from "./common/EntityCardGrid";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import { getTransportFormattedText } from "../utils/copyFormatter";
 import CopyDetailsModal from "./common/CopyDetailsModal";
-import { Typography } from "@mui/material";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 
+const formatContact = (contacts) =>
+  contacts?.length > 0
+    ? contacts.map((c) => c.contactNumber).join(", ")
+    : "-";
+
+const formatAddress = (transport) => {
+  const address = `${transport.addressLine1 || ""}${
+    transport.addressLine2 ? `, ${transport.addressLine2}` : ""
+  }`;
+  return address || "-";
+};
+
+const StatusBadge = ({ status }) => {
+  const isActive = status === "ACTIVE";
+  return (
+    <span
+      className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${
+        isActive
+          ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
+          : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+      }`}
+    >
+      {isActive ? "Active" : "Inactive"}
+    </span>
+  );
+};
 
 export default function TransportDashboard() {
-  // throw new Error("error in transport page");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [open, setOpen] = useState(false);
   const [editingTransport, setEditingTransport] = useState(null);
@@ -20,7 +46,7 @@ export default function TransportDashboard() {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const { showSnackbar } = useSnackbar();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -28,83 +54,6 @@ export default function TransportDashboard() {
   const { isMobile } = useResponsive();
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [copyData, setCopyData] = useState(null);
-
-  const columns = {
-    desktop: [
-      {
-        key: "name",
-        label: "Transport Name",
-        width: "20%",
-      },
-      {
-        key: "gstNo",
-        label: "GST No.",
-        width: "14%",
-      },
-      {
-        key: "contacts",
-        label: "Contact",
-        width: "12%",
-        render: (row) => (
-          <Typography variant="body2" noWrap>
-            {row.contacts?.length > 0
-              ? row.contacts.map(c => c.contactNumber).join(", ")
-              : "-"}
-          </Typography>
-        ),
-      },
-      {
-        key: "addressLine1",
-        label: "Address",
-        width: "30%",
-        render: (row) => {
-          const address = `${row.addressLine1 || ""}${row.addressLine2 ? ", " + row.addressLine2 : ""
-            }`;
-
-          return (
-            <Typography variant="body2" noWrap title={address}>
-              {address || "-"}
-            </Typography>
-          );
-        },
-      },
-       {
-        key: "city",
-        label: "City",
-        width: "10%",
-        render: (row) => row.city || "-",
-      },
-      {
-        key: "status",
-        label: "Status",
-        width: "8%",
-        render: (row) => {
-          const isActive = row.status === "ACTIVE";
-          return (
-            <span
-              className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${isActive
-                ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
-                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                }`}
-            >
-              {isActive ? "Active" : "Inactive"}
-            </span>
-          );
-        },
-      },
-    ],
-    mobile: [
-      {
-        key: "name",
-        label: "Transport Name",
-      },
-      {
-        key: "city",
-        label: "City",
-        render: (row) => row.city || "-",
-      }
-    ],
-  };
 
   const fetchTransports = useCallback(
     async (uiPage = 1) => {
@@ -124,16 +73,13 @@ export default function TransportDashboard() {
         setTotalPages(0);
         setTotalItems(0);
         showSnackbar(error.message, "error");
-      } finally {
       }
     },
-    [rowsPerPage],
+    [rowsPerPage, showSnackbar],
   );
-
 
   const handleCopy = (transport) => {
     const formatted = getTransportFormattedText(transport);
-
     setCopyData(formatted);
     setCopyModalOpen(true);
   };
@@ -150,6 +96,24 @@ export default function TransportDashboard() {
     setTotalItems(response.totalElements || 0);
     setIsSearchActive(searchQuery.trim() !== "");
     setCurrentPage(page);
+  };
+
+  const handleRowsPerPageChange = async (newSize) => {
+    setRowsPerPage(newSize);
+    setCurrentPage(1);
+
+    if (isSearchActive && query.trim()) {
+      try {
+        const response = await TransportService.searchTransports(
+          query,
+          0,
+          newSize,
+        );
+        handleSearchResult(response, query, 1);
+      } catch (error) {
+        showSnackbar(error.message, "error");
+      }
+    }
   };
 
   const handleChangePage = async (newPage) => {
@@ -238,56 +202,90 @@ export default function TransportDashboard() {
     fetchTransports(currentPage);
   };
 
+  const buildTransportCardProps = (transport) => ({
+    title: transport.name,
+    fields: [
+      {
+        label: "GST No.",
+        icon: Receipt,
+        value: transport.gstNo,
+      },
+      {
+        label: "Contact",
+        icon: Phone,
+        value: transport.contacts,
+        render: () => formatContact(transport.contacts),
+      },
+      {
+        label: "Address",
+        icon: MapPinned,
+        value: formatAddress(transport),
+      },
+      {
+        label: "City",
+        icon: MapPin,
+        value: transport.city,
+      },
+      {
+        label: "Status",
+        icon: CircleDot,
+        value: transport.status,
+        render: () => <StatusBadge status={transport.status} />,
+      },
+    ],
+    onEdit: () => handleEdit(transport),
+    onCopy: () => handleCopy(transport),
+    onDelete: () => {
+      setTransportToDelete(transport);
+      setDeleteModalOpen(true);
+    },
+  });
+
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      {/* Header Section*/}
-      <div className="pt-4">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg md:text-2xl font-bold">{isMobile ? "Transport" : "Transport Overview"}</h2>
+      <div>
+        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+          <h2 className={PAGE_TITLE_CLASS}>
+            {isMobile ? "Transport" : "Transport Overview"}
+          </h2>
           <button
             onClick={handleAddNew}
-            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            className="px-3 py-1.5 md:px-4 md:py-2 bg-brand-primary text-white rounded-lg shadow hover:bg-brand-primary-dark whitespace-nowrap text-sm md:text-base"
           >
-            Add Transport
+            + Add Transport
           </button>
+        </div>
+
+        <div className="mb-3">
+          <UniversalSearch
+            placeholder="Search transports..."
+            query={query}
+            setQuery={setQuery}
+            searchFn={TransportService.searchTransports}
+            onResult={handleSearchResult}
+            onClear={handleClearSearch}
+            suggestionKey="name"
+            pageSize={rowsPerPage}
+            showSuggestions={false}
+          />
         </div>
       </div>
 
-      {/* Search Section */}
-      <div className="flex items-center gap-2 mb-6">
-        <UniversalSearch
-          placeholder="Search transports..."
-          query={query}
-          setQuery={setQuery}
-          searchFn={TransportService.searchTransports}
-          onResult={handleSearchResult}
-          onClear={handleClearSearch}
-          suggestionKey="name"
-          pageSize={rowsPerPage}
-          showSuggestions={false}
-        />
-      </div>
-
-      {/* Table Section */}
-      <div className="flex-1 min-h-0 border mb-2 rounded-lg bg-white dark:bg-zinc-900">
-        <DataTable
-          columns={isMobile ? columns.mobile : columns.desktop}
-          data={transports}
-          onEdit={(transport) => handleEdit(transport)}
-          onDelete={(transport) => {
-            setTransportToDelete(transport);
-            setDeleteModalOpen(true);
-          }}
-          onCopy={handleCopy}
+      <div className="flex-1 min-h-0">
+        <EntityCardGrid
+          items={transports}
+          getItemKey={(transport) => transport.id}
+          buildCardProps={buildTransportCardProps}
           emptyMessage="No transports found"
           page={currentPage}
           totalCount={totalItems}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          entityLabel="transports"
         />
       </div>
 
-      {/* Add / Edit Transport Modal */}
       {open && (
         <AddNewTransport
           open={open}
@@ -324,7 +322,6 @@ export default function TransportDashboard() {
         title="Transport Details"
         formattedText={copyData}
       />
-
     </div>
   );
 }

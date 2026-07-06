@@ -1,14 +1,37 @@
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import { BRAND_COLORS } from "../../theme/brandColors";
+
+const primaryButtonSx = {
+  backgroundColor: BRAND_COLORS.primary,
+  color: "#fff",
+  "&:hover": {
+    backgroundColor: BRAND_COLORS.primaryDark,
+    boxShadow: "none",
+  },
+  "&.Mui-disabled": {
+    backgroundColor: `${BRAND_COLORS.primary}80`,
+    color: "#fff",
+  },
+};
 
 const typeStyles = {
   primary: {
     variant: "contained",
     color: "primary",
+    sx: primaryButtonSx,
   },
   secondary: {
     variant: "outlined",
     color: "primary",
+    sx: {
+      borderColor: BRAND_COLORS.primary,
+      color: BRAND_COLORS.primary,
+      "&:hover": {
+        borderColor: BRAND_COLORS.primaryDark,
+        backgroundColor: `${BRAND_COLORS.primary}14`,
+      },
+    },
   },
   danger: {
     variant: "contained",

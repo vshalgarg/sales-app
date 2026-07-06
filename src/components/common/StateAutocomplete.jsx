@@ -2,9 +2,10 @@ import Autocomplete from "@mui/material/Autocomplete";
 import CustomTextField from "../CustomTextField";
 import { INDIAN_STATES } from "../../constants/states";
 
-const StateAutocomplete = ({ value, onChange, error, helperText }) => {
+const StateAutocomplete = ({ value, onChange, error, helperText, disabled = false }) => {
   return (
     <Autocomplete
+      disabled={disabled}
       options={INDIAN_STATES}
       value={
         INDIAN_STATES.find(
@@ -24,6 +25,7 @@ const StateAutocomplete = ({ value, onChange, error, helperText }) => {
           label="State"
           error={error}
           helperText={helperText}
+          disabled={disabled}
         />
       )}
     />

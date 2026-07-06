@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Plus } from "lucide-react";
 import {
   getUsers,
@@ -10,10 +10,14 @@ import { useAuth } from "../context/AuthContext";
 
 import DataTable from "../components/DataTable";
 import UniversalSearch from "../components/UniversalSearch";
+import ListPagination from "../components/common/ListPagination";
 
 import ChangePasswordModal from "./modals/ChangePasswordModal";
 import AddUserModal from "./modals/AddUserModal";
 import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
+import AppButton from "../components/common/AppButton";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { CARD_GRID_SHELL_CLASS } from "../theme/cardTheme";
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
@@ -22,6 +26,8 @@ const Users = () => {
 
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -39,9 +45,26 @@ const Users = () => {
     try {
       const data = await getUsers();
       setUsers(data.users);
+      setCurrentPage(1);
     } catch (error) {
       showSnackbar(error.message, "error");
     }
+  };
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return users.slice(start, start + rowsPerPage);
+  }, [users, currentPage, rowsPerPage]);
+
+  const handleChangePage = (newPage) => {
+    const totalPages = Math.max(1, Math.ceil(users.length / rowsPerPage));
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (newSize) => {
+    setRowsPerPage(newSize);
+    setCurrentPage(1);
   };
 
   const handleSearchResult = (response, searchQuery) => {
@@ -55,6 +78,7 @@ const Users = () => {
     } else {
       setUsers(response.content || []);
     }
+    setCurrentPage(1);
   };
 
 
@@ -82,52 +106,65 @@ const Users = () => {
   ];
 
   return (
-    <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      {/* HEADER */}
-      <div className="pt-4 flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Users</h1>
+    <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full min-h-0">
+      <div className="shrink-0">
+        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+          <h2 className={PAGE_TITLE_CLASS}>Users</h2>
 
-        {isAdmin && (
-          <button
-            onClick={() => setIsAddUserOpen(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus size={18} className="mr-2" />
-            Add New User
-          </button>
-        )}
+          {isAdmin && (
+            <AppButton type="primary" onClick={() => setIsAddUserOpen(true)}>
+              <Plus size={18} className="mr-2" />
+              Add New User
+            </AppButton>
+          )}
+        </div>
+
+        <div className="mb-3">
+          <UniversalSearch
+            placeholder="Search users..."
+            query={query}
+            setQuery={setQuery}
+            searchFn={searchUsers}
+            onResult={handleSearchResult}
+            onClear={fetchUsers}
+            suggestionKey="username"
+            showSuggestions={false}
+          />
+        </div>
       </div>
 
-      {/* SEARCH */}
-      <UniversalSearch
-        placeholder="Search users..."
-        query={query}
-        setQuery={setQuery}
-        searchFn={searchUsers}
-        onResult={handleSearchResult}
-        onClear={fetchUsers}
-        suggestionKey="username"
-        showSuggestions={false}
-      />
+      <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${CARD_GRID_SHELL_CLASS}`}>
+        <div className="flex-1 min-h-0 overflow-hidden p-3 md:p-4">
+          <div className="h-full min-h-0">
+            <DataTable
+              columns={columns}
+              data={paginatedUsers}
+              loading={false}
+              actions={isAdmin}
+              onEdit={isAdmin ? (u) => {
+                setSelectedUser(u);
+                setChangePwdModalOpen(true);
+              } : undefined}
+              onDelete={isAdmin ? (u) => {
+                setUserToDelete(u);
+                setDeleteModalOpen(true);
+              } : undefined}
+              emptyMessage="No users found"
+              disablePagination
+            />
+          </div>
+        </div>
 
-      {/* TABLE */}
-      <div className="flex-1 mt-4">
-        <DataTable
-          columns={columns}
-          data={users}
-          loading={false}
-          actions={isAdmin}
-          onEdit={isAdmin ? (u) => {
-            setSelectedUser(u);
-            setChangePwdModalOpen(true);
-          } : undefined}
-          onDelete={isAdmin ? (u) => {
-            setUserToDelete(u);
-            setDeleteModalOpen(true);
-          } : undefined}
-          emptyMessage="No users found"
-          disablePagination
-        />
+        <div className="shrink-0 px-3 md:px-4 pb-3 md:pb-4">
+          <ListPagination
+            page={currentPage}
+            totalCount={users.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            entityLabel="users"
+          />
+        </div>
       </div>
 
       {/* MODALS */}

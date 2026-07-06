@@ -12,6 +12,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import AppButton from "../../components/common/AppButton";
 
 
 const AddUserModal = ({ open, onClose, onSuccess }) => {
@@ -170,12 +171,12 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
           >
             Cancel
           </button>
-          <button
+          <AppButton
             onClick={handleAddUser}
-            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+            variant="primary"
           >
             Save User
-          </button>
+          </AppButton>
         </div>
       </div>
     </div>

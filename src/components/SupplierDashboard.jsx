@@ -10,6 +10,7 @@ import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { getSupplierFormattedText } from "../utils/copyFormatter";
 
 const SUPPLIER_CARD_FIELDS = [
@@ -26,7 +27,7 @@ export default function SupplierDashboard() {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -128,6 +129,24 @@ export default function SupplierDashboard() {
     setCurrentPage(page);
   };
 
+  const handleRowsPerPageChange = async (newSize) => {
+    setRowsPerPage(newSize);
+    setCurrentPage(1);
+
+    if (isSearchActive && query.trim()) {
+      try {
+        const response = await SupplierService.searchSuppliers(
+          query,
+          0,
+          newSize,
+        );
+        handleSearchResult(response, query, 1);
+      } catch (error) {
+        showSnackbar(error.message, "error");
+      }
+    }
+  };
+
   const handleChangePage = async (newPage) => {
     if (newPage < 1 || (totalPages > 0 && newPage > totalPages)) return;
 
@@ -189,19 +208,19 @@ export default function SupplierDashboard() {
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       <div>
-        <div className="flex justify-between items-center my-2 gap-3">
-          <h2 className="text-lg md:text-2xl font-bold">
+        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+          <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Supplier" : "Supplier Overview"}
           </h2>
           <button
             onClick={() => setOpen(true)}
-            className="px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 whitespace-nowrap text-sm md:text-base"
+            className="px-3 py-1.5 md:px-4 md:py-2 bg-brand-primary text-white rounded-lg shadow hover:bg-brand-primary-dark whitespace-nowrap text-sm md:text-base"
           >
             + Add Supplier
           </button>
         </div>
 
-        <div className="flex items-center mb-2">
+        <div className="mb-2">
           <UniversalSearch
             placeholder="Search suppliers..."
             query={query}
@@ -216,7 +235,7 @@ export default function SupplierDashboard() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 mb-2">
+      <div className="flex-1 min-h-0">
         <EntityCardGrid
           items={suppliers}
           buildCardProps={buildSupplierCardProps}
@@ -225,6 +244,7 @@ export default function SupplierDashboard() {
           totalCount={totalItems}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
+          onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="suppliers"
         />
       </div>

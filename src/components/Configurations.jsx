@@ -3,6 +3,7 @@ import AdminService from "../service/AdminService";
 import { useConfig } from "../context/ConfigContext";
 import { Button, Checkbox, FormControlLabel } from "@mui/material";
 import { useSnackbar } from "../context/SnackbarContext";
+import AppButton from "./common/AppButton";
 
 function Configurations() {
   const [configurations, setConfigurations] = useState([]);
@@ -89,6 +90,7 @@ function Configurations() {
             <FormControlLabel
               control={
                 <Checkbox
+                  className="!text-brand-primary"
                   checked={retailConfiguration.value === "true"}
                   onChange={(e) =>
                     handleRetailChange(e.target.checked)
@@ -103,13 +105,13 @@ function Configurations() {
 
     {/* Sticky Footer */}
     <div className="sticky bottom-0 bg-white border-t border-gray-200 py-3 px-4 flex justify-end">
-      <Button
-        variant="contained"
+      <AppButton
+        variant="primary"
         disabled={configurations.length == 0}
         onClick={updateConfigurations}
       >
         Save Changes
-      </Button>
+      </AppButton>
     </div>
   </div>
 );

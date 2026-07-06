@@ -1,23 +1,55 @@
 import { NavLink } from "react-router-dom";
+import {
+  Users,
+  User,
+  UserCog,
+  Truck,
+  FileText,
+  CreditCard,
+  ShoppingCart,
+  Store,
+  Receipt,
+  BookOpen,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useConfig } from "../context/ConfigContext";
 import { useAuth } from "../context/AuthContext";
+import BrandLogo from "./common/BrandLogo";
+import {
+  getSidebarIconClass,
+  getSidebarItemClass,
+  GRID_SIDEBAR_NAV_CLASS,
+  SIDEBAR_NAV_LIST_CLASS,
+  SIDEBAR_MOBILE_CLASS,
+  SIDEBAR_HEADER_CLASS,
+} from "../theme/appTheme";
 
-const Sidebar = ({
-  activeSection,
-  isOpen,
-  onClose,
-  isMobile,
-  navbarHeight,
-  safeNavigate,
-}) => {
-  let menuItems = [];
+const SECTION_ICONS = {
+  Suppliers: Users,
+  Customers: User,
+  Staff: UserCog,
+  Transports: Truck,
+  Users: User,
+  Configurations: SlidersHorizontal,
+  "Bill Entry": FileText,
+  "Credit Entry": CreditCard,
+  "Purchase Entry": ShoppingCart,
+  "Retail Entry": Store,
+  Bills: Receipt,
+  Credit: CreditCard,
+  Purchase: ShoppingCart,
+  Retail: Store,
+  Ledger: BookOpen,
+};
+
+const useSidebarMenuItems = (activeSection) => {
   const { config } = useConfig();
   const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
   const { auth } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
 
   if (activeSection === "master") {
-    menuItems = [
+    return [
       { name: "Suppliers", path: "/suppliers" },
       { name: "Customers", path: "/customers" },
       { name: "Staff", path: "/staff" },
@@ -25,8 +57,10 @@ const Sidebar = ({
       { name: "Users", path: "/users" },
       ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
-  } else if (activeSection === "entries") {
-    menuItems = [
+  }
+
+  if (activeSection === "entries") {
+    return [
       { name: "Bill Entry", path: "/bill-entry" },
       { name: "Credit Entry", path: "/credit-entry" },
       { name: "Purchase Entry", path: "/purchase-entry" },
@@ -34,8 +68,10 @@ const Sidebar = ({
         ? [{ name: "Retail Entry", path: "/retail-entry" }]
         : []),
     ];
-  } else if (activeSection === "reporting") {
-    menuItems = [
+  }
+
+  if (activeSection === "reporting") {
+    return [
       { name: "Bills", path: "/bills" },
       { name: "Credit", path: "/credits" },
       { name: "Purchase", path: "/purchase" },
@@ -46,20 +82,28 @@ const Sidebar = ({
     ];
   }
 
+  return [];
+};
+
+export const SidebarNavList = ({
+  activeSection,
+  isOpen,
+  isMobile,
+  onClose,
+  safeNavigate,
+}) => {
+  const menuItems = useSidebarMenuItems(activeSection);
+
   return (
-    <aside
-      className={`
-        shrink-0 overflow-hidden bg-gray-100 dark:bg-zinc-800
-        border-gray-300 dark:border-gray-700 transition-all duration-300 ease-in-out
-        fixed bottom-0 left-0 z-40 w-44 p-4 border-r
-        transform ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        md:static md:z-auto md:transform-none
-        ${isOpen ? "md:w-64 md:p-4 md:border-r" : "md:w-0 md:p-0 md:border-0"}
-      `}
-      style={{ top: isMobile && isOpen ? navbarHeight : undefined }}
+    <ul
+      className={`${SIDEBAR_NAV_LIST_CLASS} ${
+        isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+      }`}
     >
-      <ul className="w-44 md:w-56 whitespace-nowrap">
-        {menuItems.map((item) => (
+      {menuItems.map((item) => {
+        const Icon = SECTION_ICONS[item.name] || FileText;
+
+        return (
           <li key={item.name}>
             <NavLink
               to={item.path}
@@ -68,22 +112,51 @@ const Sidebar = ({
                 safeNavigate(item.path);
                 if (isMobile) onClose();
               }}
-              className={({ isActive }) =>
-                `block px-4 py-2 rounded transition-colors
-                 text-gray-700 dark:text-white
-                 hover:bg-blue-100 dark:hover:bg-blue-800
-                 ${
-                   isActive ? "bg-blue-200 dark:bg-blue-700 font-semibold" : ""
-                 }`
-              }
+              className={({ isActive }) => getSidebarItemClass(isActive)}
             >
-              {item.name}
+              {({ isActive }) => (
+                <>
+                  <Icon className={getSidebarIconClass(isActive)} />
+                  <span>{item.name}</span>
+                </>
+              )}
             </NavLink>
           </li>
-        ))}
-      </ul>
-    </aside>
+        );
+      })}
+    </ul>
   );
 };
+
+/** Mobile slide-out drawer only */
+const Sidebar = ({
+  activeSection,
+  isOpen,
+  onClose,
+  isMobile,
+  safeNavigate,
+}) => (
+  <aside
+    className={`
+      flex md:hidden flex-col h-full fixed inset-y-0 left-0 z-40 w-64
+      transition-transform duration-300 ease-in-out
+      ${SIDEBAR_MOBILE_CLASS}
+      ${isOpen ? "translate-x-0" : "-translate-x-full"}
+    `}
+  >
+    <div className={SIDEBAR_HEADER_CLASS}>
+      <BrandLogo />
+    </div>
+    <div className={`flex-1 min-h-0 overflow-y-auto ${GRID_SIDEBAR_NAV_CLASS}`}>
+      <SidebarNavList
+        activeSection={activeSection}
+        isOpen={isOpen}
+        isMobile={isMobile}
+        onClose={onClose}
+        safeNavigate={safeNavigate}
+      />
+    </div>
+  </aside>
+);
 
 export default Sidebar;
