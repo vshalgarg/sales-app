@@ -9,6 +9,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
   final String? contact;
   final String? emails;
   final String? gstNo;
+  final String?heading;
 
   const CustomCopyDetailsDialog({
     super.key,
@@ -17,6 +18,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
     this.address,
     this.emails,
     this.gstNo,
+    this.heading
   });
 
   @override
@@ -40,7 +42,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text( heading??
                   "Copy Supplier Details",
                   style: TextStyle(
                     fontSize: 18,

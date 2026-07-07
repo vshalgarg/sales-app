@@ -147,47 +147,49 @@ class _UsersScreenState extends State<UsersScreen> {
                         if (isSearching) {
                           final user = searchProvider.searchUsers![index];
                           return UserContainer(
-                            name: user['username'] ?? '',
+                            name: (user['username'] ?? user['userName'] ?? "").toString(),
                             trashIconTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => CustomDeleteDialog(
-                                  dialogBoxName: "Delete User",
-                                  onDelete: () async {
+                              ExitConfirmationDialog.show(
+                                context,
+                                saveButtonText: "Yes",
+                                discardButtonText: "No",
+                                onClose: () {
+                                  Navigator.pop(context);
+                                },
+                                onDiscard: () {
+                                  Navigator.pop(context);
+                                },
+                                bodyText:
+                                "Are you sure you want to permanently delete ${user['username']}? This action cannot be undo.",
+                                onSave: () async {
+                                  await context.read<UserProvider>().deleteUser(
+                                    user['id']!.toInt(),
+                                  );
+                                  if (!context.mounted) return;
+
+                                  final provider = context.read<UserProvider>();
+
+                                  if (provider.errorMessage == null) {
                                     await context
-                                        .read<UserProvider>()
-                                        .deleteUser(user['id']!.toInt());
-                                    if (!context.mounted) return;
+                                        .read<GetUsersProvider>()
+                                        .getUsers();
 
-                                    final provider = context
-                                        .read<UserProvider>();
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
 
-                                    if (provider.errorMessage == null) {
-                                      await context
-                                          .read<GetUsersProvider>()
-                                          .getUsers();
-
-                                      if (context.mounted) {
-                                        Navigator.pop(context);
-                                        clear();
-
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              provider
-                                                      .deleteUserResponse
-                                                      ?.message ??
-                                                  "User deleted successfully",
-                                            ),
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            provider
+                                                .deleteUserResponse
+                                                ?.message ??
+                                                "User deleted successfully",
                                           ),
-                                        );
-                                      }
+                                        ),
+                                      );
                                     }
-                                  },
-                                  name: user['userName'],
-                                ),
+                                  }
+                                },
                               );
                             },
                             editIconTap: () {
@@ -200,7 +202,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                   },
                                   newPasswordController: newPassword,
                                   confirmPasswordController: confirmPassword,
-                                  name: user['userName'],
+                                  name: (user['username'] ?? user['userName'] ?? "").toString(),
                                   onUpdate: () async {
                                     if (newPassword.text.trim() !=
                                         confirmPassword.text.trim()) {

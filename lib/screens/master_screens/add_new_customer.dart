@@ -31,6 +31,8 @@ class AddNewCustomer extends StatefulWidget {
 }
 
 class _AddNewCustomerState extends State<AddNewCustomer> {
+  final GlobalKey financialSectionKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
   bool isExpanded = false;
   final nameController = TextEditingController();
 
@@ -99,7 +101,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
         };
       }).toList(),
 
-      "remarks": remarksController.text,
+      "remark": remarksController.text,
     };
   }
 
@@ -132,7 +134,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
         };
       }).toList(),
 
-      "remarks": remarksController.text,
+      "remark": remarksController.text,
     };
   }
 
@@ -251,6 +253,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   @override
   Widget build(BuildContext context) {
+    print("AddNewCustomer build");
     final getCustomerProvider = context.watch<GetCustomerByIdProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
@@ -264,7 +267,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                   ExitConfirmationDialog.show(
                     context,
                     onSave: provider.isLoading
-                        ? ()async {}
+                        ? () async {}
                         : () async {
                             if (nameController.text.isEmpty) {
                               ScaffoldSnackBar.show(
@@ -330,6 +333,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               (widget.mode == FormMode.view || widget.mode == FormMode.edit)
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
+            controller: _scrollController,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -378,6 +382,15 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                         setState(() {
                           isExpanded = !isExpanded;
                         });
+                        if (isExpanded) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _scrollController.animateTo(
+                              _scrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOut,
+                            );
+                          });
+                        }
                       },
                       child: TextFormField(
                         enabled: false,
@@ -401,63 +414,73 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                       ),
                     ),
                     if (isExpanded) ...[
-                      SizedBox(height: 15),
-                      Text(
-                        "Preferred Transport",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      Consumer<TransportProvider>(
-                        builder: (context, transportProvider, child) {
-                          if (transportProvider.isLoading) {
-                            return const CircularProgressIndicator();
-                          }
+                      Column( key: financialSectionKey,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 15),
 
-                          final transports = transportProvider.transports;
-
-                          return CustomDropdownMenu(
-                            //label: "Preferred Transport",
-                            items: transports.map((e) => e.name ?? "").toList(),
-
-                            initialValue: selectedType,
-
-                            isDisabled: widget.mode == FormMode.view,
-
-                            width: MediaQuery.of(context).size.width,
-
-                            onChanged: (value) {
-                              final selected = transports.firstWhere(
-                                (e) => e.name == value,
-                              );
-
-                              setState(() {
-                                selectedType = selected.name;
-
-                                selectedTransportId = selected.id.toString();
-
-                                preferredTransportController.text =
-                                    selectedType ?? "";
-                              });
-                            },
-                          );
-                        },
-                      ),
-                      SizedBox(height: 15),
-                      Text(
-                        "Remarks (Optional)",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      TextFormField(
-                        enabled: widget.mode != FormMode.view,
-                        controller: remarksController,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          labelText: "Remarks (optional)",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide.none,
+                          Text(
+                            "Preferred Transport",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                        ),
+
+                          Consumer<TransportProvider>(
+                            builder: (context, transportProvider, child) {
+                              if (transportProvider.isLoading) {
+                                return const CircularProgressIndicator();
+                              }
+
+                              final transports = transportProvider.transports;
+
+                              return CustomDropdownMenu(
+                                //label: "Preferred Transport",
+                                items: transports
+                                    .map((e) => e.name ?? "")
+                                    .toList(),
+
+                                initialValue: selectedType,
+
+                                isDisabled: widget.mode == FormMode.view,
+
+                                width: MediaQuery.of(context).size.width,
+
+                                onChanged: (value) {
+                                  final selected = transports.firstWhere(
+                                    (e) => e.name == value,
+                                  );
+
+                                  setState(() {
+                                    selectedType = selected.name;
+
+                                    selectedTransportId = selected.id
+                                        .toString();
+
+                                    preferredTransportController.text =
+                                        selectedType ?? "";
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                          SizedBox(height: 15),
+                          Text(
+                            "Remarks (Optional)",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          TextFormField(
+                            enabled: widget.mode != FormMode.view,
+                            controller: remarksController,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: "Remarks (optional)",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(5),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ],
@@ -521,7 +544,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                         if (provider.error == null) {
                           await context
                               .read<CustomersProvider>()
-                              .fetchCustomers();
+                              .refreshCustomers();
                           if (!context.mounted) return;
                           ScaffoldSnackBar.show(
                             context,

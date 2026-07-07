@@ -67,12 +67,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.all(30.0),
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 children: [
                   GridView.count(
                     crossAxisCount: 3,
                     shrinkWrap: true,
+                    //crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
                     physics: NeverScrollableScrollPhysics(),
                     children: [
                       menuItemCard(

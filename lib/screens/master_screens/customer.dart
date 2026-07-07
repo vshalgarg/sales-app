@@ -7,6 +7,7 @@ import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/master_screens/add_new_customer.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import '../../dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
 import '../../dialog_boxes/master_dialogBoxes/custom_copy_details_dialog.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
@@ -28,6 +29,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
     final text = value.toString().trim();
     return text.isEmpty ? "-" : text;
   }
+
   final ScrollController _scrollController = ScrollController();
   final searchController = TextEditingController();
   Timer? _debounce;
@@ -183,7 +185,22 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               );
                             }
                             final customer = customers[index];
-                            return MasterContainer(
+                            return GestureDetector(
+                              onTap: () {
+                                final id = isSearching
+                                    ? customer.id
+                                    : customer['id'];
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddNewCustomer(
+                                      mode: FormMode.view,
+                                      id: id,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: MasterContainer(
                                 elevation: 1,
                                 name: displayValue(
                                   isSearching
@@ -192,8 +209,20 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                 ),
                                 mobile: displayValue(
                                   isSearching
-                                      ? customer.customerGstNo
-                                      : customer['mobileNumber'],
+                                      ? ((customer.contacts != null &&
+                                                customer.contacts!.isNotEmpty)
+                                            ? (customer
+                                                      .contacts!
+                                                      .first
+                                                      .mobileNumber ??
+                                                  "")
+                                            : "")
+                                      : (((customer['contacts'] as List?)
+                                                    ?.isNotEmpty ??
+                                                false)
+                                            ? (customer['contacts'][0]['mobileNumber'] ??
+                                                  "")
+                                            : ""),
                                 ),
                                 code: displayValue(
                                   isSearching
@@ -205,91 +234,122 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                       ? customer.city
                                       : customer['city'],
                                 ),
-                              eyeIconTap: () {
-                                final id = isSearching
-                                    ? customer.id
-                                    : customer['id'];
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        AddNewCustomer(
-                                          mode: FormMode.view,
-                                          id: id,
-                                        ),
-                                  ),
-                                );
-                              },
-                              trashIconTap: () {
-                                ExitConfirmationDialog.show(
-                                  context,
-                                  discardButtonText: "No",
-                                  saveButtonText: "Yes",
-                                  onClose: () {
-                                    Navigator.pop(context);
-                                  },
-                                  onDiscard: () {
-                                    Navigator.pop(context);
-                                  },
-                                  bodyText:
-                                      "Are you sure you want to permanently delete ${isSearching ? customer.customerName : customer['customerName']}? This action cannot be undo.",
-                                  onSave: () async {
-                                    await context
-                                        .read<DeleteCustomerProvider>()
-                                        .deleteCustomer({
-                                          "customerCode": customer['code'],
-                                        });
-                                    if (!context.mounted) {
-                                      return;
-                                    }
-
-                                    if (deleteProvider.errorMessage == null) {
-                                      Navigator.pop(context);
-
-                                      context
-                                          .read<CustomersProvider>()
-                                          .fetchCustomers();
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        "Customer Deleted successfully",
-                                      );
-                                    } else {
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        deleteProvider.errorMessage!,
-                                      );
-                                    }
-                                  },
-                                );
-                              },
-
-                              copyIconTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return CustomCopyDialog(
-                                      headingText: "Customer Details",
-                                      firmName: isSearching
-                                          ? customer.customerName
-                                          : customer['customerName'] ?? "",
-                                    );
-                                  },
-                                );
-                              },
-                              editIconTap: () {
-                                final id = isSearching
-                                    ? customer.id
-                                    : customer['id'];
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AddNewCustomer(
-                                      mode: FormMode.edit,
-                                      id: id,
+                                eyeIconTap: () {
+                                  final id = isSearching
+                                      ? customer.id
+                                      : customer['id'];
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddNewCustomer(
+                                        mode: FormMode.view,
+                                        id: id,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                                trashIconTap: () {
+                                  ExitConfirmationDialog.show(
+                                    context,
+                                    discardButtonText: "No",
+                                    saveButtonText: "Yes",
+                                    onClose: () {
+                                      Navigator.pop(context);
+                                    },
+                                    onDiscard: () {
+                                      Navigator.pop(context);
+                                    },
+                                    bodyText:
+                                        "Are you sure you want to permanently delete ${isSearching ? customer.customerName : customer['customerName']}? This action cannot be undo.",
+                                    onSave: () async {
+                                      await context.read<DeleteCustomerProvider>().deleteCustomer({
+                                        "customerCode": isSearching
+                                            ? customer.code
+                                            : customer['code'],
+                                      });
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+
+                                      if (deleteProvider.errorMessage == null) {
+                                        Navigator.pop(context);
+
+                                        if (isSearching) {
+                                          await context.read<SearchCustomerProvider>().searchCustomer(
+                                            searchController.text.trim(),
+                                          );
+                                        } else {
+                                          await context.read<CustomersProvider>().refreshCustomers();
+                                        }
+
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Customer Deleted successfully",
+                                        );
+                                      } else {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          deleteProvider.errorMessage!,
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+
+                                copyIconTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return CustomCopyDetailsDialog(
+                                        heading: "Customer Details",
+                                        firmName: isSearching
+                                            ? customer.customerName
+                                            : customer['customerName'] ?? "",
+                                        gstNo: isSearching
+                                            ? customer.customerGstNo
+                                            : customer['customerGstNo'],
+                                        address: isSearching
+                                            ? customer.address
+                                            : customer['address'],
+                                        contact: isSearching
+                                            ? ((customer.contacts != null &&
+                                                      customer
+                                                          .contacts!
+                                                          .isNotEmpty)
+                                                  ? (customer
+                                                            .contacts!
+                                                            .first
+                                                            .mobileNumber ??
+                                                        "")
+                                                  : "")
+                                            : (((customer['contacts'] as List?)
+                                                          ?.isNotEmpty ??
+                                                      false)
+                                                  ? (customer['contacts'][0]['mobileNumber'] ??
+                                                        "")
+                                                  : ""),
+                                        emails: isSearching
+                                            ? (customer.email ?? "")
+                                            : (customer['email'] ?? ""),
+                                      );
+                                    },
+                                  );
+                                },
+                                editIconTap: () {
+                                  final id = isSearching
+                                      ? customer.id
+                                      : customer['id'];
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddNewCustomer(
+                                        mode: FormMode.edit,
+                                        id: id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             );
                           },
                         );

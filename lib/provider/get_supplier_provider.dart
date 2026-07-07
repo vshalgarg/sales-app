@@ -11,7 +11,7 @@ class SupplierProvider extends ChangeNotifier {
   bool isLoadingMore = false;
   bool hasMore = true;
 
-  int _page = 1;
+  int _page = 0;
   final int _size = 10;
 
   String? error;
@@ -19,8 +19,9 @@ class SupplierProvider extends ChangeNotifier {
   Future<void> fetchSuppliers({bool refresh = false}) async {
     if (isLoading || isLoadingMore) return;
 
+
     if (refresh) {
-      _page = 1;
+      _page = 0;
       suppliers.clear();
       hasMore = true;
       error = null;
@@ -28,7 +29,7 @@ class SupplierProvider extends ChangeNotifier {
 
     if (!hasMore) return;
 
-    if (_page == 1) {
+    if (_page == 0) {
       isLoading = true;
     } else {
       isLoadingMore = true;
@@ -37,22 +38,20 @@ class SupplierProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print("Loading page: $_page");
-
       final response = await _api.getSupplier(
         page: _page,
         size: _size,
       );
-
-      print("Response Page: ${response.page}");
-      print("Response Last: ${response.last}");
-      print("Response Count: ${response.content?.length}");
-
       final List<Content> newSuppliers = response.content ?? [];
+      print("Page: $_page");
+      print("Supplier count: ${response.content?.length}");
+
+      for (final s in response.content ?? []) {
+        print(s.supplierName);
+      }
 
       suppliers.addAll(newSuppliers);
 
-      print("Total Suppliers: ${suppliers.length}");
 
       hasMore = !(response.last ?? true);
 
@@ -62,10 +61,10 @@ class SupplierProvider extends ChangeNotifier {
 
       error = null;
     } catch (e, stackTrace) {
-      print("Supplier Exception: $e");
-      print(stackTrace);
+
       error = e.toString();
     }
+
 
       isLoading = false;
       isLoadingMore = false;
@@ -74,5 +73,6 @@ class SupplierProvider extends ChangeNotifier {
 
   Future<void> refreshSuppliers() async {
     await fetchSuppliers(refresh: true);
+
   }
 }

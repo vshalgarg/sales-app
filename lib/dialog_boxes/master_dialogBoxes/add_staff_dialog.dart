@@ -297,7 +297,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                                               "Staff Added Successfully",
                                         );
                   
-                                        Navigator.pop(context);
+                                        Navigator.pop(context,true);
                   
                                         await getStaffProvider.getStaff();
                                       },
@@ -373,10 +373,8 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                                                   ?.message ??
                                               "Staff Updated Successfully",
                                         );
-                  
-                                        Navigator.pop(context);
-                  
-                                        await getStaffProvider.getStaff();
+
+                                        Navigator.pop(context,true);
                                       },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryPurple,

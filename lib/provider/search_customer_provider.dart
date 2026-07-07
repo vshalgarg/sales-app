@@ -25,15 +25,11 @@ class SearchCustomerProvider extends ChangeNotifier {
 
   Timer? _debounce;
 
-  /// SEARCH WITH DEBOUNCE
-  void searchCustomer(String keyword) {
-
-    /// cancel previous timer
+   Future<void> searchCustomer(String keyword) async {
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
     }
 
-    /// new timer
     _debounce = Timer(
       const Duration(milliseconds: 500),
 
@@ -70,7 +66,6 @@ class SearchCustomerProvider extends ChangeNotifier {
     );
   }
 
-  /// CLEAR SEARCH
   void clearSearch() {
 
     _searchResult = null;
