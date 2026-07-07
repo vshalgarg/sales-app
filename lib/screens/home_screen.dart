@@ -7,7 +7,9 @@ import 'package:hisabio/screens/reporting_screen/ledger.dart';
 import 'package:hisabio/screens/reporting_screen/purchase.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
 import '../constants/colors_used.dart';
+import '../services/configuration_services.dart';
 import '../shared_preferences/login_token.dart';
+import 'master_screens/configurations.dart';
 import 'master_screens/customer.dart';
 import 'master_screens/staff.dart';
 import 'master_screens/supplier.dart';
@@ -21,11 +23,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 class _HomeScreenState extends State<HomeScreen> {
+ // bool showRetailFeature = false;
   String email = "";
   @override
   void initState() {
     super.initState();
     _loadEmail();
+   // _loadConfiguration();
   }
   Future<void> _loadEmail() async {
     final value = await AppStorage.getEmail();
@@ -38,6 +42,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
+  //Future<void> _loadConfiguration() async {
+   // final status = await getRetailFeatureStatus();
+
+    //setState(() {
+      //showRetailFeature = status;
+    //});
+  //}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 children: [
-                  GridView.count(
+                  GridView.count(mainAxisSpacing: 3,
                     crossAxisCount: 3,
                     shrinkWrap: true,
                     //crossAxisSpacing: 16,
@@ -135,11 +146,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
-                      menuItemCard(
-                        imagePath: "assets/images/config.png",
-                        title: "Configuration",
-                        onTap: () {},
-                      ),
+                        menuItemCard(
+                          imagePath: "assets/images/config.png",
+                          title: "Configurations",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => ConfigurationScreen()),
+                            );
+                          },
+                        ),
                       menuItemCard(
                         imagePath: "assets/images/bill.png",
                         title: "Bills",
@@ -168,6 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
 
+                      //if (showRetailFeature)
                       menuItemCard(
                         imagePath: "assets/images/retailors.png",
                         title: "Retailors",

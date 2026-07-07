@@ -26,7 +26,7 @@ class AddNewTransport extends StatefulWidget {
 }
 
 class _AddNewTransportState extends State<AddNewTransport> {
-  bool isExpanded = false;
+  bool isExpanded = true;
 
   @override
   @override

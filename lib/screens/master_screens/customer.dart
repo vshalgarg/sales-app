@@ -25,7 +25,7 @@ class CustomerScreen extends StatefulWidget {
 
 class _CustomerScreenState extends State<CustomerScreen> {
   String displayValue(dynamic value) {
-    if (value == null) return "-";
+    if (value == null) return "   -   ";
     final text = value.toString().trim();
     return text.isEmpty ? "-" : text;
   }

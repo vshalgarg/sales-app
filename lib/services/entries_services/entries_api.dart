@@ -216,9 +216,12 @@ class EntriesApi {
         url, headers: { "Content-Type": "application/json",
         "Authorization": "Bearer $token"},
         body: jsonEncode(body),);
+      print("STATUS CODE : ${response.statusCode}");
+      print("REQUEST BODY: ${jsonEncode(body)}");
+      print("RESPONSE    : ${response.body}");
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return (data);
+        return data["message"];
       } else {
         throw Exception(data['message'] ?? "Failed to add retail entry");
       }

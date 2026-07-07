@@ -149,6 +149,7 @@ class ReportingFilterSection extends StatelessWidget {
               ),
             ],
           ),
+          SizedBox(height:30),
         ],
       ),
     );

@@ -44,6 +44,8 @@ class RetailApi {
       final url = Uri.parse(
         "http://192.168.1.100:8087/csm/api/v1/retail/search",
       ).replace(queryParameters: queryParams);
+      print("Retail URL: $url");
+      print("Query Params: $queryParams");
       final response = await http.get(
           url,
           headers: {
@@ -55,10 +57,16 @@ class RetailApi {
       if (response.statusCode == 200) {
         print("RETAIL API RESPONSE:");
         print(response.body);
+
         final jsonData = jsonDecode(response.body);
 
-        final content =
-        jsonData["data"]["content"] as List<dynamic>;
+        // Backend returned an application error
+        if (jsonData["success"] == false || jsonData["code"] != null) {
+          print("Backend Error: ${jsonData["message"]}");
+          throw Exception(jsonData["message"]);
+        }
+
+        final content = jsonData["data"]["content"] as List<dynamic>;
 
         final retailList = content
             .map((e) => RetailModel.fromJson(e))
@@ -66,6 +74,7 @@ class RetailApi {
 
         return {
           "retails": retailList,
+          "page": jsonData["data"]["number"] ?? page,
           "totalPages": jsonData["data"]["totalPages"] ?? 0,
           "last": jsonData["data"]["last"] ?? true,
         };

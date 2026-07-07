@@ -15,6 +15,7 @@ class RetailDetailsBottomSheet extends StatefulWidget {
 }
 
 class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
+  int? expandedSupplierIndex;
   bool showRetailInfo = true;
   bool showHistory = false;
 
@@ -141,7 +142,10 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                     _infoItem("Date", retail.date),
                                     const SizedBox(height: 16),
 
-                                    _infoItem("Referred By", retail.customerName),
+                                    _infoItem(
+                                      "Referred By",
+                                      retail.customerName,
+                                    ),
                                     const SizedBox(height: 16),
 
                                     _infoItem("Staff", retail.staffName),
@@ -197,12 +201,13 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                             ),
 
                             if (showHistory)
-        ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: retail.suppliers.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
-        itemBuilder: (context, index) {
+                              ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: retail.suppliers.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, index) {
                                   final supplier = retail.suppliers[index];
 
                                   return Padding(
@@ -226,26 +231,180 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                           runSpacing: 10,
                                           children: [
                                             _chip(
-                                              "Total: ${formatAmount(supplier.totalAmount)}",
-                                              Colors.grey,
+                                              title: "Total",
+                                              value: "₹${supplier.totalAmount}",
+                                              color: Colors.grey,
+                                              onTap: () {
+                                                setState(() {
+                                                  expandedSupplierIndex =
+                                                      expandedSupplierIndex ==
+                                                          index
+                                                      ? null
+                                                      : index;
+                                                });
+                                              },
                                             ),
 
                                             const SizedBox(height: 12),
 
                                             _chip(
-                                              "Deposited: ${formatAmount(supplier.depositAmount)}",
-                                              Colors.green,
+                                              title: "Deposited",
+                                              value: "₹${supplier.depositAmount}",
+                                              color: Colors.green,
+                                              onTap: () {
+                                                setState(() {
+                                                  expandedSupplierIndex =
+                                                      expandedSupplierIndex ==
+                                                          index
+                                                      ? null
+                                                      : index;
+                                                });
+                                              },
                                             ),
 
                                             const SizedBox(height: 12),
 
                                             _chip(
-                                              "Remaining: ${formatAmount(supplier.balanceAmount)}",
-                                              supplier.balanceAmount > 0
-                                                  ? Colors.deepOrange
+                                              title: "Remaining",
+                                              value: "₹${supplier.balanceAmount}",
+                                              color: supplier.balanceAmount > 0
+                                                  ? Colors.orange
                                                   : Colors.green,
+                                              onTap: () {
+                                                setState(() {
+                                                  expandedSupplierIndex =
+                                                      expandedSupplierIndex ==
+                                                          index
+                                                      ? null
+                                                      : index;
+                                                });
+                                              },
                                             ),
                                           ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        AnimatedCrossFade(
+                                          duration: const Duration(
+                                            milliseconds: 250,
+                                          ),
+                                          crossFadeState:
+                                              expandedSupplierIndex == index
+                                              ? CrossFadeState.showSecond
+                                              : CrossFadeState.showFirst,
+                                          firstChild: const SizedBox(),
+                                          secondChild: Container(
+                                            margin: const EdgeInsets.only(
+                                              top: 8,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 12,
+                                                      ),
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFF4057A6),
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                8,
+                                                              ),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                8,
+                                                              ),
+                                                        ),
+                                                  ),
+                                                  child: const Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          "Date",
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          "Deposit Amount",
+                                                          textAlign:
+                                                              TextAlign.end,
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+
+                                                Column(
+                                                  children: List.generate(
+                                                    supplier.deposits.length,
+                                                    (i) {
+                                                      final deposit =
+                                                          supplier.deposits[i];
+
+                                                      return Column(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal:
+                                                                      16,
+                                                                  vertical: 12,
+                                                                ),
+                                                            child: Row(
+                                                              children: [
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    deposit
+                                                                        .date,
+                                                                  ),
+                                                                ),
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    "₹${deposit.amount}",
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .end,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          if (i !=
+                                                              supplier
+                                                                      .deposits
+                                                                      .length -
+                                                                  1)
+                                                            const Divider(
+                                                              height: 1,
+                                                            ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -265,6 +424,7 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
       },
     );
   }
+
   Widget _infoItem(String title, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,15 +440,10 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 14,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
             color: const Color(0xFFF8F9FC),
-            border: Border.all(
-              color: const Color(0xFFD9D9D9),
-            ),
+            border: Border.all(color: const Color(0xFFD9D9D9)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -303,14 +458,38 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
       ],
     );
   }
-  Widget _chip(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: color),
-        borderRadius: BorderRadius.circular(20),
+
+  Widget _chip({
+    required String title,
+    required String value,
+    required Color color,
+    required VoidCallback onTap,
+  }){
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: color),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(color: color, fontSize: 14),
+            children: [
+              TextSpan(
+                text: "$title: ",
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              TextSpan(
+                text: value,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
       ),
-      child: Text(text, style: TextStyle(color: color, fontSize: 14)),
     );
   }
 }
