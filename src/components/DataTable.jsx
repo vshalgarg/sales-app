@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Typography,
   TablePagination,
+  Box,
 } from "@mui/material";
 
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -39,6 +40,10 @@ const DataTable = ({
   onPageChange,
   disablePagination = false,
   emptyMessage = "No records found",
+  headerRowSx,
+  headerCellSx,
+  actionsHeaderSx,
+  autoHeight = false,
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -62,28 +67,43 @@ const DataTable = ({
   const showPagination = !disablePagination && totalCount > 0;
 
   return (
-    <Paper elevation={3} sx={{ borderRadius: 2, display: "flex", flexDirection: "column", height: "100%" }}>
+    <Paper
+      elevation={3}
+      sx={{
+        borderRadius: 2,
+        display: "flex",
+        flexDirection: "column",
+        height: autoHeight ? "auto" : "100%",
+      }}
+    >
       <TableContainer
         sx={{
-          flex: 1,
-          minHeight: 0,
+          flex: autoHeight ? "none" : 1,
+          minHeight: autoHeight ? "auto" : 0,
           overflowX: "auto",
-          overflowY: "auto",
+          overflowY: autoHeight ? "visible" : "auto",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <Table stickyHeader size="small"
+        <Table
+          stickyHeader={!autoHeight}
+          size="small"
           sx={{
             tableLayout: isMobile ? "auto" : "fixed",
             width: "100%",
-          }}>
+            flexShrink: 0,
+          }}
+        >
           {/* TABLE HEAD */}
           <TableHead>
-            <TableRow sx={
-              {
+            <TableRow
+              sx={{
                 backgroundColor: "#e0e0e0",
-                height: 48
-              }
-            }>
+                height: 48,
+                ...headerRowSx,
+              }}
+            >
               {columns.map((col) => (
                 <TableCell
                   key={col.key}
@@ -92,13 +112,27 @@ const DataTable = ({
                     //  backgroundColor: '#e0e0e0',
                     bgcolor: 'inherit',
                     px: isMobile ? 1 : 2,
-
+                    ...headerCellSx,
                   }}
                 >
                   {col.label}
                 </TableCell>
               ))}
-              {actions && <TableCell sx={{ px: isMobile ? 1 : 2, width: isMobile ? "40px" : "6%", minWidth: isMobile ? "40px" : "80px", backgroundColor: '#e0e0e0', fontWeight: 600 }}>Actions</TableCell>}
+              {actions && (
+                <TableCell
+                  sx={{
+                    px: isMobile ? 1 : 2,
+                    width: isMobile ? "40px" : "6%",
+                    minWidth: isMobile ? "40px" : "80px",
+                    backgroundColor: "#e0e0e0",
+                    fontWeight: 600,
+                    ...headerCellSx,
+                    ...actionsHeaderSx,
+                  }}
+                >
+                  Actions
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
 
@@ -144,19 +178,26 @@ const DataTable = ({
                   )}
                 </TableRow>
               ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length + (actions ? 1 : 0)}
-                  align="center"
-                  sx={{ py: 8 }}
-                >
-                  <Typography color="text.secondary">{emptyMessage}</Typography>
-                </TableCell>
-              </TableRow>
-            )}
+            ) : null}
           </TableBody>
         </Table>
+
+        {!loading && data.length === 0 && (
+          <Box
+            sx={{
+              flex: autoHeight ? "none" : 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: autoHeight ? 220 : 180,
+              px: 2,
+            }}
+          >
+            <Typography color="text.secondary" align="center">
+              {emptyMessage}
+            </Typography>
+          </Box>
+        )}
       </TableContainer>
 
       {/* MUI Pagination – only show if there's more than one page worth of data */}

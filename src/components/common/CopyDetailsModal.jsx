@@ -133,6 +133,7 @@ export default function CopyDetailsModal({
   onClose,
   title,
   formattedText,
+  showSelection = true,
 }) {
   const { showSnackbar } = useSnackbar();
   const [copying, setCopying] = useState(false);
@@ -251,7 +252,7 @@ export default function CopyDetailsModal({
       </DialogTitle>
 
       <DialogContent>
-        {(isStructuredCopy && formattedText.bank) || !isStructuredCopy ? (
+        {showSelection && ((isStructuredCopy && formattedText.bank) || !isStructuredCopy) ? (
           <p className="text-center text-sm text-brand-search-muted mb-3">
             {isStructuredCopy
               ? "Bank details are optional. Other details will always be copied."
@@ -259,62 +260,64 @@ export default function CopyDetailsModal({
           </p>
         ) : null}
 
-        {isStructuredCopy ? (
-          formattedText.bank ? (
-            <div className="rounded-xl border border-brand-surface-border bg-brand-tab-inactive/30 p-3 mb-4">
-              <p className="text-xs font-semibold text-brand-primary mb-2">
-                Select Details to Copy
-              </p>
-              <div className="rounded-md border border-brand-surface-border bg-white px-2 py-1 inline-flex">
-                <FormControlLabel
-                  sx={{ margin: 0 }}
-                  control={
-                    <Checkbox
-                      size="small"
-                      checked={includeBank}
-                      onChange={(e) => setIncludeBank(e.target.checked)}
-                    />
-                  }
-                  label={
-                    <span className="text-xs text-brand-navy">
-                      Bank Details
-                    </span>
-                  }
-                />
-              </div>
-            </div>
-          ) : null
-        ) : (
-          <div className="rounded-xl border border-brand-surface-border bg-brand-tab-inactive/30 p-3 mb-4">
-            <p className="text-xs font-semibold text-brand-primary mb-2">
-              Select Details to Copy
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {legacyEntries.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="rounded-md border border-brand-surface-border bg-white px-2 py-1"
-                >
+        {showSelection ? (
+          isStructuredCopy ? (
+            formattedText.bank ? (
+              <div className="rounded-xl border border-brand-surface-border bg-brand-tab-inactive/30 p-3 mb-4">
+                <p className="text-xs font-semibold text-brand-primary mb-2">
+                  Select Details to Copy
+                </p>
+                <div className="rounded-md border border-brand-surface-border bg-white px-2 py-1 inline-flex">
                   <FormControlLabel
                     sx={{ margin: 0 }}
                     control={
                       <Checkbox
                         size="small"
-                        checked={selectedIds.includes(entry.id)}
-                        onChange={() => handleToggle(entry.id)}
+                        checked={includeBank}
+                        onChange={(e) => setIncludeBank(e.target.checked)}
                       />
                     }
                     label={
                       <span className="text-xs text-brand-navy">
-                        {entry.label}
+                        Bank Details
                       </span>
                     }
                   />
                 </div>
-              ))}
+              </div>
+            ) : null
+          ) : (
+            <div className="rounded-xl border border-brand-surface-border bg-brand-tab-inactive/30 p-3 mb-4">
+              <p className="text-xs font-semibold text-brand-primary mb-2">
+                Select Details to Copy
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {legacyEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="rounded-md border border-brand-surface-border bg-white px-2 py-1"
+                  >
+                    <FormControlLabel
+                      sx={{ margin: 0 }}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={selectedIds.includes(entry.id)}
+                          onChange={() => handleToggle(entry.id)}
+                        />
+                      }
+                      label={
+                        <span className="text-xs text-brand-navy">
+                          {entry.label}
+                        </span>
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        ) : null}
 
         <p className="text-xs font-semibold text-brand-primary mb-2">Preview</p>
         <div

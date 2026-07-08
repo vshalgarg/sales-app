@@ -1,5 +1,5 @@
 import CustomTextField from "../components/CustomTextField";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useBillForm } from "../customHooks/useBillForm";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -27,8 +27,22 @@ import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import CloseIcon from "@mui/icons-material/Close";
 import { formatIndianCurrency } from "../utils/currencyUtils";
-
-
+import FormSection from "../components/common/FormSection";
+import ModalSectionLayout from "../components/common/ModalSectionLayout";
+import {
+  BILL_SECTION_IDS,
+  getBillModalSections,
+} from "../components/common/billModalSections";
+import { useModalSectionNav } from "../customHooks/useModalSectionNav";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import {
+  Building2,
+  FileText,
+  Paperclip,
+  Receipt,
+  Truck,
+  Users,
+} from "lucide-react";
 const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
   const { showSnackbar } = useSnackbar();
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
@@ -74,7 +88,17 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
   );
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-
+  const attachmentCount = existingImages.length + newImages.length;
+  const sections = useMemo(
+    () => getBillModalSections(attachmentCount),
+    [attachmentCount],
+  );
+  const sectionIds = useMemo(
+    () => sections.map((section) => section.id),
+    [sections],
+  );
+  const { activeSection, scrollToSection, scrollContainerRef, setSectionRef } =
+    useModalSectionNav(sectionIds);
 
   useEffect(() => {
     const loadMasterData = async () => {
@@ -336,34 +360,51 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-0 md:p-4">
       <div
-        className={`
-    bg-white flex flex-col
-    w-full
-    ${isMobile
-            ? "h-full rounded-none"
-
-            : "max-w-6xl max-h-[90vh] rounded-lg"}
-  `}
+        className={`bg-white dark:bg-gray-900 flex flex-col w-full overflow-hidden shadow-lg ${
+          isMobile ? "h-full" : "max-w-6xl max-h-[90vh] rounded-xl"
+        }`}
       >
-        <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+        <div className="px-4 sm:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700 flex items-center justify-between gap-3 shrink-0 bg-white dark:bg-gray-900">
+          <div className="flex items-center gap-3 min-w-0">
+            <IconButton
+              onClick={handleClose}
+              className="md:hidden"
+              size="small"
+              aria-label="Go back"
+            >
+              <ArrowBackIcon />
+            </IconButton>
 
+            <h2 className={`${PAGE_TITLE_CLASS} truncate`}>Edit Bill Details</h2>
+          </div>
           <IconButton
             onClick={handleClose}
-            className="md:hidden"
+            size="small"
+            aria-label="Close"
+            className="hidden md:inline-flex border border-brand-surface-border rounded-lg"
           >
-            <ArrowBackIcon />
+            <CloseIcon fontSize="small" />
           </IconButton>
-
-          <h2 className="text-lg sm:text-2xl font-semibold">
-            Edit Bill Details
-          </h2>
         </div>
 
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-6">
-          {/* --- Section: Bill Info --- */}
-          <h3 className="text-lg font-semibold mb-3">Bill Information</h3>
+        <ModalSectionLayout
+          sections={sections}
+          activeSection={activeSection}
+          onSectionClick={scrollToSection}
+          scrollContainerRef={scrollContainerRef}
+        >
+          <div
+            ref={setSectionRef(BILL_SECTION_IDS.BILL_INFO)}
+            id={BILL_SECTION_IDS.BILL_INFO}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Bill Information"
+              icon={FileText}
+              variantIndex={0}
+            >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <CustomTextField
               name="billNumber"
@@ -444,10 +485,20 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
               helperText={errors.order || ""}
             />
           </div>
+            </FormSection>
+          </div>
 
-          {/* --- Section: Supplier --- */}
-          <h3 className="text-lg font-semibold mb-3">Supplier Information</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div
+            ref={setSectionRef(BILL_SECTION_IDS.SUPPLIER)}
+            id={BILL_SECTION_IDS.SUPPLIER}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Supplier Information"
+              icon={Building2}
+              variantIndex={1}
+            >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div ref={searchRef} className="relative w-full">
               <Autocomplete
                 options={allSuppliers}
@@ -508,10 +559,20 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
               hideErrorUI={true}
             />
           </div>
+            </FormSection>
+          </div>
 
-          {/* --- Section: Customer --- */}
-          <h3 className="text-lg font-semibold mb-3">Customer Information</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div
+            ref={setSectionRef(BILL_SECTION_IDS.CUSTOMER)}
+            id={BILL_SECTION_IDS.CUSTOMER}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Customer Information"
+              icon={Users}
+              variantIndex={2}
+            >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div ref={custSearchRef} className="relative w-full">
               <Autocomplete
                 options={allCustomers}
@@ -572,12 +633,18 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
               hideErrorUI={true}
             />
           </div>
+            </FormSection>
+          </div>
 
-          {/* DYNAMIC EDITABLE ITEMS TABLE WITH ADD/DELETE */}
-          <div className="border p-6 rounded-lg border-gray-300 bg-gray-50">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-blue-700">Bill Items</h3>
+          <div
+            ref={setSectionRef(BILL_SECTION_IDS.ITEMS)}
+            id={BILL_SECTION_IDS.ITEMS}
+            className="scroll-mt-4"
+          >
+            <FormSection title="Bill Items" icon={Receipt} variantIndex={3}>
+            <div className="flex justify-end items-center mb-4">
               <button
+                type="button"
                 onClick={() => {
                   setItems([...items, {
                     id: nanoid(),
@@ -633,9 +700,9 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
             )}
 
             {!isMobile && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-lg border border-brand-surface-border">
                 <table className="min-w-[900px] w-full">
-                  <thead className="bg-blue-100">
+                  <thead className="bg-[#f3f0ff] text-brand-primary">
                     <tr>
                       <th className="px-4 py-2 text-left">Pieces</th>
                       <th className="px-4 py-2 text-left">Gross</th>
@@ -759,24 +826,30 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
 
             {/* Final Totals */}
             <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-base sm:text-lg font-semibold">
-              <div className="flex justify-between sm:justify-end items-center bg-gray-100 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md">
-                <span className="text-gray-600">Taxable Value:</span> ₹{formatIndianCurrency(roundUp(formData.taxableValue))}
+              <div className="flex justify-between sm:justify-end items-center bg-white/70 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md border border-brand-surface-border sm:border-0 text-brand-navy">
+                <span className="text-brand-search-muted">Taxable Value:</span> ₹{formatIndianCurrency(roundUp(formData.taxableValue))}
               </div>
 
-              <div className="flex justify-between sm:justify-end items-center bg-blue-50 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md text-blue-700 font-bold">
-                <span className="text-gray-600">Bill Amount:</span> ₹{formatIndianCurrency(roundUp(formData.billAmount))}
+              <div className="flex justify-between sm:justify-end items-center bg-white/70 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md border border-brand-surface-border sm:border-0 text-brand-primary font-bold">
+                <span className="text-brand-search-muted">Bill Amount:</span> ₹{formatIndianCurrency(roundUp(formData.billAmount))}
               </div>
             </div>
+            </FormSection>
           </div>
 
-          {/* ================= BILL IMAGES ================= */}
-          <div className="bg-white border rounded-2xl p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Bill Attachments
-              </h3>
-              <span className="text-sm text-gray-500">
-                {existingImages.length + newImages.length}/2
+          <div
+            ref={setSectionRef(BILL_SECTION_IDS.ATTACHMENTS)}
+            id={BILL_SECTION_IDS.ATTACHMENTS}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title={`Attachments (${attachmentCount})`}
+              icon={Paperclip}
+              variantIndex={5}
+            >
+            <div className="flex justify-end items-center mb-4">
+              <span className="text-sm text-brand-search-muted">
+                {attachmentCount}/2
               </span>
             </div>
 
@@ -921,13 +994,20 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
               onClose={() => setPreviewIndex(null)}
             />
 
+            </FormSection>
           </div>
 
-          {/* --- Section: Transport --- */}
-          <h3 className="text-lg font-semibold mb-3">
-            Transport & Logistics Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div
+            ref={setSectionRef(BILL_SECTION_IDS.TRANSPORT)}
+            id={BILL_SECTION_IDS.TRANSPORT}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Transport & Logistics Information"
+              icon={Truck}
+              variantIndex={4}
+            >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div ref={transportSearchRef} className="relative w-full">
               <Autocomplete
                 options={allTransports}
@@ -974,10 +1054,12 @@ const EditBillDetail = ({ open, billNumber, setOpen, onUpdateSuccess }) => {
               label="Remarks"
             />
           </div>
-        </div>
+            </FormSection>
+          </div>
+        </ModalSectionLayout>
 
         {/* --- Footer --- */}
-        <FormFooter background="bg-white">
+        <FormFooter background="bg-white dark:bg-gray-900">
 
           {/* Save Changes */}
           <AppButton

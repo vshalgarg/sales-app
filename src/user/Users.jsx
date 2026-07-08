@@ -97,6 +97,16 @@ const Users = () => {
     }
   };
 
+  const tableHeaderRowSx = {
+    backgroundColor: "#f3f0ff",
+  };
+  const tableHeaderCellSx = {
+    color: "#203A8F",
+    fontWeight: 600,
+    backgroundColor: "inherit",
+    whiteSpace: "nowrap",
+  };
+
   const columns = [
     {
       key: "username",
@@ -151,6 +161,9 @@ const Users = () => {
               } : undefined}
               emptyMessage="No users found"
               disablePagination
+              headerRowSx={tableHeaderRowSx}
+              headerCellSx={tableHeaderCellSx}
+              actionsHeaderSx={tableHeaderCellSx}
             />
           </div>
         </div>

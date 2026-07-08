@@ -27,7 +27,7 @@ import {
   updateSupplier,
 } from "../service/RetailService";
 import CustomDatePicker from "./common/CustomDatePicker";
-import { Store } from "lucide-react";
+import { Store, FilterX, Funnel } from "lucide-react";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import {
   SECTION_ICON_CLASS,
@@ -275,7 +275,7 @@ const Retail = () => {
     <div className="flex flex-col h-full min-h-0">
       <div className="flex flex-col flex-1 min-h-0 gap-3 mt-2">
         <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900 shrink-0">
-        <div className="px-4 md:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700/40">
+        <div className="px-4 md:px-6 py-3 border-b border-brand-surface-border dark:border-zinc-700/40">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
@@ -291,7 +291,7 @@ const Retail = () => {
           </div>
         </div>
 
-        <div className="px-4 md:px-6 py-5">
+        <div className="px-4 md:px-6 py-4">
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3">
             <CustomDatePicker
               label="From Date"
@@ -374,13 +374,18 @@ const Retail = () => {
           </div>
         </div>
 
-        <div className="px-4 md:px-6 pb-5 flex justify-end gap-3">
-          <AppButton type="secondary" onClick={clearFiltersAndResults}>
+        <div className="px-4 md:px-6 pb-4 flex justify-end gap-3">
+          <AppButton
+            type="secondary"
+            startIcon={<FilterX className="h-4 w-4" />}
+            onClick={clearFiltersAndResults}
+          >
             Clear Filters
           </AppButton>
 
           <AppButton
             type="primary"
+            startIcon={<Funnel className="h-4 w-4" />}
             onClick={() => handleRetailerHistory(1)}
             disabled={!isAnyFilterSelected}
             loading={loading}

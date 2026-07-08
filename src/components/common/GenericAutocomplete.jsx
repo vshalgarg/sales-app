@@ -1,6 +1,17 @@
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 
+const listboxSx = {
+  "& .MuiAutocomplete-option": {
+    fontSize: "0.8125rem",
+    minHeight: 32,
+    paddingTop: 0.25,
+    paddingBottom: 0.25,
+    paddingLeft: 1,
+    paddingRight: 1,
+  },
+};
+
 const GenericAutocomplete = ({
     options = [],
     value = null,
@@ -26,6 +37,8 @@ const GenericAutocomplete = ({
             getOptionLabel={(option) => option?.label || ""}
 
             onChange={(e, val) => onChange(val)}
+
+            slotProps={{ listbox: { sx: listboxSx } }}
 
             renderInput={(params) => (
                 <TextField
