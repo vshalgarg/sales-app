@@ -1,7 +1,7 @@
 export const formatDetails = (data) => {
-
-  const filteredEntries = Object.entries(data)
-    .filter(([_, value]) => value !== undefined && value !== null && value !== "");
+  const filteredEntries = Object.entries(data).filter(
+    ([_, value]) => value !== undefined && value !== null && value !== "",
+  );
 
   const html = filteredEntries
     .map(([key, value]) => `<b>${key}:</b> ${value}<br/>`)
@@ -16,7 +16,9 @@ export const formatDetails = (data) => {
 
 export const cleanText = (text) => {
   if (Array.isArray(text)) {
-    return text.map(t => (typeof t === "string" ? t.replace(/\s+/g, " ").trim() : t));
+    return text.map((t) =>
+      typeof t === "string" ? t.replace(/\s+/g, " ").trim() : t,
+    );
   }
 
   if (typeof text === "string") {
@@ -40,34 +42,86 @@ export const convertHtmlToWhatsApp = (html) => {
     .trim();
 };
 
-export const getSupplierFormattedText = (supplier) => {
+const toFieldList = (data) =>
+  Object.entries(data)
+    .filter(([_, value]) => value !== undefined && value !== null && value !== "")
+    .map(([label, value]) => ({ label, value }));
 
+const buildBankFields = ({
+  bankName,
+  accountNumber,
+  ifscCode,
+  ifsc,
+  branchName,
+  branch,
+}) =>
+  [
+    { label: "Bank Name", value: bankName },
+    { label: "A/c No", value: accountNumber },
+    { label: "IFSC", value: ifscCode || ifsc },
+    { label: "Branch", value: branchName || branch },
+  ].filter((field) => field.value);
+
+export const buildStructuredCopyText = (
+  mandatory = [],
+  includeBank = false,
+  bank = null,
+) => {
+  let html = mandatory
+    .map(({ label, value }) => `<b>${label}:</b> ${value}<br/>`)
+    .join("");
+
+  if (includeBank && bank?.fields?.length) {
+    html += `<b>Bank Details:</b><br/>`;
+    html += bank.fields
+      .map(({ label, value }) => `${label}: ${value}<br/>`)
+      .join("");
+  }
+
+  return {
+    html,
+    text: convertHtmlToWhatsApp(html),
+  };
+};
+
+export const getSupplierFormattedText = (supplier) => {
   const mobileNumbers = formatContacts(supplier?.contacts);
   const transports = supplier?.preferredTransports
-    ?.map(t => t.name)
+    ?.map((t) => t.name)
     ?.filter(Boolean)
     ?.join(", ");
 
-  const fullAddress = cleanText([
-    supplier?.addressLine1 || supplier?.address,
-    supplier?.addressLine2,
-    supplier?.city,
-    supplier?.state,
-    supplier?.pinCode
-  ]
-    .filter(Boolean)
-    .join(", ")
+  const fullAddress = cleanText(
+    [
+      supplier?.addressLine1 || supplier?.address,
+      supplier?.addressLine2,
+      supplier?.city,
+      supplier?.state,
+      supplier?.pinCode,
+    ]
+      .filter(Boolean)
+      .join(", "),
   );
 
-  return formatDetails({
+  const mandatory = toFieldList({
     "Firm Name": supplier?.supplierName,
-    "Address": fullAddress,
-    "Contacts": mobileNumbers,
-    "Emails": supplier?.email,
-    "Transports": transports,
-    "GST No": supplier?.supplierGstNo || supplier?.gstNo
-  }
-  );
+    Email: supplier?.email,
+    Address: fullAddress,
+    Contacts: mobileNumbers,
+    Transports: transports,
+    "GST No": supplier?.supplierGstNo || supplier?.gstNo,
+  });
+
+  const bankFields = buildBankFields(supplier);
+  const bank = bankFields.length ? { fields: bankFields } : null;
+  const base = buildStructuredCopyText(mandatory, Boolean(bank), bank);
+
+  return {
+    mandatory,
+    bank,
+    html: base.html,
+    text: base.text,
+  };
 };
 
 export const getSuppliersFormattedText = (data) => {
@@ -75,91 +129,111 @@ export const getSuppliersFormattedText = (data) => {
 
   if (suppliers.length === 0) return { html: "", text: "" };
 
-  const html = suppliers.map((supplier) => {
+  const html = suppliers
+    .map((supplier) => {
+      const bankParts = [
+        supplier.accountName,
+        supplier.accountNumber,
+        supplier.ifscCode,
+        supplier.branchName,
+        supplier.bankName,
+      ]
+        .filter(Boolean)
+        .join(", ");
 
-    const bankParts = [
-      supplier.accountName,
-      supplier.accountNumber,
-      supplier.ifscCode,
-      supplier.branchName,
-      supplier.bankName,
-    ]
-      .filter(Boolean)
-      .join(", ");
+      const entry = {
+        Name: supplier.supplierName,
+        ...(bankParts ? { "Bank Details": bankParts } : {}),
+      };
 
-    const entry = {
-      "Name": supplier.supplierName,
-      ...(bankParts ? { "Bank Details": bankParts } : {}),
-    };
-
-    return Object.entries(entry)
-      .map(([key, value]) => `<b>${key}:</b> ${value}`)
-      .join("<br/>");
-
-  }).join("<br/><br/>");
+      return Object.entries(entry)
+        .map(([key, value]) => `<b>${key}:</b> ${value}`)
+        .join("<br/>");
+    })
+    .join("<br/><br/>");
 
   const text = convertHtmlToWhatsApp(html);
 
   return { html, text };
 };
 
-
 export const getCustomerFormattedText = (customer) => {
-
-  const mobileNumbers = formatContacts(customer?.contacts)
-  const fullAddress = cleanText([
-    customer?.addressLine1 || customer?.address,
-    customer?.addressLine2,
-    customer?.city,
-    customer?.state,
-    customer?.pinCode
-  ]
-    .filter(Boolean)
-    .join(", ")
+  const mobileNumbers = formatContacts(customer?.contacts);
+  const fullAddress = cleanText(
+    [
+      customer?.addressLine1 || customer?.address,
+      customer?.addressLine2,
+      customer?.city,
+      customer?.state,
+      customer?.pinCode,
+    ]
+      .filter(Boolean)
+      .join(", "),
   );
 
   const transports = customer?.preferredTransports
-    ?.map(t => t.name)
+    ?.map((t) => t.name)
     ?.filter(Boolean)
     ?.join(", ");
 
-  return formatDetails({
+  const mandatory = toFieldList({
     "Firm Name": customer?.customerName,
-    "Address": fullAddress,
-    "Contacts": mobileNumbers,
-    "Emails": customer?.email,
-    "Transports": transports,
-    "GST No": customer?.gstNo
-  }
-  );
+    Email: customer?.email,
+    Address: fullAddress,
+    Contacts: mobileNumbers,
+    Transports: transports,
+    "GST No": customer?.gstNo,
+  });
+
+  const bankFields = buildBankFields(customer);
+  const bank = bankFields.length ? { fields: bankFields } : null;
+  const base = buildStructuredCopyText(mandatory, Boolean(bank), bank);
+
+  return {
+    mandatory,
+    bank,
+    html: base.html,
+    text: base.text,
+  };
 };
 
 export const getTransportFormattedText = (transport) => {
-
-  const mobileNumbers = formatContacts(transport?.contacts, "contactNumber");
-  const fullAddress = cleanText([
-    transport?.addressLine1,
-    transport?.addressLine2,
-    transport?.city,
-    transport?.state,
-    transport?.pinCode
-  ]
-    .filter(Boolean)
-    .join(", ")
+  const mobileNumbers = formatContacts(
+    transport?.contacts,
+    "contactNumber",
+  );
+  const fullAddress = cleanText(
+    [
+      transport?.addressLine1,
+      transport?.addressLine2,
+      transport?.city,
+      transport?.state,
+      transport?.pinCode,
+    ]
+      .filter(Boolean)
+      .join(", "),
   );
 
-  return formatDetails({
+  const mandatory = toFieldList({
     "Firm Name": transport?.name,
-    "Address": fullAddress,
-    "Contacts": mobileNumbers,
-    "GST No": transport?.gstNo
-  }
-  );
+    Address: fullAddress,
+    Contacts: mobileNumbers,
+    "GST No": transport?.gstNo,
+  });
+
+  const base = buildStructuredCopyText(mandatory, false, null);
+
+  return {
+    mandatory,
+    bank: null,
+    html: base.html,
+    text: base.text,
+  };
 };
 
 export const formatContacts = (contacts, numberKey = "mobileNumber") => {
   return contacts
-    ?.map(contact => {
+    ?.map((contact) => {
       const name = contact?.contactPerson?.trim() || "";
       const number = contact?.[numberKey]?.trim() || "";
 

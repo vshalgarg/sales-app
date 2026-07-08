@@ -1,4 +1,5 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import AppButton from "./AppButton";
 
 export default function ConfirmDialog({
   open,
@@ -16,10 +17,10 @@ export default function ConfirmDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onCancel}>Stay</Button>
-        <Button color="error" variant="contained" onClick={onConfirm}>
+        <AppButton type="cancel" onClick={onCancel}>Stay</AppButton>
+        <AppButton type="primary" onClick={onConfirm}>
           Leave
-        </Button>
+        </AppButton>
       </DialogActions>
     </Dialog>
   );

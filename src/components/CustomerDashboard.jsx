@@ -8,6 +8,7 @@ import UniversalSearch from "../components/UniversalSearch";
 import EntityCardGrid from "./common/EntityCardGrid";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
+import CopyDetailsModal from "./common/CopyDetailsModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { getCustomerFormattedText } from "../utils/copyFormatter";

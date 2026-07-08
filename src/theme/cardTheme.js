@@ -61,3 +61,6 @@ export const PAGINATION_NAV_CLASS =
 
 export const PAGINATION_SELECT_CLASS =
   "appearance-none rounded-lg border border-brand-surface-border bg-white px-3 py-1.5 pr-8 text-sm text-brand-navy cursor-pointer hover:bg-brand-tab-inactive/50 focus:outline-none focus:ring-2 focus:ring-brand-primary/10 dark:border-zinc-600 dark:bg-zinc-900 dark:text-gray-200 dark:hover:bg-zinc-800";
+
+export const REPORT_FILTER_SHELL_CLASS =
+  "border border-brand-surface-border dark:border-zinc-700/40 rounded-t-xl bg-brand-tab-inactive/60 dark:bg-zinc-900";
