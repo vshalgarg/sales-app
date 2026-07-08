@@ -22,82 +22,97 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import useResponsive from "../customHooks/useResponsive";
+import { BRAND_COLORS } from "../theme/brandColors";
 
-/* ─── Sub-table rendered inside accordion ─── */
-/* ─── Sub-table row with menu ─── */
-const SubTableRow = ({ row, index, columns, actionItems = [], isMobile }) => {
-  const [anchorEl, setAnchorEl] = useState(null);
-
-  return (
-    <TableRow hover>
-      {columns.map((col) => (
-        <TableCell
-          key={col.key}
-          sx={{
-            px: isMobile ? 1 : 2,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {col.render
-            ? col.render(row, index)
-            : row[col.key] == null || row[col.key] === ""
-              ? "-"
-              : row[col.key]}
-        </TableCell>
-      ))}
-
-      {actionItems.length > 0 && (
-        <TableCell sx={{ px: 1 }}>
-          <IconButton
-            size="small"
-            onClick={(e) => setAnchorEl(e.currentTarget)}
-          >
-            <MoreVertIcon />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={() => setAnchorEl(null)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
-          >
-            {actionItems.map((item, i) => (
-              <MenuItem
-                key={i}
-                onClick={() => {
-                  item.onClick(row);
-                  setAnchorEl(null);
-                }}
-                sx={item.sx ?? {}}
-              >
-                {item.icon && <item.icon fontSize="small" sx={{ mr: 1 }} />}
-                {item.label}
-              </MenuItem>
-            ))}
-          </Menu>
-        </TableCell>
-      )}
-    </TableRow>
-  );
+const headerCellSx = {
+  fontWeight: 600,
+  bgcolor: "#f3f0ff",
+  color: BRAND_COLORS.primary,
+  whiteSpace: "nowrap",
 };
+
+const nestedHeaderCellSx = {
+  ...headerCellSx,
+  bgcolor: "#f7f5ff",
+};
+
+const inlineActionButtonSx = (isDelete = false) => ({
+  border: `1px solid ${BRAND_COLORS.surfaceBorder}`,
+  borderRadius: "8px",
+  width: 34,
+  height: 34,
+  bgcolor: isDelete ? "#fef2f2" : "#ffffff",
+  "&:hover": {
+    bgcolor: isDelete ? "#fee2e2" : "#f8fafc",
+  },
+});
+
+/* ─── Sub-table row with inline edit/delete actions ─── */
+const SubTableRow = ({ row, index, columns, actionItems = [], isMobile }) => (
+  <TableRow hover>
+    {columns.map((col) => (
+      <TableCell
+        key={col.key}
+        sx={{
+          px: isMobile ? 1 : 2,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {col.render
+          ? col.render(row, index)
+          : row[col.key] == null || row[col.key] === ""
+            ? "-"
+            : row[col.key]}
+      </TableCell>
+    ))}
+
+    {actionItems.length > 0 && (
+      <TableCell sx={{ px: 1 }}>
+        <Box sx={{ display: "flex", gap: 0.75, justifyContent: "center" }}>
+          {actionItems.map((item, i) => {
+            const isDelete = item.label === "Delete";
+            const Icon = item.icon;
+
+            return (
+              <IconButton
+                key={i}
+                size="small"
+                onClick={() => item.onClick(row)}
+                aria-label={item.label}
+                sx={inlineActionButtonSx(isDelete)}
+              >
+                {Icon && (
+                  <Icon
+                    fontSize="small"
+                    sx={{ color: isDelete ? "#dc2626" : BRAND_COLORS.primary }}
+                  />
+                )}
+              </IconButton>
+            );
+          })}
+        </Box>
+      </TableCell>
+    )}
+  </TableRow>
+);
 
 /* ─── Sub-table rendered inside accordion ─── */
 const SubTable = ({ columns = [], rows = [], actionItems = [], isMobile }) => (
   <Table size="small">
     <TableHead>
-      <TableRow sx={{ bgcolor: "#f5f5f5" }}>
+      <TableRow>
         {columns.map((col) => (
           <TableCell
             key={col.key}
-            sx={{ fontWeight: 600, width: col.width, whiteSpace: "nowrap" }}
+            sx={{ ...nestedHeaderCellSx, width: col.width }}
           >
             {col.label}
           </TableCell>
         ))}
         {actionItems.length > 0 && (
-          <TableCell sx={{ fontWeight: 600, whiteSpace: "nowrap", width: 60 }}>
+          <TableCell sx={{ ...nestedHeaderCellSx, width: 96 }}>
             Actions
           </TableCell>
         )}
@@ -219,10 +234,19 @@ const ExpandableRow = ({
       <TableRow>
         <TableCell
           colSpan={totalCols}
-          sx={{ py: 0, border: 0, bgcolor: "#fafafa" }}
+          sx={{ py: 0, border: 0, bgcolor: "#f8f9ff" }}
         >
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ mx: 4, my: 1.5 }}>
+            <Box
+              sx={{
+                mx: { xs: 1, md: 4 },
+                my: 1.5,
+                border: `1px solid ${BRAND_COLORS.surfaceBorder}`,
+                borderRadius: 2,
+                overflow: "hidden",
+                bgcolor: "#fff",
+              }}
+            >
               {expandedLabel && (
                 <Typography
                   variant="subtitle2"
@@ -278,34 +302,45 @@ const ExpandableDataTable = ({
 
   return (
     <Paper
-      elevation={3}
+      elevation={0}
       sx={{
         borderRadius: 2,
+        border: "none",
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        bgcolor: "#fff",
       }}
     >
       <TableContainer
-        sx={{ flex: 1, minHeight: 0, overflowX: "auto", overflowY: "auto" }}
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowX: "auto",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
         <Table
           stickyHeader
           size="small"
-          sx={{ tableLayout: isMobile ? "auto" : tableLayout, width: "100%" }}
+          sx={{
+            tableLayout: isMobile ? "auto" : tableLayout,
+            width: "100%",
+            flexShrink: 0,
+          }}
         >
           <TableHead>
             <TableRow sx={{ height: 48 }}>
-              {/* Toggle column header */}
-              <TableCell sx={{ bgcolor: "#e0e0e0", width: 48 }} />
+              <TableCell sx={{ ...headerCellSx, width: 48 }} />
 
               {safeCols.map((col) => (
                 <TableCell
                   key={col.key}
                   sx={{
-                    fontWeight: 600,
+                    ...headerCellSx,
                     width: col.width,
-                    bgcolor: "#e0e0e0",
                     px: isMobile ? 1 : 2,
                   }}
                 >
@@ -316,8 +351,7 @@ const ExpandableDataTable = ({
               {actions && (
                 <TableCell
                   sx={{
-                    fontWeight: 600,
-                    bgcolor: "#e0e0e0",
+                    ...headerCellSx,
                     width: actionsWidth,
                     px: isMobile ? 1 : 2,
                   }}
@@ -328,27 +362,25 @@ const ExpandableDataTable = ({
             </TableRow>
           </TableHead>
 
-          <TableBody>
-            {loading ? (
+          {loading && (
+            <TableBody>
               <TableRow>
-                <TableCell colSpan={totalCols} align="center" sx={{ py: 8 }}>
+                <TableCell colSpan={totalCols} align="center" sx={{ py: 8, border: 0 }}>
                   <CircularProgress />
                 </TableCell>
               </TableRow>
-            ) : safeData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={totalCols} align="center" sx={{ py: 8 }}>
-                  <Typography color="text.secondary">{emptyMessage}</Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              safeData.map((row, i) => (
+            </TableBody>
+          )}
+
+          {!loading && safeData.length > 0 && (
+            <TableBody>
+              {safeData.map((row, i) => (
                 <ExpandableRow
                   key={i}
                   row={row}
                   index={i}
                   open={openRowIndex === i}
-                  onToggle={() => setOpenRowIndex(openRowIndex === i ? null : i)} 
+                  onToggle={() => setOpenRowIndex(openRowIndex === i ? null : i)}
                   columns={safeCols}
                   expandedColumns={expandedColumns}
                   expandedActionItems={expandedActionItems}
@@ -360,10 +392,27 @@ const ExpandableDataTable = ({
                   actionItems={actionItems}
                   isMobile={isMobile}
                 />
-              ))
-            )}
-          </TableBody>
+              ))}
+            </TableBody>
+          )}
         </Table>
+
+        {!loading && safeData.length === 0 && (
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 180,
+              px: 2,
+            }}
+          >
+            <Typography color="text.secondary" align="center">
+              {emptyMessage}
+            </Typography>
+          </Box>
+        )}
       </TableContainer>
 
       {showPagination && (

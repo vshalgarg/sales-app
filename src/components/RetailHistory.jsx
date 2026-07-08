@@ -117,15 +117,15 @@ const RetailHistory = ({
 
   const expandedActionItems = [
     {
+      label: "Edit",
+      icon: EditIcon,
+      onClick: (s) => onEditSupplier(s),
+    },
+    {
       label: "Delete",
       icon: DeleteIcon,
       onClick: (s) => onDeleteSupplier(s),
       sx: { color: "error.main" },
-    },
-    {
-      label: "Edit",
-      icon: EditIcon,
-      onClick: (s) => onEditSupplier(s),
     },
   ];
 

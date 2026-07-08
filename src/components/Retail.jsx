@@ -27,6 +27,12 @@ import {
   updateSupplier,
 } from "../service/RetailService";
 import CustomDatePicker from "./common/CustomDatePicker";
+import { Store } from "lucide-react";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import {
+  SECTION_ICON_CLASS,
+  SECTION_ICON_WRAPPER_CLASS,
+} from "../theme/cardTheme";
 
 const Retail = () => {
   const { showSnackbar } = useSnackbar();
@@ -266,17 +272,26 @@ const Retail = () => {
     !!filterObject.staffId;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      {/* ================= FILTER CARD ================= */}
-      <div className="bg-gray-50 border rounded-t-lg shadow-sm mt-4">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold">Retailers</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Filter and review Retailer history
-          </p>
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 gap-3 mt-2">
+        <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900 shrink-0">
+        <div className="px-4 md:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700/40">
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
+            >
+              <Store className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+            </div>
+            <div>
+              <h2 className={PAGE_TITLE_CLASS}>Retailers</h2>
+              <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
+                Filter and review retailer history
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="px-6 py-5">
+        <div className="px-4 md:px-6 py-5">
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3">
             <CustomDatePicker
               label="From Date"
@@ -359,7 +374,7 @@ const Retail = () => {
           </div>
         </div>
 
-        <div className="px-6 pb-5 flex justify-end gap-3">
+        <div className="px-4 md:px-6 pb-5 flex justify-end gap-3">
           <AppButton type="secondary" onClick={clearFiltersAndResults}>
             Clear Filters
           </AppButton>
@@ -373,10 +388,10 @@ const Retail = () => {
             Apply Filters
           </AppButton>
         </div>
-      </div>
+        </div>
 
-      {/* ================= TABLE ================= */}
-      <RetailHistory
+        <div className="flex-1 min-h-0 rounded-xl border border-brand-surface-border dark:border-zinc-700/40 overflow-hidden bg-white dark:bg-zinc-900">
+          <RetailHistory
         data={retailerHistoryData}
         page={currentPage}
         totalItems={totalItems}
@@ -395,8 +410,10 @@ const Retail = () => {
         }}
         onDeleteSupplier={handleDeleteSupplier}
         onAddSupplier={handleAddSupplier}
-        onEditSupplier={handleEditSupplier}
-      />
+          onEditSupplier={handleEditSupplier}
+          />
+        </div>
+      </div>
 
       {viewEditData && (
         <RetailerViewEdit
