@@ -81,11 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 children: [
-                  GridView.count(mainAxisSpacing: 3,
+                  GridView.count(
                     crossAxisCount: 3,
                     shrinkWrap: true,
                     //crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                     mainAxisSpacing: 16,
                     physics: NeverScrollableScrollPhysics(),
                     children: [
                       menuItemCard(

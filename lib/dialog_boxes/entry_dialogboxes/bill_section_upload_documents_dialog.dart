@@ -35,7 +35,7 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
   Widget build(BuildContext context) {
     return Dialog(
         child: Padding(
-          padding: const EdgeInsets.all(15.0),
+          padding: const EdgeInsets.only(left:15.0,right:15,top:15,bottom:10),
 
           child: Column(mainAxisSize: MainAxisSize.min,
               children: [
@@ -49,11 +49,10 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                           onTap: () async {
                             if (file.path != null) {
                               final result = await OpenFilex.open(file.path!);
-                              print(result.message);
                             }
                           },
                           child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
+                       // margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
@@ -144,6 +143,7 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                     )
                   ),
                 ),
+                SizedBox(height:15),
                 Row(mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     CustomElevatedButton(

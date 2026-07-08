@@ -62,10 +62,28 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
     super.initState();
 
     if (widget.billItem != null) {
-      piecesController.text = widget.billItem!.pieces.toString();
-      grossAmountController.text = widget.billItem!.grossAmount.toString();
+      final item = widget.billItem!;
 
-      gstPercentageController.text = widget.billItem!.gstAmount.toString();
+      piecesController.text = item.pieces.toString();
+      grossAmountController.text = item.grossAmount.toString();
+
+      discountPercentageController.text =
+          item.discountPercent.toString();
+
+      discountAmountController.text =
+          item.discountAmount.toString();
+
+      addAmountController.text =
+          item.addOnAmount.toString();
+
+      ecrAmountController.text =
+          item.ecrAmount.toString();
+
+      gstPercentageController.text =
+          item.gstPercent.toString();
+
+      gstAmountController.text =
+          item.gstAmount.toString();
 
       calculateValues();
     }
@@ -82,7 +100,9 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
             Navigator.pop(context);
           },
         ),
-        title: "Add Bill Item",
+        title: widget.billItem == null
+            ? "Add Bill Item"
+            : "Edit Bill Item",
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -220,7 +240,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                   children: [
                     CustomElevatedButton(
                       text: "Reset",
-                      textStyle: TextStyle(color: Colors.black, fontSize: 10),
+                      textStyle: TextStyle(color: Colors.black, fontSize: 20),
                       onPressed: () async {
                         clearFields();
                       },
@@ -229,7 +249,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                     SizedBox(width: 20),
                     CustomElevatedButton(
                       text: "Save",
-                      textStyle: TextStyle(color: Colors.white, fontSize: 10),
+                      textStyle: TextStyle(color: Colors.white, fontSize: 20),
                       onPressed: () async {
                         final provider = context.read<BillItemProvider>();
 

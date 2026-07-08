@@ -27,7 +27,15 @@ class CustomListTextField extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(5),borderSide: BorderSide.none
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 1.5,
+          ),
+        ),
       ),
+
       items: items.map((e) {
         return DropdownMenuItem<String>(
           value: e,
