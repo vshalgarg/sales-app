@@ -17,7 +17,7 @@ const EntityCardActions = ({ onView, onEdit, onCopy, onDelete }) => {
   if (!actionCount) return null;
 
   return (
-  <div className={`grid ${getActionGridClass(actionCount)} gap-2 pt-3 ${CARD_ACTION_DIVIDER_CLASS}`}>
+  <div className={`mt-3 grid ${getActionGridClass(actionCount)} gap-2 pt-3 ${CARD_ACTION_DIVIDER_CLASS}`}>
     {onView && (
       <button
         type="button"

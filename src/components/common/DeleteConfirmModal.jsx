@@ -38,7 +38,7 @@ const DeleteConfirmModal = ({
 
           {/* Confirm / Delete */}
           <AppButton
-            type="danger"
+            type="primary"
             fullWidth
             onClick={onConfirm}
           >
