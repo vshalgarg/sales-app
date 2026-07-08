@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/search_bill_provider.dart';
 import '../../reporting_widgets/bill_details_bottom_sheet.dart';
 import '../../reporting_widgets/edit_bill_bottom_sheet.dart';
@@ -10,7 +11,6 @@ import '../../customs/app_bar.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../services/bills_detail_api.dart';
-import '../../services/delete_bills_api.dart';
 import '../entry_screen/entries_bill_entry.dart';
 import '../home_screen.dart';
 
@@ -23,6 +23,7 @@ class Bills extends StatefulWidget {
 
 class _BillsState extends State<Bills> {
   final ScrollController _scrollController = ScrollController();
+  bool _showGoToTop = false;
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
@@ -36,9 +37,12 @@ class _BillsState extends State<Bills> {
   @override
   void initState() {
     super.initState();
+    final billsProvider = context.read<BillsProvider>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<BillsProvider>().fetchBills(
+      if (!mounted) return;
+
+      await billsProvider.fetchBills(
         page: page,
         fromDate: fromDateController.text,
         toDate: toDateController.text,
@@ -54,6 +58,7 @@ class _BillsState extends State<Bills> {
     toDateController.dispose();
     super.dispose();
   }
+
   Future<void> _loadMore() async {
     if (isLoadingMore || !hasMore) return;
 
@@ -80,12 +85,26 @@ class _BillsState extends State<Bills> {
       isLoadingMore = false;
     });
   }
+
   void _onScroll() {
+    if (!_scrollController.hasClients) return;
+
+    if (_scrollController.offset > 300) {
+      if (!_showGoToTop) {
+        setState(() => _showGoToTop = true);
+      }
+    } else {
+      if (_showGoToTop) {
+        setState(() => _showGoToTop = false);
+      }
+    }
+
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       _loadMore();
     }
   }
+
   Future<void> _showBillDetails(String billNumber) async {
     final data = await getBillDetails(billNumber);
 
@@ -196,13 +215,7 @@ class _BillsState extends State<Bills> {
                     selectedCustomer = null;
                   });
 
-                  setState(() {
-                    fromDateController.clear();
-                    toDateController.clear();
-
-                    selectedSupplier = null;
-                    selectedCustomer = null;
-                  });
+            _clearFilters();
                 },
               ),
             );
@@ -224,7 +237,7 @@ class _BillsState extends State<Bills> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => HomeScreen()),
             );
@@ -234,14 +247,11 @@ class _BillsState extends State<Bills> {
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
-          fontSize: width < 600 ? 22 : 26,
+          fontSize: 25,
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.filter_alt_outlined,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.filter_alt_outlined, color: Colors.white),
             onPressed: () {
               _showFilterBottomSheet();
             },
@@ -249,37 +259,66 @@ class _BillsState extends State<Bills> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        backgroundColor: AppColors.primaryPurple,
-        onPressed: isOpening
-            ? null
-            : () async {
-                setState(() {
-                  isOpening = true;
-                });
-                await Future.delayed(const Duration(milliseconds: 100));
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_showGoToTop)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: FloatingActionButton.small(
+                heroTag: "top",
+                backgroundColor: AppColors.primaryPurple,
+                onPressed: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: const Icon(Icons.keyboard_arrow_up,
+                color: Color(0xFFFFFFFF),),
+              ),
+            ),
 
-                if (!mounted) return;
+          FloatingActionButton(
+            heroTag: "add",
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
+            backgroundColor: AppColors.primaryPurple,
+            onPressed: isOpening
+                ? null
+                : () async {
+                    setState(() {
+                      isOpening = true;
+                    });
+                    await Future.delayed(const Duration(milliseconds: 100));
 
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EntriesBillEntry()),
-                );
+                    if (!mounted) return;
 
-                if (mounted) {
-                  setState(() {
-                    isOpening = false;
-                  });
-                }
-              },
-        child: isOpening
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Iconsax.add, color: Colors.white, size: 40),
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EntriesBillEntry(),
+                      ),
+                    );
+
+                    if (mounted) {
+                      setState(() {
+                        isOpening = false;
+                      });
+                    }
+                  },
+            child: isOpening
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Iconsax.add, color: Colors.white, size: 40),
+          ),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
@@ -322,19 +361,19 @@ class _BillsState extends State<Bills> {
                           ),
                         );
                       }
-
                       return ListView.builder(
                         controller: _scrollController,
-                        itemCount: billProvider.bills.length + (hasMore ? 1 : 0),
+                        itemCount:
+                            billProvider.bills.length + (hasMore ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index >= billProvider.bills.length) {
                             return billProvider.isLoadingMore
                                 ? const Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
+                                    padding: EdgeInsets.all(16),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
                                 : const SizedBox.shrink();
                           }
                           final bill = billProvider.bills[index];
@@ -407,65 +446,43 @@ class _BillsState extends State<Bills> {
                                     }
                                   },
                                   onDelete: () async {
-                                    try {
-                                      final confirm = await showDialog<bool>(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: const Text("Delete Bill"),
+                                    ExitConfirmationDialog.show(
+                                      context,
+                                      bodyText:
+                                          "Are you sure you want to delete this bill?",
+                                      saveButtonText: "Delete",
+                                      discardButtonText: "Cancel",
+
+                                      onClose: () {
+                                        Navigator.pop(context);
+                                      },
+
+                                      onDiscard: () {
+                                        Navigator.pop(context);
+                                      },
+
+                                      onSave: () async {
+                                        Navigator.pop(context);
+
+                                        final success = await context
+                                            .read<BillsProvider>()
+                                            .deleteBill(bill.billNumber);
+
+                                        if (!mounted) return;
+
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
                                             content: Text(
-                                              "Delete ${bill.billNumber} ?",
+                                              success
+                                                  ? "Bills deleted successfully"
+                                                  : "Failed to delete retail",
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context, false);
-                                                },
-                                                child: const Text("Cancel"),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context, true);
-                                                },
-                                                child: const Text("Delete"),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-
-                                      if (confirm != true) return;
-
-                                      await deleteBill(bill.billNumber);
-
-                                      if (!mounted) return;
-
-                                      await context
-                                          .read<BillsProvider>()
-                                          .fetchBills(
-                                            fromDate: fromDateController.text,
-                                            toDate: toDateController.text,
-                                          );
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Bill deleted successfully",
                                           ),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text("Delete failed: $e"),
-                                        ),
-                                      );
-                                    }
+                                        );
+                                      },
+                                    );
                                   },
                                 );
                               },

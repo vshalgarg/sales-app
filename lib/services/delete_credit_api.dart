@@ -9,7 +9,6 @@ Future<void> deleteCredit(int id) async {
     "http://192.168.1.100:8087/csm/api/v1/credit/entry/delete/$id",
   );
 
-  print("Delete Credit URL => $url");
 
   final response = await http.delete(
     url,
@@ -17,14 +16,6 @@ Future<void> deleteCredit(int id) async {
       "Authorization": "Bearer $token",
       "Content-Type": "application/json",
     },
-  );
-
-  print(
-    "Delete Credit Status => ${response.statusCode}",
-  );
-
-  print(
-    "Delete Credit Response => ${response.body}",
   );
 
   if (response.statusCode != 200) {

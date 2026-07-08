@@ -21,7 +21,6 @@ class RetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-    //  borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Card(
         color: Colors.white,

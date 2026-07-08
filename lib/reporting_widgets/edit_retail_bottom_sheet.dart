@@ -168,14 +168,20 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
               "Edit Retail",
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+                fontSize: 25,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
           IconButton(
-            onPressed: () => Navigator.pop(context, true),
-            icon: Icon(Icons.close, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(
+              Icons.close,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
         ],
       ),
@@ -349,7 +355,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
 
                   DropdownButtonFormField<int>(
                     isExpanded: true,
-                    value: customerIds.contains(selectedCustomerId)
+                    initialValue: customerIds.contains(selectedCustomerId)
                         ? selectedCustomerId
                         : null,
                     decoration: const InputDecoration(
@@ -373,7 +379,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
 
                   DropdownButtonFormField<int>(
                     isExpanded: true,
-                    value: staffIds.contains(selectedStaffId)
+                    initialValue: staffIds.contains(selectedStaffId)
                         ? selectedStaffId
                         : null,
                     decoration: const InputDecoration(
@@ -558,7 +564,7 @@ class _EditRetailBottomSheetState extends State<EditRetailBottomSheet> {
                                   context: context,
                                   initialDate: DateTime.now(),
                                   firstDate: DateTime(2024),
-                                  lastDate: DateTime(2100),
+                                  lastDate: DateTime.now(),
                                 );
 
                                 if (picked != null) {

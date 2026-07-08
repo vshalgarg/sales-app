@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../constants/colors_used.dart';
+
 class BillDetailsBottomSheet extends StatefulWidget {
   final Map<String, dynamic> data;
 
@@ -11,13 +13,68 @@ class BillDetailsBottomSheet extends StatefulWidget {
 }
 
 class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
+  double taxableValue = 0;
+  double billAmount = 0;
   bool showBillInfo = true;
   bool showSupplierInfo = true;
   bool showCustomerInfo = true;
   bool showBillItems = true;
   bool showTransportInfo = true;
   bool showAttachments = true;
+  List<Map<String, dynamic>> items = [];
+  @override
+  void initState() {
+    super.initState();
+    taxableValue = (widget.data['taxableValue'] ?? 0).toDouble();
+    billAmount = (widget.data['billAmount'] ?? 0).toDouble();
+    items = List<Map<String, dynamic>>.from(widget.data['items'] ?? []);
+    if (items.isEmpty) {
+      items.add({
+        "pieces": "",
+        "grossAmount": "",
+        "discountPercent": "",
+        "discountAmount": "",
+        "addOnAmount": "",
+        "ecrAmount": "",
+        "gstPercent": "",
+        "gstAmount": "",
+      });
+    }
 
+    _calculateTotals();
+
+    print("Taxable = $taxableValue");
+    print("Bill = $billAmount");
+  }
+  void _calculateTotals() {
+    double taxable = 0;
+    double total = 0;
+
+    for (final item in items) {
+      final gross =
+          double.tryParse(item['grossAmount']?.toString() ?? '0') ?? 0;
+
+      final discount =
+          double.tryParse(item['discountAmount']?.toString() ?? '0') ?? 0;
+
+      final addOn =
+          double.tryParse(item['addOnAmount']?.toString() ?? '0') ?? 0;
+
+      final ecr =
+          double.tryParse(item['ecrAmount']?.toString() ?? '0') ?? 0;
+
+      final gst =
+          double.tryParse(item['gstAmount']?.toString() ?? '0') ?? 0;
+
+      final taxableItem = gross - discount + addOn - ecr;
+
+      taxable += taxableItem;
+      total += taxableItem + gst;
+    }
+
+    taxableValue = taxable;
+    billAmount = total;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -334,8 +391,8 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  "₹${widget.data['taxableValue'] ?? 0}",
+                                  Text(
+                              "₹${taxableValue.toStringAsFixed(2)}",
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
@@ -360,7 +417,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                                   ),
                                 ),
                                 Text(
-                                  "₹${widget.data['billAmount'] ?? 0}",
+                                  "₹${billAmount.toStringAsFixed(2)}",
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
@@ -562,7 +619,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
         margin: const EdgeInsets.only(bottom: 18),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF4057A6),
+          color: AppColors.primaryPurple,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(

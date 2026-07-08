@@ -28,6 +28,8 @@ Future<List<BillEntry>> searchBills({
     "http://192.168.1.100:8087/csm/api/v1/bill/entries/search",
   ).replace(queryParameters: queryParams);
   final token = await AppStorage.getToken();
+  print("URL : $url");
+  print("TOKEN : $token");
   final response = await http.get(
     url,
     headers: {
@@ -42,14 +44,12 @@ Future<List<BillEntry>> searchBills({
 
   if (response.statusCode == 200) {
     if (data['code'] == 500) {
-      throw Exception(data['message'] ?? "Server Error");
+      throw Exception(data['message']);
     }
 
     final List<dynamic> content = (data['content'] as List?) ?? [];
-    for (final item in content) {
-    }
     return content.map((e) => BillEntry.fromJson(e)).toList();
   }
 
-  throw Exception(data['message'] ?? "Failed to load bills");
+  throw Exception("Status: ${response.statusCode}\nResponse: ${response.body}");
 }

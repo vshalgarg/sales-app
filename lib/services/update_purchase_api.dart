@@ -38,15 +38,11 @@ Future<void> updatePurchase({
       payload["existingImageKeys"] = existingImageKeys;
     }
 
-    print(" UPDATE PURCHASE ");
-    print("Purchase ID: $id");
-    print("Payload => ${jsonEncode(payload)}");
 
     request.fields["data"] = jsonEncode(payload);
 
     // Upload new files
     for (final file in supplierImages) {
-      print("Uploading File => ${file.path}");
 
       request.files.add(
         await http.MultipartFile.fromPath(
@@ -61,8 +57,7 @@ Future<void> updatePurchase({
     final responseBody =
     await streamedResponse.stream.bytesToString();
 
-    print("Status Code => ${streamedResponse.statusCode}");
-    print("Response Body => $responseBody");
+
 
     Map<String, dynamic> responseJson = {};
 

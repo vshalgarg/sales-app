@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model_classes/search_bills.dart';
+import '../services/delete_bills_api.dart' as billApi;
 import '../services/search_bill_api.dart' as billService;
 
 class BillsProvider extends ChangeNotifier {
@@ -8,7 +9,21 @@ class BillsProvider extends ChangeNotifier {
   bool isBillsLoading = false;
   bool isLoadingMore = false;
   bool hasMore = true;
+  Future<bool> deleteBill(String billNumber) async {
+    try {
+      final success = await billApi.deleteBill(billNumber);
 
+      if (success) {
+        bills.removeWhere((bill) => bill.billNumber == billNumber);
+        notifyListeners();
+      }
+
+      return success;
+    } catch (e) {
+      debugPrint("Delete Bill Error: $e");
+      return false;
+    }
+  }
   Future<bool> fetchBills({
     int page = 0,
     bool isLoadMore = false,
@@ -60,5 +75,6 @@ class BillsProvider extends ChangeNotifier {
 
       notifyListeners();
     }
+
   }
 }

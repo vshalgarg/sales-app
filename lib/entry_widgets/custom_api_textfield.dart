@@ -22,7 +22,7 @@ class CustomApiTextField<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final T? selectedValue = items.contains(value) ? value : null;
     return DropdownButtonFormField<T>(
-      value: selectedValue,
+      initialValue: selectedValue,
       isExpanded: true,
       validator: validator,
       decoration: InputDecoration(

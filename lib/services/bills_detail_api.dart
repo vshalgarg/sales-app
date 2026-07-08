@@ -15,7 +15,7 @@ Future<Map<String, dynamic>> getBillDetails(String billNumber) async {
   );
 
   if (response.statusCode == 200) {
-    print(response.body);
+
     return jsonDecode(response.body);
   }
 

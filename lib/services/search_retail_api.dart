@@ -44,8 +44,7 @@ class RetailApi {
       final url = Uri.parse(
         "http://192.168.1.100:8087/csm/api/v1/retail/search",
       ).replace(queryParameters: queryParams);
-      print("Retail URL: $url");
-      print("Query Params: $queryParams");
+
       final response = await http.get(
           url,
           headers: {
@@ -55,8 +54,6 @@ class RetailApi {
       );
 
       if (response.statusCode == 200) {
-        print("RETAIL API RESPONSE:");
-        print(response.body);
 
         final jsonData = jsonDecode(response.body);
 

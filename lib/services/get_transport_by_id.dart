@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:http/http.dart' as http;
 
-import '../model_classes/get_staff_by_id_model.dart';
 import '../model_classes/get_transport_by_id.dart';
 
 class GetTransportByIdApi {

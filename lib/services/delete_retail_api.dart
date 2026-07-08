@@ -17,8 +17,6 @@ class DeleteRetailApi {
       },
     );
 
-    print("Delete Retail Status : ${response.statusCode}");
-    print("Delete Retail Response : ${response.body}");
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);

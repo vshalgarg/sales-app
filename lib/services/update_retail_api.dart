@@ -28,9 +28,6 @@ class UpdateRetailApi {
       }),
     );
 
-    print("UPDATE RETAIL URL => ${response.request?.url}");
-    print("STATUS => ${response.statusCode}");
-    print("BODY => ${response.body}");
 
     if (response.statusCode == 200) {
       return true;

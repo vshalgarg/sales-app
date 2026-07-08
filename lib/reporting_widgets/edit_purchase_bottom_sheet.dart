@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../constants/colors_used.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
 import '../provider/staff_provider.dart';
 import '../reporting_documents_upload/reporting_upload_files.dart';
@@ -40,7 +41,7 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF4057A6),
+        color: AppColors.primaryPurple,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -93,6 +94,17 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
   }
 
   Future<void> _pickAttachment() async {
+    final totalAttachments =
+        existingFileNames.length + selectedFiles.length;
+
+    if (totalAttachments >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("You can attach a maximum of 3 files."),
+        ),
+      );
+      return;
+    }
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -280,7 +292,8 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
 
                     const SizedBox(width: 8),
 
-                    const Text(
+                    const Expanded(
+                      child: Text(
                       "Edit Purchase",
                       style: TextStyle(
                         color: Colors.white,
@@ -288,9 +301,16 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+        ),
                     IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
                   ],
                 ),
@@ -550,7 +570,7 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
                             ),
                           );
                         }),
-
+                      if (existingFileNames.length + selectedFiles.length < 3)
                       InkWell(
                         onTap: _pickAttachment,
                         child: Container(
@@ -644,41 +664,18 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
                   children: [
                     Expanded(
                       child: SizedBox(
-                        height: 55,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            "Cancel",
-                            style: TextStyle(color: Color(0xFF35539C)),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 5),
-
-                    Expanded(
-                      child: SizedBox(
-                        height: 55,
+                   width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _updatePurchase,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
+                            backgroundColor: AppColors.primaryPurple,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(5),
                             ),
                           ),
                           child: const Text(
                             "Update",
-                            style: TextStyle(color: Color(0xFF35539C)),
+                            style: TextStyle(color: Colors.white),
                           ),
                         ),
                       ),

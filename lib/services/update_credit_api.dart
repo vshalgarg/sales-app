@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 import '../shared_preferences/login_token.dart';
@@ -38,8 +39,6 @@ Future<void> updateCredit({
     "receivedAmount": receivedAmount,
     "remark": remark?.trim().isEmpty ?? true ? null : remark,
   };
-  print("Update Credit URL => $url");
-  print("Update Credit Body => ${jsonEncode(body)}");
 
 
   final response = await http.patch(
@@ -51,10 +50,6 @@ Future<void> updateCredit({
     body: jsonEncode(body),
   );
 
-  print("Update Credit Status => ${response.statusCode}");
-
-  print("Update Credit Response => ${response.body}");
-
   Map<String, dynamic>? responseData;
 
   try {
@@ -63,7 +58,7 @@ Future<void> updateCredit({
 
   if (response.statusCode == 200) {
     if (responseData != null && responseData["code"] == 500) {
-      print("SERVER ERROR => ${responseData["message"]}");
+      debugPrint("SERVER ERROR => ${responseData["message"]}");
       throw Exception(responseData["message"]);
     }
 

@@ -8,7 +8,7 @@ class GetSuppliersApi {
   Future<GetSupplier> getSupplier({int page = 0, int size = 10}) async {
     try {
       final token = await AppStorage.getToken();
-      print("TOKEN => $token");
+
 
       if (token == null || token.isEmpty) {
         throw Exception("Token is null or empty");
@@ -16,7 +16,7 @@ class GetSuppliersApi {
       final url = Uri.parse(
         "http://192.168.1.100:8087/csm/api/v1/suppliers/get",
       ).replace(queryParameters: {"page": "$page", "size": "$size"});
-      print("URL => $url");
+
       final response = await http.get(
         url,
         headers: {
@@ -24,8 +24,7 @@ class GetSuppliersApi {
           "Authorization": "Bearer $token",
         },
       );
-      print("STATUS => ${response.statusCode}");
-      print("BODY => ${response.body}");
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/colors_used.dart';
+import '../model_classes/retail_deposit_history_model.dart';
 import '../provider/retail_provider.dart';
 
 class RetailDetailsBottomSheet extends StatefulWidget {
@@ -24,7 +25,10 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<RetailDetailsProvider>().fetchRetailDetails(widget.retailId);
+      final provider = context.read<RetailDetailsProvider>();
+
+      provider.fetchRetailDetails(widget.retailId);
+      provider.fetchDepositHistory(widget.retailId);
     });
   }
 
@@ -210,6 +214,23 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                 itemBuilder: (context, index) {
                                   final supplier = retail.suppliers[index];
 
+                                  final history = provider.depositHistory
+                                      .firstWhere(
+                                        (e) =>
+                                            e.retailSupplierId ==
+                                            supplier.retailSupplierId,
+                                        orElse: () => RetailDepositHistoryModel(
+                                          retailSupplierId:
+                                              supplier.retailSupplierId,
+                                          supplierId: supplier.supplierId,
+                                          supplierName: supplier.supplierName,
+                                          supplierCity: "",
+                                          totalAmount: supplier.totalAmount,
+                                          depositAmount: supplier.depositAmount,
+                                          balanceAmount: supplier.balanceAmount,
+                                          deposits: [],
+                                        ),
+                                      );
                                   return Padding(
                                     padding: const EdgeInsets.all(16),
                                     child: Column(
@@ -244,12 +265,10 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                                 });
                                               },
                                             ),
-
-                                            const SizedBox(height: 12),
-
                                             _chip(
                                               title: "Deposited",
-                                              value: "₹${supplier.depositAmount}",
+                                              value:
+                                                  "₹${supplier.depositAmount}",
                                               color: Colors.green,
                                               onTap: () {
                                                 setState(() {
@@ -261,12 +280,10 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                                 });
                                               },
                                             ),
-
-                                            const SizedBox(height: 12),
-
                                             _chip(
                                               title: "Remaining",
-                                              value: "₹${supplier.balanceAmount}",
+                                              value:
+                                                  "₹${supplier.balanceAmount}",
                                               color: supplier.balanceAmount > 0
                                                   ? Colors.orange
                                                   : Colors.green,
@@ -282,7 +299,9 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                             ),
                                           ],
                                         ),
+
                                         const SizedBox(height: 10),
+
                                         AnimatedCrossFade(
                                           duration: const Duration(
                                             milliseconds: 250,
@@ -291,7 +310,7 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                               expandedSupplierIndex == index
                                               ? CrossFadeState.showSecond
                                               : CrossFadeState.showFirst,
-                                          firstChild: const SizedBox(),
+                                          firstChild: const SizedBox.shrink(),
                                           secondChild: Container(
                                             margin: const EdgeInsets.only(
                                               top: 8,
@@ -303,7 +322,6 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
-
                                             child: Column(
                                               children: [
                                                 Container(
@@ -354,54 +372,69 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
                                                   ),
                                                 ),
 
-                                                Column(
-                                                  children: List.generate(
-                                                    supplier.deposits.length,
-                                                    (i) {
-                                                      final deposit =
-                                                          supplier.deposits[i];
-
-                                                      return Column(
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      16,
-                                                                  vertical: 12,
-                                                                ),
-                                                            child: Row(
-                                                              children: [
-                                                                Expanded(
-                                                                  child: Text(
-                                                                    deposit
-                                                                        .date,
-                                                                  ),
-                                                                ),
-                                                                Expanded(
-                                                                  child: Text(
-                                                                    "₹${deposit.amount}",
-                                                                    textAlign:
-                                                                        TextAlign
-                                                                            .end,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
+                                                history.deposits.isEmpty
+                                                    ? const Padding(
+                                                        padding: EdgeInsets.all(
+                                                          16,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            "No Deposit History",
                                                           ),
-                                                          if (i !=
-                                                              supplier
-                                                                      .deposits
-                                                                      .length -
-                                                                  1)
-                                                            const Divider(
-                                                              height: 1,
-                                                            ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
+                                                        ),
+                                                      )
+                                                    : Column(
+                                                        children: List.generate(
+                                                          history
+                                                              .deposits
+                                                              .length,
+                                                          (i) {
+                                                            final deposit =
+                                                                history
+                                                                    .deposits[i];
+
+                                                            return Column(
+                                                              children: [
+                                                                Padding(
+                                                                  padding:
+                                                                      const EdgeInsets.symmetric(
+                                                                        horizontal:
+                                                                            16,
+                                                                        vertical:
+                                                                            12,
+                                                                      ),
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Expanded(
+                                                                        child: Text(
+                                                                          deposit.date.isEmpty
+                                                                              ? "-"
+                                                                              : deposit.date,
+                                                                        ),
+                                                                      ),
+                                                                      Expanded(
+                                                                        child: Text(
+                                                                          "₹${deposit.amount}",
+                                                                          textAlign:
+                                                                              TextAlign.end,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                if (i !=
+                                                                    history
+                                                                            .deposits
+                                                                            .length -
+                                                                        1)
+                                                                  const Divider(
+                                                                    height: 1,
+                                                                  ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
                                               ],
                                             ),
                                           ),
@@ -464,7 +497,7 @@ class _RetailDetailsBottomSheetState extends State<RetailDetailsBottomSheet> {
     required String value,
     required Color color,
     required VoidCallback onTap,
-  }){
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),

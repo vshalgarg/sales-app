@@ -9,9 +9,7 @@ Future<RetailModel> getRetailDetails(int id) async {
   final token = await AppStorage.getToken();
 
   final response = await http.get(
-    Uri.parse(
-      "http://192.168.1.100:8087/csm/api/v1/retail/get/$id",
-    ),
+    Uri.parse("http://192.168.1.100:8087/csm/api/v1/retail/get/$id"),
     headers: {
       "Authorization": "Bearer $token",
       "Content-Type": "application/json",
@@ -21,9 +19,7 @@ Future<RetailModel> getRetailDetails(int id) async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
 
-    return RetailModel.fromJson(
-      data["data"],
-    );
+    return RetailModel.fromJson(data["data"]);
   }
 
   throw Exception("Failed to load retail details");

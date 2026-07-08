@@ -14,9 +14,9 @@ class DeleteSupplierApi {
         url, headers: { "Content-Type": "application/json",
         "Authorization": "Bearer $token"},
         body: jsonEncode(body),);
-      print(body);
+
       final data = jsonDecode(response.body);
-      print(response.body);
+
       if (response.statusCode == 200) {
         return DeleteSupplierModel.fromJson(data);
       } else {

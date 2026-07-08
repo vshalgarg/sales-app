@@ -35,7 +35,6 @@ class AddDepositApi {
 
     );
 
-    print(response.body);
 
     return response.statusCode == 200;
   }

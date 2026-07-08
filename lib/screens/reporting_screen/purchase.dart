@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/screens/entry_screen/purchase_entry.dart';
-import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/purchase_provider.dart';
 import '../../reporting_widgets/edit_purchase_bottom_sheet.dart';
@@ -34,6 +34,7 @@ class _PurchaseState extends State<Purchase> {
   bool isOpeningView = false;
   bool isOpeningEdit = false;
   bool isOpening = false;
+  bool _showGoToTop = false;
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
@@ -63,23 +64,27 @@ class _PurchaseState extends State<Purchase> {
     });
   }
 
-  @override
-  void dispose() {
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    fromDateController.dispose();
-    toDateController.dispose();
-    super.dispose();
-  }
-
   void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+
+    if (_scrollController.offset > 200) {
+      if (!_showGoToTop) {
+        setState(() => _showGoToTop = true);
+      }
+    } else {
+      if (_showGoToTop) {
+        setState(() => _showGoToTop = false);
+      }
+    }
+
     if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
+        _scrollController.position.maxScrollExtent - 200 &&
         !_isFetchingMore &&
         _hasMore) {
       _loadMore();
     }
   }
+
 
   Future<void> _loadMore() async {
     final provider = context.read<PurchaseProvider>();
@@ -225,12 +230,7 @@ class _PurchaseState extends State<Purchase> {
                     selectedCustomer = null;
                   });
 
-                  setState(() {
-                    fromDateController.clear();
-                    toDateController.clear();
-                    selectedSupplier = null;
-                    selectedCustomer = null;
-                  });
+                  _clearFilters();
                 },
               ),
             );
@@ -262,7 +262,7 @@ class _PurchaseState extends State<Purchase> {
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
-          fontSize: width < 600 ? 22 : 26,
+          fontSize: 25,
         ),
         actions: [
           IconButton(
@@ -274,16 +274,59 @@ class _PurchaseState extends State<Purchase> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        backgroundColor: AppColors.primaryPurple,
-        child: const Icon(Iconsax.add, color: Colors.white),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PurchaseEntryScreen()),
-          );
-        },
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_showGoToTop)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: FloatingActionButton.small(
+                heroTag: "top",
+                backgroundColor: AppColors.primaryPurple,
+                onPressed: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: const Icon(Icons.keyboard_arrow_up,
+                  color: Colors.white,),
+              ),
+            ),
+
+          FloatingActionButton(
+            heroTag: "add",
+            backgroundColor: AppColors.primaryPurple,
+            onPressed: isOpening
+                ? null
+                : () async {
+              setState(() {
+                isOpening = true;
+              });
+              await Future.delayed(const Duration(milliseconds: 100));
+              if (!mounted) return;
+
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PurchaseEntryScreen()),
+              );
+              if (mounted) {
+                setState(() {
+                  isOpening = false;
+                });
+              }
+            },
+            child: isOpening
+                ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : const Icon(Iconsax.add, color: Colors.white),
+          ),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
@@ -403,71 +446,46 @@ class _PurchaseState extends State<Purchase> {
                                 );
                               },
                               onDelete: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text("Delete Purchase"),
-                                    content: const Text(
-                                      "Are you sure you want to delete this purchase entry?",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text("Cancel"),
+                                ExitConfirmationDialog.show(
+                                  context,
+                                  bodyText:
+                                  "Are you sure you want to delete this purchase?",
+                                  saveButtonText: "Delete",
+                                  discardButtonText: "Cancel",
+
+                                  onClose: () {
+                                    Navigator.pop(context);
+                                  },
+
+                                  onDiscard: () {
+                                    Navigator.pop(context);
+                                  },
+
+                                  onSave: () async {
+                                    Navigator.pop(context);
+
+                                    final bool success = await context
+                                        .read<PurchaseProvider>()
+                                        .deletePurchase(purchase.id);
+
+                                    if (!mounted) return;
+
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          success
+                                              ? "Purchase deleted successfully"
+                                              : "Failed to delete credit",
+                                        ),
                                       ),
-                                      ElevatedButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: const Text("Delete"),
-                                      ),
-                                    ],
-                                  ),
+                                    );
+                                  },
                                 );
-
-                                if (confirm != true) return;
-
-                                try {
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (_) => const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  );
-
-                                  final token = await AppStorage.getToken();
-
-                                  await context
-                                      .read<PurchaseProvider>()
-                                      .deletePurchaseEntry(
-                                        purchase.id!,
-                                        token!,
-                                      );
-
-                                  if (!mounted) return;
-
-                                  Navigator.pop(context);
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Purchase entry deleted successfully",
-                                      ),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  if (!mounted) return;
-
-                                  Navigator.pop(context);
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
-                                  );
-                                }
                               },
-                            ),
-                          );
+                            ));
+
                         },
                       );
                     },

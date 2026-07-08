@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../constants/colors_used.dart';
 import '../model_classes/search_credit.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
 import '../services/update_credit_api.dart';
@@ -28,33 +29,9 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
   String? customer;
   int? supplierId;
   int? customerId;
-  final paymentTypes = [
-    "CASH",
-    "UPI",
-    "NEFT_RTGS",
-    "CHEQUE"
-  ];
+  final paymentTypes = ["CASH", "UPI", "NEFT_RTGS", "CHEQUE"];
 
   final drawTypes = ["DRAW", "CHEQUE"];
-
-  Widget _sectionHeader(String title) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4057A6),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 
   Widget _fieldContainer({required String label, required Widget child}) {
     return Padding(
@@ -128,6 +105,7 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
       provider.fetchCustomer();
     }
   }
+
   @override
   void dispose() {
     invoiceController.dispose();
@@ -144,7 +122,7 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
     final picked = await showDatePicker(
       context: context,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      lastDate: DateTime.now(),
     );
 
     if (picked != null) {
@@ -161,7 +139,7 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
 
     return SafeArea(
       child: Material(
-        color:const  Color(0xFF9CA4DA),
+        color: const Color(0xFF9CA4DA),
         child: Column(
           children: [
             Container(
@@ -172,22 +150,29 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () =>
-                        Navigator.pop(context),
+                    onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    "Edit Credit",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
+                  const Expanded(
+                    child: Text(
+                      "Edit Credit",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
                 ],
               ),
@@ -198,224 +183,167 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    _responsiveRow(width, [
-                      _fieldContainer(
-                        label: "Invoice Number",
-                        child: TextField(
-                          controller: invoiceController,
-                          readOnly: true,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                      _dateField(dateController, "Date"),
-                      _dropdownField(
-                        "Payment Type",
-                        paymentType,
-                        paymentTypes,
-                        (v) {
-                          setState(() {
-                            paymentType = v;
-                          });
-                        },
-                      ),
-                    ]),
-
-                    _responsiveRow(width, [
-                      Consumer<EntriesProvider>(
-                        builder: (context, provider, child) {
-                          final suppliers = provider.entries
-                              .map((e) => e.supplierName ?? '')
-                              .toSet()
-                              .toList();
-
-                          return _fieldContainer(
-                            label: "Supplier",
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                isExpanded: true,
-                                value: suppliers.contains(supplier)
-                                    ? supplier
-                                    : null,
-                                items: suppliers.map((name) {
-                                  return DropdownMenuItem<String>(
-                                    value: name,
-                                    child: Text(
-                                      name,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  final selected = provider.entries.firstWhere(
-                                    (e) => e.supplierName == value,
-                                  );
-
-                                  setState(() {
-                                    supplier = value;
-                                    supplierId = selected.id?.toInt();
-                                  });
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      Consumer<EntriesProvider>(
-                        builder: (context, provider, child) {
-                          final customers = provider.customerEntries
-                              .map((e) => e.customerName ?? '')
-                              .toSet()
-                              .toList();
-
-                          return _fieldContainer(
-                            label: "Customer",
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                isExpanded: true,
-                                value: customers.contains(customer)
-                                    ? customer
-                                    : null,
-                                items: customers.map((name) {
-                                  return DropdownMenuItem<String>(
-                                    value: name,
-                                    child: Text(
-                                      name,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  final selected = provider.customerEntries
-                                      .firstWhere(
-                                        (e) => e.customerName == value,
-                                      );
-
-                                  setState(() {
-                                    customer = value;
-                                    customerId = selected.id?.toInt();
-                                  });
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ]),
-
-                    _responsiveRow(width, [
-                      _textField(referenceController, "Reference Number"),
-                      _dateField(referenceDateController, "Reference Date"),
-                      _textField(slipController, "Slip Number"),
-                    ]),
-
-                    _responsiveRow(width, [
-                      _dropdownField("Draw Type", drawType, drawTypes, (v) {
-                        setState(() {
-                          drawType = v;
-                        });
-                      }),
-                      _textField(amountController, "Received Amount"),
-                    ]),
-
                     _fieldContainer(
-                      label: "Remark",
+                      label: "Invoice Number",
                       child: TextField(
-                        controller: remarkController,
-                        maxLines: 4,
+                        controller: invoiceController,
+                        readOnly: true,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: Color(0xffe0e0e0)),
+
+                    _dateField(dateController, "Date"),
+
+                    _dropdownField("Payment Type", paymentType, paymentTypes, (
+                      v,
+                    ) {
+                      setState(() {
+                        paymentType = v;
+                      });
+                    }),
+
+                    Consumer<EntriesProvider>(
+                      builder: (context, provider, child) {
+                        final suppliers = provider.entries
+                            .map((e) => e.supplierName ?? '')
+                            .toSet()
+                            .toList();
+
+                        return _fieldContainer(
+                          label: "Supplier",
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: suppliers.contains(supplier)
+                                  ? supplier
+                                  : null,
+                              items: suppliers.map((name) {
+                                return DropdownMenuItem<String>(
+                                  value: name,
+                                  child: Text(
+                                    name,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                final selected = provider.entries.firstWhere(
+                                  (e) => e.supplierName == value,
+                                );
+
+                                setState(() {
+                                  supplier = value;
+                                  supplierId = selected.id?.toInt();
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Consumer<EntriesProvider>(
+                      builder: (context, provider, child) {
+                        final customers = provider.customerEntries
+                            .map((e) => e.customerName ?? '')
+                            .toSet()
+                            .toList();
+
+                        return _fieldContainer(
+                          label: "Customer",
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: customers.contains(customer)
+                                  ? customer
+                                  : null,
+                              items: customers.map((name) {
+                                return DropdownMenuItem<String>(
+                                  value: name,
+                                  child: Text(
+                                    name,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                final selected = provider.customerEntries
+                                    .firstWhere((e) => e.customerName == value);
+
+                                setState(() {
+                                  customer = value;
+                                  customerId = selected.id?.toInt();
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    _textField(referenceController, "Reference Number"),
+                    _dateField(referenceDateController, "Reference Date"),
+                    _textField(slipController, "Slip Number"),
+
+                    _dropdownField("Draw Type", drawType, drawTypes, (v) {
+                      setState(() {
+                        drawType = v;
+                      });
+                    }),
+
+                    _textField(amountController, "Received Amount"),
+                    _fieldContainer(
+                      label: "Remark",
+                      child: TextField(
+                        controller: remarkController,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 55,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  try {
-                                    await updateCredit(
-                                      id: widget.credit.id!,
-                                      date: dateController.text,
-                                      supplierId: supplierId ?? 0,
-                                      paymentType: paymentType ?? "",
-                                      customerId: customerId,
-                                      referenceNumber: referenceController.text,
-                                      referenceDate: referenceDateController.text,
-                                      slipNumber: slipController.text,
-                                      drawType: drawType,
-                                      receivedAmount:
-                                      double.tryParse(amountController.text) ?? 0,
-                                      remark: remarkController.text,
-                                    );
-
-                                    if (!mounted) return;
-
-                                    Navigator.pop(context, true);
-                                  } catch (e) {
-
-                                    if (!mounted) return;
-                                    // Navigator.pop(context, true);
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text("Update Failed: $e"),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: const Text(
-                                  "Update",
-                                  style: TextStyle(
-                                    color: Color(0xFF35539C),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryPurple,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
                           ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: SizedBox(
-                              height: 55,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text(
-                                  "Cancel",
-                                  style: TextStyle(
-                                    color: Color(0xFF35539C),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
+                        onPressed: () async {
+                          try {
+                            await updateCredit(
+                              id: widget.credit.id!,
+                              date: dateController.text,
+                              supplierId: supplierId ?? 0,
+                              paymentType: paymentType ?? "",
+                              customerId: customerId,
+                              referenceNumber: referenceController.text,
+                              referenceDate: referenceDateController.text,
+                              slipNumber: slipController.text,
+                              drawType: drawType,
+                              receivedAmount:
+                                  double.tryParse(amountController.text) ?? 0,
+                              remark: remarkController.text,
+                            );
+
+                            if (!mounted) return;
+
+                            Navigator.pop(context, true);
+                          } catch (e) {
+                            if (!mounted) return;
+                            // Navigator.pop(context, true);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Update Failed: $e")),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          "Update",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
                   ],
@@ -425,35 +353,6 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _responsiveRow(double width, List<Widget> children) {
-    if (width < 900) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children
-            .map(
-              (e) =>
-                  Padding(padding: const EdgeInsets.only(bottom: 20), child: e),
-            )
-            .toList(),
-      );
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(children.length, (index) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: index == 0 ? 0 : 10,
-              right: index == children.length - 1 ? 0 : 10,
-            ),
-            child: children[index],
-          ),
-        );
-      }),
     );
   }
 
@@ -485,11 +384,11 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
   }
 
   Widget _dropdownField(
-      String label,
-      String? value,
-      List<String> items,
-      Function(String?) onChanged,
-      ) {
+    String label,
+    String? value,
+    List<String> items,
+    Function(String?) onChanged,
+  ) {
     final safeValue = items.contains(value) ? value : null;
 
     return _fieldContainer(
@@ -499,10 +398,7 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
           isExpanded: true,
           value: safeValue,
           items: items
-              .map((e) => DropdownMenuItem(
-            value: e,
-            child: Text(e),
-          ))
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
               .toList(),
           onChanged: onChanged,
         ),

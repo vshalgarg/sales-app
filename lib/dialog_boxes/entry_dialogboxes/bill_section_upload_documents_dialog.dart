@@ -49,7 +49,7 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                           onTap: () async {
                             if (file.path != null) {
                               final result = await OpenFilex.open(file.path!);
-                              print(result.message);
+
                             }
                           },
                           child: Container(

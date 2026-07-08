@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../model_classes/search_purchase.dart';
-import '../services/purchase_delete_api.dart';
+import '../services/purchase_delete_api.dart' as purchaseApi;
 import '../services/search_purchase_api.dart';
+import '../shared_preferences/login_token.dart';
 
 class PurchaseProvider extends ChangeNotifier {
   List<PurchaseEntry> _purchaseEntries = [];
@@ -73,15 +74,20 @@ class PurchaseProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deletePurchaseEntry(int id, String token) async {
+  Future<bool> deletePurchase(int id) async {
     try {
-      await deletePurchase(id, token);
+      final token = await AppStorage.getToken();
+
+      await purchaseApi.deletePurchase(id, token!);
 
       _purchaseEntries.removeWhere((e) => e.id == id);
 
       notifyListeners();
+
+      return true;
     } catch (e) {
-      rethrow;
+      debugPrint("Delete Purchase Error => $e");
+      return false;
     }
   }
 

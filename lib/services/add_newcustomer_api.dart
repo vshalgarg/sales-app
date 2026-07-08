@@ -19,9 +19,9 @@ class AddNewCustomerApi {
         },
         body: jsonEncode(body),
       );
-      print(body);
+
       final data = jsonDecode(response.body);
-      print(response.body);
+
       if (response.statusCode == 200) {
         return AddCustomer.fromJson(data);
       } else {

@@ -1,8 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:provider/provider.dart';
-
+import '../constants/colors_used.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
 import '../reporting_documents_upload/reporting_upload_files.dart';
 import '../services/update_bills_api.dart';
@@ -18,6 +18,8 @@ class EditBillBottomSheet extends StatefulWidget {
 }
 
 class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
+  double taxableValue = 0;
+  double billAmount = 0;
   bool showBillInfo = true;
   bool showSupplierInfo = true;
   bool showCustomerInfo = true;
@@ -39,6 +41,10 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
   List<String> existingFileNames = [];
   List<String> existingPublicUrls = [];
 
+  Future<void> _openSelectedFile(File file) async {
+    await OpenFilex.open(file.path);
+  }
+
   Widget _sectionHeader({
     required String title,
     required bool expanded,
@@ -50,7 +56,7 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF4057A6),
+          color: AppColors.primaryPurple,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -105,6 +111,14 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
   }
 
   Future<void> _pickAttachment() async {
+    final totalAttachments = existingFileNames.length + selectedFiles.length;
+
+    if (totalAttachments >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You can attach a maximum of 3 files.")),
+      );
+      return;
+    }
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -120,6 +134,15 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                   final file = await AttachmentPicker.pickFromGallery();
 
                   if (file != null) {
+                    if (existingFileNames.length + selectedFiles.length >= 3) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("You can attach a maximum of 3 files."),
+                        ),
+                      );
+                      return;
+                    }
+
                     setState(() {
                       selectedFiles.add(file);
                     });
@@ -135,6 +158,14 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                   final file = await AttachmentPicker.pickDocument();
 
                   if (file != null) {
+                    if (existingFileNames.length + selectedFiles.length >= 3) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("You can attach a maximum of 3 files."),
+                        ),
+                      );
+                      return;
+                    }
                     setState(() {
                       selectedFiles.add(file);
                     });
@@ -194,6 +225,8 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
   @override
   void initState() {
     super.initState();
+    taxableValue = (widget.billData['taxableValue'] ?? 0).toDouble();
+    billAmount = (widget.billData['billAmount'] ?? 0).toDouble();
     selectedSupplierId = widget.billData['supplierId']?.toInt();
     selectedCustomerId = widget.billData['customerId']?.toInt();
     existingImageKeys = List<String>.from(widget.billData['objectKeys'] ?? []);
@@ -217,11 +250,9 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
       });
     }
 
+    _calculateTotals();
     Future.microtask(() async {
-      final provider = Provider.of<EntriesProvider>(
-        context,
-        listen: false,
-      );
+      final provider = Provider.of<EntriesProvider>(context, listen: false);
 
       await Future.wait([
         provider.fetchSuppliers(),
@@ -232,11 +263,9 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
       if (!mounted) return;
 
       setState(() {
-        selectedSupplierId =
-            widget.billData['supplierId']?.toInt();
+        selectedSupplierId = widget.billData['supplierId']?.toInt();
 
-        selectedCustomerId =
-            widget.billData['customerId']?.toInt();
+        selectedCustomerId = widget.billData['customerId']?.toInt();
       });
     });
     selectedTransport = widget.billData['transport'];
@@ -260,7 +289,35 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
 
     selectedTransport = widget.billData['transport'];
   }
+  void _calculateTotals() {
+    double taxable = 0;
+    double total = 0;
 
+    for (final item in items) {
+      final gross =
+          double.tryParse(item['grossAmount']?.toString() ?? '0') ?? 0;
+
+      final discount =
+          double.tryParse(item['discountAmount']?.toString() ?? '0') ?? 0;
+
+      final addOn =
+          double.tryParse(item['addOnAmount']?.toString() ?? '0') ?? 0;
+
+      final ecr =
+          double.tryParse(item['ecrAmount']?.toString() ?? '0') ?? 0;
+
+      final gst =
+          double.tryParse(item['gstAmount']?.toString() ?? '0') ?? 0;
+
+      final taxableItem = gross - discount + addOn - ecr;
+
+      taxable += taxableItem;
+      total += taxableItem + gst;
+    }
+
+    taxableValue = taxable;
+    billAmount = total;
+  }
   Future<void> _previewFile(int index) async {
     if (index >= existingPublicUrls.length) return;
 
@@ -300,9 +357,9 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
 
         remarks: remarksController.text,
 
-        taxableValue: (widget.billData['taxableValue'] ?? 0).toDouble(),
+        taxableValue: taxableValue,
 
-        billAmount: (widget.billData['billAmount'] ?? 0).toDouble(),
+        billAmount: billAmount,
 
         billItems: items,
 
@@ -358,8 +415,6 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.95,
@@ -392,13 +447,13 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
-                      "Edit Bill",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
+                        "Edit Bill",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
                     ),
                     IconButton(
                       onPressed: () {
@@ -456,7 +511,7 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                             final pickedDate = await showDatePicker(
                               context: context,
                               firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
+                              lastDate: DateTime.now(),
                             );
 
                             if (pickedDate != null) {
@@ -564,8 +619,10 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               child: DropdownButton<int>(
                                 isExpanded: true,
 
-                                value: provider.entries
-                                    .any((e) => e.id == selectedSupplierId)
+                                value:
+                                    provider.entries.any(
+                                      (e) => e.id == selectedSupplierId,
+                                    )
                                     ? selectedSupplierId
                                     : null,
 
@@ -680,8 +737,10 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               child: DropdownButton<int>(
                                 isExpanded: true,
 
-                                value: provider.customerEntries
-                                    .any((e) => e.id == selectedCustomerId)
+                                value:
+                                    provider.customerEntries.any(
+                                      (e) => e.id == selectedCustomerId,
+                                    )
                                     ? selectedCustomerId
                                     : null,
 
@@ -805,6 +864,8 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                             "gstPercent": "",
                             "gstAmount": "",
                           });
+                          _calculateTotals();
+
                         });
                       },
                       icon: const Icon(Icons.add, color: Colors.white),
@@ -862,8 +923,21 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                                     color: Colors.white,
                                   ),
                                   onPressed: () {
+                                    if (items.length == 1) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "At least 1 item is required.",
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
                                     setState(() {
                                       items.removeAt(index);
+                                      _calculateTotals();
                                     });
                                   },
                                 ),
@@ -978,7 +1052,7 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               "Taxable Value",
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            Text("₹${widget.billData['taxableValue'] ?? 0}"),
+                            Text("₹${taxableValue.toStringAsFixed(2)}")
                           ],
                         ),
 
@@ -991,7 +1065,7 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               "Bill Amount",
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            Text("₹${widget.billData['billAmount'] ?? 0}"),
+                            Text("₹${billAmount.toStringAsFixed(2)}")
                           ],
                         ),
                       ],
@@ -1020,7 +1094,7 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Attachments (${existingFileNames.length})",
+                          "Attachments (${existingFileNames.length + selectedFiles.length})",
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -1091,27 +1165,27 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                             ),
                           );
                         }),
-
-                        InkWell(
-                          onTap: _pickAttachment,
-                          child: Container(
-                            width: double.infinity,
-                            height: 140,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                "+ Add Attachment",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Color(0xFF666666),
+                        if (existingFileNames.length + selectedFiles.length < 3)
+                          InkWell(
+                            onTap: _pickAttachment,
+                            child: Container(
+                              width: double.infinity,
+                              height: 140,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  "+ Add Attachment",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Color(0xFF666666),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
 
                         const SizedBox(height: 16),
 
@@ -1122,31 +1196,34 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.attach_file),
+                                  InkWell(
+                                    onTap: () =>
+                                        _openSelectedFile(selectedFiles[index]),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.attach_file),
 
-                                        const SizedBox(width: 12),
+                                          const SizedBox(width: 12),
 
-                                        Expanded(
-                                          child: Text(
-                                            selectedFiles[index].path
-                                                .split('/')
-                                                .last,
-                                            overflow: TextOverflow.ellipsis,
+                                          Expanded(
+                                            child: Text(
+                                              selectedFiles[index].path
+                                                  .split('/')
+                                                  .last,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-
                                   Positioned(
                                     right: -8,
                                     top: -8,
@@ -1187,28 +1264,35 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                     });
                   },
                 ),
-
                 const SizedBox(height: 20),
                 if (showTransportInfo) ...[
                   Consumer<EntriesProvider>(
                     builder: (context, provider, child) {
+                      final transports = {
+                        for (final t in provider.transportDetails)
+                          if (t.name != null) t.name!: t,
+                      }.values.toList();
+
                       return _buildField(
                         label: "Transport",
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             isExpanded: true,
-                            value: selectedTransport,
-                            items: provider.transportDetails
-                                .map(
-                                  (transport) => DropdownMenuItem<String>(
-                                    value: transport.name,
-                                    child: Text(
-                                      transport.name ?? "",
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
+                            value:
+                                transports.any(
+                                  (t) => t.name == selectedTransport,
                                 )
-                                .toList(),
+                                ? selectedTransport
+                                : null,
+                            items: transports.map((transport) {
+                              return DropdownMenuItem<String>(
+                                value: transport.name,
+                                child: Text(
+                                  transport.name!,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }).toList(),
                             onChanged: (value) {
                               setState(() {
                                 selectedTransport = value;
@@ -1240,57 +1324,39 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 25),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 55,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                            ),
-                            child: const Text(
-                              "Back",
-                              style: TextStyle(color: Color(0xFF35539C)),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      Expanded(
-                        child: SizedBox(
-                          height: 55,
-                          child: ElevatedButton(
-                            onPressed: isLoading ? null : _updateBill,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text(
-                                    "Submit",
-                                    style: TextStyle(color: Color(0xFF35539C)),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
+                const SizedBox(height: 25),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isLoading ? null : _updateBill,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryPurple,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  "Updated",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 30),
               ],
             ),

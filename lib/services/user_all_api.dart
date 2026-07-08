@@ -4,9 +4,7 @@ import 'package:hisabio/model_classes/add_newuser_model.dart';
 import 'package:http/http.dart' as http;
 
 import '../model_classes/delete_user_model.dart';
-import '../model_classes/get_users.dart';
 import '../model_classes/onUpdate_Password.dart';
-import '../model_classes/search_user_model.dart';
 import '../shared_preferences/login_token.dart';
 
 class UserServices{
@@ -54,7 +52,6 @@ class UserServices{
       final url = Uri.parse(
         "http://192.168.1.100:8087/csm/api/v1/users/search?keyword=$keyword",
       );
-      print("API CALLED WITH => $keyword");
       final token = await AppStorage.getToken();
       final response = await http.get(
         url,
@@ -64,8 +61,6 @@ class UserServices{
         },
       );
       final data = jsonDecode(response.body);
-      print("STATUS => ${response.statusCode}");
-      print("BODY => ${response.body}");
       if (response.statusCode == 200) {
         return data;
       } else {

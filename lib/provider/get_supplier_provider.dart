@@ -37,7 +37,7 @@ class SupplierProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print("Loading page: $_page");
+
 
       final response = await _api.getSupplier(
         page: _page,
@@ -57,8 +57,6 @@ class SupplierProvider extends ChangeNotifier {
 
       error = null;
     } catch (e, stackTrace) {
-      print("Supplier Exception: $e");
-      print(stackTrace);
       error = e.toString();
     }
 

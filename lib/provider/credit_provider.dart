@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model_classes/search_credit.dart';
+import '../services/delete_credit_api.dart' as creditApi;
 import '../services/search_credit_api.dart';
 
 class CreditProvider extends ChangeNotifier {
@@ -57,13 +58,27 @@ class CreditProvider extends ChangeNotifier {
       last = response.last;
 
       for (final item in credits) {
-        debugPrint("ID=${item.id} DATE=${item.date}");
       }
     } catch (e) {
       debugPrint("Credit Error: $e");
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> deleteCredit(int id) async {
+    try {
+      await creditApi.deleteCredit(id);
+
+      credits.removeWhere((e) => e.id == id);
+
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      debugPrint("Delete Credit Error => $e");
+      return false;
     }
   }
   void clearCredits() {

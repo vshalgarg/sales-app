@@ -11,7 +11,6 @@ import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/retail_provider.dart';
 import '../../provider/staff_provider.dart';
 import '../../reporting_widgets/edit_retail_bottom_sheet.dart';
-import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../reporting_widgets/retail_card.dart';
 import '../../screens/entry_screen/retail_entry.dart';
@@ -39,6 +38,9 @@ class _RetailState extends State<Retail> {
   String? selectedSupplier;
   int? selectedCustomerId;
   int? selectedStaffId;
+  bool isOpening = false;
+  bool _showGoToTop = false;
+
   @override
   void initState() {
     super.initState();
@@ -54,15 +56,19 @@ class _RetailState extends State<Retail> {
     });
   }
 
-  @override
-  void dispose() {
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    fromDateController.dispose();
-    toDateController.dispose();
-    super.dispose();
-  }
   void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+
+    if (_scrollController.offset > 200) {
+      if (!_showGoToTop) {
+        setState(() => _showGoToTop = true);
+      }
+    } else {
+      if (_showGoToTop) {
+        setState(() => _showGoToTop = false);
+      }
+    }
+
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200 &&
         !_isFetchingMore &&
@@ -91,17 +97,6 @@ class _RetailState extends State<Retail> {
     setState(() {
       _hasMore = !provider.last;
     });
-  }
-  Future<void> _showRetailDetails(int retailId) async {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      builder: (context) =>
-          RetailDetailsBottomSheet(
-            retailId: retailId,
-          ),
-    );
   }
 
   void _applyFilters()async {
@@ -297,16 +292,59 @@ class _RetailState extends State<Retail> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        backgroundColor: AppColors.primaryPurple,
-        child: const Icon(Iconsax.add, color: Colors.white),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const RetailEntryScreen()),
-          );
-        },
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_showGoToTop)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: FloatingActionButton.small(
+                heroTag: "top",
+                backgroundColor: AppColors.primaryPurple,
+                onPressed: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: const Icon(Icons.keyboard_arrow_up,
+                  color: Colors.white,),
+              ),
+            ),
+
+          FloatingActionButton(
+            heroTag: "add",
+            backgroundColor: AppColors.primaryPurple,
+            onPressed: isOpening
+                ? null
+                : () async {
+              setState(() {
+                isOpening = true;
+              });
+              await Future.delayed(const Duration(milliseconds: 100));
+              if (!mounted) return;
+
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RetailEntryScreen()),
+              );
+              if (mounted) {
+                setState(() {
+                  isOpening = false;
+                });
+              }
+            },
+            child: isOpening
+                ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : const Icon(Iconsax.add, color: Colors.white),
+          ),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(

@@ -7,7 +7,6 @@ import 'package:hisabio/screens/reporting_screen/ledger.dart';
 import 'package:hisabio/screens/reporting_screen/purchase.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
 import '../constants/colors_used.dart';
-import '../services/configuration_services.dart';
 import '../shared_preferences/login_token.dart';
 import 'master_screens/configurations.dart';
 import 'master_screens/customer.dart';

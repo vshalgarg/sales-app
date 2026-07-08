@@ -9,8 +9,6 @@ import 'package:http/http.dart' as http;
 class UpdateSupplierApi{
   Future<UpdateSupplierModel> updateSupplier({required Map<String, dynamic> body,required int id,}) async {
     try {
-      print("$body");
-      print("$int");
       final url = Uri.parse(
           "http://192.168.1.100:8087/csm/api/v1/suppliers/update/id/$id");
       final token = await AppStorage.getToken();
@@ -18,9 +16,8 @@ class UpdateSupplierApi{
         url, headers: { "Content-Type": "application/json",
         "Authorization": "Bearer $token"},
         body: jsonEncode(body),);
-      print(body);
+
       final data = jsonDecode(response.body);
-      print(response.body);
       if (response.statusCode == 200) {
         return UpdateSupplierModel.fromJson(data);
       } else {

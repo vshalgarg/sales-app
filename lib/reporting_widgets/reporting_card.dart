@@ -9,42 +9,45 @@ class ReportingCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onTap;
   final VoidCallback? onAdd;
+
   const ReportingCard({
     super.key,
     required this.fields,
     this.onEdit,
-    this.onAdd,
     this.onDelete,
     this.onTap,
+    this.onAdd,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Card(
         color: Colors.white,
         elevation: 1.5,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child:Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// Left side - Fields
-              Expanded(
-                child: Column(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child:Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(
+            children: List.generate(fields.length, (index) {
+              final field = fields[index];
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == fields.length - 1 ? 0 : 6,
+                ),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: fields
-                      .map(
-                        (field) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
+                  children: [
+                    Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            width: 90,
+                            width: 70,
                             child: Text(
                               field.key,
                               style: const TextStyle(
@@ -55,44 +58,42 @@ class ReportingCard extends StatelessWidget {
                           ),
                           Expanded(
                             child: Text(
-                              field.value.trim().isEmpty ? "-" : field.value,
+                              field.value.trim().isEmpty
+                                  ? "-"
+                                  : field.value,
                               maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(fontSize: 13),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  )
-                      .toList(),
+
+                    const SizedBox(width: 8),
+                    SizedBox(
+              width: 40,
+              child: index == 0
+                    ?  _actionButton(
+                        icon: Iconsax.edit,
+                        color: const Color(0xFF00B894),
+                        onTap: onEdit ?? () {},
+                      )
+                 : index == fields.length - 1
+                    ?  _actionButton(
+                        icon: Iconsax.trash,
+                        color: const Color(0xFFFF3B30),
+                        onTap: onDelete ?? () {},
+                      )
+                     : const SizedBox(width: 24),
+                    ),
+                  ],
                 ),
-              ),
-
-              const SizedBox(width: 10),
-
-              /// Right side - Icons
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _actionButton(
-                    icon: Iconsax.edit,
-                    color: const Color(0xFF00B894),
-                    onTap: onEdit ?? () {},
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  _actionButton(
-                    icon: Iconsax.trash,
-                    color: const Color(0xFFFF3B30),
-                    onTap: onDelete ?? () {},
-                  ),
-                ],
-              ),
-            ],
-          )
+              );
+            }),
           ),
         ),
+      ),
     );
   }
 
@@ -104,11 +105,12 @@ class ReportingCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(2),
           child: customIcon(
-            icon:icon,
+            icon: icon,
             iconColor: color,
             bgColor: color,
           ),

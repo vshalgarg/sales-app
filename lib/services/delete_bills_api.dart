@@ -16,8 +16,6 @@ Future<bool> deleteBill(String billNumber) async {
     },
   );
 
-  print("Delete Status => ${response.statusCode}");
-  print("Delete Response => ${response.body}");
 
   if (response.statusCode == 200) {
     return true;

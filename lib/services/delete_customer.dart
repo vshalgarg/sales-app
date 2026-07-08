@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:hisabio/model_classes/delete_supplier.dart';
 import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,9 +15,9 @@ class DeleteCustomerApi {
         url, headers: { "Content-Type": "application/json",
         "Authorization": "Bearer $token"},
         body: jsonEncode(body),);
-      print(body);
+
       final data = jsonDecode(response.body);
-      print(response.body);
+
       if (response.statusCode == 200) {
         return DeleteCustomerModel.fromJson(data);
       } else {

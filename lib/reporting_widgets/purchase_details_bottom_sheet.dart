@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-class PurchaseDetailsBottomSheet
-    extends StatelessWidget {
 
-  final Map<String, dynamic>
-  purchaseData;
+class PurchaseDetailsBottomSheet extends StatefulWidget {
+  final Map<String, dynamic> purchaseData;
 
-  const PurchaseDetailsBottomSheet({
-    super.key,
-    required this.purchaseData,
-  });
+  const PurchaseDetailsBottomSheet({super.key, required this.purchaseData});
+
+  @override
+  State<PurchaseDetailsBottomSheet> createState() =>
+      _PurchaseDetailsBottomSheetState();
+}
+
+class _PurchaseDetailsBottomSheetState
+    extends State<PurchaseDetailsBottomSheet> {
+  bool basicInfoExpanded = true;
+  bool attachmentExpanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +25,7 @@ class PurchaseDetailsBottomSheet
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF9499D8),
-                Color(0xFFB8BDE5),
-              ],
+              colors: [Color(0xFF9499D8), Color(0xFFB8BDE5)],
             ),
           ),
           child: Column(
@@ -37,18 +39,27 @@ class PurchaseDetailsBottomSheet
                   children: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      "Purchase Details",
-                      style: TextStyle(
+                    const Expanded(
+                      child: Text(
+                        "Purchase Details",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.close,
                         color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
+                        size: 28,
                       ),
                     ),
                   ],
@@ -60,32 +71,37 @@ class PurchaseDetailsBottomSheet
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-
                       _sectionCard(
                         title: "Basic Information",
+                        isExpanded: basicInfoExpanded,
+                        onTap: () {
+                          setState(() {
+                            basicInfoExpanded = !basicInfoExpanded;
+                          });
+                        },
                         child: Column(
                           children: [
-                            _field(
-                              "Date",
-                              purchaseData["date"] ?? "",
-                            ),
+                            _field("Date", widget.purchaseData["date"] ?? ""),
                             _field(
                               "Staff",
-                              purchaseData["staffName"] ?? "",
+                              widget.purchaseData["staffName"] ?? "",
                             ),
                             _field(
                               "Customer",
-                              purchaseData["customerName"] ?? "",
+                              widget.purchaseData["customerName"] ?? "",
                             ),
                             _field(
                               "Remarks",
-                              purchaseData["remarks"] ?? "",
+                              widget.purchaseData["remarks"] ?? "",
                             ),
                             _field(
                               "Supplier",
-                              (purchaseData["supplier"] as Map<String, dynamic>?)
-                              ?["supplierName"] ??
-                                  ""
+                              (widget.purchaseData["supplier"]
+                                      as Map<
+                                        String,
+                                        dynamic
+                                      >?)?["supplierName"] ??
+                                  "",
                             ),
                           ],
                         ),
@@ -95,18 +111,22 @@ class PurchaseDetailsBottomSheet
 
                       _sectionCard(
                         title:
-                        "Attachments (${(purchaseData['publicUrls'] as List? ?? []).length})",
+                            "Attachments (${(widget.purchaseData['publicUrls'] as List? ?? []).length})",
+                        isExpanded: attachmentExpanded,
+                        onTap: () {
+                          setState(() {
+                            attachmentExpanded = !attachmentExpanded;
+                          });
+                        },
                         child: Container(
                           width: double.infinity,
                           height: 150,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius:
-                            BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Column(
-                            mainAxisAlignment:
-                            MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
                                 Icons.remove_red_eye_outlined,
@@ -127,72 +147,6 @@ class PurchaseDetailsBottomSheet
                       ),
 
                       const SizedBox(height: 30),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 55,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                  Colors.white,
-                                  shape:
-                                  RoundedRectangleBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(
-                                        12),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "Back",
-                                  style: TextStyle(
-                                    color:
-                                    Color(0xFF35539C),
-                                    fontWeight:
-                                    FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(width: 12),
-
-                          Expanded(
-                            child: SizedBox(
-                              height: 55,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                  Colors.white,
-                                  shape:
-                                  RoundedRectangleBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(
-                                        12),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "Close",
-                                  style: TextStyle(
-                                    color:
-                                    Color(0xFF35539C),
-                                    fontWeight:
-                                    FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -207,55 +161,60 @@ class PurchaseDetailsBottomSheet
   Widget _sectionCard({
     required String title,
     required Widget child,
+    required bool isExpanded,
+    required VoidCallback onTap,
   }) {
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
-          decoration: BoxDecoration(
-            color: const Color(0xFF4057A6),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4057A6),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-              const Icon(
-                Icons.keyboard_arrow_down,
-                color: Colors.white,
-              ),
-            ],
+                Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: Colors.white,
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 15),
-        child,
+
+        if (isExpanded) ...[
+          const SizedBox(height: 15),
+          child,
+        ],
       ],
     );
   }
 
-  Widget _field(
-      String label,
-      String value,
-      ) {
+  Widget _field(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(
-        bottom: 18,
-      ),
+      padding: const EdgeInsets.only(bottom: 18),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
@@ -268,18 +227,12 @@ class PurchaseDetailsBottomSheet
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius:
-              BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(
-              value.isEmpty ? "-" : value,
-            ),
+            child: Text(value.isEmpty ? "-" : value),
           ),
         ],
       ),

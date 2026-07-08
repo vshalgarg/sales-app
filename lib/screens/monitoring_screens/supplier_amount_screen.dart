@@ -50,8 +50,6 @@ class _SupplierAmountScreenState extends State<SupplierAmountScreen> {
     final provider = context.read<EntriesProvider>();
 
     await Future.wait([provider.fetchSuppliers(),]);
-    print("Supplier Count: ${provider.entries.length}");
-    print(provider.entries);
 
 
     setState(() {

@@ -125,12 +125,8 @@ class EntriesApi {
 
     final response = await request.send();
     final body = await response.stream.bytesToString();
-    print(response.statusCode);
-    print(body);
 
     final data = jsonDecode(body);
-    print(jsonEncode(payload));
-    print("Images count = ${images.length}");
 
     if (response.statusCode == 200) {
       return data["message"] ?? "Bill saved successfully";
@@ -194,12 +190,8 @@ class EntriesApi {
 
     final response = await request.send();
     final body = await response.stream.bytesToString();
-    print(response.statusCode);
-    print(body);
 
     final data = jsonDecode(body);
-    print(jsonEncode(payload));
-    print("Images count = ${images.length}");
 
     if (response.statusCode == 200) {
       return data["message"] ?? "Purchase saved successfully";

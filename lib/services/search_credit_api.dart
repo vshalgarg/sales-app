@@ -31,13 +31,7 @@ Future<SearchCreditResponse> searchCredits({
   final url = Uri.parse(
     "http://192.168.1.100:8087/csm/api/v1/credit/entries/search",
   ).replace(queryParameters: queryParams);
-  print("fromDate => $fromDate");
-  print("toDate => $toDate");
-  print("supplierId => $supplierId");
-  print("customerId => $customerId");
-  print("page => $page");
-  print("size => $size");
-  print("URL => ${url.toString()}");
+
   final response = await http.get(
     url,
     headers: {
@@ -55,8 +49,6 @@ Future<SearchCreditResponse> searchCredits({
       jsonDecode(response.body),
     );
   for (final item in data.content) {
-    print("ID=${item.id} BILL=${item.billNumber} DATE=${item.date} PAYMENT=${item.paymentType}",
-    );
   }
 
   return data;

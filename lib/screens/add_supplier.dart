@@ -110,7 +110,7 @@ class _AddSupplierState extends State<AddSupplier> {
                       const Center(child: CircularProgressIndicator())
                     else
                       DropdownButtonFormField<EntriesModel>(
-                        value: selectedSupplier,
+                        initialValue: selectedSupplier,
                         isExpanded: true,
                         decoration: decoration("Supplier*"),
                         items: provider.entries.map((e) {
