@@ -28,6 +28,12 @@ const CustomDatePicker = ({
             fullWidth: true,
             error: !!error,
             helperText: helperText || "",
+            sx: {
+              "& .MuiOutlinedInput-root, & .MuiPickersOutlinedInput-root": {
+                backgroundColor: (theme) =>
+                  theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",
+              },
+            },
           },
         }}
       />

@@ -33,6 +33,14 @@ export const ThemeContextProvider = ({ children }) => {
       },
     },
     components: {
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === "dark" ? "#1e1e1e" : "#fff",
+            color: mode === "dark" ? "#fff" : "#000",
+          },
+        },
+      },
       MuiTextField: {
         styleOverrides: {
           root: {
@@ -43,6 +51,27 @@ export const ThemeContextProvider = ({ children }) => {
             "& .MuiInputLabel-root": {
               color: mode === "dark" ? "#bbb" : "#555",
             },
+          },
+        },
+      },
+      MuiPickersTextField: {
+        styleOverrides: {
+          root: {
+            "& .MuiPickersOutlinedInput-root, & .MuiOutlinedInput-root": {
+              backgroundColor: mode === "dark" ? "#1e1e1e" : "#fff",
+              color: mode === "dark" ? "#fff" : "#000",
+            },
+            "& .MuiInputLabel-root": {
+              color: mode === "dark" ? "#bbb" : "#555",
+            },
+          },
+        },
+      },
+      MuiPickersOutlinedInput: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === "dark" ? "#1e1e1e" : "#fff",
+            color: mode === "dark" ? "#fff" : "#000",
           },
         },
       },
