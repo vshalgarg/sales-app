@@ -14,14 +14,12 @@ import {
 } from "lucide-react";
 import { useConfig } from "../context/ConfigContext";
 import { useAuth } from "../context/AuthContext";
-import BrandLogo from "./common/BrandLogo";
 import {
   getSidebarIconClass,
   getSidebarItemClass,
   GRID_SIDEBAR_NAV_CLASS,
   SIDEBAR_NAV_LIST_CLASS,
   SIDEBAR_MOBILE_CLASS,
-  SIDEBAR_HEADER_CLASS,
 } from "../theme/appTheme";
 
 const SECTION_ICONS = {
@@ -138,15 +136,12 @@ const Sidebar = ({
 }) => (
   <aside
     className={`
-      flex md:hidden flex-col h-full fixed inset-y-0 left-0 z-40 w-64
+      flex md:hidden flex-col fixed top-16 left-0 bottom-0 z-40 w-64
       transition-transform duration-300 ease-in-out
       ${SIDEBAR_MOBILE_CLASS}
       ${isOpen ? "translate-x-0" : "-translate-x-full"}
     `}
   >
-    <div className={SIDEBAR_HEADER_CLASS}>
-      <BrandLogo />
-    </div>
     <div className={`flex-1 min-h-0 overflow-y-auto ${GRID_SIDEBAR_NAV_CLASS}`}>
       <SidebarNavList
         activeSection={activeSection}

@@ -8,7 +8,7 @@ export const SHELL_HEADER_HEIGHT = "h-16 min-h-[4rem] max-h-[4rem]";
 
 export const GRID_SIDEBAR_BRAND_CLASS = `${SHELL_HEADER_HEIGHT} shrink-0 flex items-center px-4 border-b ${SHELL_BORDER} box-border`;
 
-export const GRID_SIDEBAR_COLUMN_CLASS = `hidden md:flex col-start-1 row-start-1 row-span-2 flex-col min-h-0 min-w-0 overflow-hidden border-r ${SHELL_BORDER} bg-brand-sidebar dark:bg-zinc-900 box-border`;
+export const GRID_SIDEBAR_COLUMN_CLASS = `hidden md:flex col-start-1 row-start-2 flex-col min-h-0 min-w-0 overflow-hidden border-r ${SHELL_BORDER} bg-brand-sidebar dark:bg-zinc-900 box-border`;
 
 export const GRID_NAVBAR_CLASS = `${SHELL_HEADER_HEIGHT} flex items-center justify-between gap-4 px-4 border-b ${SHELL_BORDER} bg-white dark:bg-zinc-900 min-w-0 box-border`;
 

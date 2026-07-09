@@ -605,6 +605,7 @@ const CustomerModal = ({
             onClose={() => setCopyModalOpen(false)}
             title="Copy Customer Details"
             formattedText={getCustomerFormattedText(recordData)}
+            splitBankCopy
           />
         )}
 

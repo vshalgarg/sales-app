@@ -94,7 +94,7 @@ const PreviewRow = ({ label, value, icon: Icon, showValue = true }) => (
   </div>
 );
 
-const StructuredCopyPreview = ({ mandatory = [], bank, includeBank }) => (
+const StructuredCopyPreview = ({ mandatory = [], bank }) => (
   <div className="space-y-1">
     {mandatory.map((field) => {
       const Icon = FIELD_ICONS[field.label] || FileText;
@@ -108,7 +108,7 @@ const StructuredCopyPreview = ({ mandatory = [], bank, includeBank }) => (
       );
     })}
 
-    {includeBank && bank?.fields?.length > 0 && (
+    {bank?.fields?.length > 0 && (
       <div className="pt-1">
         <PreviewRow
           label="Bank Details"
@@ -128,19 +128,35 @@ const StructuredCopyPreview = ({ mandatory = [], bank, includeBank }) => (
   </div>
 );
 
+const writeToClipboard = async ({ html, text }) => {
+  if (navigator.clipboard?.write && window.ClipboardItem) {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([text], { type: "text/plain" }),
+      }),
+    ]);
+    return;
+  }
+
+  await navigator.clipboard.writeText(text);
+};
+
 export default function CopyDetailsModal({
   open,
   onClose,
   title,
   formattedText,
   showSelection = true,
+  splitBankCopy = false,
 }) {
   const { showSnackbar } = useSnackbar();
   const [copying, setCopying] = useState(false);
+  const [copyingBank, setCopyingBank] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [includeBank, setIncludeBank] = useState(true);
 
   const isStructuredCopy = Array.isArray(formattedText?.mandatory);
+  const hasBankDetails = Boolean(formattedText?.bank?.fields?.length);
 
   const legacyEntries = useMemo(
     () =>
@@ -149,36 +165,34 @@ export default function CopyDetailsModal({
   );
 
   useEffect(() => {
-    if (!open) return;
-
-    if (isStructuredCopy) {
-      setIncludeBank(Boolean(formattedText?.bank));
-    } else {
-      setSelectedIds(legacyEntries.map((entry) => entry.id));
-    }
-  }, [open, isStructuredCopy, formattedText?.bank, legacyEntries]);
+    if (!open || isStructuredCopy) return;
+    setSelectedIds(legacyEntries.map((entry) => entry.id));
+  }, [open, isStructuredCopy, legacyEntries]);
 
   const selectedLegacyEntries = useMemo(
     () => legacyEntries.filter((entry) => selectedIds.includes(entry.id)),
     [legacyEntries, selectedIds],
   );
 
-  const selectedFormattedText = useMemo(() => {
+  const generalFormattedText = useMemo(() => {
     if (isStructuredCopy) {
       return buildStructuredCopyText(
         formattedText.mandatory,
-        includeBank,
+        false,
         formattedText.bank,
       );
     }
 
     return toFormattedText(selectedLegacyEntries);
-  }, [
-    formattedText,
-    includeBank,
-    isStructuredCopy,
-    selectedLegacyEntries,
-  ]);
+  }, [formattedText, isStructuredCopy, selectedLegacyEntries]);
+
+  const bankFormattedText = useMemo(() => {
+    if (!isStructuredCopy || !hasBankDetails) {
+      return { html: "", text: "" };
+    }
+
+    return buildStructuredCopyText([], true, formattedText.bank);
+  }, [formattedText, hasBankDetails, isStructuredCopy]);
 
   const handleToggle = (id) => {
     setSelectedIds((prev) =>
@@ -187,7 +201,7 @@ export default function CopyDetailsModal({
   };
 
   const handleCopy = async () => {
-    if (!selectedFormattedText.html) {
+    if (!generalFormattedText.html) {
       showSnackbar("No data to copy", "warning");
       return;
     }
@@ -195,34 +209,40 @@ export default function CopyDetailsModal({
     setCopying(true);
 
     try {
-      if (navigator.clipboard?.write && window.ClipboardItem) {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            "text/html": new Blob([selectedFormattedText.html], {
-              type: "text/html",
-            }),
-            "text/plain": new Blob([selectedFormattedText.text], {
-              type: "text/plain",
-            }),
-          }),
-        ]);
-      } else {
-        await navigator.clipboard.writeText(selectedFormattedText.text);
-      }
-
+      await writeToClipboard(generalFormattedText);
       showSnackbar("Details copied to clipboard", "success");
       onClose();
-    } catch (error) {
+    } catch {
       showSnackbar("Failed to copy details", "error");
     } finally {
       setCopying(false);
     }
   };
 
-  const hasCopyContent = isStructuredCopy
-    ? formattedText.mandatory.length > 0 ||
-      (includeBank && formattedText.bank?.fields?.length > 0)
+  const handleCopyBankDetails = async () => {
+    if (!hasBankDetails) {
+      showSnackbar("No bank details found", "warning");
+      return;
+    }
+
+    setCopyingBank(true);
+
+    try {
+      await writeToClipboard(bankFormattedText);
+      showSnackbar("Bank details copied to clipboard", "success");
+      onClose();
+    } catch {
+      showSnackbar("Failed to copy bank details", "error");
+    } finally {
+      setCopyingBank(false);
+    }
+  };
+
+  const hasGeneralCopyContent = isStructuredCopy
+    ? formattedText.mandatory.length > 0
     : selectedLegacyEntries.length > 0;
+
+  const showLegacySelection = showSelection && !isStructuredCopy;
 
   return (
     <Dialog
@@ -248,45 +268,15 @@ export default function CopyDetailsModal({
         >
           <X className="h-4 w-4 text-brand-search-muted" />
         </IconButton>
-        <h2 className={`${PAGE_TITLE_CLASS} text-center`}>{title}</h2>
+        <h2 className={`${PAGE_TITLE_CLASS} text-center mt-2`}>{title}</h2>
       </DialogTitle>
 
       <DialogContent>
-        {showSelection && ((isStructuredCopy && formattedText.bank) || !isStructuredCopy) ? (
-          <p className="text-center text-sm text-brand-search-muted mb-3">
-            {isStructuredCopy
-              ? "Bank details are optional. Other details will always be copied."
-              : "Select the details you want to copy"}
-          </p>
-        ) : null}
-
-        {showSelection ? (
-          isStructuredCopy ? (
-            formattedText.bank ? (
-              <div className="rounded-xl border border-brand-surface-border bg-brand-tab-inactive/30 p-3 mb-4">
-                <p className="text-xs font-semibold text-brand-primary mb-2">
-                  Select Details to Copy
-                </p>
-                <div className="rounded-md border border-brand-surface-border bg-white px-2 py-1 inline-flex">
-                  <FormControlLabel
-                    sx={{ margin: 0 }}
-                    control={
-                      <Checkbox
-                        size="small"
-                        checked={includeBank}
-                        onChange={(e) => setIncludeBank(e.target.checked)}
-                      />
-                    }
-                    label={
-                      <span className="text-xs text-brand-navy">
-                        Bank Details
-                      </span>
-                    }
-                  />
-                </div>
-              </div>
-            ) : null
-          ) : (
+        {showLegacySelection ? (
+          <>
+            <p className="text-center text-sm text-brand-search-muted mb-3">
+              Select the details you want to copy
+            </p>
             <div className="rounded-xl border border-brand-surface-border bg-brand-tab-inactive/30 p-3 mb-4">
               <p className="text-xs font-semibold text-brand-primary mb-2">
                 Select Details to Copy
@@ -316,7 +306,7 @@ export default function CopyDetailsModal({
                 ))}
               </div>
             </div>
-          )
+          </>
         ) : null}
 
         <p className="text-xs font-semibold text-brand-primary mb-2">Preview</p>
@@ -328,26 +318,35 @@ export default function CopyDetailsModal({
             <StructuredCopyPreview
               mandatory={formattedText.mandatory}
               bank={formattedText.bank}
-              includeBank={includeBank}
             />
           ) : (
             <div
               dangerouslySetInnerHTML={{
-                __html: selectedFormattedText.html,
+                __html: generalFormattedText.html,
               }}
             />
           )}
         </div>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+      <DialogActions sx={{ px: 3, pb: 2, gap: 1, flexWrap: "wrap" }}>
         <AppButton type="secondary" onClick={onClose}>
           Cancel
         </AppButton>
+        {splitBankCopy && (
+          <AppButton
+            type="secondary"
+            onClick={handleCopyBankDetails}
+            disabled={copyingBank || copying}
+            startIcon={<Landmark className="h-4 w-4" />}
+          >
+            {copyingBank ? "Copying..." : "Copy Bank Details"}
+          </AppButton>
+        )}
         <AppButton
           type="primary"
           onClick={handleCopy}
-          disabled={copying || !hasCopyContent}
+          disabled={copying || copyingBank || !hasGeneralCopyContent}
           startIcon={<Copy className="h-4 w-4" />}
         >
           {copying ? "Copying..." : "Copy"}

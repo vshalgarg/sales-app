@@ -302,6 +302,7 @@ export default function CustomerDashboard() {
           onClose={() => setCopyModalOpen(false)}
           title="Copy Customer Details"
           formattedText={getCustomerFormattedText(customerToCopy)}
+          splitBankCopy
         />
       )}
     </div>
