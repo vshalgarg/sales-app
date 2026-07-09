@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
+import 'package:hisabio/dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
@@ -25,14 +26,31 @@ class TransportScreen extends StatefulWidget {
 class _TransportScreenState extends State<TransportScreen> {
   final searchController = TextEditingController();
   Timer? _debounce;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
 
     Future.microtask(() {
-      context.read<GetTransportProvider>().getTransportDetails();
+      context.read<GetTransportProvider>().getTransportDetails(
+        refresh: true,
+      );
     });
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        context.read<GetTransportProvider>().getTransportDetails();
+      }
+    });
+  }
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
   }
 
   @override
@@ -101,9 +119,7 @@ class _TransportScreenState extends State<TransportScreen> {
                     final keyword = value.trim();
 
                     if (keyword.isEmpty) {
-                      await context
-                          .read<GetTransportProvider>()
-                          .getTransportDetails();
+                      await context.read<GetTransportProvider>().refreshTransport();
                       return;
                     }
                     await context
@@ -123,8 +139,8 @@ class _TransportScreenState extends State<TransportScreen> {
                 builder: (context) {
                   final itemCount = isSearching
                       ? searchProvider.response?.content?.length ?? 0
-                      : transportProvider.transportData?.content?.length ?? 0;
-
+                      : transportProvider.transports.length +
+                      (transportProvider.isLoadingMore ? 1 : 0);
                   if (itemCount == 0) {
                     return Center(
                       child: Text(
@@ -143,14 +159,25 @@ class _TransportScreenState extends State<TransportScreen> {
                   return ListView.separated(
                     separatorBuilder: (context, index) {
                       return SizedBox(height: 8);
-                    },
+                    },controller: _scrollController,
                     itemCount: isSearching
                         ? searchProvider.response?.content?.length ?? 0
-                        : transportProvider.transportData?.content?.length ?? 0,
+                        : transportProvider.transports.length +
+                        (transportProvider.isLoadingMore ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (!isSearching &&
+                          index == transportProvider.transports.length &&
+                          transportProvider.isLoadingMore) {
+                        return const Padding(
+                          padding: EdgeInsets.all(15),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
                       final dynamic transport = isSearching
                           ? searchProvider.response!.content![index]
-                          : transportProvider.transportData!.content![index];
+                          : transportProvider.transports[index];
                       final contacts = transport.contacts ?? [];
                       final firstContact =
                           contacts != null && contacts.isNotEmpty
@@ -159,23 +186,23 @@ class _TransportScreenState extends State<TransportScreen> {
                       return TransportContainer(
                         name: (transport.name?.trim().isNotEmpty ?? false)
                             ? transport.name!
-                            : "      -     ",
+                            :  " -",
 
                         status: (transport.status?.trim().isNotEmpty ?? false)
                             ? transport.status!
-                            : "      -      ",
+                            :  " -",
 
                         gst: (transport.gstNo?.trim().isNotEmpty ?? false)
                             ? transport.gstNo!
-                            : "    -     ",
+                            :  " -",
 
                         city: (transport.city?.trim().isNotEmpty ?? false)
                             ? transport.city!
-                            : "     -      ",
+                            :  " -",
 
                         phone: (firstContact?.contactNumber?.trim().isNotEmpty ?? false)
                             ? firstContact!.contactNumber!
-                            : "      -        ",
+                            :"-",
                         editIconTap: () {
                           Navigator.push(
                             context,
@@ -188,8 +215,9 @@ class _TransportScreenState extends State<TransportScreen> {
                           );
                         },
                         trashIconTap: () {
+                          final parentContext = context;
                           ExitConfirmationDialog.show(
-                            context,
+                            parentContext,
                             saveButtonText: "Yes",
                             discardButtonText: "No",
                             onClose: () {
@@ -203,7 +231,7 @@ class _TransportScreenState extends State<TransportScreen> {
                             onSave: () async {
                               final provider =
                                   Provider.of<DeleteTransportProvider>(
-                                    context,
+                                    parentContext,
                                     listen: false,
                                   );
 
@@ -211,23 +239,27 @@ class _TransportScreenState extends State<TransportScreen> {
                                 transport.id!.toInt(),
                               );
                               if (!context.mounted) return;
-                              Navigator.pop(context);
+                              Navigator.of(parentContext, rootNavigator: true).pop();
                               if (provider.error != null) {
                                 ScaffoldSnackBar.show(
-                                  context,
+                                  parentContext,
                                   provider.error!,
                                   backgroundColor: Colors.red,
                                 );
                               } else {
                                 ScaffoldSnackBar.show(
-                                  context,
+                                    parentContext,
                                   provider.deleteResponse?.message ??
                                       "Transport deleted successfully",
                                 );
                               }
-                              await context
-                                  .read<GetTransportProvider>()
-                                  .getTransportDetails();
+                              if (searchController.text.trim().isNotEmpty) {
+                                await parentContext.read<SearchTransportProvider>().getSearchTransport(
+                                  searchController.text.trim(),
+                                );
+                              } else {
+                                await parentContext.read<GetTransportProvider>().refreshTransport();
+                              }
                             },
                           );
                         },
@@ -235,9 +267,13 @@ class _TransportScreenState extends State<TransportScreen> {
                           showDialog(
                             context: context,
                             builder: (context) {
-                              return CustomCopyDialog(
-                                headingText: "Transport Details",
+                              return CustomCopyDetailsDialog(
+                                heading: "Transport Details",
                                 firmName: transport.name ?? "",
+                                address: transport.addressLine1 ?? "",
+                                gstNo: transport.gstNo ?? "",
+                               contact: firstContact?.contactNumber ?? "",
+                                emails: transport.email??"",
                               );
                             },
                           );
@@ -253,11 +289,17 @@ class _TransportScreenState extends State<TransportScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push<bool>(
             context,
-            MaterialPageRoute(builder: (context) => AddNewTransport()),
+            MaterialPageRoute(
+              builder: (_) => const AddNewTransport(),
+            ),
           );
+
+          if (result == true) {
+            await context.read<GetTransportProvider>().refreshTransport();
+          }
         },
         backgroundColor: AppColors.primaryPurple,
         child: Icon(Iconsax.add, color: Colors.white, size: 40),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
+import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
+import '../../pop_ups/scafold_type.dart';
+import '../../provider/config_provider.dart';
 
 class ConfigurationScreen extends StatefulWidget {
   const ConfigurationScreen({super.key});
@@ -11,10 +14,20 @@ class ConfigurationScreen extends StatefulWidget {
 }
 
 class _ConfigurationScreenState extends State<ConfigurationScreen> {
-  bool isChecked = false;
+bool isChecked=false;
+  @override
+  void initState() {
+  super.initState();
+
+  Future.microtask(() {
+  context.read<ConfigProvider>().fetchConfiguration();
+  });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ConfigProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -76,7 +89,24 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
             ),
             SizedBox(height:20),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {try {
+                await context.read<ConfigProvider>().saveConfiguration(
+                  provider.retailEnabled,
+                );
+                if(!context.mounted) return;
+
+                ScaffoldSnackBar.show(
+                  context,
+                  "Configuration updated successfully",
+                );
+
+                Navigator.pop(context);
+              } catch (e) {
+                ScaffoldSnackBar.show(
+                  context,
+                  e.toString(),
+                );
+              }},
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryPurple,
                 shape: RoundedRectangleBorder(

@@ -124,7 +124,7 @@ class _ContactInfoState extends State<ContactInfo> {
                           hintText: "Mobile No.",
                         ),
                       ),
-                      SizedBox(height: 15),
+                      //SizedBox(height: 15),
                       Text(
                         "Type",
                         style: TextStyle(color: Colors.white, fontSize: 18),
@@ -142,7 +142,7 @@ class _ContactInfoState extends State<ContactInfo> {
                           hintText: "Type",
                         ),
                       ),
-                      SizedBox(height: 5),
+                     // SizedBox(height: 5),
                     ],
                   ),
                 ),

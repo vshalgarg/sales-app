@@ -1,8 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
@@ -13,6 +15,7 @@ import '../../entry_widgets/custom_textfield.dart';
 import '../../model_classes/entries_customer_model.dart';
 import '../../model_classes/entries_supplier.dart';
 import '../../model_classes/get_staff_entry.dart';
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 
 class RetailEntryScreen extends StatefulWidget {
@@ -74,6 +77,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
     // totalAmount.add(TextEditingController());
     // depositAmount.add(TextEditingController());
     // balancedAmount.add(TextEditingController());
+    dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     Future.microtask(() async {
       final provider = context.read<EntriesProvider>();
       await provider.fetchStaff();
@@ -88,16 +92,86 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: "Retail Entry",
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
           fontSize: 25,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              ExitConfirmationDialog.show(
+                context,
+                onSave: () async {
+                  Navigator.pop(context);
+                  if (!_formKey.currentState!.validate()) {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Please fill all the required fields",
+                    );
+                    return;
+                  }
+
+                  final payload = {
+                    "date": dateController.text,
+                    "name": nameController.text,
+                    "staffId": selectedStaff?.staffId,
+                    "referredByCustomerId": selectedReffered?.id,
+                    "suppliers": List.generate(
+                      selectedSuppliers.length,
+                          (index) => {
+                        "supplierId": selectedSuppliers[index]?.id,
+                        "totalAmount":
+                        double.tryParse(totalAmount[index].text) ??
+                            0,
+                        "depositAmount":
+                        double.tryParse(
+                          depositAmount[index].text,
+                        ) ??
+                            0,
+                        "balanceAmount":
+                        double.tryParse(
+                          balancedAmount[index].text,
+                        ) ??
+                            0,
+                      },
+                    ),
+                  };
+
+                  try {
+                    final message = await provider.addRetailEntry(
+                      payload,
+                    );
+
+                    if (!context.mounted) return;
+                    ScaffoldSnackBar.show(
+                      context,
+                      message ?? "Retail Entry Saved",
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Retail()),
+                    );
+                  } catch (e) {
+                    ScaffoldSnackBar.show(context, e.toString());
+                  }
+                },
+                onClose: () {
+                  Navigator.pop(context);
+                },
+                onDiscard: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Retail()),
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -144,6 +218,14 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                         EntryDateTextField(
                           label: "Date",
                           controller: dateController,
+                            validator: (value) {
+                              if (value == null || value
+                                  .trim()
+                                  .isEmpty) {
+                                return "Please enter date";
+                              }
+                              return null;
+                            }
                         ),
                         SizedBox(height: 15),
                         Text(
@@ -306,7 +388,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                             "Total Amount",
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          EntryTextField(
+                          EntryTextField(integerOnly: true,
                             controller: totalAmount[index],
                             hintText: "Total Amount",
                             onChanged: (_) {
@@ -318,7 +400,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                             "Deposit Amount",
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          EntryTextField(
+                          EntryTextField(integerOnly: true,
                             controller: depositAmount[index],
                             hintText: "Deposit Amount",
                             onChanged: (_) {
@@ -330,7 +412,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                             "Balance Amount",
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          EntryTextField(
+                          EntryTextField(integerOnly: true,
                             controller: balancedAmount[index],
                             hintText: "Balance Amount",
                             enabled: false,
@@ -357,6 +439,10 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                         textStyle: TextStyle(color: Colors.white, fontSize: 20),
                         onPressed: () async {
                           if (!_formKey.currentState!.validate()) {
+                            ScaffoldSnackBar.show(
+                              context,
+                              "Please fill all the required fields",
+                            );
                             return;
                           }
 

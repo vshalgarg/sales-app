@@ -5,6 +5,7 @@ import 'package:hisabio/provider/add_customer.dart';
 import 'package:hisabio/provider/add_new_staff_provider.dart';
 import 'package:hisabio/provider/add_new_transport.dart';
 import 'package:hisabio/provider/add_newsupplier.dart';
+import 'package:hisabio/provider/config_provider.dart';
 import 'package:hisabio/provider/credit_provider.dart';
 import 'package:hisabio/provider/delete_customer_provider.dart';
 import 'package:hisabio/provider/delete_staff_provider.dart';
@@ -84,6 +85,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => RetailProvider(),),
        ChangeNotifierProvider(create: (_) => GetLedgerDetailsProvider(),),
         ChangeNotifierProvider(create: (_) => GraphProvider(),),
+        ChangeNotifierProvider(create: (_) => ConfigProvider(),),
       ],
       child: const MyApp(),
 

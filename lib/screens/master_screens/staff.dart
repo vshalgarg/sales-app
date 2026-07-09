@@ -145,10 +145,12 @@ class _StaffScreenState extends State<StaffScreen> {
                       ),
                     );
                   }
-               return ListView.separated(
+                  return ListView.separated(
                     controller: _scrollController,
-                    separatorBuilder: (context, index) => const SizedBox(height: 10),
-                    itemCount: staffs.length +
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 10),
+                    itemCount:
+                        staffs.length +
                         ((!isSearching && staffProvider.isLoadingMore) ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (!isSearching &&
@@ -156,9 +158,7 @@ class _StaffScreenState extends State<StaffScreen> {
                           staffProvider.isLoadingMore) {
                         return const Padding(
                           padding: EdgeInsets.all(15),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          child: Center(child: CircularProgressIndicator()),
                         );
                       }
 
@@ -169,14 +169,25 @@ class _StaffScreenState extends State<StaffScreen> {
                         name: staff.staffName ?? "",
                         number: staff.phone ?? "",
                         joiningDate: staff.joiningDate ?? "",
-                        editIconTap: () {
-                          showDialog(
+                        editIconTap: () async {
+                          final result = await showDialog<bool>(
                             context: context,
                             builder: (_) => AddStaffDialog(
                               mode: StaffMode.edit,
                               id: staff.staffId,
                             ),
                           );
+
+                          if (result == true) {
+                            if(!context.mounted) return;
+                            if (searchStaffController.text.trim().isNotEmpty) {
+                              context.read<SearchStaffProvider>().searchStaff(
+                                searchStaffController.text.trim(),
+                              );
+                            } else {
+                              await context.read<GetStaffProvider>().refreshStaff();
+                            }
+                          }
                         },
                         trashIconTap: () {
                           ExitConfirmationDialog.show(
@@ -186,11 +197,11 @@ class _StaffScreenState extends State<StaffScreen> {
                             onClose: () => Navigator.pop(context),
                             onDiscard: () => Navigator.pop(context),
                             bodyText:
-                            "Are you sure you want to permanently delete ${staff.staffName ?? ""}? This action cannot be undo.",
+                                "Are you sure you want to permanently delete ${staff.staffName ?? ""}? This action cannot be undo.",
                             onSave: () async {
-                              await context.read<DeleteStaffProvider>().deleteStaff({
-                                "staffId": staff.staffId,
-                              });
+                              await context
+                                  .read<DeleteStaffProvider>()
+                                  .deleteStaff({"staffId": staff.staffId});
 
                               if (!context.mounted) return;
 
@@ -203,14 +214,27 @@ class _StaffScreenState extends State<StaffScreen> {
                                 );
                                 return;
                               }
-
+                              if (searchStaffController.text
+                                  .trim()
+                                  .isNotEmpty) {
+                                context.read<SearchStaffProvider>().searchStaff(
+                                  searchStaffController.text.trim(),
+                                );
+                              } else {
+                                await context
+                                    .read<GetStaffProvider>()
+                                    .refreshStaff();
+                              }
+                              if (!context.mounted) return;
                               ScaffoldSnackBar.show(
                                 context,
                                 deleteProvider.deleteStaffResponse?.message ??
                                     "Deleted Successfully",
                               );
 
-                              await context.read<GetStaffProvider>().refreshStaff();
+                              await context
+                                  .read<GetStaffProvider>()
+                                  .refreshStaff();
                             },
                           );
                         },
@@ -225,11 +249,21 @@ class _StaffScreenState extends State<StaffScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        onPressed: () {
-          showDialog(
+        onPressed: () async {
+          final result = await showDialog<bool>(
             context: context,
-            builder: (context) => AddStaffDialog(mode: StaffMode.add),
+            builder: (_) => const AddStaffDialog(mode: StaffMode.add),
           );
+          if (!context.mounted) return;
+          if (result == true) {
+            if (searchStaffController.text.trim().isNotEmpty) {
+              context.read<SearchStaffProvider>().searchStaff(
+                searchStaffController.text.trim(),
+              );
+            } else {
+              await context.read<GetStaffProvider>().refreshStaff();
+            }
+          }
         },
         backgroundColor: AppColors.primaryPurple,
         child: Icon(Iconsax.add, color: Colors.white, size: 40),

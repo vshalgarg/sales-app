@@ -77,7 +77,7 @@ class GetSupplierByIdModel {
       addressLine2 = data['addressLine2'];
       state = data['state'];
       city = data['city'];
-      pinCode = data['pinCode'];
+      pinCode = data['pincode'];
       msme = data['msme'];
       bankName = data['bankName'];
       ifscCode = data['ifscCode'];
@@ -110,7 +110,7 @@ class GetSupplierByIdModel {
         "addressLine2": addressLine2,
         "state": state,
         "city": city,
-        "pinCode": pinCode,
+      "pincode": pinCode,
         "msme": msme,
         "bankName": bankName,
         "ifscCode": ifscCode,

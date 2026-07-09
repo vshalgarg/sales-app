@@ -34,8 +34,9 @@ class _SupplierState extends State<Supplier> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
+    Future.microtask(() async {
       context.read<SupplierProvider>().fetchSuppliers(refresh: true);
+
     });
 
     _scrollController.addListener(() {
@@ -221,13 +222,20 @@ class _SupplierState extends State<Supplier> {
                                   await provider.deleteSupplier(item.code!);
                                   if (!context.mounted) return;
                                   Navigator.pop(context);
+                                  if (searchController.text.trim().isNotEmpty) {
+                                    await context.read<SearchSupplierProvider>().searchSuppliers(
+                                      searchController.text.trim(),
+                                    );
+                                  } else {
+                                    await context.read<SupplierProvider>().refreshSuppliers();
+                                  }
+                                  if(!context.mounted)return;
+
                                   ScaffoldSnackBar.show(
                                     context,
                                     provider.message,
                                   );
-                                  await context
-                                      .read<SupplierProvider>()
-                                      .refreshSuppliers();
+                                  await context.read<SupplierProvider>().refreshSuppliers();
                                 },
                               );
                             },
@@ -262,6 +270,7 @@ class _SupplierState extends State<Supplier> {
                                     address:
                                         provider.supplier?.addressLine1 ?? "",
                                     gstNo: provider.supplier?.gstNo ?? "",
+                                    emails: provider.supplier?.email??"",
                                   );
                                 },
                               );

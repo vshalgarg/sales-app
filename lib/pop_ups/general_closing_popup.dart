@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ExitConfirmationDialog {
   static Future<void> show(
       BuildContext context, {
-        VoidCallback? onSave,
+        Future<void> Function()? onSave,
         VoidCallback? onDiscard,
         VoidCallback? onClose,
         String? bodyText,
@@ -14,7 +14,6 @@ class ExitConfirmationDialog {
       context: context,
       barrierDismissible: false,
       barrierLabel: "Exit Dialog",
-     // transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (_, __, ___) {
         return Material(
           color: Colors.black.withOpacity(0.35),
@@ -73,16 +72,21 @@ class ExitConfirmationDialog {
                 ),
 
                 Positioned(
-                  bottom: 0 ,//-50,
+                  bottom: 0 ,
                   left: 20,
                   right: 20,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: 130, // Change as needed
+                        width: 130,
                         child: ElevatedButton(
-                          onPressed: onSave,
+                          onPressed: () async {
+                            if (onSave != null) {
+                              await onSave();
+                            }
+
+                          },
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(120, 45),
                             backgroundColor: const Color(0xff00A86B),

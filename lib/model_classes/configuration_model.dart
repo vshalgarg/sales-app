@@ -13,12 +13,10 @@ class ConfigurationModel {
 
   factory ConfigurationModel.fromJson(Map<String, dynamic> json) {
     return ConfigurationModel(
-      id: json['id'],
-      key: json['key'],
-      value: json['value'],
-      type: json['type'],
+      id: json["id"],
+      key: json["key"],
+      value: json["value"],
+      type: json["type"],
     );
   }
-
-  bool get isEnabled => value.toLowerCase() == "true";
 }

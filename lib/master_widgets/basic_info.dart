@@ -39,7 +39,7 @@ class SupplierBasicInfo extends StatefulWidget {
 class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
   String? selectedMsme;
   String? selectedCommissionScheme;
-  bool isExpanded=true;
+  bool isExpanded = true;
 
   @override
   void initState() {
@@ -74,30 +74,37 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return 
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(onTap:(){setState(() {
-            isExpanded=!isExpanded;
+    print("SupplierBasicInfo build");
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              isExpanded = !isExpanded;
+            });},
 
-          });},
-            child: TextFormField(
-              enabled: false,
-              decoration: InputDecoration(
-                suffixIcon: Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.white),
-                iconColor: Colors.white,
-                filled: true,
-                fillColor: AppColors.primaryPurple,
-                hintText: "Basic Information",
-                hintStyle: TextStyle(color: Colors.white),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(5),
-                  borderSide: BorderSide.none,
-                ),
+          child: TextFormField(
+            enabled: false,
+            decoration: InputDecoration(
+              suffixIcon: Icon(
+                isExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: Colors.white,
+              ),
+              iconColor: Colors.white,
+              filled: true,
+              fillColor: AppColors.primaryPurple,
+              hintText: "Basic Information",
+              hintStyle: TextStyle(color: Colors.white),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide.none,
               ),
             ),
           ),
+        ),
 
         if (isExpanded) ...[
           SizedBox(height: 15),
@@ -133,7 +140,10 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
           ),
           SizedBox(height: 15),
 
-          Text("Group Name", style: TextStyle(color: Colors.white, fontSize: 18)),
+          Text(
+            "Group Name",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
           TextFormField(
             enabled: widget.mode != FormMode.view,
             controller: widget.groupController,
@@ -149,7 +159,10 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
           ),
           SizedBox(height: 15),
 
-          Text("GST Number", style: TextStyle(color: Colors.white, fontSize: 18)),
+          Text(
+            "GST Number",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
           TextFormField(
             enabled: widget.mode != FormMode.view,
             controller: widget.gstNoController,
@@ -275,7 +288,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
             ),
           ),
         ],
-        ],
+      ],
     );
   }
 }

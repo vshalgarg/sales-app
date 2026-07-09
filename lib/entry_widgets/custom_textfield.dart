@@ -43,15 +43,19 @@ class EntryTextField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5),
           ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: const BorderSide(color: Colors.white),
+        ),
 
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(color: Colors.grey),
+            borderSide: const BorderSide(color: Colors.white),
           ),
 
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(color: Colors.blue),
+            borderSide: const BorderSide(color: Colors.white),
           ),
 
           errorBorder: OutlineInputBorder(

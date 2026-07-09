@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../provider/get_supplier_provider.dart';
 
 class ContactControllers {
   final name = TextEditingController();
@@ -24,6 +25,7 @@ class ContactControllers {
   final mobile = TextEditingController();
 
   final type = TextEditingController();
+
 
   void dispose() {
     name.dispose();
@@ -44,6 +46,7 @@ class AddNewSupplier extends StatefulWidget {
 
 class _AddNewSupplierState extends State<AddNewSupplier> {
   bool isExpanded = false;
+  final ScrollController _scrollController = ScrollController();
   final nameController = TextEditingController();
 
   final emailController = TextEditingController();
@@ -217,6 +220,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     } else {
       contacts.add(ContactControllers());
     }
+    print("API PinCode = ${s.pinCode}");
+    print(s);
   }
 
   @override
@@ -293,6 +298,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     nameController.dispose();
     emailController.dispose();
     groupController.dispose();
@@ -403,6 +409,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         ),
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.all(15.0),
           child: Column(
@@ -454,6 +461,15 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   setState(() {
                     isExpanded = !isExpanded;
                   });
+                  if (isExpanded) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    });
+                  }
                 },
                 child: TextFormField(
                   enabled: false,
@@ -610,11 +626,11 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                           provider.response!.message ??
                               "Supplier Added Successfully",
                         );
-
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (_) => Supplier()),
                         );
+                        await context.read<SupplierProvider>().refreshSuppliers();
                       }
                     } catch (e) {
                       ScaffoldSnackBar.show(context, "Something went wrong$e");

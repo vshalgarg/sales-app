@@ -106,13 +106,13 @@ class _AddNewTransportState extends State<AddNewTransport> {
 
       "city": cityController.text,
 
-      "pinCode": pinCodeController.text,
+      "pincode": pinCodeController.text,
 
       "contacts": contacts.map((e) {
         return {
-          "name": e.name.text,
+          "contactPerson": e.name.text,
 
-          "mobile": e.mobile.text,
+          "contactNumber": e.mobile.text,
 
           "type": e.type.text,
         };
@@ -203,7 +203,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
 
                   final body = addTransportBody();
 
-                  await addTransportProvider.addNewTransport(body);
+                  final success=  await addTransportProvider.addNewTransport(body);
                   if (!context.mounted) return;
 
                   if (addTransportProvider.error != null) {
@@ -215,7 +215,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                       addTransportProvider.response?.message ??
                           "Transport Added Successfully",
                     );
-                    Navigator.pop(context);
+                    Navigator.pop(context,true);
                     await Provider.of<GetTransportProvider>(
                       context,
                       listen: false,
@@ -355,6 +355,10 @@ class _AddNewTransportState extends State<AddNewTransport> {
       bottomNavigationBar: BottomNavigationButton(
         mode: widget.mode,
         saveSupplier: () async {
+          if(transportNameController.text.isEmpty){
+            ScaffoldSnackBar.show(context,"Please fill the transporter name");
+            return;
+          }
           final addTransportProvider = Provider.of<AddNewTransportProvider>(
             context,
             listen: false,
@@ -374,14 +378,14 @@ class _AddNewTransportState extends State<AddNewTransport> {
               addTransportProvider.response?.message ??
                   "Transport Added Successfully",
             );
-            Navigator.pop(context);
-            await Provider.of<GetTransportProvider>(
-              context,
-              listen: false,
-            ).getTransportDetails();
+            Navigator.pop(context,true);
           }
         },
         update: () async {
+          if(transportNameController.text.isEmpty){
+            ScaffoldSnackBar.show(context,"Please fill the transporter name");
+            return;
+          }
           final updateProvider = Provider.of<AddNewTransportProvider>(
             context,
             listen: false,
@@ -400,13 +404,9 @@ class _AddNewTransportState extends State<AddNewTransport> {
             ScaffoldSnackBar.show(
               context,
               updateProvider.updateResponse?.message ??
-                  "Transport update manully message Successfully",
+                  "Transport update manually message Successfully",
             );
-            Navigator.pop(context);
-            await Provider.of<GetTransportProvider>(
-              context,
-              listen: false,
-            ).getTransportDetails();
+            Navigator.pop(context,true);
           }
         },
       ),
