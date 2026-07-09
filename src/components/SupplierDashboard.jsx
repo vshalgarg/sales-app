@@ -281,6 +281,7 @@ export default function SupplierDashboard() {
           onClose={() => setCopyModalOpen(false)}
           title="Copy Supplier Details"
           formattedText={getSupplierFormattedText(supplierToCopy)}
+          splitBankCopy
         />
       )}
 

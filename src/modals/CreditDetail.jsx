@@ -1,115 +1,166 @@
+import { useMemo } from "react";
 import useResponsive from "../customHooks/useResponsive";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CloseIcon from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import FormSection from "../components/common/FormSection";
+import DetailField from "../components/common/DetailField";
+import ModalSectionLayout from "../components/common/ModalSectionLayout";
+import {
+  CREDIT_SECTION_IDS,
+  getCreditModalSections,
+} from "../components/common/creditModalSections";
+import { useModalSectionNav } from "../customHooks/useModalSectionNav";
 import { formatIndianCurrency } from "../utils/currencyUtils";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { ClipboardList, FileText, Link2, Users } from "lucide-react";
 
 const CreditDetail = ({ selectedCreditDetail, setIsModalOpen }) => {
+  const { isMobile } = useResponsive();
 
-  const Section = ({ title, children }) => (
-    <div>
-      <h3 className="text-lg font-semibold mb-3 border-b border-gray-300 pb-2">
-        {title}
-      </h3>
-      {children}
-    </div>
+  const sections = useMemo(() => getCreditModalSections(), []);
+  const sectionIds = useMemo(
+    () => sections.map((section) => section.id),
+    [sections],
   );
 
-  const InfoGrid = ({ cols = "md:grid-cols-2", children }) => (
-    <div className={`grid grid-cols-1 ${cols} gap-4 sm:gap-6`}>
-      {children}
-    </div>
-  );
-
-  const Info = ({ label, value }) => (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      <div className="bg-gray-100 border rounded px-3 py-2 text-sm">
-        {value ?? "-"}
-      </div>
-    </div>
-  );
+  const { activeSection, scrollToSection, scrollContainerRef, setSectionRef } =
+    useModalSectionNav(sectionIds, { enabled: !!selectedCreditDetail });
 
   if (!selectedCreditDetail) return null;
 
-  const { isMobile } = useResponsive();
-
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-0 md:p-4">
       <div
-        className={`
-          bg-white dark:bg-gray-900 flex flex-col
-          w-full
-          ${isMobile ? "h-full rounded-none" : "max-w-4xl max-h-[90vh] rounded-lg"}
-        `}
+        className={`bg-white dark:bg-gray-900 flex flex-col w-full overflow-hidden shadow-lg ${
+          isMobile ? "h-full" : "max-w-6xl max-h-[90vh] rounded-xl"
+        }`}
       >
-        {/* Header */}
-        <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
-
+        <div className="px-4 sm:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700 flex items-center justify-between gap-3 shrink-0 bg-white dark:bg-gray-900">
+          <div className="flex items-center gap-3 min-w-0">
+            <IconButton
+              onClick={() => setIsModalOpen(false)}
+              className="md:hidden"
+              size="small"
+              aria-label="Go back"
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <h2 className={`${PAGE_TITLE_CLASS} truncate`}>Credit Details</h2>
+          </div>
           <IconButton
             onClick={() => setIsModalOpen(false)}
-            className="md:hidden"
+            size="small"
+            aria-label="Close"
+            className="hidden md:inline-flex border border-brand-surface-border rounded-lg"
           >
-            <ArrowBackIcon />
+            <CloseIcon fontSize="small" />
           </IconButton>
-
-          <h2 className="text-lg sm:text-2xl font-semibold">
-            Credit Details
-          </h2>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-8">
+        <ModalSectionLayout
+          sections={sections}
+          activeSection={activeSection}
+          onSectionClick={scrollToSection}
+          scrollContainerRef={scrollContainerRef}
+        >
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.TRANSACTION)}
+            id={CREDIT_SECTION_IDS.TRANSACTION}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Transaction Details"
+              icon={FileText}
+              variantIndex={0}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailField label="Invoice Number">
+                  {selectedCreditDetail.billNumber}
+                </DetailField>
+                <DetailField label="Transaction Date">
+                  {selectedCreditDetail.date}
+                </DetailField>
+                <DetailField label="Payment Type">
+                  {selectedCreditDetail.paymentType}
+                </DetailField>
+                <DetailField label="Received Amount">
+                  {formatIndianCurrency(selectedCreditDetail.receivedAmount)}
+                </DetailField>
+              </div>
+            </FormSection>
+          </div>
 
-          {/* Transaction Details */}
-          <Section title="Transaction Details">
-            <InfoGrid cols="md:grid-cols-2">
-              <Info label="Invoice Number" value={selectedCreditDetail.billNumber} />
-              <Info label="Transaction Date" value={selectedCreditDetail.date} />
-              <Info label="Payment Type" value={selectedCreditDetail.paymentType} />
-              <Info label="Received Amount" value={formatIndianCurrency(selectedCreditDetail.receivedAmount)} />
-            </InfoGrid>
-          </Section>
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.PARTY)}
+            id={CREDIT_SECTION_IDS.PARTY}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Party Information"
+              icon={Users}
+              variantIndex={1}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailField label="Supplier Name">
+                  {selectedCreditDetail.supplierName}
+                </DetailField>
+                <DetailField label="Customer Name">
+                  {selectedCreditDetail.customerName}
+                </DetailField>
+              </div>
+            </FormSection>
+          </div>
 
-          {/* Party Information */}
-          <Section title="Party Information">
-            <InfoGrid cols="md:grid-cols-2">
-              <Info label="Supplier Name" value={selectedCreditDetail.supplierName} />
-              <Info label="Customer Name" value={selectedCreditDetail.customerName} />
-            </InfoGrid>
-          </Section>
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.REFERENCE)}
+            id={CREDIT_SECTION_IDS.REFERENCE}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Reference Details"
+              icon={Link2}
+              variantIndex={2}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <DetailField label="Reference Number">
+                  {selectedCreditDetail.referenceNumber}
+                </DetailField>
+                <DetailField label="Reference Date">
+                  {selectedCreditDetail.referenceDate}
+                </DetailField>
+                <DetailField label="Slip Number">
+                  {selectedCreditDetail.slipNumber}
+                </DetailField>
+              </div>
+            </FormSection>
+          </div>
 
-          {/* Reference Details */}
-          <Section title="Reference Details">
-            <InfoGrid cols="md:grid-cols-3">
-              <Info
-                label="Reference Number"
-                value={selectedCreditDetail.referenceNumber}
-              />
-              <Info
-                label="Reference Date"
-                value={selectedCreditDetail.referenceDate}
-              />
-              <Info
-                label="Slip Number"
-                value={selectedCreditDetail.slipNumber}
-              />
-            </InfoGrid>
-          </Section>
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.MISC)}
+            id={CREDIT_SECTION_IDS.MISC}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Miscellaneous"
+              icon={ClipboardList}
+              variantIndex={3}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailField label="Draw Type">
+                  {selectedCreditDetail.drawType}
+                </DetailField>
+                <DetailField label="Remarks">
+                  {selectedCreditDetail.remark}
+                </DetailField>
+              </div>
+            </FormSection>
+          </div>
+        </ModalSectionLayout>
 
-          {/* Miscellaneous */}
-          <Section title="Miscellaneous">
-            <InfoGrid cols="md:grid-cols-2">
-              <Info label="Draw Type" value={selectedCreditDetail.drawType} />
-              <Info label="Remarks" value={selectedCreditDetail.remark} />
-            </InfoGrid>
-          </Section>
-        </div>
-
-        {/* Footer */}
-        <FormFooter background="bg-white">
-
+        <FormFooter background="bg-white dark:bg-gray-900">
           <AppButton
             type="primary"
             onClick={() => setIsModalOpen(false)}
@@ -117,9 +168,7 @@ const CreditDetail = ({ selectedCreditDetail, setIsModalOpen }) => {
           >
             Close
           </AppButton>
-
         </FormFooter>
-
       </div>
     </div>
   );

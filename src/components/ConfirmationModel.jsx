@@ -1,5 +1,5 @@
 import React from 'react';
-
+import AppButton from "../components/common/AppButton"
 const ConfirmationModal = ({
   isOpen,
   onClose,
@@ -53,23 +53,23 @@ const ConfirmationModal = ({
 
         {/* Footer */}
         <div className="px-6 py-5 border-t border-gray-200 flex justify-end gap-4">
-          <button
-            type="button"
+          <AppButton
+            type="cancel"
             onClick={onClose}
             disabled={loading}
-            className="px-5 py-2.5 bg-gray-400 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-60 transition-colors"
+            // className="px-5 py-2.5 bg-gray-400 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-60 transition-colors"
           >
             {cancelText}
-          </button>
+          </AppButton>
 
-          <button
-            type="button"
+          <AppButton
+            type="primary"
             onClick={onConfirm}
             disabled={loading}
-            className={`px-5 py-2.5 text-white rounded-lg font-medium transition-colors disabled:opacity-60 ${btnClass}`}
+            // className={`px-5 py-2.5 text-white rounded-lg font-medium transition-colors disabled:opacity-60 ${btnClass}`}
           >
             {loading ? "Processing..." : confirmText}
-          </button>
+          </AppButton>
         </div>
       </div>
     </div>

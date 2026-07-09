@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CustomTextField from "../components/CustomTextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -11,13 +11,23 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import MenuItem from "@mui/material/MenuItem";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CloseIcon from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
 import AppButton from "../components/common/AppButton";
 import FormFooter from "../components/common/FormFooter";
+import FormSection from "../components/common/FormSection";
+import ModalSectionLayout from "../components/common/ModalSectionLayout";
+import {
+  CREDIT_SECTION_IDS,
+  getCreditModalSections,
+} from "../components/common/creditModalSections";
+import { useModalSectionNav } from "../customHooks/useModalSectionNav";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import CustomDatePicker from "../components/common/CustomDatePicker";
-
+import useResponsive from "../customHooks/useResponsive";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { ClipboardList, FileText, Link2, Users } from "lucide-react";
 
 const PAYMENT_TYPES = [
   "CASH",
@@ -31,7 +41,6 @@ const DRAW_TYPES = [
   "CHEQUE",
 ];
 
-
 const EditCreditDetail = ({
   open,
   selectedCreditDetail,
@@ -39,6 +48,7 @@ const EditCreditDetail = ({
   onUpdateSuccess,
 }) => {
   const { showSnackbar } = useSnackbar();
+  const { isMobile } = useResponsive();
 
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
@@ -60,6 +70,15 @@ const EditCreditDetail = ({
   const [saving, setSaving] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const sections = useMemo(() => getCreditModalSections(), []);
+  const sectionIds = useMemo(
+    () => sections.map((section) => section.id),
+    [sections],
+  );
+
+  const { activeSection, scrollToSection, scrollContainerRef, setSectionRef } =
+    useModalSectionNav(sectionIds, { enabled: open });
 
   const { isDirty } = useUnsavedChanges(
     { ...formData, supplierId: selectedSupplier?.id, customerId: selectedCustomer?.id },
@@ -130,7 +149,6 @@ const EditCreditDetail = ({
 
   if (!open) return null;
 
-
   const handleClose = () => {
     if (isDirty()) {
       setConfirmOpen(true);
@@ -139,6 +157,7 @@ const EditCreditDetail = ({
 
     setOpen(false);
   };
+
   /* ================= RECEIVED AMOUNT VALIDATION ================= */
   const handleReceivedAmountChange = (e) => {
     const value = e.target.value;
@@ -205,156 +224,208 @@ const EditCreditDetail = ({
 
   /* ================= UI ================= */
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-0 md:p-4">
       <div
-        className="
-        bg-white flex flex-col w-full
-        h-full sm:h-auto
-        sm:max-w-3xl sm:max-h-[90vh]
-        sm:rounded-xl
-      "
+        className={`bg-white dark:bg-gray-900 flex flex-col w-full overflow-hidden shadow-lg ${
+          isMobile ? "h-full" : "max-w-6xl max-h-[90vh] rounded-xl"
+        }`}
       >
-        {/* Header */}
-        <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+        <div className="px-4 sm:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700 flex items-center justify-between gap-3 shrink-0 bg-white dark:bg-gray-900">
+          <div className="flex items-center gap-3 min-w-0">
+            <IconButton
+              onClick={handleClose}
+              className="md:hidden"
+              size="small"
+              aria-label="Go back"
+            >
+              <ArrowBackIcon />
+            </IconButton>
 
+            <h2 className={`${PAGE_TITLE_CLASS} truncate`}>Edit Credit</h2>
+          </div>
           <IconButton
             onClick={handleClose}
-            className="md:hidden"
+            size="small"
+            aria-label="Close"
+            className="hidden md:inline-flex border border-brand-surface-border rounded-lg"
           >
-            <ArrowBackIcon />
+            <CloseIcon fontSize="small" />
           </IconButton>
-
-          <h2 className="text-lg sm:text-xl font-semibold">
-            Edit Credit
-          </h2>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
-
-          {/* ===== BASIC INFO ===== */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <CustomTextField
-              label="Invoice Number"
-              value={selectedCreditDetail.billNumber}
-              disabled
-            />
-            <CustomDatePicker
-              label="Date"
-              value={formData.date}
-              onChange={(val) =>
-                setFormData(prev => ({ ...prev, date: val }))
-              }
-            />
-            <CustomTextField
-              select
-              label="Payment Type"
-              name="paymentType"
-              value={formData.paymentType}
-              onChange={handleChange}
+        <ModalSectionLayout
+          sections={sections}
+          activeSection={activeSection}
+          onSectionClick={scrollToSection}
+          scrollContainerRef={scrollContainerRef}
+        >
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.TRANSACTION)}
+            id={CREDIT_SECTION_IDS.TRANSACTION}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Transaction Details"
+              icon={FileText}
+              variantIndex={0}
             >
-              {PAYMENT_TYPES.map(type => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
-              ))}
-            </CustomTextField>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <CustomTextField
+                  label="Invoice Number"
+                  value={selectedCreditDetail.billNumber}
+                  disabled
+                />
+                <CustomDatePicker
+                  label="Date"
+                  value={formData.date}
+                  onChange={(val) =>
+                    setFormData(prev => ({ ...prev, date: val }))
+                  }
+                />
+                <CustomTextField
+                  select
+                  label="Payment Type"
+                  name="paymentType"
+                  value={formData.paymentType}
+                  onChange={handleChange}
+                >
+                  {PAYMENT_TYPES.map(type => (
+                    <MenuItem key={type} value={type}>{type}</MenuItem>
+                  ))}
+                </CustomTextField>
+                <CustomTextField
+                  label="Received Amount"
+                  name="receivedAmount"
+                  value={formData.receivedAmount}
+                  onChange={handleReceivedAmountChange}
+                />
+              </div>
+            </FormSection>
           </div>
 
-          {/* ===== PARTY INFO ===== */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Autocomplete
-              options={allSuppliers}
-              value={selectedSupplier}
-              isOptionEqualToValue={(o, v) => o.id === v?.id}
-              getOptionLabel={(o) =>
-                o?.supplierName ? `${o.supplierName}${o.city ? ` - ${o.city}` : ""}`: ""
-              }
-              onChange={(e, v) => setSelectedSupplier(v)}
-              renderInput={(params) => (
-                <CustomTextField {...params} label="Supplier" />
-              )}
-            />
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.PARTY)}
+            id={CREDIT_SECTION_IDS.PARTY}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Party Information"
+              icon={Users}
+              variantIndex={1}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Autocomplete
+                  options={allSuppliers}
+                  value={selectedSupplier}
+                  isOptionEqualToValue={(o, v) => o.id === v?.id}
+                  getOptionLabel={(o) =>
+                    o?.supplierName ? `${o.supplierName}${o.city ? ` - ${o.city}` : ""}`: ""
+                  }
+                  onChange={(e, v) => setSelectedSupplier(v)}
+                  renderInput={(params) => (
+                    <CustomTextField {...params} label="Supplier" />
+                  )}
+                />
 
-            <Autocomplete
-              options={allCustomers}
-              value={selectedCustomer}
-              isOptionEqualToValue={(o, v) => o.id === v?.id}
-              getOptionLabel={(o) =>
-                o?.customerName ? `${o.customerName}${o.city ? ` - ${o.city}` : ""}`: ""
-              }
-              onChange={(e, v) => setSelectedCustomer(v)}
-              renderInput={(params) => (
-                <CustomTextField {...params} label="Customer" />
-              )}
-            />
+                <Autocomplete
+                  options={allCustomers}
+                  value={selectedCustomer}
+                  isOptionEqualToValue={(o, v) => o.id === v?.id}
+                  getOptionLabel={(o) =>
+                    o?.customerName ? `${o.customerName}${o.city ? ` - ${o.city}` : ""}`: ""
+                  }
+                  onChange={(e, v) => setSelectedCustomer(v)}
+                  renderInput={(params) => (
+                    <CustomTextField {...params} label="Customer" />
+                  )}
+                />
+              </div>
+            </FormSection>
           </div>
 
-          {/* ===== TRANSACTION DETAILS ===== */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <CustomTextField
-              label="Reference Number"
-              name="referenceNumber"
-              value={formData.referenceNumber}
-              onChange={handleChange}
-            />
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.REFERENCE)}
+            id={CREDIT_SECTION_IDS.REFERENCE}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Reference Details"
+              icon={Link2}
+              variantIndex={2}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <CustomTextField
+                  label="Reference Number"
+                  name="referenceNumber"
+                  value={formData.referenceNumber}
+                  onChange={handleChange}
+                />
 
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Reference Date"
-                value={formData.referenceDate}
-                onChange={(newValue) =>
-                  setFormData(prev => ({ ...prev, referenceDate: newValue }))
-                }
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    size: "small",
-                  },
-                }}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="Reference Date"
+                    value={formData.referenceDate}
+                    onChange={(newValue) =>
+                      setFormData(prev => ({ ...prev, referenceDate: newValue }))
+                    }
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+
+                <CustomTextField
+                  label="Slip Number"
+                  name="slipNumber"
+                  value={formData.slipNumber}
+                  onChange={handleSlipNumberChange}
+                />
+              </div>
+            </FormSection>
+          </div>
+
+          <div
+            ref={setSectionRef(CREDIT_SECTION_IDS.MISC)}
+            id={CREDIT_SECTION_IDS.MISC}
+            className="scroll-mt-4"
+          >
+            <FormSection
+              title="Miscellaneous"
+              icon={ClipboardList}
+              variantIndex={3}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <CustomTextField
+                  select
+                  label="Draw Type"
+                  name="drawType"
+                  value={formData.drawType}
+                  onChange={handleChange}
+                >
+                  {DRAW_TYPES.map(type => (
+                    <MenuItem key={type} value={type}>{type}</MenuItem>
+                  ))}
+                </CustomTextField>
+
+                <CustomTextField
+                label="Remark"
+                name="remark"
+                value={formData.remark}
+                onChange={handleChange}
+                multiline
+                rows={2}
               />
-            </LocalizationProvider>
+              </div>
 
-            <CustomTextField
-              label="Slip Number"
-              name="slipNumber"
-              value={formData.slipNumber}
-              onChange={handleSlipNumberChange}
-            />
+              
+            </FormSection>
           </div>
+        </ModalSectionLayout>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <CustomTextField
-              select
-              label="Draw Type"
-              name="drawType"
-              value={formData.drawType}
-              onChange={handleChange}
-            >
-              {DRAW_TYPES.map(type => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
-              ))}
-            </CustomTextField>
-
-            <CustomTextField
-              label="Received Amount"
-              name="receivedAmount"
-              value={formData.receivedAmount}
-              onChange={handleReceivedAmountChange}
-            />
-          </div>
-
-          <CustomTextField
-            label="Remark"
-            name="remark"
-            value={formData.remark}
-            onChange={handleChange}
-            multiline
-            rows={2}
-          />
-        </div>
-
-        {/* Footer */}
-        <FormFooter background="bg-white">
-
+        <FormFooter background="bg-white dark:bg-gray-900">
           <AppButton
             type="primary"
             onClick={handleUpdate}
@@ -371,7 +442,6 @@ const EditCreditDetail = ({
           >
             Cancel
           </AppButton>
-
         </FormFooter>
 
         <ConfirmDialog
@@ -382,11 +452,9 @@ const EditCreditDetail = ({
           }}
           onCancel={() => setConfirmOpen(false)}
         />
-
       </div>
     </div>
   );
-
 };
 
 export default EditCreditDetail;

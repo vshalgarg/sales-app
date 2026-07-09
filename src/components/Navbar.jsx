@@ -58,15 +58,15 @@ export default function Navbar({
   return (
     <>
       <nav
-        className={`${GRID_NAVBAR_CLASS} transition-colors relative z-30 ${className}`}
+        className={`${GRID_NAVBAR_CLASS} transition-colors relative z-30 shrink-0 ${className}`}
       >
-        <div className="flex items-center min-w-0 gap-3">
+        <div className="flex items-center min-w-0 gap-3 flex-1">
           {showMenuButton && (
             <button
               type="button"
               onClick={onMenuClick}
               aria-label="Toggle menu"
-              className={NAV_ICON_BUTTON_CLASS}
+              className={`${NAV_ICON_BUTTON_CLASS} shrink-0`}
             >
               <Menu className={NAV_MENU_ICON_CLASS} />
             </button>

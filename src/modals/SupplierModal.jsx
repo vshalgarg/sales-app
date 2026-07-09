@@ -668,6 +668,7 @@ const SupplierModal = ({
             onClose={() => setCopyModalOpen(false)}
             title="Copy Supplier Details"
             formattedText={getSupplierFormattedText(recordData)}
+            splitBankCopy
           />
         )}
 

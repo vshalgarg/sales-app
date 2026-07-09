@@ -61,7 +61,7 @@ const BillDetail = ({ billNumber, setIsModalOpen }) => {
   const sectionIds = useMemo(() => sections.map((section) => section.id), [sections]);
 
   const { activeSection, scrollToSection, scrollContainerRef, setSectionRef } =
-    useModalSectionNav(sectionIds);
+    useModalSectionNav(sectionIds, { enabled: !!selectedBillDetail });
 
   const itemColumns = {
     desktop: [

@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export function useModalSectionNav(sectionIds) {
+export function useModalSectionNav(sectionIds, { enabled = true } = {}) {
   const [activeSection, setActiveSection] = useState(sectionIds[0] ?? "");
-  const scrollContainerRef = useRef(null);
   const sectionRefs = useRef({});
+  const scrollContainerNodeRef = useRef(null);
+  const [scrollContainer, setScrollContainer] = useState(null);
+
+  const scrollContainerRef = useCallback((node) => {
+    scrollContainerNodeRef.current = node;
+    setScrollContainer(node);
+  }, []);
 
   const setSectionRef = useCallback(
     (id) => (node) => {
@@ -13,7 +19,7 @@ export function useModalSectionNav(sectionIds) {
   );
 
   const scrollToSection = useCallback((id) => {
-    const container = scrollContainerRef.current;
+    const container = scrollContainerNodeRef.current;
     const section = sectionRefs.current[id];
     if (!container || !section) return;
 
@@ -31,11 +37,10 @@ export function useModalSectionNav(sectionIds) {
   }, [sectionIds]);
 
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !sectionIds.length) return;
+    if (!enabled || !scrollContainer || !sectionIds.length) return;
 
     const updateActiveSection = () => {
-      const { scrollTop, clientHeight, scrollHeight } = container;
+      const { scrollTop, clientHeight, scrollHeight } = scrollContainer;
       const atBottom = scrollHeight - scrollTop - clientHeight < 8;
 
       if (atBottom) {
@@ -43,7 +48,7 @@ export function useModalSectionNav(sectionIds) {
         return;
       }
 
-      const containerTop = container.getBoundingClientRect().top;
+      const containerTop = scrollContainer.getBoundingClientRect().top;
       const anchor = containerTop + 48;
       let currentId = sectionIds[0];
 
@@ -61,14 +66,28 @@ export function useModalSectionNav(sectionIds) {
     };
 
     updateActiveSection();
-    container.addEventListener("scroll", updateActiveSection, { passive: true });
+
+    scrollContainer.addEventListener("scroll", updateActiveSection, {
+      passive: true,
+    });
     window.addEventListener("resize", updateActiveSection);
 
+    const resizeObserver = new ResizeObserver(() => {
+      updateActiveSection();
+    });
+    resizeObserver.observe(scrollContainer);
+
+    sectionIds.forEach((id) => {
+      const section = sectionRefs.current[id];
+      if (section) resizeObserver.observe(section);
+    });
+
     return () => {
-      container.removeEventListener("scroll", updateActiveSection);
+      scrollContainer.removeEventListener("scroll", updateActiveSection);
       window.removeEventListener("resize", updateActiveSection);
+      resizeObserver.disconnect();
     };
-  }, [sectionIds]);
+  }, [sectionIds, enabled, scrollContainer]);
 
   return {
     activeSection,

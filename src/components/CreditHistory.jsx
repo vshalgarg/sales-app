@@ -19,6 +19,15 @@ const CreditHistory = ({
 }) => {
 
   const { isMobile } = useResponsive();
+  const tableHeaderRowSx = {
+    backgroundColor: "#f3f0ff",
+  };
+  const tableHeaderCellSx = {
+    color: "#203A8F",
+    fontWeight: 600,
+    backgroundColor: "inherit",
+    whiteSpace: "nowrap",
+  };
 
   const columns = {
     desktop: [
@@ -107,6 +116,9 @@ const CreditHistory = ({
       onEdit={onEdit}
       onDelete={onDelete}
       emptyMessage={emptyMessage}
+      headerRowSx={tableHeaderRowSx}
+      headerCellSx={tableHeaderCellSx}
+      actionsHeaderSx={tableHeaderCellSx}
     />
   );
 };
