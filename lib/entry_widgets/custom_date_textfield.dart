@@ -23,7 +23,7 @@ class EntryDateTextField extends StatelessWidget {
       context: context,
       initialDate: DateTime.now(),
       firstDate: firstDate ?? DateTime(2000),
-      lastDate: lastDate ?? DateTime(2100),
+      lastDate: lastDate ?? DateTime.now()
     );
 
     if (pickedDate != null) {

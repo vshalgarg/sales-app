@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 import '../../dialog_boxes/master_dialogBoxes/add_new_user.dart';
-import '../../dialog_boxes/master_dialogBoxes/delete_custom_dialog.dart';
 import '../../dialog_boxes/master_dialogBoxes/update_user_password.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/get_user_provider.dart';
@@ -170,11 +169,6 @@ class _UsersScreenState extends State<UsersScreen> {
                                   final provider = context.read<UserProvider>();
 
                                   if (provider.errorMessage == null) {
-                                    await context
-                                        .read<GetUsersProvider>()
-                                        .getUsers();
-
-                                    if (context.mounted) {
                                       Navigator.pop(context);
 
                                       ScaffoldMessenger.of(context).showSnackBar(
@@ -187,7 +181,9 @@ class _UsersScreenState extends State<UsersScreen> {
                                           ),
                                         ),
                                       );
-                                    }
+                                      await context
+                                          .read<UserProvider>()
+                                          .searchUsersByKeyword(userSearchController.text);
                                   }
                                 },
                               );
@@ -271,33 +267,28 @@ class _UsersScreenState extends State<UsersScreen> {
                               bodyText:
                                   "Are you sure you want to permanently delete ${user.username}? This action cannot be undo.",
                               onSave: () async {
-                                await context.read<UserProvider>().deleteUser(
+                                 await context.read<UserProvider>().deleteUser(
                                   user.id!.toInt(),
                                 );
-                                if (!context.mounted) return;
 
                                 final provider = context.read<UserProvider>();
-
                                 if (provider.errorMessage == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                       SnackBar(
+                                         content: Text(
+                                           provider
+                                                   .deleteUserResponse
+                                                   ?.message ??
+                                               "User deleted successfully",
+                                         ),
+                                       ),
+                                     );
+                                  Navigator.pop(context);
                                   await context
                                       .read<GetUsersProvider>()
                                       .getUsers();
+                                   }
 
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          provider
-                                                  .deleteUserResponse
-                                                  ?.message ??
-                                              "User deleted successfully",
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                }
                               },
                             );
                           },

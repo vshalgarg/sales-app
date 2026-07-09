@@ -68,7 +68,6 @@ class UserProvider extends ChangeNotifier {
       final data = await _userServices.getSearchUser(keyword);
 
       _searchUsers = List<Map<String, dynamic>>.from(data);
-      print("SEARCH USERS => $_searchUsers");
 
     } catch (e) {
       _errorMessage = e.toString();
