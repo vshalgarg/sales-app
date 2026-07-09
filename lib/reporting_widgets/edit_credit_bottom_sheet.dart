@@ -135,8 +135,6 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
     return SafeArea(
       child: Material(
         color: const Color(0xFF9CA4DA),

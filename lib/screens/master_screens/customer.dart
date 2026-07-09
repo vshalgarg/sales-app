@@ -11,6 +11,7 @@ import '../../dialog_boxes/master_dialogBoxes/custom_copy_details_dialog.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/delete_customer_provider.dart';
+import '../../provider/get_customer_byid_provider.dart';
 import '../../provider/get_customers_provider.dart';
 import '../../provider/search_customer_provider.dart';
 import '../home_screen.dart';
@@ -183,6 +184,16 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               );
                             }
                             final customer = customers[index];
+
+                            final contacts = !isSearching
+                                ? customer['contacts'] as List?
+                                : null;
+
+                            final mobile = !isSearching &&
+                                contacts != null &&
+                                contacts.isNotEmpty
+                                ? contacts.first['mobileNumber']
+                                : null;
                             return MasterContainer(
                                 elevation: 1,
                                 name: displayValue(
@@ -190,10 +201,11 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                       ? customer.customerName
                                       : customer['customerName'],
                                 ),
+
                                 mobile: displayValue(
                                   isSearching
-                                      ? customer.customerGstNo
-                                      : customer['mobileNumber'],
+                                      ? customer.mobileNumber
+                                      : mobile,
                                 ),
                                 code: displayValue(
                                   isSearching
@@ -248,7 +260,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
                                       context
                                           .read<CustomersProvider>()
-                                          .fetchCustomers();
+                                          .fetchCustomers(refresh: true);
                                       ScaffoldSnackBar.show(
                                         context,
                                         "Customer Deleted successfully",
@@ -263,15 +275,30 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                 );
                               },
 
-                              copyIconTap: () {
+                              copyIconTap: () async {
+                                final id = isSearching ? customer.id : customer['id'];
+
+                                final provider = context.read<GetCustomerByIdProvider>();
+
+                                await provider.getCustomerById(id);
+
+                                if (!context.mounted) return;
+
+                                final data = provider.customer?.data;
+
                                 showDialog(
                                   context: context,
                                   builder: (context) {
                                     return CustomCopyDialog(
                                       headingText: "Customer Details",
-                                      firmName: isSearching
-                                          ? customer.customerName
-                                          : customer['customerName'] ?? "",
+                                      firmName: data?.customerName ?? "",
+                                      address:
+                                      "${data?.addressLine1 ?? ""} ${data?.addressLine2 ?? ""}".trim(),
+                                      contact: (data?.contacts != null && data!.contacts!.isNotEmpty)
+                                          ? data.contacts!.first.mobileNumber ?? ""
+                                          : "",
+                                      emails: data?.email ?? "",
+                                      gstNo: data?.gstNo ?? "",
                                     );
                                   },
                                 );

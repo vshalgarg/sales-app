@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../constants/colors_used.dart';
 import '../constants/custom_icons.dart';
 
 class RetailCard extends StatelessWidget {
@@ -44,15 +45,13 @@ class RetailCard extends StatelessWidget {
                           ? Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 5,
-                            ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF9800),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(5),
+                              color: AppColors.orangeColor,
                             ),
-                            child: Text(
+                    child: Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Text(
                               field.value,
                               style: const TextStyle(
                                 color: Colors.white,
@@ -61,7 +60,8 @@ class RetailCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                        ],
+                    )
+                     ]
                       )
                           : Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

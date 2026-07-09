@@ -5,9 +5,18 @@ import 'package:hisabio/pop_ups/scafold_type.dart';
 
 class CustomCopyDialog extends StatelessWidget {
   final String? firmName;
+  final String? address;
+  final String? contact;
+  final String? emails;
+  final String? gstNo;
   final String? headingText;
 
-  const CustomCopyDialog({super.key, this.firmName, this.headingText});
+  const CustomCopyDialog({super.key, this.firmName,
+    this.contact,
+    this.address,
+    this.emails,
+    this.gstNo,
+    this.headingText});
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +100,183 @@ class CustomCopyDialog extends StatelessWidget {
                             ),
                           ],
                         ),
+                        Divider(thickness: 0.3),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: AppColors.containerFillColor,
+                              ),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: Icon(
+                                    Icons.location_on_sharp,
+                                    color: AppColors.primaryPurple,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 15),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Address:",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    "$address",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(thickness: 0.3),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: AppColors.containerFillColor,
+                              ),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: Icon(
+                                    Icons.phone,
+                                    color: AppColors.primaryPurple,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 15),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Contacts:",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    "$contact",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(thickness: 0.3),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: AppColors.containerFillColor,
+                              ),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: Icon(
+                                    Icons.mail_lock_outlined,
+                                    color: AppColors.primaryPurple,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 15),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Email:",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    "$emails",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(thickness: 0.3),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: AppColors.containerFillColor,
+                              ),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: Icon(
+                                    Icons.percent_outlined,
+                                    color: AppColors.primaryPurple,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 15),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "GST:",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    "$gstNo",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
                         Row(
                           children: [
                             Expanded(
@@ -119,8 +305,12 @@ class CustomCopyDialog extends StatelessWidget {
                                 ),
                                 onPressed: () {
                                   final text =
-                                      '''
+                                  '''
 *Firm Name* : ${firmName ?? ""}
+*Address*   : ${address ?? ""}
+*Contacts*  : ${contact ?? ""}
+*Email*     : ${emails ?? ""}
+*GST*       : ${gstNo ?? ""}
 ''';
 
                                   Clipboard.setData(ClipboardData(text: text));
@@ -138,14 +328,11 @@ class CustomCopyDialog extends StatelessWidget {
                             ),
                           ],
                         ),
-
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
           ),
+
           Positioned(
             top: 0,
             child: Container(

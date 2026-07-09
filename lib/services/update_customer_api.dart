@@ -14,6 +14,8 @@ class UpdateCustomerApi {
         "http://192.168.1.100:8087/csm/api/v1/customers/update/id/$id",
       );
       final token = await AppStorage.getToken();
+      print("UPDATE URL: $url");
+      print("UPDATE BODY: ${jsonEncode(body)}");
       final response = await http.put(
         url,
         headers: {
@@ -22,6 +24,8 @@ class UpdateCustomerApi {
         },
         body: jsonEncode(body),
       );
+      print("STATUS CODE: ${response.statusCode}");
+      print("RESPONSE: ${response.body}");
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {

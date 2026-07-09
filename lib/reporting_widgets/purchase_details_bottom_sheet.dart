@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../constants/colors_used.dart';
+
 class PurchaseDetailsBottomSheet extends StatefulWidget {
   final Map<String, dynamic> purchaseData;
 
@@ -13,7 +15,7 @@ class PurchaseDetailsBottomSheet extends StatefulWidget {
 class _PurchaseDetailsBottomSheetState
     extends State<PurchaseDetailsBottomSheet> {
   bool basicInfoExpanded = true;
-  bool attachmentExpanded = true;
+  bool attachmentExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +178,7 @@ class _PurchaseDetailsBottomSheetState
               vertical: 14,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFF4057A6),
+              color:AppColors.primaryPurple,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

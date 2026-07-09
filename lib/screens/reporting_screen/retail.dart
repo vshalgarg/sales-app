@@ -3,7 +3,6 @@ import 'package:hisabio/reporting_widgets/retail_details_bottom_sheet.dart';
 import 'package:hisabio/screens/add_supplier.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 import '../../pop_ups/general_closing_popup.dart';
@@ -419,12 +418,20 @@ class _RetailState extends State<Retail> {
                               );
                             },
                             onAdd: () async {
-                              await context.read<EntriesProvider>().fetchSuppliers();
 
-                              showDialog(
+                              final result = await showDialog<bool>(
                                 context: context,
-                                builder: (_) => const AddSupplier(),
+                                builder: (_) => AddSupplier(
+                                  retailId: retail.retailId,
+                                ),
                               );
+
+                              if (result == true && mounted) {
+                                await context.read<RetailProvider>().fetchRetails(
+                                  page: 0,
+                                  size: _size,
+                                );
+                              }
                             },
                             onEdit: () async {
                               await showModalBottomSheet(

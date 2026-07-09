@@ -83,7 +83,7 @@ class TransportContainer extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                            "Phone: ",
+                            " Phone :   ",
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -104,7 +104,7 @@ class TransportContainer extends StatelessWidget {
                         child: Row(
                           children: [
                             const Text(
-                              "GST:",
+                              " GST :  ",
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
                               maxLines: 3,
@@ -132,7 +132,7 @@ class TransportContainer extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            "City:",
+                            " City :  ",
                             style: TextStyle(fontSize: 13,
                                 fontWeight:FontWeight.w600 ,
                                 color: Colors.black),

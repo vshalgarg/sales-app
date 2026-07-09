@@ -28,8 +28,6 @@ Future<List<BillEntry>> searchBills({
     "http://192.168.1.100:8087/csm/api/v1/bill/entries/search",
   ).replace(queryParameters: queryParams);
   final token = await AppStorage.getToken();
-  print("URL : $url");
-  print("TOKEN : $token");
   final response = await http.get(
     url,
     headers: {

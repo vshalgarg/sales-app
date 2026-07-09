@@ -16,11 +16,11 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
   double taxableValue = 0;
   double billAmount = 0;
   bool showBillInfo = true;
-  bool showSupplierInfo = true;
-  bool showCustomerInfo = true;
-  bool showBillItems = true;
-  bool showTransportInfo = true;
-  bool showAttachments = true;
+  bool showSupplierInfo = false;
+  bool showCustomerInfo = false;
+  bool showBillItems = false;
+  bool showTransportInfo = false;
+  bool showAttachments = false;
   List<Map<String, dynamic>> items = [];
   @override
   void initState() {
@@ -43,8 +43,6 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
 
     _calculateTotals();
 
-    print("Taxable = $taxableValue");
-    print("Bill = $billAmount");
   }
   void _calculateTotals() {
     double taxable = 0;

@@ -40,7 +40,7 @@ class CustomersProvider extends ChangeNotifier {
         page: _page,
         size: _size,
       );
-
+      print("GET CUSTOMERS RESPONSE: $response");
       final List<dynamic> newCustomers =
           response["content"] ?? [];
 

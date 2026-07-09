@@ -159,23 +159,23 @@ class _TransportScreenState extends State<TransportScreen> {
                       return TransportContainer(
                         name: (transport.name?.trim().isNotEmpty ?? false)
                             ? transport.name!
-                            : "-",
+                            : "      -     ",
 
                         status: (transport.status?.trim().isNotEmpty ?? false)
                             ? transport.status!
-                            : "-",
+                            : "      -      ",
 
                         gst: (transport.gstNo?.trim().isNotEmpty ?? false)
                             ? transport.gstNo!
-                            : "-",
+                            : "    -     ",
 
                         city: (transport.city?.trim().isNotEmpty ?? false)
                             ? transport.city!
-                            : "-",
+                            : "     -      ",
 
                         phone: (firstContact?.contactNumber?.trim().isNotEmpty ?? false)
                             ? firstContact!.contactNumber!
-                            : "-",
+                            : "      -        ",
                         editIconTap: () {
                           Navigator.push(
                             context,

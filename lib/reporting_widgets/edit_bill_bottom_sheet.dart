@@ -21,11 +21,12 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
   double taxableValue = 0;
   double billAmount = 0;
   bool showBillInfo = true;
-  bool showSupplierInfo = true;
-  bool showCustomerInfo = true;
-  bool showBillItems = true;
-  bool showAttachments = true;
-  bool showTransportInfo = true;
+  bool showSupplierInfo = false;
+  bool showCustomerInfo = false;
+  bool showBillItems = false;
+  bool showAttachments = false;
+  bool showTransportInfo = false;
+  final GlobalKey _newItemKey = GlobalKey();
   late TextEditingController invoiceController;
   late TextEditingController lrController;
   late TextEditingController remarksController;
@@ -848,7 +849,7 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                     width: double.infinity,
                     height: 55,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4057A6),
+                      color: AppColors.primaryPurple,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextButton.icon(
@@ -864,8 +865,21 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                             "gstPercent": "",
                             "gstAmount": "",
                           });
-                          _calculateTotals();
 
+                          _calculateTotals();
+                        });
+
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final ctx = _newItemKey.currentContext;
+
+                          if (ctx != null) {
+                            Scrollable.ensureVisible(
+                              ctx,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              alignment: 0.1, // Item appears at the top
+                            );
+                          }
                         });
                       },
                       icon: const Icon(Icons.add, color: Colors.white),
@@ -895,6 +909,12 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (index == items.length - 1)
+                            Container(
+                              key: _newItemKey,
+                              height: 1,
+                            ),
+
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(
@@ -902,7 +922,7 @@ class _EditBillBottomSheetState extends State<EditBillBottomSheet> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4057A6),
+                              color: AppColors.primaryPurple,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(

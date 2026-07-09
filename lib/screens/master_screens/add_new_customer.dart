@@ -484,10 +484,19 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                     body: body,
                     id: widget.id!.toInt(),
                   );
+                  await context
+                      .read<GetCustomerByIdProvider>()
+                      .getCustomerById(widget.id!.toInt());
+
+                  final customer =
+                      context.read<GetCustomerByIdProvider>().customer?.data;
+
+                  print("Customer Name: ${customer?.customerName}");
+                  print("Mobile Number: ${customer?.contacts?.first.mobileNumber}");
                   if (!context.mounted) return;
 
                   if (updateProvider.errorMessage == null) {
-                    await context.read<CustomersProvider>().fetchCustomers();
+                    await context.read<CustomersProvider>().fetchCustomers(refresh: true);
                     if (!context.mounted) return;
 
                     ScaffoldSnackBar.show(

@@ -227,7 +227,7 @@ class _SupplierState extends State<Supplier> {
                                   );
                                   await context
                                       .read<SupplierProvider>()
-                                      .fetchSuppliers();
+                                      .refreshSuppliers();
                                 },
                               );
                             },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/colors_used.dart';
 import '../model_classes/search_credit.dart';
 
 class CreditDetailsBottomSheet extends StatefulWidget {
@@ -17,9 +18,9 @@ class CreditDetailsBottomSheet extends StatefulWidget {
 class _CreditDetailsBottomSheetState
     extends State<CreditDetailsBottomSheet> {
   bool showTransaction = true;
-  bool showParty = true;
-  bool showReference = true;
-  bool showMisc = true;
+  bool showParty = false;
+  bool showReference = false;
+  bool showMisc = false;
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +226,7 @@ class _CreditDetailsBottomSheetState
               vertical: 14,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFF4057A6),
+              color: AppColors.primaryPurple,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

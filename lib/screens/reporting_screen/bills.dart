@@ -139,9 +139,6 @@ class _BillsState extends State<Bills> {
   }
 
   void _showFilterBottomSheet() {
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
-    final height = size.height;
     final provider = Provider.of<EntriesProvider>(context, listen: false);
 
     showModalBottomSheet(

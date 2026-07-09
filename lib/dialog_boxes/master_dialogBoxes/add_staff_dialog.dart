@@ -32,7 +32,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      lastDate: DateTime.now(),
     );
 
     if (pickedDate != null) {
@@ -299,7 +299,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                   
                                         Navigator.pop(context);
                   
-                                        await getStaffProvider.getStaff();
+                                        await getStaffProvider.getStaff(refresh: true);
                                       },
                   
                                 style: ElevatedButton.styleFrom(
@@ -376,7 +376,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                   
                                         Navigator.pop(context);
                   
-                                        await getStaffProvider.getStaff();
+                                        await getStaffProvider.getStaff(refresh: true);
                                       },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryPurple,

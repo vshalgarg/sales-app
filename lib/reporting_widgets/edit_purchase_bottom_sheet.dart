@@ -254,8 +254,6 @@ class _EditPurchaseBottomSheetState extends State<EditPurchaseBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.95,

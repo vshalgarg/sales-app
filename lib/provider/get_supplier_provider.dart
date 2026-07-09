@@ -48,7 +48,6 @@ class SupplierProvider extends ChangeNotifier {
 
       suppliers.addAll(newSuppliers);
 
-      print("Total Suppliers: ${suppliers.length}");
       hasMore = !(response.last ?? true);
 
       if (hasMore) {
