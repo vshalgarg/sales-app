@@ -107,7 +107,7 @@ class ExitConfirmationDialog {
                       const SizedBox(width: 12),
 
                       SizedBox(
-                        width: 130, // Change as needed
+                        width: 130,
                         child: ElevatedButton(
                           onPressed: onDiscard,
                           style: ElevatedButton.styleFrom(

@@ -253,12 +253,18 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    print("AddNewCustomer build");
     final getCustomerProvider = context.watch<GetCustomerByIdProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
-        actions: [
+        leading:widget.mode == FormMode.view? IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context
+            );
+          },
+        ):null,
+        actions: widget.mode != FormMode.view?[
           Consumer2<AddCustomerProvider, UpdateCustomerProvider>(
             builder: (context, provider, updateProvider, child) {
               return IconButton(
@@ -316,7 +322,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               );
             },
           ),
-        ],
+        ]:[],
         title: widget.mode == FormMode.view
             ? "Customer Details"
             : widget.mode == FormMode.edit

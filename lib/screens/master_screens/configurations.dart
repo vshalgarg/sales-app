@@ -76,13 +76,11 @@ bool isChecked=false;
                       ),
                     ),
                     Checkbox(
-                      value: isChecked,
+                      value: provider.retailEnabled,
                       onChanged: (value) {
-                        setState(() {
-                          isChecked = value!;
-                        });
+                        context.read<ConfigProvider>().setRetailEnabled(value!);
                       },
-                    ),
+                    )
                   ],
                 ),
               ),

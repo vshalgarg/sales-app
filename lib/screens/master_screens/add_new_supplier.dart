@@ -333,7 +333,14 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
-        actions: [
+        leading:widget.mode == FormMode.view? IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context
+            );
+          },
+        ):null,
+        actions:widget.mode != FormMode.view ?[
           Consumer<AddSupplierProvider>(
             builder: (context, provider, child) {
               return IconButton(
@@ -395,8 +402,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 },
               );
             },
-          ),
-        ],
+          ),]:[],
+
         title: widget.mode == FormMode.add
             ? "Add New Supplier"
             : widget.mode == FormMode.edit

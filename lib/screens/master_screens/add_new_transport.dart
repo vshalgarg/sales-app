@@ -188,6 +188,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
+
         actions: [
           IconButton(
             icon: const Icon(Icons.close),

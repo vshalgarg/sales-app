@@ -6,7 +6,9 @@ import 'package:hisabio/screens/reporting_screen/credit.dart';
 import 'package:hisabio/screens/reporting_screen/ledger.dart';
 import 'package:hisabio/screens/reporting_screen/purchase.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
+import 'package:provider/provider.dart';
 import '../constants/colors_used.dart';
+import '../provider/config_provider.dart';
 import '../shared_preferences/login_token.dart';
 import 'master_screens/configurations.dart';
 import 'master_screens/customer.dart';
@@ -28,7 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadEmail();
-   // _loadConfiguration();
+    Future.microtask(() {
+      context.read<ConfigProvider>().fetchConfiguration();
+    });
   }
   Future<void> _loadEmail() async {
     final value = await AppStorage.getEmail();
@@ -41,15 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
-  //Future<void> _loadConfiguration() async {
-   // final status = await getRetailFeatureStatus();
-
-    //setState(() {
-      //showRetailFeature = status;
-    //});
-  //}
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ConfigProvider>();
     return Scaffold(
       appBar: NewCustomAppBar(),
       body: SingleChildScrollView(
@@ -183,7 +181,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
 
-                      //if (showRetailFeature)
+
+                      if(provider.retailEnabled)
                       menuItemCard(
                         imagePath: "assets/images/retailors.png",
                         title: "Retailors",

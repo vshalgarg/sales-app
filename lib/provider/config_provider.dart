@@ -6,6 +6,11 @@ class ConfigProvider extends ChangeNotifier {
 
   bool retailEnabled = false;
 
+  void setRetailEnabled(bool value){
+    retailEnabled = value;
+    notifyListeners();
+  }
+
   Future<void> fetchConfiguration() async {
     final response = await ConfigurationService().getConfiguration();
 
@@ -16,8 +21,8 @@ class ConfigProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-  Future<void> saveConfiguration(bool value) async {
 
+  Future<void> saveConfiguration(bool value) async {
     await ConfigurationService().updateConfiguration(value);
 
     await fetchConfiguration();

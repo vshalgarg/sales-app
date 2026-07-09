@@ -18,7 +18,7 @@ class _AddNewUserState extends State<AddNewUser> {
   final passwordController = TextEditingController();
   final userController = TextEditingController();
   bool isPasswordVisible = false;
-  String? selectedCity;
+  String? selectedRole;
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +131,7 @@ class _AddNewUserState extends State<AddNewUser> {
                               ),
                               SizedBox(height: 10),
                               DropdownButtonFormField<String>(
-                                initialValue: selectedCity,
+                                initialValue: selectedRole,
                                 decoration: InputDecoration(
                                   filled: true,
                                   fillColor: Colors.white,
@@ -168,7 +168,7 @@ class _AddNewUserState extends State<AddNewUser> {
                                     .toList(),
                                 onChanged: (value) {
                                   setState(() {
-                                    selectedCity = value;
+                                    selectedRole = value;
                                   });
                                 },
                               ),
@@ -196,7 +196,7 @@ class _AddNewUserState extends State<AddNewUser> {
                                             final body = {
                                               "username": userController.text,
                                               "password": passwordController.text,
-                                              "roles": [selectedCity],
+                                              "roles": [selectedRole],
                                             };
                 
                                             await provider.addNewUser(body);
