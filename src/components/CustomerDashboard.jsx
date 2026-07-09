@@ -121,7 +121,7 @@ export default function CustomerDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage, showSnackbar],
+    [rowsPerPage],
   );
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
