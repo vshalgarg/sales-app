@@ -75,7 +75,7 @@ export default function TransportDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage, showSnackbar],
+    [rowsPerPage],
   );
 
   const handleCopy = (transport) => {

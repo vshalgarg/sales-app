@@ -117,7 +117,7 @@ export default function SupplierDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage, showSnackbar],
+    [rowsPerPage],
   );
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
