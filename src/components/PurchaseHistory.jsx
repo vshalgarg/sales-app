@@ -26,6 +26,15 @@ const PurchaseHistory = ({
   emptyMessage,
 }) => {
   const { isMobile } = useResponsive();
+  const tableHeaderRowSx = {
+    backgroundColor: "#f3f0ff",
+  };
+  const tableHeaderCellSx = {
+    color: "#203A8F",
+    fontWeight: 600,
+    backgroundColor: "inherit",
+    whiteSpace: "nowrap",
+  };
   const [viewData, setViewData] = useState(null);
   const [copyData, setCopyData] = useState(null);
   const [copyLoadingId, setCopyLoadingId] = useState(null);
@@ -102,7 +111,7 @@ const PurchaseHistory = ({
 
             {/* Right side: copy button */}
             {r.customerId && (
-              <Tooltip title="Copy customer data">
+              <Tooltip title="Copy supplier data">
                 <span>
                   <IconButton
                     size="small"
@@ -169,6 +178,9 @@ const PurchaseHistory = ({
         onDelete={onDelete}
         onView={handleView}
         emptyMessage={emptyMessage}
+        headerRowSx={tableHeaderRowSx}
+        headerCellSx={tableHeaderCellSx}
+        actionsHeaderSx={tableHeaderCellSx}
       />
 
       {/* View Modal */}
@@ -185,6 +197,7 @@ const PurchaseHistory = ({
           open={!!copyData}
           title="Supplier Details"
           formattedText={copyData}
+          showSelection={false}
           onClose={() => setCopyData(null)}
         />
       )}

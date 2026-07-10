@@ -40,8 +40,8 @@ const AppLayout = () => {
     if (
       location.pathname.startsWith("/bills") ||
       location.pathname.startsWith("/credits") ||
-      location.pathname.startsWith("/purchase")||
-      location.pathname.startsWith("/retail")||
+      location.pathname.startsWith("/purchase") ||
+      location.pathname.startsWith("/retail") ||
       location.pathname.startsWith("/ledger")
     ) {
       return "reporting";
@@ -55,8 +55,8 @@ const AppLayout = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const { isDirty, setIsDirty } = useUnsaved();
   const entryPaths = ["/bill-entry", "/credit-entry", "/purchase-entry"];
-  const isEntryPage = entryPaths.some(path =>
-    location.pathname.startsWith(path)
+  const isEntryPage = entryPaths.some((path) =>
+    location.pathname.startsWith(path),
   );
 
   const showDesktopSidebar = !isGraphPage && !isMobile && isSidebarOpen;
@@ -116,6 +116,9 @@ const AppLayout = () => {
         break;
       default:
         break;
+    }
+    if (section !== "graph" && section !== activeSection) {
+      setIsSidebarOpen(true);
     }
   };
 
