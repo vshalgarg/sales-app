@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/provider/login_provider.dart';
-import 'package:hisabio/screens/master_screens/supplier.dart';
 import 'package:provider/provider.dart';
 import '../customs/elevated_button.dart';
 import 'home_screen.dart';

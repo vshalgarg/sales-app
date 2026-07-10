@@ -50,8 +50,6 @@ class _AddressDetailsState extends State<AddressDetails> {
 
   @override
   Widget build(BuildContext context) {
-    print("selectedState = $selectedState");
-    print("controllerState = ${widget.state.text}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
