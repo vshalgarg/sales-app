@@ -10,6 +10,12 @@ import { downloadLedger, getLedger } from "../service/LedgerService";
 import dayjs from "dayjs";
 import DataTable from "./DataTable";
 import { formatIndianCurrency } from "../utils/currencyUtils";
+import { BookOpen, User } from "lucide-react";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import {
+  SECTION_ICON_CLASS,
+  SECTION_ICON_WRAPPER_CLASS,
+} from "../theme/cardTheme";
 
 const forOptions = [
   {
@@ -63,6 +69,15 @@ function Ledger() {
   const [ledgerData, setLedgerData] = useState({});
   const [filtersApplied, setFiltersApplied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const tableHeaderRowSx = {
+    backgroundColor: "#f3f0ff",
+  };
+  const tableHeaderCellSx = {
+    color: "#203A8F",
+    fontWeight: 600,
+    backgroundColor: "inherit",
+    whiteSpace: "nowrap",
+  };
 
   const handleChange = (key, value) => {
     setFilterObject((prev) => ({
@@ -182,118 +197,143 @@ const handleDownload = async () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full  text-gray-500 shadow-sm my-4 overflow-y-auto">
-      <div className="bg-gray-50 border sticky top-0 z-20 rounded-lg shadow-sm ">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold">Ledger</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Filter and review transaction history
-          </p>
-        </div>
-        <div className="px-6 py-5">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-8 gap-3">
-            {/* Supplier */}
-            <div className="col-span-2 sm:col-span-1 md:col-span-2">
-              <GenericAutocomplete
-                options={allSuppliers}
-                value={filterObject.selectedSupplier}
-                label="Supplier*"
-                placeholder="Select supplier*"
-                onChange={(value) => handleChange("selectedSupplier", value)}
-              />
-            </div>
-
-            {/* Customer */}
-            <div className="col-span-2 sm:col-span-1 md:col-span-2">
-              <GenericAutocomplete
-                options={allCustomers}
-                value={filterObject.selectedCustomer}
-                label="Customer*"
-                placeholder="Select customer*"
-                onChange={(value) => handleChange("selectedCustomer", value)}
-              />
-            </div>
-
-            {/* Genereted For */}
-            <div className="col-span-2 sm:col-span-1 md:col-span-2">
-              <GenericSingleSelect
-                label="Generating For*"
-                value={filterObject.selectedFor}
-                options={forOptions}
-                onChange={(value) => handleChange("selectedFor", value)}
-              />
-            </div>
-            <div className="col-span-2 sm:col-span-1 md:col-span-2 flex gap-2">
-              <Button
-                variant="contained"
-                disabled={isDisabled()}
-                onClick={handleSubmit}
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 gap-3 mt-2">
+        <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900 shrink-0">
+          <div className="px-4 md:px-6 py-3 border-b border-brand-surface-border dark:border-zinc-700/40">
+            <div className="flex items-center gap-3">
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
               >
-                Submit
-              </Button>
+                <BookOpen className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+              </div>
+              <div>
+                <h2 className={PAGE_TITLE_CLASS}>Ledger</h2>
+                <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
+                  Filter and review transaction history
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="px-4 md:px-6 py-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-8 gap-3">
+              {/* Supplier */}
+              <div className="col-span-2 sm:col-span-1 md:col-span-2">
+                <GenericAutocomplete
+                  options={allSuppliers}
+                  value={filterObject.selectedSupplier}
+                  label="Supplier*"
+                  placeholder="Select supplier*"
+                  onChange={(value) => handleChange("selectedSupplier", value)}
+                />
+              </div>
 
-              <Button
-                variant="outlined"
-                disabled={isDisabled()}
-                onClick={handleDownload}
-              >
-                Download
-              </Button>
+              {/* Customer */}
+              <div className="col-span-2 sm:col-span-1 md:col-span-2">
+                <GenericAutocomplete
+                  options={allCustomers}
+                  value={filterObject.selectedCustomer}
+                  label="Customer*"
+                  placeholder="Select customer*"
+                  onChange={(value) => handleChange("selectedCustomer", value)}
+                />
+              </div>
+
+              {/* Genereted For */}
+              <div className="col-span-2 sm:col-span-1 md:col-span-2">
+                <GenericSingleSelect
+                  label="Generating For*"
+                  value={filterObject.selectedFor}
+                  options={forOptions}
+                  onChange={(value) => handleChange("selectedFor", value)}
+                />
+              </div>
+              <div className="col-span-2 sm:col-span-1 md:col-span-2 flex gap-2">
+                <Button
+                  variant="contained"
+                  disabled={isDisabled()}
+                  onClick={handleSubmit}
+                >
+                  Submit
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  disabled={isDisabled()}
+                  onClick={handleDownload}
+                >
+                  Download
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {ledgerData.party && (
-        <div className="mt-4 rounded-lg border bg-gray-50 shadow-sm">
-          <div className="border-b px-5 py-3">
-            <h3 className="font-semibold text-lg">
-              {ledgerData?.ledgerType === "SUPPLIER"
-                ? "Customer"
-                : "Supplier"}{" "}
-              Details
-            </h3>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-5 py-4">
-            <div>
-              <p className="text-sm text-gray-500">Name</p>
-              <p className="font-medium">{ledgerData.party.name}</p>
-            </div>
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pb-2">
+          {ledgerData.party && (
+            <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900">
+              <div className="px-4 md:px-6 py-3 border-b border-brand-surface-border dark:border-zinc-700/40">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
+                  >
+                    <User className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+                  </div>
+                  <h2 className={PAGE_TITLE_CLASS}>
+                    {ledgerData?.ledgerType === "SUPPLIER"
+                      ? "Customer"
+                      : "Supplier"}{" "}
+                    Details
+                  </h2>
+                </div>
+              </div>
 
-            <div>
-              <p className="text-sm text-gray-500">Phone</p>
-              <p className="font-medium">{ledgerData.party.phone || "-"}</p>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 md:px-6 py-4">
+                <div>
+                  <p className="text-sm text-gray-500">Name</p>
+                  <p className="font-medium">{ledgerData.party.name}</p>
+                </div>
 
-            <div>
-              <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium">{ledgerData.party.email || "-"}</p>
-            </div>
+                <div>
+                  <p className="text-sm text-gray-500">Phone</p>
+                  <p className="font-medium">{ledgerData.party.phone || "-"}</p>
+                </div>
 
-            <div>
-              <p className="text-sm text-gray-500">Address</p>
-              <p className="font-medium">{ledgerData.party.address || "-"}</p>
+                <div>
+                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="font-medium">{ledgerData.party.email || "-"}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500">Address</p>
+                  <p className="font-medium">{ledgerData.party.address || "-"}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500">GST No.</p>
+                  <p className="font-medium">{ledgerData.party.gstNo || "-"}</p>
+                </div>
+              </div>
             </div>
-            
-            <div>
-              <p className="text-sm text-gray-500">GST No.</p>
-              <p className="font-medium">{ledgerData.party.gstNo || "-"}</p>
-            </div>
+          )}
+
+          <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 overflow-hidden bg-white dark:bg-zinc-900">
+            <DataTable
+              columns={columns.desktop}
+              actions={false}
+              data={ledgerData.entries || []}
+              loading={loading}
+              autoHeight
+              emptyMessage={
+                filtersApplied
+                  ? "No data found for selected filters"
+                  : "Apply filters to view transaction history"
+              }
+              headerRowSx={tableHeaderRowSx}
+              headerCellSx={tableHeaderCellSx}
+            />
           </div>
         </div>
-      )}
-      <div className="mb-8 mt-4 rounded-lg text-gray-500 shadow-sm">
-        <DataTable
-          columns={columns.desktop}
-          actions={false}
-          data={ledgerData.entries || []}
-          loading={loading}
-          emptyMessage={
-            filtersApplied
-              ? "No data found for selected filters"
-              : "Apply filters to view transaction history"
-          }
-        />
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { IconButton } from "@mui/material";
 import FormFooter from "../components/common/FormFooter";
 import AppButton from "../components/common/AppButton";
+import FormSection from "../components/common/FormSection";
 import ImagePreviewDialog from "../components/common/ImagePreviewDialog";
 import { useMemo } from "react";
 import GenericAutocomplete from "../components/common/GenericAutocomplete";
@@ -23,6 +24,10 @@ import { mapToOption } from "../utils/optionMapper";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import CloseIcon from "@mui/icons-material/Close";
+import useResponsive from "../customHooks/useResponsive";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
+import { FileText, Paperclip } from "lucide-react";
 
 const EditPurchaseDetail = ({
     open,
@@ -32,6 +37,7 @@ const EditPurchaseDetail = ({
 }) => {
 
     const { showSnackbar } = useSnackbar();
+    const { isMobile } = useResponsive();
 
     /* ================= STATES ================= */
     const [allSuppliers, setAllSuppliers] = useState([]);
@@ -251,52 +257,48 @@ const EditPurchaseDetail = ({
 
     };
 
+    const attachmentCount = existingImages.length + newImages.length;
+
     /* ================= UI ================= */
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-0 md:p-4">
             <div
-                className="
-        bg-white flex flex-col
-        w-full h-full sm:h-auto
-        sm:w-[95%] md:w-[90%] lg:w-[960px] xl:w-[1080px]
-        sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl
-        sm:max-h-[96vh]
-        sm:rounded-2xl shadow-2xl overflow-hidden
-      "
+                className={`bg-white dark:bg-gray-900 flex flex-col w-full overflow-hidden shadow-lg ${
+                    isMobile ? "h-full" : "max-w-6xl max-h-[90vh] rounded-xl"
+                }`}
             >
-                {/* Header */}
-                <div className="px-4 sm:px-6 py-4 border-b flex items-center gap-3">
+                <div className="px-4 sm:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700 flex items-center justify-between gap-3 shrink-0 bg-white dark:bg-gray-900">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <IconButton
+                            onClick={handleClose}
+                            className="md:hidden"
+                            size="small"
+                            aria-label="Go back"
+                        >
+                            <ArrowBackIcon />
+                        </IconButton>
 
+                        <h2 className={`${PAGE_TITLE_CLASS} truncate`}>Edit Purchase</h2>
+                    </div>
                     <IconButton
                         onClick={handleClose}
-                        className="md:hidden"
+                        size="small"
+                        aria-label="Close"
+                        className="hidden md:inline-flex border border-brand-surface-border rounded-lg"
                     >
-                        <ArrowBackIcon />
+                        <CloseIcon fontSize="small" />
                     </IconButton>
-
-                    <h2 className="text-lg sm:text-xl font-semibold">
-                        Edit Purchase
-                    </h2>
                 </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
-
-                    {/* Information */}
-                    <div className="border border-gray-200 p-4 sm:p-6 rounded-xl bg-white">
-
-                        <div className="flex items-start mb-5">
-                            <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-800">
-                                    Information
-                                </h3>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                            {/* Customer */}
+                <div
+                    className={`flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}
+                >
+                    <FormSection
+                        title="Basic Information"
+                        icon={FileText}
+                        variantIndex={0}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <GenericAutocomplete
                                 options={customerOptions}
                                 value={customerOptions.find(c => c.id === selectedCustomer?.id) || null}
@@ -304,7 +306,6 @@ const EditPurchaseDetail = ({
                                 onChange={(v) => setSelectedCustomer(v)}
                             />
 
-                            {/* Staff */}
                             <GenericAutocomplete
                                 options={staffOptions}
                                 value={staffOptions.find(s => s.id === selectedStaff?.id) || null}
@@ -312,7 +313,6 @@ const EditPurchaseDetail = ({
                                 onChange={(v) => setSelectedStaff(v)}
                             />
 
-                            {/* Date */}
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
                                     label="Transaction Date"
@@ -336,29 +336,6 @@ const EditPurchaseDetail = ({
                                 />
                             </LocalizationProvider>
 
-                        </div>
-
-                    </div>
-
-                    {/* Supplier section  */}
-                    <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
-
-                        <div className="flex items-start justify-between mb-5">
-
-                            <div className="flex items-start">
-
-                                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full mr-3"></div>
-
-                                <h3 className="text-lg font-semibold text-gray-800">
-                                    Suppliers
-                                </h3>
-
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                            {/* Supplier */}
                             <GenericAutocomplete
                                 options={supplierOptions}
                                 value={supplierOptions.find(s => s.id === selectedSupplier?.id) || null}
@@ -367,33 +344,19 @@ const EditPurchaseDetail = ({
                                 onChange={(v) => setSelectedSupplier(v)}
                             />
 
-                            {/* Remarks */}
                             <CustomTextField
                                 label="Remarks"
                                 value={formData.remarks}
                                 onChange={handleChange("remarks")}
                             />
-
                         </div>
+                    </FormSection>
 
-                    </div>
-
-                    {/* ================= ORDER FORM ATTACHMENTS ================= */}
-
-                    <div className="bg-white border rounded-2xl p-6 shadow-sm">
-
-                        <div className="flex justify-between items-center mb-5">
-
-                            <h3 className="text-lg font-semibold text-gray-800">
-                                Order Form Attachments
-                            </h3>
-
-                            <span className="text-sm text-gray-500">
-                                {existingImages.length + newImages.length}/3
-                            </span>
-
-                        </div>
-
+                    <FormSection
+                        title={`Order Form Attachments (${attachmentCount}/3)`}
+                        icon={Paperclip}
+                        variantIndex={1}
+                    >
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                             {[
@@ -540,8 +503,7 @@ const EditPurchaseDetail = ({
                             )}
 
                         </div>
-
-                    </div>
+                    </FormSection>
 
                     <ImagePreviewDialog
                         open={previewIndex !== null}
@@ -556,8 +518,7 @@ const EditPurchaseDetail = ({
                     />
                 </div>
 
-                {/* Footer */}
-                <FormFooter background="bg-white">
+                <FormFooter background="bg-white dark:bg-gray-900">
 
                     <AppButton
                         type="primary"

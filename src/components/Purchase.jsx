@@ -14,6 +14,12 @@ import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { getAllActiveStaffs } from "../service/StaffService";
+import { FilterX, Funnel, ShoppingCart } from "lucide-react";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import {
+  SECTION_ICON_CLASS,
+  SECTION_ICON_WRAPPER_CLASS,
+} from "../theme/cardTheme";
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
@@ -152,17 +158,27 @@ const Purchase = () => {
 
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 gap-3 mt-2">
       {/* ================= FILTER CARD ================= */}
-      <div className="bg-gray-50 border rounded-t-lg shadow-sm mt-4">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold">Purchases</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Filter and review purchase history
-          </p>
+      <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900 shrink-0">
+        <div className="px-4 md:px-6 py-3 border-b border-brand-surface-border dark:border-zinc-700/40">
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
+            >
+              <ShoppingCart className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+            </div>
+            <div>
+              <h2 className={PAGE_TITLE_CLASS}>Purchases</h2>
+              <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
+                Filter and review purchase history
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="px-6 py-5">
+        <div className="px-4 md:px-6 py-4">
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -272,10 +288,11 @@ const Purchase = () => {
           </div>
         </div>
 
-        <div className="px-6 pb-5 flex justify-end gap-3">
+        <div className="px-4 md:px-6 pb-4 flex justify-end gap-3">
 
           <AppButton
             type="secondary"
+            startIcon={<FilterX className="h-4 w-4" />}
             onClick={clearFiltersAndResults}
           >
             Clear Filters
@@ -283,6 +300,7 @@ const Purchase = () => {
 
           <AppButton
             type="primary"
+            startIcon={<Funnel className="h-4 w-4" />}
             onClick={() => handlePurchaseHistory(1)}
             disabled={!isAnyFilterSelected}
             loading={loading}
@@ -294,27 +312,30 @@ const Purchase = () => {
       </div>
 
       {/* ================= TABLE ================= */}
-      <PurchaseHistory
-        data={purchaseHistoryData}
-        page={currentPage}
-        totalItems={totalItems}
-        filterObject={filterObject}
-        rowsPerPage={rowsPerPage}
-        onPageChange={handlePurchaseHistory}
-        emptyMessage={
-          filtersApplied
-            ? "No data found for selected filters"
-            : "Apply filters to view purchase history"
-        }
-        onEdit={(row) => {
-          setPurchaseToEdit(row.id);
-          setIsEditOpen(true);
-        }}
-        onDelete={(row) => {
-          setPurchaseToDelete(row);
-          setIsDeleteOpen(true);
-        }}
-      />
+      <div className="flex-1 min-h-0 rounded-xl border border-brand-surface-border dark:border-zinc-700/40 overflow-hidden bg-white dark:bg-zinc-900">
+        <PurchaseHistory
+          data={purchaseHistoryData}
+          page={currentPage}
+          totalItems={totalItems}
+          filterObject={filterObject}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handlePurchaseHistory}
+          emptyMessage={
+            filtersApplied
+              ? "No data found for selected filters"
+              : "Apply filters to view purchase history"
+          }
+          onEdit={(row) => {
+            setPurchaseToEdit(row.id);
+            setIsEditOpen(true);
+          }}
+          onDelete={(row) => {
+            setPurchaseToDelete(row);
+            setIsDeleteOpen(true);
+          }}
+        />
+      </div>
+      </div>
 
       {isEditOpen && purchaseToEdit && (
         <EditPurchaseDetail
