@@ -56,6 +56,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if ((firmName ?? "").trim().isNotEmpty) ...[
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
@@ -98,7 +99,8 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                      )],
+                    if ((address ?? "").trim().isNotEmpty) ...[
                       Divider(thickness: 0.3),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +143,8 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                      )],
+                    if ((contact ?? "").trim().isNotEmpty) ...[
                       Divider(thickness: 0.3),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -184,9 +187,10 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                      )],
+                      if ((emails ?? "").trim().isNotEmpty) ...[
                       Divider(thickness: 0.3),
-                      Row(
+                        Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Container(
@@ -227,9 +231,10 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                      )],
+                      if ((gstNo ?? "").trim().isNotEmpty) ...[
                       Divider(thickness: 0.3),
-                      Row(
+                        Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Container(
@@ -270,7 +275,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                      )],
                     ],
                   ),
                 ),
@@ -304,16 +309,28 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          final text =
-                              '''
-*Firm Name* : ${firmName ?? ""}
-*Address*   : ${address ?? ""}
-*Contacts*  : ${contact ?? ""}
-*Email*     : ${emails ?? ""}
-*GST*       : ${gstNo ?? ""}
-''';
+                          final buffer = StringBuffer();
 
-                          Clipboard.setData(ClipboardData(text: text));
+                          if ((firmName ?? "").trim().isNotEmpty) {
+                            buffer.writeln("*Firm Name*: $firmName");
+                          }
+
+                          if ((address ?? "").trim().isNotEmpty) {
+                            buffer.writeln("*Address*: $address");
+                          }
+
+                          if ((contact ?? "").trim().isNotEmpty) {
+                            buffer.writeln("*Contacts*: $contact");
+                          }
+
+                          if ((emails ?? "").trim().isNotEmpty) {
+                            buffer.writeln("*Email*: $emails");
+                          }
+
+                          if ((gstNo ?? "").trim().isNotEmpty) {
+                            buffer.writeln("*GST*: $gstNo");
+                          }
+                          Clipboard.setData(ClipboardData(text: buffer.toString()));
                           Navigator.pop(context);
                           ScaffoldSnackBar.show(context, "Copied successfully");
                         },

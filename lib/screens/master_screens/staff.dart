@@ -194,7 +194,6 @@ class _StaffScreenState extends State<StaffScreen> {
                             context,
                             saveButtonText: "Yes",
                             discardButtonText: "No",
-                            onClose: () => Navigator.pop(context),
                             onDiscard: () => Navigator.pop(context),
                             bodyText:
                                 "Are you sure you want to permanently delete ${staff.staffName ?? ""}? This action cannot be undo.",

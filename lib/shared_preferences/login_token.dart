@@ -5,18 +5,16 @@ class AppStorage {
   static const _emailKey = "email";
   static const String _isLoggedInKey = 'isLoggedIn';
 
-  // SET TOKEN
+
   static Future<void> setToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
-  // GET TOKEN
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
   }
-  // EMAIL
   static Future<void> setEmail(String email) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_emailKey, email);
@@ -41,7 +39,6 @@ class AppStorage {
     await prefs.remove(_tokenKey);
     await prefs.setBool(_isLoggedInKey, false);
   }
-  // Optional: Clear all on logout
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

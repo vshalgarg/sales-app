@@ -417,11 +417,6 @@ class _RetailState extends State<Retail> {
                                 bodyText: "Are you sure you want to delete this retail?",
                                 saveButtonText: "Delete",
                                 discardButtonText: "Cancel",
-
-                                onClose: () {
-                                  Navigator.pop(context);
-                                },
-
                                 onDiscard: () {
                                   Navigator.pop(context);
                                 },

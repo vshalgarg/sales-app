@@ -35,9 +35,8 @@ class MasterContainer extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          // boxShadow: BoxShadow(color:Colors.black),
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
         padding: const EdgeInsets.all(15),
@@ -55,7 +54,7 @@ class MasterContainer extends StatelessWidget {
                         color: AppColors.orangeColor,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(5.0),
+                        padding: const EdgeInsets.only(left:5.0,right:5,bottom:3,top:3),
                         child: Text(
                           code ?? "",
                           style: TextStyle(
@@ -127,47 +126,35 @@ class MasterContainer extends StatelessWidget {
               ),
 
              // VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
-              Padding(
-                padding: const EdgeInsets.only(),
-                child: Column(
-                  children: [
-                  //  GestureDetector(
-                    //  onTap: eyeIconTap,
-                      //child: customIcon(
-                        //icon: Iconsax.eye,
-                        //iconColor: AppColors.primaryPurple,
-                        //bgColor: AppColors.primaryPurpleLight,
-                      //),
-                    //),
-                    SizedBox(height: 5),
-                    GestureDetector(
-                      onTap: trashIconTap,
-                      child: customIcon(
-                        icon: Iconsax.trash,
-                        iconColor: AppColors.binRed,
-                        bgColor: AppColors.binRedLight,
-                      ),
+              Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    onTap: trashIconTap,
+                    child: customIcon(
+                      icon: Iconsax.trash,
+                      iconColor: AppColors.binRed,
+                      bgColor: AppColors.binRedLight,
                     ),
-                    SizedBox(height: 5),
-                    GestureDetector(
-                      onTap: copyIconTap,
-                      child: customIcon(
-                        icon: Iconsax.copy,
-                        iconColor: AppColors.blueDarkCopy,
-                        bgColor: AppColors.blueLightCopy,
-                      ),
+                  ),
+                  SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: copyIconTap,
+                    child: customIcon(
+                      icon: Iconsax.copy,
+                      iconColor: AppColors.blueDarkCopy,
+                      bgColor: AppColors.blueLightCopy,
                     ),
-                    SizedBox(height: 5),
-                    GestureDetector(
-                      onTap: editIconTap,
-                      child: customIcon(
-                        icon: Iconsax.edit,
-                        iconColor: AppColors.editGreen,
-                        bgColor: AppColors.editGreenLight
-                      ),
+                  ),
+                  SizedBox(height: 5),
+                  GestureDetector(
+                    onTap: editIconTap,
+                    child: customIcon(
+                      icon: Iconsax.edit,
+                      iconColor: AppColors.editGreen,
+                      bgColor: AppColors.editGreenLight
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

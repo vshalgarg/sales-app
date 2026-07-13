@@ -223,8 +223,6 @@ class _AmountCountMonthScreenState extends State<AmountCountMonthScreen> {
           final creditCount = graph.datasets.firstWhere(
                 (element) => element.label == "Credit Count",
           );
-          print(billAmount.label);
-          print(billAmount.data);
           List<FlSpot> billAmountSpots = [];
           List<FlSpot> creditAmountSpots = [];List<FlSpot> billCountSpots = [];
           List<FlSpot> creditCountSpots = [];

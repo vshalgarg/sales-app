@@ -74,7 +74,6 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
   @override
   Widget build(BuildContext context) {
-    print("SupplierBasicInfo build");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,6 +109,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
           SizedBox(height: 15),
           Text("Name", style: TextStyle(color: Colors.white, fontSize: 18)),
           TextFormField(
+            maxLines: 5,
+            minLines: 1,
             enabled: widget.mode != FormMode.view,
             controller: widget.nameController,
             decoration: InputDecoration(
@@ -159,7 +160,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
           ),
           SizedBox(height: 15),
 
-          Text(
+           const Text(
             "GST Number",
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),

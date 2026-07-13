@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../constants/colors_used.dart';
 import '../shared_preferences/login_token.dart';
 import 'home_screen.dart';
 import 'login_screen.dart'; // Change to your next screen
@@ -56,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
           style: TextStyle(
             fontSize: 40,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF3045D3),
+            color: AppColors.primaryPurple,
             letterSpacing: 1,
           ),
         ),

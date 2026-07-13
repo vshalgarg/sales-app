@@ -253,9 +253,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                     context,
                                     discardButtonText: "No",
                                     saveButtonText: "Yes",
-                                    onClose: () {
-                                      Navigator.pop(context);
-                                    },
                                     onDiscard: () {
                                       Navigator.pop(context);
                                     },

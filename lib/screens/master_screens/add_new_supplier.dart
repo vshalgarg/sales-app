@@ -220,8 +220,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     } else {
       contacts.add(ContactControllers());
     }
-    print("API PinCode = ${s.pinCode}");
-    print(s);
   }
 
   @override
@@ -340,57 +338,15 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
             );
           },
         ):null,
-        actions:widget.mode != FormMode.view ?[
-          Consumer<AddSupplierProvider>(
-            builder: (context, provider, child) {
-              return IconButton(
+        actions:[if (widget.mode != FormMode.view)
+          IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () async {
                   ExitConfirmationDialog.show(
                     context,
-                    onSave: provider.isLoading
-                        ? () async {}
-                        : () async {
-                            try {
-                              if (nameController.text.isEmpty) {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  "Supplier name is required",
-                                );
-                                return;
-                              }
-
-                              final body = submitSupplier();
-                              await provider.addSupplier(body);
-                              if (!context.mounted) return;
-                              if (provider.error != null) {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  provider.error!,
-                                  backgroundColor: Colors.red,
-                                );
-                              } else {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  provider.response!.message ??
-                                      "Supplier Added Successfully",
-                                );
-
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => Supplier()),
-                                );
-                              }
-                            } catch (e) {
-                              ScaffoldSnackBar.show(
-                                context,
-                                "Something went wrong$e",
-                              );
-                            }
-                          },
-                    onClose: () {
-                      Navigator.pop(context);
-                    },
+                    onSave: ()async{Navigator.pop(context);},
+                    discardButtonText: "Leave",
+                    saveButtonText: "Stay",
                     onDiscard: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -399,10 +355,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                       );
                     },
                   );
-                },
-              );
             },
-          ),]:[],
+          ),],
 
         title: widget.mode == FormMode.add
             ? "Add New Supplier"
@@ -425,7 +379,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
               SupplierBasicInfo(
                 showCommissionScheme: true,
                 showCommissionRate: true,
-
                 mode: widget.mode,
                 nameController: nameController,
                 emailController: emailController,

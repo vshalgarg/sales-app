@@ -102,6 +102,7 @@ class _UsersScreenState extends State<UsersScreen> {
                       icon: const Icon(Icons.close),
                       onPressed: () {
                         userSearchController.clear();
+                        context.read<UserProvider>().clearSearch();
                         setState(() {});
                       },
                     ),
@@ -152,9 +153,6 @@ class _UsersScreenState extends State<UsersScreen> {
                                 context,
                                 saveButtonText: "Yes",
                                 discardButtonText: "No",
-                                onClose: () {
-                                  Navigator.pop(context);
-                                },
                                 onDiscard: () {
                                   Navigator.pop(context);
                                 },
@@ -258,9 +256,7 @@ class _UsersScreenState extends State<UsersScreen> {
                               context,
                               saveButtonText: "Yes",
                               discardButtonText: "No",
-                              onClose: () {
-                                Navigator.pop(context);
-                              },
+
                               onDiscard: () {
                                 Navigator.pop(context);
                               },

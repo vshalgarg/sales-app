@@ -212,9 +212,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     ScaffoldSnackBar.show(context, e.toString());
                   }
                 },
-                onClose: () {
-                  Navigator.pop(context);
-                },
+                saveButtonText: "Stay",
+                discardButtonText: "Leave",
                 onDiscard: () {
                   Navigator.pop(context);
                   Navigator.push(
