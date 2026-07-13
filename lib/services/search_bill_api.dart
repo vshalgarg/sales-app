@@ -20,8 +20,8 @@ Future<List<BillEntry>> searchBills({
 
     if (customerId != null) "customerId": customerId.toString(),
 
-    "page": "0",
-    "size": "20",
+    "page": page.toString(),
+    "size": size.toString(),
   };
 
   final url = Uri.parse(

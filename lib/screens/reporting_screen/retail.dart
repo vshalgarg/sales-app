@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hisabio/reporting_widgets/retail_details_bottom_sheet.dart';
+import 'package:hisabio/reporting_widgets/retail_details_screen.dart';
 import 'package:hisabio/screens/add_supplier.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +9,7 @@ import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/retail_provider.dart';
 import '../../provider/staff_provider.dart';
-import '../../reporting_widgets/edit_retail_bottom_sheet.dart';
+import '../../reporting_widgets/edit_retail_screen.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../reporting_widgets/retail_card.dart';
 import '../../screens/entry_screen/retail_entry.dart';
@@ -26,7 +26,7 @@ class _RetailState extends State<Retail> {
   final ScrollController _scrollController = ScrollController();
 
   int _page = 0;
-   int _size = 20;
+  int _size = 20;
 
   bool _isFetchingMore = false;
   bool _hasMore = true;
@@ -69,12 +69,13 @@ class _RetailState extends State<Retail> {
     }
 
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200 &&
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isFetchingMore &&
         _hasMore) {
       _loadMore();
     }
   }
+
   Future<void> _loadMore() async {
     final provider = context.read<RetailProvider>();
 
@@ -98,18 +99,16 @@ class _RetailState extends State<Retail> {
     });
   }
 
-  void _applyFilters()async {
+  void _applyFilters() async {
     _page = 0;
     _hasMore = true;
-  await  context.read<RetailProvider>().fetchRetails(
-    page: _page,
-    size: _size,
+    await context.read<RetailProvider>().fetchRetails(
+      page: _page,
+      size: _size,
       fromDate: fromDateController.text.isEmpty
           ? null
           : fromDateController.text,
-      toDate: toDateController.text.isEmpty
-          ? null
-          : toDateController.text,
+      toDate: toDateController.text.isEmpty ? null : toDateController.text,
     );
   }
 
@@ -140,7 +139,7 @@ class _RetailState extends State<Retail> {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
             return Container(
-             // height: 600,
+              // height: 600,
               decoration: BoxDecoration(
                 color: Color(0xFFF7F6FF),
                 borderRadius: BorderRadius.only(
@@ -175,18 +174,17 @@ class _RetailState extends State<Retail> {
                     value: selectedCustomerId == null
                         ? null
                         : entriesProvider.customerEntries
-                        .firstWhere(
-                          (e) => e.id!.toInt() == selectedCustomerId,
-                    )
-                        .customerName,
+                              .firstWhere(
+                                (e) => e.id!.toInt() == selectedCustomerId,
+                              )
+                              .customerName,
                     items: entriesProvider.customerEntries
                         .map((e) => e.customerName ?? "")
                         .toSet()
                         .toList(),
                     onChanged: (value) {
-                      final customer = entriesProvider.customerEntries.firstWhere(
-                            (e) => e.customerName == value,
-                      );
+                      final customer = entriesProvider.customerEntries
+                          .firstWhere((e) => e.customerName == value);
 
                       bottomSheetSetState(() {
                         selectedCustomerId = customer.id!.toInt();
@@ -202,17 +200,15 @@ class _RetailState extends State<Retail> {
                     value: selectedStaffId == null
                         ? null
                         : staffProvider.staffs
-                        .firstWhere(
-                          (e) => e.staffId == selectedStaffId,
-                    )
-                        .staffName,
+                              .firstWhere((e) => e.staffId == selectedStaffId)
+                              .staffName,
                     items: staffProvider.staffs
                         .map((e) => e.staffName)
                         .toSet()
                         .toList(),
                     onChanged: (value) {
                       final staff = staffProvider.staffs.firstWhere(
-                            (e) => e.staffName == value,
+                        (e) => e.staffName == value,
                       );
 
                       bottomSheetSetState(() {
@@ -281,10 +277,7 @@ class _RetailState extends State<Retail> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.filter_alt_outlined,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.filter_alt_outlined, color: Colors.white),
             onPressed: () {
               _showFilterBottomSheet();
             },
@@ -308,8 +301,7 @@ class _RetailState extends State<Retail> {
                     curve: Curves.easeInOut,
                   );
                 },
-                child: const Icon(Icons.keyboard_arrow_up,
-                  color: Colors.white,),
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
               ),
             ),
 
@@ -319,28 +311,30 @@ class _RetailState extends State<Retail> {
             onPressed: isOpening
                 ? null
                 : () async {
-              setState(() {
-                isOpening = true;
-              });
-              await Future.delayed(const Duration(milliseconds: 100));
-              if (!mounted) return;
+                    setState(() {
+                      isOpening = true;
+                    });
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (!mounted) return;
 
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RetailEntryScreen()),
-              );
-              if (mounted) {
-                setState(() {
-                  isOpening = false;
-                });
-              }
-            },
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const RetailEntryScreen(),
+                      ),
+                    );
+                    if (mounted) {
+                      setState(() {
+                        isOpening = false;
+                      });
+                    }
+                  },
             child: isOpening
                 ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Iconsax.add, color: Colors.white),
           ),
         ],
@@ -361,7 +355,7 @@ class _RetailState extends State<Retail> {
                   }
 
                   if (retailProvider.error != null) {
-                   return Center(
+                    return Center(
                       child: Text(
                         retailProvider.error!,
                         style: const TextStyle(color: Colors.red),
@@ -381,18 +375,16 @@ class _RetailState extends State<Retail> {
                     onRefresh: () async {
                       await retailProvider.fetchRetails();
                     },
-                    child:ListView.builder(
+                    child: ListView.builder(
                       controller: _scrollController,
                       itemCount:
-                      retailProvider.retailEntries.length +
+                          retailProvider.retailEntries.length +
                           (retailProvider.last ? 0 : 1),
                       itemBuilder: (context, index) {
                         if (index == retailProvider.retailEntries.length) {
                           return const Padding(
                             padding: EdgeInsets.all(16),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
+                            child: Center(child: CircularProgressIndicator()),
                           );
                         }
                         final retail = retailProvider.retailEntries[index];
@@ -406,60 +398,47 @@ class _RetailState extends State<Retail> {
                               MapEntry("Staff", retail.staffName),
                             ],
                             onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                builder: (_) => ChangeNotifierProvider(
-                                  create: (_) => RetailDetailsProvider(),
-                                  child: RetailDetailsBottomSheet(
-                                    retailId: retail.retailId,
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChangeNotifierProvider(
+                                    create: (_) => RetailDetailsProvider(),
+                                    child: RetailDetailsScreen(
+                                      retailId: retail.retailId,
+                                    ),
                                   ),
                                 ),
                               );
                             },
                             onAdd: () async {
-
                               final result = await showDialog<bool>(
                                 context: context,
-                                builder: (_) => AddSupplier(
-                                  retailId: retail.retailId,
-                                ),
+                                builder: (_) =>
+                                    AddSupplier(retailId: retail.retailId),
                               );
 
                               if (result == true && mounted) {
-                                await context.read<RetailProvider>().fetchRetails(
-                                  page: 0,
-                                  size: _size,
-                                );
+                                await context
+                                    .read<RetailProvider>()
+                                    .fetchRetails(page: 0, size: _size);
                               }
                             },
                             onEdit: () async {
-                              await showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (_) {
-                                  return MultiProvider(
-                                    providers: [
-                                      ChangeNotifierProvider(
-                                        create: (_) => RetailDetailsProvider(),
-                                      ),
-                                    ],
-                                    child: EditRetailBottomSheet(
-                                      retailId: retail.retailId,
-                                    ),
-                                  );
-                                },
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditRetailScreen(
+                                    retailId: retail.retailId,
+                                  ),
+                                ),
                               );
-
-                              if (!mounted) return;
-
-                              context.read<RetailProvider>().fetchRetails();
                             },
+
                             onDelete: () async {
                               ExitConfirmationDialog.show(
                                 context,
-                                bodyText: "Are you sure you want to delete this retail?",
+                                bodyText:
+                                    "Are you sure you want to delete this retail?",
                                 saveButtonText: "Delete",
                                 discardButtonText: "Cancel",
 

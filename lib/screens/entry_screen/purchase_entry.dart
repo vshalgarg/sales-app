@@ -22,7 +22,6 @@ import '../../model_classes/entries_supplier.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../home_screen.dart';
 
 class PurchaseEntryScreen extends StatefulWidget {
   const PurchaseEntryScreen({super.key});

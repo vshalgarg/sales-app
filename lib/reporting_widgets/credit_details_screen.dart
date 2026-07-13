@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import '../constants/colors_used.dart';
+import '../customs/app_bar.dart';
 import '../model_classes/search_credit.dart';
 
-class CreditDetailsBottomSheet extends StatefulWidget {
+class CreditDetailsScreen extends StatefulWidget {
   final SearchCreditEntry credit;
 
-  const CreditDetailsBottomSheet({
+  const CreditDetailsScreen({
     super.key,
     required this.credit,
   });
 
   @override
-  State<CreditDetailsBottomSheet> createState() =>
-      _CreditDetailsBottomSheetState();
+  State<CreditDetailsScreen> createState() => _CreditDetailsScreenState();
 }
 
-class _CreditDetailsBottomSheetState
-    extends State<CreditDetailsBottomSheet> {
+class _CreditDetailsScreenState extends State<CreditDetailsScreen> {
   bool showTransaction = true;
   bool showParty = false;
   bool showReference = false;
@@ -24,69 +23,28 @@ class _CreditDetailsBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF9CA4DA),
+      backgroundColor: AppColors.bodyFillColor,
+      appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: "Credit Details",
+        textStyle: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 25,
+        ),
+      ),
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF9499D8),
-                Color(0xFFB6BCE3),
-              ],
-            ),
-          ),
+          color: AppColors.bodyFillColor,
+          child:  SingleChildScrollView(
+            padding: const EdgeInsets.all(15),
           child: Column(
             children: [
-              // HEADER
-          Padding(
-          padding: const EdgeInsets.only(top: 30, bottom: 2),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                      "Credit Details",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: width < 600 ? 16 : 30,
-                    vertical: 10,
-                  ),
-                  child: Column(
-                    children: [
 
                       // TRANSACTION DETAILS
                     _sectionCard(
@@ -119,7 +77,7 @@ class _CreditDetailsBottomSheetState
                         ),
                       ),
 
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 15),
 
                       // PARTY INFORMATION
                       _sectionCard(
@@ -144,7 +102,7 @@ class _CreditDetailsBottomSheetState
                         ),
                       ),
 
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 15),
 
                       // REFERENCE DETAILS
                       _sectionCard(
@@ -173,7 +131,7 @@ class _CreditDetailsBottomSheetState
                         ),
                       ),
 
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 15),
 
                       // MISCELLANEOUS
                       _sectionCard(
@@ -202,10 +160,7 @@ class _CreditDetailsBottomSheetState
                   ),
                 ),
               ),
-            ],
           ),
-        ),
-      ),
     );
   }
 

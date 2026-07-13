@@ -8,7 +8,6 @@ import 'package:hisabio/screens/master_screens/add_new_customer.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
-import '../../dialog_boxes/master_dialogBoxes/custom_copy_details_dialog.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/delete_customer_provider.dart';

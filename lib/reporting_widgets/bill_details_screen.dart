@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/colors_used.dart';
+import '../customs/app_bar.dart';
 
-class BillDetailsBottomSheet extends StatefulWidget {
+class BillDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> data;
 
-  const BillDetailsBottomSheet({super.key, required this.data});
+  const BillDetailsScreen({super.key, required this.data});
 
   @override
-  State<BillDetailsBottomSheet> createState() => _BillDetailsBottomSheetState();
+  State<BillDetailsScreen> createState() => _BillDetailsScreenState();
 }
 
-class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
+class _BillDetailsScreenState extends State<BillDetailsScreen> {
   double taxableValue = 0;
   double billAmount = 0;
   bool showBillInfo = true;
@@ -76,69 +77,28 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF9CA4DA),
+      backgroundColor: AppColors.bodyFillColor,
+        appBar: CustomAppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: "Bill Details",
+          textStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 25,
+          ),
+        ),
+
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF9499D8), Color(0xFFB8BDE5)],
-            ),
-          ),
-          child: DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.95,
-            maxChildSize: 0.95,
-            builder: (context, controller) {
-              return SingleChildScrollView(
-                controller: controller,
-                padding: const EdgeInsets.all(20),
+              color: AppColors.bodyFillColor,
+          child:  SingleChildScrollView(
+                padding: const EdgeInsets.all(15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20, bottom: 2),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                            ),
-                          ),
-
-                          const SizedBox(width: 8),
-
-                          const Expanded(
-                            child: Text(
-                              "Bill Details",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-
-                          IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
                     _sectionTitle(
                       title: "Bill Information",
                       expanded: showBillInfo,
@@ -149,6 +109,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                       },
                     ),
                     if (showBillInfo) ...[
+                      const SizedBox(height: 16),
                       _detailRow(
                         "Bill Number",
                         widget.data['billNumber'] ?? "",
@@ -163,7 +124,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                         widget.data['invoiceNo'] ?? "",
                       ),
                     ],
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 15),
 
                     _sectionTitle(
                       title: "Supplier Information",
@@ -175,6 +136,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                       },
                     ),
                     if (showSupplierInfo) ...[
+                      const SizedBox(height: 16),
                       _detailRow(
                         "Supplier Name",
                         widget.data['supplierName'] ?? "",
@@ -189,7 +151,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                         widget.data['supplierGstNo'] ?? "",
                       ),
                     ],
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 15),
 
                     _sectionTitle(
                       title: "Customer Information",
@@ -201,6 +163,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                       },
                     ),
                     if (showCustomerInfo) ...[
+                      const SizedBox(height: 16),
                       _detailRow(
                         "Customer Name",
                         widget.data['customerName'] ?? "",
@@ -215,7 +178,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                         widget.data['customerGstNo'] ?? "",
                       ),
                     ],
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 15),
 
                     _sectionTitle(
                       title: "Bill Items",
@@ -255,10 +218,10 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                               final item = entry.value;
 
                               return Container(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                padding: const EdgeInsets.all(16),
+                                margin: const EdgeInsets.only(bottom: 16,top:15),
+                               // padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(.15),
+                                 // color: Colors.white.withOpacity(.15),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Column(
@@ -271,8 +234,8 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                                         vertical: 12,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF4057A6),
-                                        borderRadius: BorderRadius.circular(8),
+                                        color:AppColors.primaryPurple,
+                                        borderRadius: BorderRadius.circular(5),
                                       ),
                                       child: Text(
                                         "Item ${index + 1}",
@@ -370,9 +333,9 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                         },
                       ),
                       Container(
-                        padding: const EdgeInsets.all(18),
+                       // padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(.15),
+                          //color: Colors.white.withOpacity(.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -385,7 +348,6 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
@@ -428,7 +390,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 15),
 
                     _sectionTitle(
                       title: "Transport & Logistics Information",
@@ -441,6 +403,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                     ),
 
                     if (showTransportInfo) ...[
+                      const SizedBox(height: 16),
                       _field("Transport", widget.data['transport'] ?? "-"),
 
                       const SizedBox(height: 16),
@@ -452,7 +415,7 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                       _field("Remarks", widget.data['remarks'] ?? "-"),
                     ],
 
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 15),
 
                     _sectionTitle(
                       title: "Attachments",
@@ -464,10 +427,11 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                       },
                     ),
                     if (showAttachments) ...[
+                      SizedBox(height:16),
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(.15),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Builder(
@@ -486,13 +450,13 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                                     Icon(
                                       Icons.image_not_supported_outlined,
                                       size: 40,
-                                      color: Colors.white,
+                                      color: AppColors.primaryPurple,
                                     ),
                                     SizedBox(height: 10),
                                     Text(
                                       "No Attachments Found",
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.primaryPurple,
                                         fontSize: 16,
                                       ),
                                     ),
@@ -597,12 +561,10 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
                     ],
                   ],
                 ),
-              );
-            },
+          )
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _sectionTitle({
@@ -614,11 +576,11 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 18),
+        //margin: const EdgeInsets.only(bottom: 18),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.primaryPurple,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(5),
         ),
         child: Row(
           children: [
@@ -696,20 +658,19 @@ class _BillDetailsBottomSheetState extends State<BillDetailsBottomSheet> {
           label,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+            fontSize: 18,
           ),
         ),
-        const SizedBox(height: 6),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(5),
           ),
           child: Text(value, style: const TextStyle(color: Colors.black87)),
         ),
+        const SizedBox(height: 15),
       ],
     );
   }

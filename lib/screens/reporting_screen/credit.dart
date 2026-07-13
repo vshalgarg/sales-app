@@ -7,8 +7,8 @@ import '../../customs/app_bar.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/credit_provider.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../reporting_widgets/credit_details_bottom_sheet.dart';
-import '../../reporting_widgets/edit_credit_bottom_sheet.dart';
+import '../../reporting_widgets/credit_details_screen.dart';
+import '../../reporting_widgets/edit_credit_screen.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../home_screen.dart';
@@ -375,46 +375,42 @@ class _CreditState extends State<Credit> {
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 return ReportingCard(
-                                  fields: [
-                                    MapEntry(
-                                      "Bill No",
-                                      credit.billNumber ?? "",
+                                  leadingIcon: Iconsax.document,
+                                  title: "Bill No : ",
+                                  value: credit.billNumber??"-",
+                                  chips: [
+                                    ReportChip(
+                                      icon: Iconsax.calendar,
+                                      text: credit.date ?? "-",
                                     ),
-
-                                    MapEntry("Date", credit.date ?? ""),
-
-                                    MapEntry(
-                                      "Payment Type",
-                                      credit.paymentType ?? "",
-                                    ),
-
-                                    MapEntry(
-                                      "Reference No",
-                                      credit.referenceNumber ?? "",
-                                    ),
-                                    MapEntry(
-                                      "Supplier",
-                                      credit.supplierName ?? "",
-                                    ),
-
-                                    MapEntry(
-                                      "Customer",
-                                      credit.customerName ?? "",
-                                    ),
-
-                                    MapEntry(
-                                      "Amount",
-                                      "₹${credit.receivedAmount ?? 0}",
+                                    ReportChip(
+                                      icon: Iconsax.card,
+                                      text: credit.paymentType ?? "-",
                                     ),
                                   ],
+                                  fields: [
+                                    ReportField(
+                                      icon: Iconsax.receipt,
+                                      label: "Reference No",
+                                      value: credit.referenceNumber ?? "-",
+                                    ),
+                                    ReportField(
+                                      icon: Iconsax.shop,
+                                      label: "Supplier",
+                                      value: credit.supplierName ?? "-",
+                                    ),
+                                    ReportField(
+                                      icon: Iconsax.user,
+                                      label: "Customer",
+                                      value: credit.customerName ?? "-",
+                                    ),
+                                  ],
+
+                                  amount: (credit.receivedAmount ?? 0).toString(),
                                   onTap: () async {
                                     setState(() {
                                       isOpeningView = true;
                                     });
-
-                                    await Future.delayed(
-                                      const Duration(milliseconds: 300),
-                                    );
 
                                     if (!mounted) return;
 
@@ -422,38 +418,21 @@ class _CreditState extends State<Credit> {
                                       isOpeningView = false;
                                     });
 
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.white,
-                                      builder: (_) => CreditDetailsBottomSheet(
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                      builder: (_) => CreditDetailsScreen(
                                         credit: credit,
                                       ),
+                                    )
                                     );
                                   },
 
                                   onEdit: () async {
-                                    if (!mounted) return;
-
-                                    final updated =
-                                        await showModalBottomSheet<bool>(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          useSafeArea: true,
-                                          backgroundColor: Colors.transparent,
-                                          enableDrag: true,
-                                          builder: (context) {
-                                            return EditCreditBottomSheet(
-                                              credit: credit,
-                                            );
-                                          },
-                                        );
-
-                                    if (updated == true && mounted) {
-                                      context
-                                          .read<CreditProvider>()
-                                          .fetchCredits(page: 0, size: 50);
-                                    }
+                                   Navigator.push(context, MaterialPageRoute(builder: (_)=>
+                                       EditCreditBottomSheet(
+                                         credit: credit,
+                                       )));
                                   },
                                   onDelete: () async {
                                     ExitConfirmationDialog.show(

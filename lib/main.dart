@@ -86,6 +86,7 @@ void main() async {
        ChangeNotifierProvider(create: (_) => GetLedgerDetailsProvider(),),
         ChangeNotifierProvider(create: (_) => GraphProvider(),),
         ChangeNotifierProvider(create: (_) => ConfigProvider(),),
+        ChangeNotifierProvider(create: (_) => RetailDetailsProvider(),),
       ],
       child: const MyApp(),
 

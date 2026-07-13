@@ -50,6 +50,13 @@ class BillsProvider extends ChangeNotifier {
         supplierId: supplierId,
         customerId: customerId,
       );
+      debugPrint("Fetched ${newBills.length} bills");
+
+      for (final bill in newBills) {
+        debugPrint(
+          "${bill.billNumber} | ${bill.date} | ${bill.supplierName}",
+        );
+      }
 
       if (isLoadMore) {
         bills.addAll(newBills);

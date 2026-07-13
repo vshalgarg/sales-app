@@ -1,78 +1,44 @@
 import 'package:flutter/material.dart';
 
 import '../constants/colors_used.dart';
+import '../customs/app_bar.dart';
 
-class PurchaseDetailsBottomSheet extends StatefulWidget {
+class PurchaseDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> purchaseData;
 
-  const PurchaseDetailsBottomSheet({super.key, required this.purchaseData});
+  const PurchaseDetailsScreen({super.key, required this.purchaseData});
 
   @override
-  State<PurchaseDetailsBottomSheet> createState() =>
-      _PurchaseDetailsBottomSheetState();
+  State<PurchaseDetailsScreen> createState() => _PurchaseDetailsScreenState();
 }
 
-class _PurchaseDetailsBottomSheetState
-    extends State<PurchaseDetailsBottomSheet> {
+class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
   bool basicInfoExpanded = true;
   bool attachmentExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF9CA4DA),
+      backgroundColor: AppColors.bodyFillColor,
+      appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: "Purchase Details",
+        textStyle: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 25,
+        ),
+      ),
       body: SafeArea(
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF9499D8), Color(0xFFB8BDE5)],
-            ),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        "Purchase Details",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
+          color: AppColors.bodyFillColor,
+          child:  SingleChildScrollView(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              children: [
                       _sectionCard(
                         title: "Basic Information",
                         isExpanded: basicInfoExpanded,
@@ -153,10 +119,7 @@ class _PurchaseDetailsBottomSheetState
                   ),
                 ),
               ),
-            ],
           ),
-        ),
-      ),
     );
   }
 
@@ -170,7 +133,7 @@ class _PurchaseDetailsBottomSheetState
       children: [
         InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(5),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(
@@ -179,7 +142,7 @@ class _PurchaseDetailsBottomSheetState
             ),
             decoration: BoxDecoration(
               color:AppColors.primaryPurple,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(5),
             ),
             child: Row(
               children: [

@@ -8,8 +8,8 @@ import '../../customs/app_bar.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/purchase_provider.dart';
-import '../../reporting_widgets/edit_purchase_bottom_sheet.dart';
-import '../../reporting_widgets/purchase_details_bottom_sheet.dart';
+import '../../reporting_widgets/edit_purchase_screen.dart';
+import '../../reporting_widgets/purchase_details_screen.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../services/purchase_details_api.dart';
@@ -389,12 +389,34 @@ class _PurchaseState extends State<Purchase> {
                           return Padding(
                             padding: EdgeInsets.only(bottom: height * 0.015),
                             child: ReportingCard(
+                              showHeader: false,
+                              chips: [
+                                ReportChip(
+                                  icon: Iconsax.calendar,
+                                  text: purchase.date ?? "-",
+                                ),
+                              ],
                               fields: [
-                                MapEntry("Date", purchase.date),
-                                MapEntry("Staff", purchase.staffName),
-                                MapEntry("Supplier", purchase.supplierName),
-                                MapEntry("Customer", purchase.customerName),
-                                MapEntry("Remarks", purchase.remarks),
+                                ReportField(
+                                  icon: Iconsax.profile_2user,
+                                  label: "Staff",
+                                  value: purchase.staffName ?? "-",
+                                ),
+                                ReportField(
+                                  icon: Iconsax.shop,
+                                  label: "Supplier",
+                                  value: purchase.supplierName
+                                ),
+                                ReportField(
+                                  icon: Iconsax.user,
+                                  label: "Customer",
+                                  value: purchase.customerName
+                                ),
+                                ReportField(
+                                  icon: Iconsax.note,
+                                  label: "Remarks",
+                                  value: purchase.remarks
+                                ),
                               ],
                               onTap: () async {
                                 showDialog(
@@ -414,13 +436,13 @@ class _PurchaseState extends State<Purchase> {
 
                                   Navigator.pop(context);
 
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.white,
-                                    builder: (_) => PurchaseDetailsBottomSheet(
-                                      purchaseData: data["data"],
-                                    ),
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PurchaseDetailsScreen(
+                                          purchaseData: data["data"],
+                                        ),
+                                      )
                                   );
                                 } catch (e) {
                                   Navigator.pop(context);
@@ -437,13 +459,11 @@ class _PurchaseState extends State<Purchase> {
 
                                 if (!context.mounted) return;
 
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (_) => EditPurchaseBottomSheet(
-                                    purchaseData: details["data"],
-                                  ),
-                                );
+                              Navigator.push(
+                                  context, MaterialPageRoute(
+                                  builder: (_)=>EditPurchaseScreen(
+                                      purchaseData: details["data"])));
+
                               },
                               onDelete: () async {
                                 ExitConfirmationDialog.show(

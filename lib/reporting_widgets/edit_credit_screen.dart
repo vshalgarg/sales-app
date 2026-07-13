@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors_used.dart';
+import '../customs/app_bar.dart';
 import '../model_classes/search_credit.dart';
+import '../pop_ups/general_closing_popup.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
 import '../services/update_credit_api.dart';
 
@@ -34,31 +36,27 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
   final drawTypes = ["DRAW", "CHEQUE"];
 
   Widget _fieldContainer({required String label, required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: child,
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(5),
           ),
-        ],
-      ),
+          child: child,
+        ),
+      ],
     );
   }
 
@@ -135,50 +133,85 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Material(
-        color: const Color(0xFF9CA4DA),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.only(top: 30, bottom: 2, left: 12),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Color(0xffe0e0e0))),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      "Edit Credit",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 25,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return Scaffold(
+      backgroundColor: AppColors.bodyFillColor,
+      body: Scaffold(
+        backgroundColor: AppColors.bodyFillColor,
+        appBar: CustomAppBar(
+          title: "Edit Credit",
+          textStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 25,
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                ExitConfirmationDialog.show(
+                  context,
+                  //bodyText: "",
+                  saveButtonText: "Save & Exit",
+                  onSave: () async {
+                    if (isLoading) return;
 
-            Expanded(
+                    setState(() {
+                      isLoading = true;
+                    });
+
+                    try {
+                      await updateCredit(
+                        id: widget.credit.id!,
+                        date: dateController.text,
+                        supplierId: supplierId ?? 0,
+                        paymentType: paymentType ?? "",
+                        customerId: customerId,
+                        referenceNumber: referenceController.text,
+                        referenceDate: referenceDateController.text,
+                        slipNumber: slipController.text,
+                        drawType: drawType,
+                        receivedAmount: double.tryParse(amountController.text) ?? 0,
+                        remark: remarkController.text,
+                      );
+
+                      if (!mounted) return;
+
+                      // Close the confirmation dialog
+                      Navigator.pop(context);
+
+                      // Close the Edit Credit screen and return success
+                      Navigator.pop(context, true);
+                    } catch (e) {
+                      if (!mounted) return;
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Update Failed: $e")),
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    }
+                  },
+                  onClose: () {
+                    Navigator.pop(context);
+                  },
+                  onDiscard: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context, false);
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: Container(
+            color: AppColors.bodyFillColor,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(15),
                 child: Column(
                   children: [
                     _fieldContainer(
@@ -191,9 +224,9 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                         ),
                       ),
                     ),
-
+                    SizedBox(height: 15),
                     _dateField(dateController, "Date"),
-
+                    SizedBox(height: 15),
                     _dropdownField("Payment Type", paymentType, paymentTypes, (
                       v,
                     ) {
@@ -201,7 +234,7 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                         paymentType = v;
                       });
                     }),
-
+                    SizedBox(height: 15),
                     Consumer<EntriesProvider>(
                       builder: (context, provider, child) {
                         final suppliers = provider.entries
@@ -241,6 +274,7 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                         );
                       },
                     ),
+                    SizedBox(height: 15),
                     Consumer<EntriesProvider>(
                       builder: (context, provider, child) {
                         final customers = provider.customerEntries
@@ -279,18 +313,21 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                         );
                       },
                     ),
-
+                    SizedBox(height: 15),
                     _textField(referenceController, "Reference Number"),
+                    SizedBox(height: 15),
                     _dateField(referenceDateController, "Reference Date"),
+                    SizedBox(height: 15),
                     _textField(slipController, "Slip Number"),
-
+                    SizedBox(height: 15),
                     _dropdownField("Draw Type", drawType, drawTypes, (v) {
                       setState(() {
                         drawType = v;
                       });
                     }),
-
+                    SizedBox(height: 15),
                     _textField(amountController, "Received Amount"),
+                    SizedBox(height: 15),
                     _fieldContainer(
                       label: "Remark",
                       child: TextField(
@@ -300,6 +337,7 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                         ),
                       ),
                     ),
+                    SizedBox(height: 15),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -348,7 +386,6 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                 ),
               ),
             ),
-          ],
         ),
       ),
     );

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/search_bill_provider.dart';
-import '../../reporting_widgets/bill_details_bottom_sheet.dart';
-import '../../reporting_widgets/edit_bill_bottom_sheet.dart';
+import '../../reporting_widgets/bill_details_screen.dart';
+import '../../reporting_widgets/edit_bill_screen.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../customs/app_bar.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
@@ -38,7 +39,13 @@ class _BillsState extends State<Bills> {
   void initState() {
     super.initState();
     final billsProvider = context.read<BillsProvider>();
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
 
+    final formatter = DateFormat('yyyy-MM-dd');
+
+    fromDateController.text = formatter.format(tenDaysAgo);
+    toDateController.text = formatter.format(now);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
@@ -109,12 +116,11 @@ class _BillsState extends State<Bills> {
     final data = await getBillDetails(billNumber);
 
     if (!mounted) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-
-      builder: (context) => BillDetailsBottomSheet(data: data),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BillDetailsScreen(data: data),
+      ),
     );
   }
 
@@ -129,13 +135,21 @@ class _BillsState extends State<Bills> {
   }
 
   void _clearFilters() {
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat('yyyy-MM-dd');
+
     setState(() {
-      fromDateController.clear();
-      toDateController.clear();
+      fromDateController.text = formatter.format(tenDaysAgo);
+      toDateController.text = formatter.format(now);
 
       selectedSupplier = null;
       selectedCustomer = null;
     });
+    context.read<BillsProvider>().fetchBills(
+      fromDate: fromDateController.text,
+      toDate: toDateController.text,
+    );
   }
 
   void _showFilterBottomSheet() {
@@ -380,51 +394,60 @@ class _BillsState extends State<Bills> {
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 return ReportingCard(
-                                  fields: [
-                                    MapEntry("Bill No", bill.billNumber),
+                                  leadingIcon: Iconsax.document,
+                                  title: "Bill No : ",
+                                  value: bill.billNumber ?? "-",
 
-                                    MapEntry("Date", bill.date),
-
-                                    MapEntry("Amount", "₹${bill.billAmount}"),
-
-                                    MapEntry("Supplier", bill.supplierName),
-
-                                    MapEntry("Customer", bill.customerName),
+                                  chips: [
+                                    ReportChip(
+                                      icon: Iconsax.calendar,
+                                      text: bill.date ?? "-",
+                                    ),
                                   ],
+
+                                  fields: [
+                                    ReportField(
+                                      icon: Iconsax.shop,
+                                      label: "Supplier",
+                                      value: bill.supplierName ?? "-",
+                                    ),
+                                    ReportField(
+                                      icon: Iconsax.user,
+                                      label: "Customer",
+                                      value: bill.customerName ?? "-",
+                                    ),
+                                  ],
+
+                                  amount: (bill.billAmount ?? 0).toString(),
 
                                   onTap: () async {
                                     await _showBillDetails(bill.billNumber);
                                   },
 
                                   onEdit: () async {
-                                    final billDetails = await getBillDetails(
-                                      bill.billNumber,
-                                    );
+                                    try {
+                                      final billDetails = await getBillDetails(bill.billNumber);
 
-                                    if (!context.mounted) return;
-                                    final billsProvider = context
-                                        .read<BillsProvider>();
-                                    final messenger = ScaffoldMessenger.of(
-                                      context,
-                                    );
-                                    final updated = await showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (_) => EditBillBottomSheet(
-                                        billData: billDetails,
-                                      ),
-                                    );
+                                      if (!context.mounted) return;
 
-                                    if (updated == true) {
-                                      try {
+                                      final billsProvider = context.read<BillsProvider>();
+                                      final messenger = ScaffoldMessenger.of(context);
+
+                                      final updated = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => EditBillScreen(
+                                            billData: billDetails,
+                                          ),
+                                        ),
+                                      );
+
+                                      if (updated == true) {
                                         await billsProvider.fetchBills(
-                                          fromDate: "2026-01-01",
-                                          toDate: "2026-12-31",
+                                          page: 0,
+                                          fromDate: fromDateController.text,
+                                          toDate: toDateController.text,
                                         );
-
-                                        for (final bill
-                                            in billsProvider.bills) {}
 
                                         if (!mounted) return;
 
@@ -432,14 +455,12 @@ class _BillsState extends State<Bills> {
 
                                         messenger.showSnackBar(
                                           const SnackBar(
-                                            content: Text(
-                                              "Bill Updated Successfully",
-                                            ),
+                                            content: Text("Bill Updated Successfully"),
                                           ),
                                         );
-                                      } catch (e) {
-                                        debugPrint("REFRESH ERROR => $e");
                                       }
+                                    } catch (e) {
+                                      debugPrint("REFRESH ERROR => $e");
                                     }
                                   },
                                   onDelete: () async {
