@@ -6,13 +6,12 @@ Widget customIcon({
   required Color bgColor,
 }) {
   return Padding(
-    padding: const EdgeInsets.all(2.0),
-    child: Center(
-      child: Icon(
+    padding: const EdgeInsets.all(2),
+    child: Icon(
         icon,
         color: iconColor,
-        size: 22,
+        size: 25,
       ),
-    ),
+
   );
 }

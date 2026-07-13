@@ -205,9 +205,6 @@ class _SupplierState extends State<Supplier> {
                                 context,
                                 discardButtonText: "No",
                                 saveButtonText: "Yes",
-                                onClose: () {
-                                  Navigator.pop(context);
-                                },
                                 onDiscard: () {
                                   Navigator.pop(context);
                                 },

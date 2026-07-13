@@ -264,50 +264,16 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
             );
           },
         ):null,
-        actions: widget.mode != FormMode.view?[
-          Consumer2<AddCustomerProvider, UpdateCustomerProvider>(
-            builder: (context, provider, updateProvider, child) {
-              return IconButton(
+        actions:[if( widget.mode != FormMode.view)IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
                   ExitConfirmationDialog.show(
                     context,
-                    onSave: provider.isLoading
-                        ? () async {}
-                        : () async {
-                            if (nameController.text.isEmpty) {
-                              ScaffoldSnackBar.show(
-                                context,
-                                "Please enter customer name",
-                              );
-                              return;
-                            }
-                            final body = _buildCustomerBody();
-
-                            await provider.addCustomer(body);
-                            if (!context.mounted) return;
-                            if (provider.error == null) {
-                              await context
-                                  .read<CustomersProvider>()
-                                  .fetchCustomers();
-                              if (!context.mounted) return;
-                              ScaffoldSnackBar.show(
-                                context,
-                                provider.message ??
-                                    "Customer Added Successfully",
-                              );
-
-                              Navigator.pop(context);
-                            } else {
-                              ScaffoldSnackBar.show(
-                                context,
-                                provider.error ?? "",
-                              );
-                            }
-                          },
-                    onClose: () {
+                    onSave: () async{
                       Navigator.pop(context);
                     },
+                    discardButtonText: "Leave",
+                    saveButtonText: "Stay",
                     onDiscard: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -319,10 +285,8 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                     },
                   );
                 },
-              );
-            },
           ),
-        ]:[],
+        ],
         title: widget.mode == FormMode.view
             ? "Customer Details"
             : widget.mode == FormMode.edit
@@ -513,21 +477,13 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                     body: body,
                     id: widget.id!.toInt(),
                   );
-                  await context
-                      .read<GetCustomerByIdProvider>()
-                      .getCustomerById(widget.id!.toInt());
-
-                  final customer =
-                      context.read<GetCustomerByIdProvider>().customer?.data;
-
-                  print("Customer Name: ${customer?.customerName}");
-                  print("Mobile Number: ${customer?.contacts?.first.mobileNumber}");
                   if (!context.mounted) return;
 
                   if (updateProvider.errorMessage == null) {
-                    await context.read<CustomersProvider>().fetchCustomers(refresh: true);
+                    await context
+                        .read<CustomersProvider>()
+                        .refreshCustomers();
                     if (!context.mounted) return;
-
                     ScaffoldSnackBar.show(
                       context,
                       updateProvider.updateCustomerResponse?.message ??

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
+import '../constants/colors_used.dart';
 import '../shared_preferences/login_token.dart';
 import 'home_screen.dart';
 import 'login_screen.dart'; // Change to your next screen
@@ -18,37 +18,32 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _navigate();
+    Timer(const Duration(seconds: 2), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+        ),
+      );
+    });
   }
-
   Future<void> _navigate() async {
     await Future.delayed(const Duration(seconds: 2));
 
-    final token = await AppStorage.getToken();
+    final isLoggedIn = await AppStorage.isLoggedIn();
 
     if (!mounted) return;
-    if (token == null || token.isEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-      return;
-    }
 
-    // Token expired
-    if (JwtDecoder.isExpired(token)) {
-      await AppStorage.logout();
+    final token = await AppStorage.getToken();
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-      return;
-    }
-
-    // Token valid
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      MaterialPageRoute(
+        builder: (_) =>
+        (token != null && token.isNotEmpty)
+            ? const HomeScreen()
+            : const LoginScreen(),
+      ),
     );
   }
 
@@ -62,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
           style: TextStyle(
             fontSize: 40,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF3045D3),
+            color: AppColors.primaryPurple,
             letterSpacing: 1,
           ),
         ),

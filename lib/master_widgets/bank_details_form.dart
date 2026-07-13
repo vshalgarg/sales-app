@@ -72,10 +72,9 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
             hintText: "IFSC Code",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
-        ),
+        ), SizedBox(height: 15),
         Text("Bank Name",style:TextStyle(color:Colors.white,fontSize: 18)),
-        SizedBox(height: 15),
-        TextFormField(
+          TextFormField(
           enabled: widget.mode != FormMode.view,
           controller: widget.bankName,
           decoration: InputDecoration(

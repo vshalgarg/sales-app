@@ -195,37 +195,11 @@ class _AddNewTransportState extends State<AddNewTransport> {
             onPressed: () {
               ExitConfirmationDialog.show(
                 context,
-                onSave: () async {
-                  final addTransportProvider =
-                      Provider.of<AddNewTransportProvider>(
-                        context,
-                        listen: false,
-                      );
-
-                  final body = addTransportBody();
-
-                  final success=  await addTransportProvider.addNewTransport(body);
-                  if (!context.mounted) return;
-
-                  if (addTransportProvider.error != null) {
-                    ScaffoldSnackBar.show(context, addTransportProvider.error!);
-                    return;
-                  } else {
-                    ScaffoldSnackBar.show(
-                      context,
-                      addTransportProvider.response?.message ??
-                          "Transport Added Successfully",
-                    );
-                    Navigator.pop(context,true);
-                    await Provider.of<GetTransportProvider>(
-                      context,
-                      listen: false,
-                    ).getTransportDetails();
-                  }
-                },
-                onClose: () {
+                onSave: () async{
                   Navigator.pop(context);
                 },
+                saveButtonText: "Stay",
+                discardButtonText: "Leave",
                 onDiscard: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -288,6 +262,8 @@ class _AddNewTransportState extends State<AddNewTransport> {
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
                 TextFormField(
+                  maxLines: 5,
+                  minLines: 1,
                   controller: transportNameController,
                   decoration: InputDecoration(
                     filled: true,

@@ -146,9 +146,8 @@ class _CreditEntryState extends State<CreditEntry> {
                     if (!mounted) return;
                     ScaffoldSnackBar.show(context, e.toString());
                   }
-                },onClose: () {
-                Navigator.pop(context);
-              },
+                },discardButtonText: "Leave",
+                saveButtonText: "Stay",
                 onDiscard: () {
                   Navigator.pop(context);
                   Navigator.push(

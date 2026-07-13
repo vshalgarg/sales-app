@@ -135,10 +135,8 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                   } catch (e) {
                     ScaffoldSnackBar.show(context, e.toString());
                   }
-                },
-                onClose: () {
-                  Navigator.pop(context);
-                },
+                },discardButtonText: "Leave",
+                saveButtonText: "Stay",
                 onDiscard: () {
                   Navigator.pop(context);
                   Navigator.push(

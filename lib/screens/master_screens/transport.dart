@@ -7,7 +7,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/containers/master_containers/transport_container.dart';
-import '../../dialog_boxes/master_dialogBoxes/custom_copy_details_dialog.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/delete_transport_provider.dart';
@@ -220,9 +219,6 @@ class _TransportScreenState extends State<TransportScreen> {
                             parentContext,
                             saveButtonText: "Yes",
                             discardButtonText: "No",
-                            onClose: () {
-                              Navigator.pop(context);
-                            },
                             onDiscard: () {
                               Navigator.pop(context);
                             },

@@ -64,7 +64,7 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.logout),
+          icon: const Icon(Icons.logout,size:30),
           onPressed:(){
             ExitConfirmationDialog.show(
               context,
@@ -73,21 +73,15 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
               discardButtonText: "Cancel",
 
               onSave: () async {
-                // Clear local storage
                 await AppStorage.clear();
 
-              //  if (!context.mounted) return;
-                // Navigate to login screen if needed
                 Navigator.push(context,MaterialPageRoute(builder: (context)=>LoginScreen()));
               },
 
               onDiscard: () {
-                Navigator.pop(context); // Close dialog
+                Navigator.pop(context);
               },
 
-              onClose: () {
-                Navigator.pop(context); // Close dialog
-              },
             );
           },
         ),

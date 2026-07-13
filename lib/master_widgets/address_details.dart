@@ -76,6 +76,8 @@ class _AddressDetailsState extends State<AddressDetails> {
         SizedBox(height: 15),
         Text("Address Line1",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
+          minLines: 1,
+          maxLines: 5,
           enabled: widget.mode != FormMode.view,
           controller: widget.addressLine1,
           decoration: InputDecoration(
@@ -89,6 +91,8 @@ class _AddressDetailsState extends State<AddressDetails> {
         SizedBox(height: 15),
         Text("Address Line2",style:TextStyle(color:Colors.white,fontSize: 18)),
         TextFormField(
+          minLines: 1,
+          maxLines: 5,
           enabled: widget.mode != FormMode.view,
           controller: widget.addressLine2,
           decoration: InputDecoration(

@@ -51,7 +51,6 @@ class _SupplierAmountScreenState extends State<SupplierAmountScreen> {
 
     await Future.wait([provider.fetchSuppliers(),]);
 
-
     setState(() {
       //  loading = false;
     });

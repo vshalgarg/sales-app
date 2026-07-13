@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -111,7 +112,10 @@ class _ContactInfoState extends State<ContactInfo> {
                       ),
                       TextFormField(
                         keyboardType: TextInputType.number,
-                        maxLength: 10,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        //maxLength: 10,
                         enabled: widget.mode != FormMode.view,
                         controller: contact.mobile,
                         decoration: InputDecoration(
@@ -124,7 +128,6 @@ class _ContactInfoState extends State<ContactInfo> {
                           hintText: "Mobile No.",
                         ),
                       ),
-                      //SizedBox(height: 15),
                       Text(
                         "Type",
                         style: TextStyle(color: Colors.white, fontSize: 18),

@@ -157,10 +157,8 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                   } catch (e) {
                     ScaffoldSnackBar.show(context, e.toString());
                   }
-                },
-                onClose: () {
-                  Navigator.pop(context);
-                },
+                },discardButtonText: "Leave",
+                saveButtonText: "Stay",
                 onDiscard: () {
                   Navigator.pop(context);
                   Navigator.push(
