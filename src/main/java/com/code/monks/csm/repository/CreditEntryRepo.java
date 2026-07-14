@@ -17,7 +17,6 @@ import java.util.List;
 public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer>,
         JpaSpecificationExecutor<CreditEntryEntity> {
 
-    boolean existsByReferenceNumber(String referenceNumber);
 
     List<CreditEntryEntity> findBySupplierIdAndCustomerId(
             Integer supplierId,
@@ -35,8 +34,7 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
         c.date IS NOT NULL
         AND (:supplierIds IS NULL OR c.supplierId IN :supplierIds)
         AND (:customerIds IS NULL OR c.customerId IN :customerIds)
-        AND (:fromDate IS NULL OR c.date >= :fromDate)
-        AND (:toDate IS NULL OR c.date <= :toDate)
+        AND c.date BETWEEN :fromDate AND :toDate
     GROUP BY YEAR(c.date), MONTH(c.date)
     ORDER BY YEAR(c.date), MONTH(c.date)
 """)
@@ -74,4 +72,5 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
 }

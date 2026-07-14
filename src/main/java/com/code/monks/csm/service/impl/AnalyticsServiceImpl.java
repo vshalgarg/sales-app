@@ -1,18 +1,6 @@
 package com.code.monks.csm.service.impl;
 
-import com.code.monks.csm.dto.analytics.ChartDataDto;
-import com.code.monks.csm.dto.analytics.DatasetDto;
-import com.code.monks.csm.dto.analytics.MetricType;
-import com.code.monks.csm.dto.analytics.MonthlyDataPoint;
-import com.code.monks.csm.dto.analytics.MonthlyAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.MonthlyAnalyticsResponseDto;
-import com.code.monks.csm.dto.analytics.StaffAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.StaffAnalyticsResponseDto;
-import com.code.monks.csm.dto.analytics.StaffMetricType;
-import com.code.monks.csm.dto.analytics.CustomerAmountAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.CustomerAmountAnalyticsResponseDto;
-import com.code.monks.csm.dto.analytics.SupplierAmountAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.SupplierAmountAnalyticsResponseDto;
+import com.code.monks.csm.dto.analytics.*;
 import com.code.monks.csm.dto.analytics.projection.CustomerAmountView;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
 import com.code.monks.csm.dto.analytics.projection.StaffAnalyticsView;
@@ -20,7 +8,6 @@ import com.code.monks.csm.dto.analytics.projection.SupplierAmountView;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.StaffEntity;
 import com.code.monks.csm.entity.SupplierEntity;
-import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.repository.*;
 import com.code.monks.csm.service.AnalyticsService;
 import com.code.monks.csm.utils.MoneyUtil;
@@ -34,15 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,11 +42,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         LocalDate fromDate = request.fromDate();
         LocalDate toDate = request.toDate();
-        if (fromDate == null && toDate == null) {
+
+        if (toDate == null) {
             toDate = LocalDate.now();
-            fromDate = toDate.minusMonths(11).withDayOfMonth(1);
         }
 
+        if (fromDate == null) {
+            fromDate = toDate.minusMonths(11).withDayOfMonth(1);
+        }
         List<StaffAnalyticsView> supplierData = purchaseEntryRepo.getStaffSupplierAnalytics(fromDate, toDate);
         List<StaffAnalyticsView> customerData = purchaseEntryRepo.getStaffCustomerAnalytics(fromDate, toDate);
         log.info("Analytics data fetched. supplierRecords={}, customerRecords={}", supplierData.size(), customerData.size());
@@ -175,8 +157,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<SupplierAmountView> billData = billEntryRepo.getSupplierBillAnalytics(supplierIds, fromDate, toDate);
 
-        if (supplierIds == null && billData.size() > 10) {
-            billData = billData.subList(0, 10);
+        if (supplierIds == null && billData.size() > 20) {
+            billData = billData.subList(0, 20);
         }
 
         List<Integer> activeSupplierIds = billData.stream()
@@ -204,8 +186,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 continue;
             }
             labels.add(supplierNameMap.get(sid));
-            billAmounts.add(MoneyUtil.toRupee(bill.getAmount()));
-            creditAmounts.add(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, 0L)));
+            billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, 0L))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -250,8 +232,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<CustomerAmountView> billData = billEntryRepo.getCustomerBillAnalytics(customerIds, fromDate, toDate);
 
-        if (customerIds == null && billData.size() > 10) {
-            billData = billData.subList(0, 10);
+        if (customerIds == null && billData.size() > 20) {
+            billData = billData.subList(0, 20);
         }
 
         List<Integer> customerIdsWithBills = billData.stream()
@@ -281,8 +263,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 continue;
             }
             labels.add(customerNameMap.get(cid));
-            billAmounts.add(MoneyUtil.toRupee(bill.getAmount()));
-            creditAmounts.add(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, 0L)));
+            billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, 0L))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -312,13 +294,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public MonthlyAnalyticsResponseDto getMonthlyAnalytics(MonthlyAnalyticsRequestDto request) {
 
-        log.info(
-                "Fetching monthly analytics. fromDate: {}, toDate: {}, supplierIds: {}, customerIds: {}",
-                request.fromDate(), request.toDate(),
-                request.supplierIds(),
-                request.customerIds()
-        );
-
+        log.info("Fetching monthly analytics. fromDate: {}, toDate: {}, supplierIds: {}, customerIds: {}", request.fromDate(), request.toDate(), request.supplierIds(), request.customerIds());
         List<Integer> supplierIds = normalizeIds(request.supplierIds());
         List<Integer> customerIds = normalizeIds(request.customerIds());
         LocalDate fromDate = request.fromDate();
@@ -370,8 +346,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                             MonthlyAnalyticsAccumulator data = entry.getValue();
                             return new MonthlyDataPoint(
                                     yearMonth.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH)+ "'" + String.format("%02d", yearMonth.getYear() % 100),
-                                    MoneyUtil.toRupee(data.getBillAmount()),
-                                    MoneyUtil.toRupee(data.getCreditAmount()),
+                                    MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(data.getBillAmount())),
+                                    MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(data.getCreditAmount())),
                                     data.getBillCount(),
                                     data.getCreditCount()
                             );

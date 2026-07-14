@@ -6,6 +6,7 @@ import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.entity.TransportEntity;
+import com.code.monks.csm.enums.StatusFilter;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
 import com.code.monks.csm.exception.DuplicateEntryException;
@@ -118,7 +119,7 @@ public class SupplierServiceImpl implements SupplierService {
         return code;
     }
 
-    public PagedResponseDto<SupplierListResponseDto> getSuppliers(int page, int size) {
+    public PagedResponseDto<SupplierListResponseDto> getSuppliersWithPagination(int page, int size) {
         log.info("[SUPPLIER LIST] Fetch request received | page={} | size={}", page, size);
 
         Pageable pageable = PageRequest.of(
@@ -236,12 +237,30 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public List<SupplierSummaryDto> getAllSuppliers() {
+    public List<SupplierSummaryDto> getAllSuppliers(StatusFilter filter) {
 
-        log.info("[SUPPLIER - ALL] Fetch request received");
-        List<SupplierSummaryDto> suppliers = supplierRepo.findAllSummary();
-        log.info("[SUPPLIER - ALL] Fetch successful | totalRecords={}", suppliers.size());
-        return suppliers;
+        log.info("[SUPPLIER - ALL] Fetch request received | filter={}", filter);
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        List<SupplierEntity> suppliers = switch (filter) {
+            case ALL -> supplierRepo.findAll(sort);
+            case INACTIVE -> supplierRepo.findByStatus(StatusEnum.INACTIVE, sort);
+            default -> supplierRepo.findByStatus(StatusEnum.ACTIVE, sort);
+        };
+
+        List<SupplierSummaryDto> result = suppliers.stream()
+                .map(s -> SupplierSummaryDto.builder()
+                        .id(s.getId())
+                        .supplierName(s.getSupplierName())
+                        .supplierGroup(s.getGroupName())
+                        .supplierGstNo(s.getGstNo())
+                        .supplierMsme(s.getMsme())
+                        .city(s.getCity())
+                        .build())
+                .toList();
+
+        log.info("[SUPPLIER - ALL] Fetch successful | filter={} | totalRecords={}", filter, result.size());
+        return result;
     }
 
     @Override

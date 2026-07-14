@@ -12,7 +12,7 @@ public class SpecificationAggregateHelper {
 
     private final EntityManager entityManager;
 
-    public <T> Long sumRoundedAmount(
+    public <T> Long sumAmount(
             Class<T> entityClass,
             String fieldName,
             Specification<T> specification
@@ -28,20 +28,10 @@ public class SpecificationAggregateHelper {
                         cb
                 );
 
-        Expression<Number> amount =
-                cb.quot(
-                        root.get(fieldName),
-                        100.0
-                );
-
         query.select(
                 cb.coalesce(
                         cb.sum(
-                                cb.function(
-                                        "ROUND",
-                                        Long.class,
-                                        amount
-                                )
+                                root.get(fieldName)
                         ),
                         0L
                 )

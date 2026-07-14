@@ -1,6 +1,5 @@
 package com.code.monks.csm.repository;
 
-import com.code.monks.csm.dto.response.SupplierSummaryDto;
 import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Sort;
 
 @Repository
 public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
@@ -49,21 +49,6 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
     Page<SupplierEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
 
-    @Query("""
-SELECT new com.code.monks.csm.dto.response.SupplierSummaryDto(
-    s.id,
-    s.supplierName,
-    s.groupName,
-    s.gstNo,
-    s.msme,
-    s.city
-)
-FROM SupplierEntity s
-WHERE s.status = com.code.monks.csm.enums.StatusEnum.ACTIVE
-ORDER BY s.supplierName
-""")
-    List<SupplierSummaryDto> findAllSummary();
-
     @EntityGraph(attributePaths = {"contactList"})
     @Query("""
 SELECT s FROM SupplierEntity s
@@ -71,4 +56,5 @@ WHERE s.status = :status
 """)
     Page<SupplierEntity> findSupplierList(StatusEnum status, Pageable pageable);
     Optional<SupplierEntity> findByIdAndStatus(@NotNull(message = "Supplier Id is required") Integer integer, StatusEnum statusEnum);
+    List<SupplierEntity> findByStatus(StatusEnum status, Sort sort);
 }
