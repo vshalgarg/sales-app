@@ -1,23 +1,18 @@
 import { useState, useEffect, useMemo } from "react";
 import { Plus } from "lucide-react";
-import {
-  getUsers,
-  deleteUser,
-  searchUsers,
-} from "../service/UserService";
+import { getUsers, deleteUser, searchUsers } from "../service/UserService";
 import { useSnackbar } from "../context/SnackbarContext";
 import { useAuth } from "../context/AuthContext";
-
 import DataTable from "../components/DataTable";
 import UniversalSearch from "../components/UniversalSearch";
 import ListPagination from "../components/common/ListPagination";
-
 import ChangePasswordModal from "./modals/ChangePasswordModal";
 import AddUserModal from "./modals/AddUserModal";
 import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 import AppButton from "../components/common/AppButton";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { CARD_GRID_SHELL_CLASS } from "../theme/cardTheme";
+import { IconButton, Tooltip } from "@mui/material";
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
@@ -81,7 +76,6 @@ const Users = () => {
     setCurrentPage(1);
   };
 
-
   const handleDelete = async () => {
     if (!userToDelete?.id) return;
 
@@ -124,17 +118,24 @@ const Users = () => {
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full min-h-0">
       <div className="shrink-0">
         <div className="flex justify-between items-center mt-2 mb-3 gap-3">
-          <h2 className={PAGE_TITLE_CLASS}>Users</h2>
+          <div className="flex gap-2">
+            <h2 className={PAGE_TITLE_CLASS}>Users</h2>
 
-          {isAdmin && (
-            <AppButton type="primary" onClick={() => setIsAddUserOpen(true)}>
-              <Plus size={18} className="mr-2" />
-              Add New User
-            </AppButton>
-          )}
-        </div>
+            {isAdmin && (
+              <Tooltip title="Add user">
+                <span>
+                  <IconButton
+                    onClick={() => setIsAddUserOpen(true)}
+                    size="medium"
+                    className="!bg-brand-primary hover:!bg-brand-primary-dark"
+                  >
+                    <Plus className="h-5 w-5 text-white" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+          </div>
 
-        <div className="mb-3">
           <UniversalSearch
             placeholder="Search users..."
             query={query}
@@ -148,7 +149,9 @@ const Users = () => {
         </div>
       </div>
 
-      <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${CARD_GRID_SHELL_CLASS}`}>
+      <div
+        className={`flex-1 min-h-0 flex flex-col overflow-hidden ${CARD_GRID_SHELL_CLASS}`}
+      >
         <div className="flex-1 min-h-0 overflow-hidden p-3 md:p-4">
           <div className="h-full min-h-0">
             <DataTable
@@ -156,14 +159,22 @@ const Users = () => {
               data={paginatedUsers}
               loading={false}
               actions={isAdmin}
-              onEdit={isAdmin ? (u) => {
-                setSelectedUser(u);
-                setChangePwdModalOpen(true);
-              } : undefined}
-              onDelete={isAdmin ? (u) => {
-                setUserToDelete(u);
-                setDeleteModalOpen(true);
-              } : undefined}
+              onEdit={
+                isAdmin
+                  ? (u) => {
+                      setSelectedUser(u);
+                      setChangePwdModalOpen(true);
+                    }
+                  : undefined
+              }
+              onDelete={
+                isAdmin
+                  ? (u) => {
+                      setUserToDelete(u);
+                      setDeleteModalOpen(true);
+                    }
+                  : undefined
+              }
               emptyMessage="No users found"
               disablePagination
               headerRowSx={tableHeaderRowSx}
@@ -206,8 +217,7 @@ const Users = () => {
         title="Delete User"
         message={
           <>
-            Are you sure you want to delete{" "}
-            <b>{userToDelete?.username}</b>?
+            Are you sure you want to delete <b>{userToDelete?.username}</b>?
             This action cannot be undone.
           </>
         }
@@ -219,7 +229,6 @@ const Users = () => {
         }}
         onConfirm={handleDelete}
       />
-
     </div>
   );
 };

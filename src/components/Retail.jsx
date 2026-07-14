@@ -16,7 +16,6 @@ import CustomerService from "../service/CustomerService";
 import RetailHistory from "./RetailHistory";
 import EditPurchaseDetail from "../modals/EditPurchaseDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
-import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { getAllActiveStaffs } from "../service/StaffService";
 import RetailerViewEdit from "../modals/RetailerViewEdit";
@@ -27,7 +26,8 @@ import {
   updateSupplier,
 } from "../service/RetailService";
 import CustomDatePicker from "./common/CustomDatePicker";
-import { Store, FilterX, Funnel } from "lucide-react";
+import { IconButton, Tooltip } from "@mui/material";
+import { Store, Check, RotateCcw } from "lucide-react";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import {
   SECTION_ICON_CLASS,
@@ -291,8 +291,8 @@ const Retail = () => {
           </div>
         </div>
 
-        <div className="px-4 md:px-6 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="px-4 md:px-6 py-4 flex flex-col gap-3 lg:flex-row lg:items-end">
+          <div className="grid flex-1 grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3">
             <CustomDatePicker
               label="From Date"
               value={filterObject.fromDate}
@@ -372,26 +372,36 @@ const Retail = () => {
               />
             </div>
           </div>
-        </div>
 
-        <div className="px-4 md:px-6 pb-4 flex justify-end gap-3">
-          <AppButton
-            type="secondary"
-            startIcon={<FilterX className="h-4 w-4" />}
-            onClick={clearFiltersAndResults}
-          >
-            Clear Filters
-          </AppButton>
+          <div className="flex items-center justify-end gap-2 shrink-0 pb-0.5">
+            <Tooltip title="Apply filters">
+              <span>
+                <IconButton
+                  onClick={() => handleRetailerHistory(1)}
+                  disabled={!isAnyFilterSelected || loading}
+                  size="medium"
+                  aria-label="Apply filters"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
+                >
+                  <Check className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-          <AppButton
-            type="primary"
-            startIcon={<Funnel className="h-4 w-4" />}
-            onClick={() => handleRetailerHistory(1)}
-            disabled={!isAnyFilterSelected}
-            loading={loading}
-          >
-            Apply Filters
-          </AppButton>
+            <Tooltip title="Clear filters">
+              <span>
+                <IconButton
+                  onClick={clearFiltersAndResults}
+                  disabled={!isAnyFilterSelected || loading}
+                  size="medium"
+                  aria-label="Clear filters"
+                  className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg"
+                >
+                  <RotateCcw className="h-5 w-5 text-brand-navy" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </div>
         </div>
         </div>
 

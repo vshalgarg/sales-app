@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Calendar, Phone } from "lucide-react";
+import { Calendar, Phone, Plus } from "lucide-react";
 import dayjs from "dayjs";
-import { getStaffs, searchStaffs, deleteStaff, getStaffById } from "../service/StaffService";
+import {
+  getStaffs,
+  searchStaffs,
+  deleteStaff,
+  getStaffById,
+} from "../service/StaffService";
 import { useSnackbar } from "../context/SnackbarContext";
 import AddNewStaff from "../modals/AddNewStaff";
 import UniversalSearch from "./UniversalSearch";
@@ -9,6 +14,7 @@ import EntityCardGrid from "./common/EntityCardGrid";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { IconButton, Tooltip } from "@mui/material";
 
 const STAFF_CARD_FIELDS = [
   { label: "Phone", key: "phone", icon: Phone },
@@ -41,29 +47,32 @@ export default function StaffDashboard() {
     joiningDate: "",
   });
 
-  const fetchStaffs = useCallback(async (uiPage = 1) => {
-    const backendPage = uiPage - 1;
-    try {
-      const data = await getStaffs(backendPage, rowsPerPage);
+  const fetchStaffs = useCallback(
+    async (uiPage = 1) => {
+      const backendPage = uiPage - 1;
+      try {
+        const data = await getStaffs(backendPage, rowsPerPage);
 
-      const formatted = (data.content || []).map((s) => ({
-        ...s,
-        joiningDate: formatJoiningDate(s.joiningDate),
-      }));
+        const formatted = (data.content || []).map((s) => ({
+          ...s,
+          joiningDate: formatJoiningDate(s.joiningDate),
+        }));
 
-      setStaffs(formatted);
-      setTotalPages(data.totalPages || 1);
-      setTotalItems(data.totalElements || 0);
-      setCurrentPage(uiPage);
-      setIsSearchActive(false);
-      setSearchResults([]);
-    } catch (error) {
-      setStaffs([]);
-      setTotalPages(1);
-      setTotalItems(0);
-      showSnackbar(error.message, "error");
-    }
-  }, [rowsPerPage, showSnackbar]);
+        setStaffs(formatted);
+        setTotalPages(data.totalPages || 1);
+        setTotalItems(data.totalElements || 0);
+        setCurrentPage(uiPage);
+        setIsSearchActive(false);
+        setSearchResults([]);
+      } catch (error) {
+        setStaffs([]);
+        setTotalPages(1);
+        setTotalItems(0);
+        showSnackbar(error.message, "error");
+      }
+    },
+    [rowsPerPage, showSnackbar],
+  );
 
   useEffect(() => {
     fetchStaffs(1);
@@ -104,11 +113,7 @@ export default function StaffDashboard() {
     if (isSearchActive && query.trim()) {
       try {
         const backendPage = newPage - 1;
-        const response = await searchStaffs(
-          query,
-          backendPage,
-          rowsPerPage,
-        );
+        const response = await searchStaffs(query, backendPage, rowsPerPage);
         handleSearchResult(response, query, newPage);
       } catch (error) {
         console.error("Error fetching search page:", error);
@@ -191,25 +196,30 @@ export default function StaffDashboard() {
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       <div>
         <div className="flex justify-between items-center mt-2 mb-3 gap-3">
-          <h2 className={PAGE_TITLE_CLASS}>
-            {isMobile ? "Staff" : "Staff Overview"}
-          </h2>
-          <button
-            onClick={() => {
-              setForm({
-                staffName: "",
-                phone: "",
-                joiningDate: "",
-              });
-              setOpen(true);
-            }}
-            className="px-3 py-1.5 md:px-4 md:py-2 bg-brand-primary text-white rounded-lg shadow hover:bg-brand-primary-dark whitespace-nowrap text-sm md:text-base"
-          >
-            + Add Staff
-          </button>
-        </div>
+          <div className="flex gap-2">
+            <h2 className={PAGE_TITLE_CLASS}>
+              {isMobile ? "Staff" : "Staff Overview"}
+            </h2>
+            <Tooltip title="Add staff">
+              <span>
+                <IconButton
+                  onClick={() => {
+                    setForm({
+                      staffName: "",
+                      phone: "",
+                      joiningDate: "",
+                    });
+                    setOpen(true);
+                  }}
+                  size="medium"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark"
+                >
+                  <Plus className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </div>
 
-        <div className="mb-3">
           <UniversalSearch
             placeholder="Search staff..."
             query={query}

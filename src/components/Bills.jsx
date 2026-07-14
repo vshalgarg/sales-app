@@ -16,13 +16,13 @@ import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { formatIndianCurrency } from "../utils/currencyUtils";
-import { FilterX, Funnel, Receipt } from "lucide-react";
+import { IconButton, Tooltip } from "@mui/material";
+import { FilterX, Funnel, Receipt, Check, RotateCcw } from "lucide-react";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import {
   SECTION_ICON_CLASS,
   SECTION_ICON_WRAPPER_CLASS,
 } from "../theme/cardTheme";
-
 
 const Bills = () => {
   const { showSnackbar } = useSnackbar();
@@ -46,12 +46,7 @@ const Bills = () => {
   const [billToDelete, setBillToDelete] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const {
-    errors,
-    setErrors,
-    filterObject,
-    setFilterObject,
-  } = useBillForm();
+  const { errors, setErrors, filterObject, setFilterObject } = useBillForm();
 
   /* ================= LOAD SUPPLIERS & CUSTOMERS ================= */
   useEffect(() => {
@@ -108,8 +103,8 @@ const Bills = () => {
       setBillHistoryData(data?.content ?? []);
       setTotalItems(data?.totalElements ?? 0);
       setCurrentPage(page);
-      let total=data?.totalAmount ?? 0
-      setTotalAmount(formatIndianCurrency(Math.round(total)))
+      let total = data?.totalAmount ?? 0;
+      setTotalAmount(formatIndianCurrency(Math.round(total)));
     } catch {
       setBillHistoryData([]);
       setTotalItems(0);
@@ -168,183 +163,199 @@ const Bills = () => {
     <>
       <div className="flex flex-col h-full min-h-0">
         <div className="flex flex-col flex-1 min-h-0 gap-3 mt-2">
-        {/* ================= FILTER CARD ================= */}
-        <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900 shrink-0">
-          {/* Header */}
-          <div className="px-4 md:px-6 py-3 border-b border-brand-surface-border dark:border-zinc-700/40">
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
-              >
-                <Receipt className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+          {/* ================= FILTER CARD ================= */}
+          <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900 shrink-0">
+            {/* Header */}
+            <div className="px-4 md:px-6 py-3 border-b border-brand-surface-border dark:border-zinc-700/40">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
+                >
+                  <Receipt className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+                </div>
+                <div>
+                  <h2 className={PAGE_TITLE_CLASS}>Bills</h2>
+                  <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
+                    Filter and review bill history by supplier, customer and
+                    date range
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className={PAGE_TITLE_CLASS}>Bills</h2>
-                <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
-                  Filter and review bill history by supplier, customer and date range
-                </p>
+            </div>
+
+            {/* Filters */}
+
+            <div className="px-4 md:px-6 py-4 flex flex-col gap-3 lg:flex-row lg:items-end">
+              <div className="grid flex-1 grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* From Date */}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="From Date"
+                    format="DD-MM-YYYY"
+                    value={
+                      filterObject.fromDate
+                        ? dayjs(filterObject.fromDate)
+                        : null
+                    }
+                    maxDate={todayDayjs}
+                    onChange={(v) => {
+                      const formatted = v ? dayjs(v).format("YYYY-MM-DD") : "";
+
+                      setFilterObject((prev) => ({
+                        ...prev,
+                        fromDate: formatted,
+                        //if toDate exists & is before new fromDate → reset toDate
+                        toDate:
+                          prev.toDate && dayjs(prev.toDate).isBefore(v)
+                            ? ""
+                            : prev.toDate,
+                      }));
+
+                      setErrors((prev) => ({ ...prev, fromDate: "" }));
+                    }}
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        fullWidth: true,
+                        sx: {
+                          "& .MuiPickersSectionList-root": {
+                            fontSize: { xs: "12px", md: "16px" },
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+
+                {/* To Date */}
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="To Date"
+                    format="DD-MM-YYYY"
+                    value={
+                      filterObject.toDate ? dayjs(filterObject.toDate) : null
+                    }
+                    minDate={
+                      filterObject.fromDate
+                        ? dayjs(filterObject.fromDate)
+                        : undefined
+                    } //cannot select before fromDate
+                    maxDate={todayDayjs}
+                    onChange={(v) =>
+                      setFilterObject((prev) => ({
+                        ...prev,
+                        toDate: v ? dayjs(v).format("YYYY-MM-DD") : "",
+                      }))
+                    }
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        fullWidth: true,
+                        sx: {
+                          "& .MuiPickersSectionList-root": {
+                            fontSize: { xs: "12px", md: "16px" },
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+
+                {/* Supplier */}
+                <div className="col-span-2 md:col-span-1">
+                  <GenericAutocomplete
+                    options={allSuppliers}
+                    value={selectedSupplier}
+                    loading={supplierLoading}
+                    label="Supplier"
+                    placeholder="Select supplier"
+                    onChange={(value) => {
+                      setSelectedSupplier(value);
+                      setFilterObject((prev) => ({
+                        ...prev,
+                        supplierId: value ? value.id : null,
+                      }));
+                    }}
+                  />
+                </div>
+
+                {/* Customer */}
+                <div className="col-span-2 md:col-span-1">
+                  <GenericAutocomplete
+                    options={allCustomers}
+                    value={selectedCustomer}
+                    loading={customerLoading}
+                    label="Customer"
+                    placeholder="Select customer"
+                    onChange={(value) => {
+                      setSelectedCustomer(value);
+                      setFilterObject((prev) => ({
+                        ...prev,
+                        customerId: value ? value.id : null,
+                      }));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 shrink-0 pb-0.5">
+                <Tooltip title="Apply filters">
+                  <span>
+                    <IconButton
+                      onClick={() => handleBillDetailHistory(1)}
+                      disabled={!isAnyFilterSelected || loading}
+                      size="medium"
+                      aria-label="Apply filters"
+                      className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
+                    >
+                      <Check className="h-5 w-5 text-white" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="Clear filters">
+                  <span>
+                    <IconButton
+                      onClick={clearFiltersAndResults}
+                      disabled={!isAnyFilterSelected || loading}
+                      size="medium"
+                      aria-label="Clear filters"
+                      className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg"
+                    >
+                      <RotateCcw className="h-5 w-5 text-brand-navy" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </div>
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="px-4 md:px-6 py-4">
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
-
-              {/* From Date */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="From Date"
-                  format="DD-MM-YYYY"
-                  value={filterObject.fromDate ? dayjs(filterObject.fromDate) : null}
-                  maxDate={todayDayjs}
-                  onChange={(v) => {
-                    const formatted = v ? dayjs(v).format("YYYY-MM-DD") : "";
-
-                    setFilterObject(prev => ({
-                      ...prev,
-                      fromDate: formatted,
-                      //if toDate exists & is before new fromDate → reset toDate
-                      toDate:
-                        prev.toDate && dayjs(prev.toDate).isBefore(v)
-                          ? ""
-                          : prev.toDate,
-                    }));
-
-                    setErrors(prev => ({ ...prev, fromDate: "" }));
-                  }}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      sx: {
-                        "& .MuiPickersSectionList-root": {
-                          fontSize: { xs: "12px", md: "16px" },
-                        },
-                      },
-                    },
-                  }}
-                />
-              </LocalizationProvider>
-
-              {/* To Date */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="To Date"
-                  format="DD-MM-YYYY"
-                  value={filterObject.toDate ? dayjs(filterObject.toDate) : null}
-                  minDate={
-                    filterObject.fromDate
-                      ? dayjs(filterObject.fromDate)
-                      : undefined
-                  } //cannot select before fromDate
-                  maxDate={todayDayjs}
-                  onChange={(v) =>
-                    setFilterObject(prev => ({
-                      ...prev,
-                      toDate: v ? dayjs(v).format("YYYY-MM-DD") : "",
-                    }))
-                  }
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      sx: {
-                        "& .MuiPickersSectionList-root": {
-                          fontSize: { xs: "12px", md: "16px" },
-                        },
-                      },
-                    },
-                  }}
-                />
-              </LocalizationProvider>
-
-              {/* Supplier */}
-              <div className="col-span-2 md:col-span-1">
-                <GenericAutocomplete
-                  options={allSuppliers}
-                  value={selectedSupplier}
-                  loading={supplierLoading}
-                  label="Supplier"
-                  placeholder="Select supplier"
-                  onChange={(value) => {
-                    setSelectedSupplier(value);
-                    setFilterObject((prev) => ({
-                      ...prev,
-                      supplierId: value ? value.id : null,
-                    }));
-                  }}
-                />
-              </div>
-
-              {/* Customer */}
-              <div className="col-span-2 md:col-span-1">
-                <GenericAutocomplete
-                  options={allCustomers}
-                  value={selectedCustomer}
-                  loading={customerLoading}
-                  label="Customer"
-                  placeholder="Select customer"
-                  onChange={(value) => {
-                    setSelectedCustomer(value);
-                    setFilterObject(prev => ({
-                      ...prev,
-                      customerId: value ? value.id : null
-                    }));
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-4 flex justify-end gap-3">
-              <AppButton
-                type="secondary"
-                startIcon={<FilterX className="h-4 w-4" />}
-                onClick={clearFiltersAndResults}
-              >
-                Clear Filters
-              </AppButton>
-
-              <AppButton
-                type="primary"
-                startIcon={<Funnel className="h-4 w-4" />}
-                onClick={() => handleBillDetailHistory(1)}
-                disabled={!isAnyFilterSelected}
-                loading={loading}
-              >
-                Apply Filters
-              </AppButton>
-
-            </div>
+          {/* ================= TABLE ================= */}
+          <div className="flex-1 min-h-0 rounded-xl border border-brand-surface-border dark:border-zinc-700/40 overflow-hidden bg-white dark:bg-zinc-900">
+            <BillHistory
+              data={billHistoryData}
+              page={currentPage}
+              totalItems={totalItems}
+              rowsPerPage={rowsPerPage}
+              totalAmount={totalAmount}
+              onPageChange={handleBillDetailHistory}
+              emptyMessage={
+                filtersApplied
+                  ? "No data found for selected filters"
+                  : "Apply filters to view bill history"
+              }
+              onView={(row) => {
+                setSelectedBillDetail(row);
+                setIsModalOpen(true);
+              }}
+              onEdit={(row) => {
+                setSelectedBillDetail(row);
+                setOpen(true);
+              }}
+              onDelete={handleDelete}
+            />
           </div>
-        </div>
-
-        {/* ================= TABLE ================= */}
-        <div className="flex-1 min-h-0 rounded-xl border border-brand-surface-border dark:border-zinc-700/40 overflow-hidden bg-white dark:bg-zinc-900">
-          <BillHistory
-            data={billHistoryData}
-            page={currentPage}
-            totalItems={totalItems}
-            rowsPerPage={rowsPerPage}
-            totalAmount={totalAmount}
-            onPageChange={handleBillDetailHistory}
-            emptyMessage={
-              filtersApplied
-                ? "No data found for selected filters"
-                : "Apply filters to view bill history"
-            }
-            onView={(row) => {
-              setSelectedBillDetail(row);
-              setIsModalOpen(true);
-            }}
-            onEdit={(row) => {
-              setSelectedBillDetail(row);
-              setOpen(true);
-            }}
-            onDelete={handleDelete}
-          />
-        </div>
         </div>
       </div>
 
@@ -393,8 +404,7 @@ const Bills = () => {
           setBillToDelete(null);
         }}
       />
-
     </>
   );
-}
+};
 export default Bills;
