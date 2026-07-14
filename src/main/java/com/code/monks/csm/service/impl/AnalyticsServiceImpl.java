@@ -407,8 +407,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Setter
     private static class MonthlyAnalyticsAccumulator {
 
-        private Long billAmount;
-        private Long creditAmount;
+        private Long billAmount = 0L;
+        private Long creditAmount = 0L;
         private long billCount;
         private long creditCount;
     }
