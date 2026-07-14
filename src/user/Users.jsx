@@ -27,7 +27,7 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -111,7 +111,12 @@ const Users = () => {
     {
       key: "username",
       label: "Username",
-      width: "70%",
+      width: "40%",
+    },
+    {
+      key: "roles",
+      label: "Role",
+      width: "40%",
     },
   ];
 

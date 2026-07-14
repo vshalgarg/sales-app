@@ -32,7 +32,7 @@ export default function CustomerDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
   const { showSnackbar } = useSnackbar();

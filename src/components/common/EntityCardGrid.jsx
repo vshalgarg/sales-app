@@ -11,7 +11,7 @@ const EntityCardGrid = ({
   buildCardProps,
   page,
   totalCount,
-  rowsPerPage = 10,
+  rowsPerPage = 6,
   onPageChange,
   onRowsPerPageChange,
   rowsPerPageOptions,

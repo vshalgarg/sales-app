@@ -24,7 +24,7 @@ export default function StaffDashboard() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [staffs, setStaffs] = useState([]);
   const [query, setQuery] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);

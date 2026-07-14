@@ -46,7 +46,7 @@ export default function TransportDashboard() {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [totalItems, setTotalItems] = useState(0);
   const { showSnackbar } = useSnackbar();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
