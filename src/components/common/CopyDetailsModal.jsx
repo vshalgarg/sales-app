@@ -263,10 +263,10 @@ export default function CopyDetailsModal({
         <IconButton
           aria-label="Close"
           onClick={onClose}
-          size="small"
+          size="medium"
           className="!absolute right-3 top-3"
         >
-          <X className="h-4 w-4 text-brand-search-muted" />
+          <X className="h-5 w-5 text-brand-search-muted" />
         </IconButton>
         <h2 className={`${PAGE_TITLE_CLASS} text-center mt-2`}>{title}</h2>
       </DialogTitle>
@@ -309,7 +309,7 @@ export default function CopyDetailsModal({
           </>
         ) : null}
 
-        <p className="text-xs font-semibold text-brand-primary mb-2">Preview</p>
+        {/* <p className="text-xs font-semibold text-brand-primary mb-2">Preview</p> */}
         <div
           className="rounded-[10px] border border-brand-surface-border bg-[#f7f8ff] p-3 max-h-[60vh] overflow-y-auto break-words"
           style={{ lineHeight: 1.8 }}

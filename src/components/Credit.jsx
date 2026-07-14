@@ -12,10 +12,10 @@ import CreditHistory from "./CreditHistory";
 import CreditDetail from "../modals/CreditDetail";
 import EditCreditDetail from "../modals/EditCreditDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
-import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { formatIndianCurrency } from "../utils/currencyUtils";
-import { CreditCard, FilterX, Funnel } from "lucide-react";
+import { IconButton, Tooltip } from "@mui/material";
+import { CreditCard, Check, RotateCcw } from "lucide-react";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import {
   SECTION_ICON_CLASS,
@@ -170,9 +170,8 @@ const Credit = () => {
           </div>
         </div>
 
-        <div className="px-4 md:px-6 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
-
+        <div className="px-4 md:px-6 py-4 flex flex-col gap-3 lg:flex-row lg:items-end">
+          <div className="grid flex-1 grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="From Date"
@@ -273,28 +272,35 @@ const Credit = () => {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end gap-3">
+          <div className="flex items-center justify-end gap-2 shrink-0 pb-0.5">
+            <Tooltip title="Apply filters">
+              <span>
+                <IconButton
+                  onClick={() => handleCreditHistory(1)}
+                  disabled={!isAnyFilterSelected || loading}
+                  size="medium"
+                  aria-label="Apply filters"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
+                >
+                  <Check className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-            <AppButton
-              type="secondary"
-              startIcon={<FilterX className="h-4 w-4" />}
-              onClick={clearFiltersAndResults}
-            >
-              Clear Filters
-            </AppButton>
-
-            <AppButton
-              type="primary"
-              startIcon={<Funnel className="h-4 w-4" />}
-              onClick={() => handleCreditHistory(1)}
-              disabled={!isAnyFilterSelected}
-              loading={loading}
-            >
-              Apply Filters
-            </AppButton>
-
+            <Tooltip title="Clear filters">
+              <span>
+                <IconButton
+                  onClick={clearFiltersAndResults}
+                  disabled={!isAnyFilterSelected || loading}
+                  size="medium"
+                  aria-label="Clear filters"
+                  className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg"
+                >
+                  <RotateCcw className="h-5 w-5 text-brand-navy" />
+                </IconButton>
+              </span>
+            </Tooltip>
           </div>
-
         </div>
       </div>
 

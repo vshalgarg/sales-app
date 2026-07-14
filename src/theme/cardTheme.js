@@ -45,7 +45,7 @@ export const CARD_ACTION_DIVIDER_CLASS =
 export const PAGINATION_SHELL_CLASS =
   "rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-white dark:bg-zinc-900 shadow-sm";
 
-export const ROWS_PER_PAGE_OPTIONS = [5, 10, 15, 20, 25];
+export const ROWS_PER_PAGE_OPTIONS = [6, 20, 50, 100];
 
 export const PAGINATION_TEXT_CLASS =
   "text-sm text-brand-search-muted dark:text-gray-400";

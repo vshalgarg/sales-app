@@ -1,4 +1,6 @@
+import { Trash2 } from "lucide-react";
 import AppButton from "./AppButton";
+import { PAGE_TITLE_CLASS } from "../../theme/appTheme";
 
 const DeleteConfirmModal = ({
   open,
@@ -13,38 +15,25 @@ const DeleteConfirmModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl p-5 sm:p-6">
-        {/* Title */}
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">
-          {title}
-        </h3>
+      <div className="relative w-full max-w-sm sm:max-w-md overflow-visible bg-white rounded-2xl shadow-2xl px-5 pt-10 pb-6 sm:px-6 sm:pt-12 sm:pb-7">
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border border-brand-surface-border bg-violet-100">
+          <Trash2 className="h-5 w-5 text-violet-600" />
+        </div>
 
-        {/* Message */}
-        <div className="text-sm sm:text-base text-gray-600 mb-6">
+        <h3 className={`${PAGE_TITLE_CLASS} text-center mt-2 mb-3`}>{title}</h3>
+
+        <div className="text-sm sm:text-base text-gray-600 text-center mb-8">
           {message}
         </div>
 
-        {/* Actions */}
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-
-          {/* Cancel */}
-          <AppButton
-            type="cancel"
-            fullWidth
-            onClick={onClose}
-          >
+          <AppButton type="cancel" fullWidth onClick={onClose}>
             {cancelText}
           </AppButton>
 
-          {/* Confirm / Delete */}
-          <AppButton
-            type="primary"
-            fullWidth
-            onClick={onConfirm}
-          >
+          <AppButton type="primary" fullWidth onClick={onConfirm}>
             {confirmText}
           </AppButton>
-
         </div>
       </div>
     </div>

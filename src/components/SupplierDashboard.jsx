@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { MapPin, MapPinned, Phone, Receipt } from "lucide-react";
+import { MapPin, Plus, MapPinned, Phone, Receipt } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import AddNewSupplier from "../modals/AddNewSupplier";
 import SupplierDetail from "../modals/SupplierDetail";
@@ -12,6 +12,7 @@ import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { getSupplierFormattedText } from "../utils/copyFormatter";
+import { IconButton, Tooltip } from "@mui/material";
 
 const SUPPLIER_CARD_FIELDS = [
   { label: "GST", key: "supplierGstNo", icon: Receipt },
@@ -27,7 +28,7 @@ export default function SupplierDashboard() {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -207,20 +208,24 @@ export default function SupplierDashboard() {
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      <div>
-        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+      <div className="flex justify-between items-center my-2  gap-3">
+        <div className="flex gap-2">
           <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Supplier" : "Supplier Overview"}
           </h2>
-          <button
-            onClick={() => setOpen(true)}
-            className="px-3 py-1.5 md:px-4 md:py-2 bg-brand-primary text-white rounded-lg shadow hover:bg-brand-primary-dark whitespace-nowrap text-sm md:text-base"
-          >
-            + Add Supplier
-          </button>
+          <Tooltip title="Add supplier">
+            <span>
+              <IconButton
+                onClick={() => setOpen(true)}
+                size="medium"
+                className="!bg-brand-primary hover:!bg-brand-primary-dark"
+              >
+                <Plus className="h-5 w-5 text-white" />
+              </IconButton>
+            </span>
+          </Tooltip>
         </div>
-
-        <div className="mb-2">
+        <div>
           <UniversalSearch
             placeholder="Search suppliers..."
             query={query}
@@ -291,8 +296,8 @@ export default function SupplierDashboard() {
         message={
           <>
             Are you sure you want to permanently delete{" "}
-            <b>{supplierToDelete?.supplierName}</b>?
-            This action cannot be undone.
+            <b>{supplierToDelete?.supplierName}</b>? This action cannot be
+            undone.
           </>
         }
         confirmText="Delete"

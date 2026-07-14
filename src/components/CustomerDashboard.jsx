@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { MapPin, MapPinned, Phone, Receipt } from "lucide-react";
+import { MapPin, MapPinned, Phone, Receipt, Plus } from "lucide-react";
 import { useSnackbar } from "../context/SnackbarContext";
 import CustomerService from "../service/CustomerService";
 import AddNewCustomer from "../modals/AddNewCustomer";
@@ -12,6 +12,7 @@ import CopyDetailsModal from "./common/CopyDetailsModal";
 import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { getCustomerFormattedText } from "../utils/copyFormatter";
+import { IconButton, Tooltip } from "@mui/material";
 
 const CUSTOMER_CARD_FIELDS = [
   { label: "GST", key: "customerGstNo", icon: Receipt },
@@ -32,7 +33,7 @@ export default function CustomerDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
   const { showSnackbar } = useSnackbar();
@@ -211,18 +212,23 @@ export default function CustomerDashboard() {
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
       <div>
         <div className="flex justify-between items-center mt-2 mb-3 gap-3">
-          <h2 className={PAGE_TITLE_CLASS}>
-            {isMobile ? "Customer" : "Customer Overview"}
-          </h2>
-          <button
-            onClick={() => setOpen(true)}
-            className="px-3 py-1.5 md:px-4 md:py-2 bg-brand-primary text-white rounded-lg shadow hover:bg-brand-primary-dark whitespace-nowrap text-sm md:text-base"
-          >
-            + Add Customer
-          </button>
-        </div>
+          <div className="flex gap-2">
+            <h2 className={PAGE_TITLE_CLASS}>
+              {isMobile ? "Customer" : "Customer Overview"}
+            </h2>
+            <Tooltip title="Add customer">
+              <span>
+                <IconButton
+                  onClick={() => setOpen(true)}
+                  size="medium"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark"
+                >
+                  <Plus className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </div>
 
-        <div className="mb-3">
           <UniversalSearch
             placeholder="Search customers..."
             query={query}
@@ -283,8 +289,8 @@ export default function CustomerDashboard() {
         message={
           <>
             Are you sure you want to permanently delete{" "}
-            <b>{customerToDelete?.customerName}</b>?
-            This action cannot be undone.
+            <b>{customerToDelete?.customerName}</b>? This action cannot be
+            undone.
           </>
         }
         confirmText="Delete"

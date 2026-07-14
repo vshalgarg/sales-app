@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { MapPin, Phone, Receipt, MapPinned, CircleDot } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Receipt,
+  MapPinned,
+  CircleDot,
+  Plus,
+} from "lucide-react";
 import TransportService from "../service/TransportService";
 import AddNewTransport from "../modals/AddNewTransport";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -10,11 +17,10 @@ import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import { getTransportFormattedText } from "../utils/copyFormatter";
 import CopyDetailsModal from "./common/CopyDetailsModal";
 import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { IconButton, Tooltip } from "@mui/material";
 
 const formatContact = (contacts) =>
-  contacts?.length > 0
-    ? contacts.map((c) => c.contactNumber).join(", ")
-    : "-";
+  contacts?.length > 0 ? contacts.map((c) => c.contactNumber).join(", ") : "-";
 
 const formatAddress = (transport) => {
   const address = `${transport.addressLine1 || ""}${
@@ -46,7 +52,7 @@ export default function TransportDashboard() {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [totalItems, setTotalItems] = useState(0);
   const { showSnackbar } = useSnackbar();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -243,32 +249,35 @@ export default function TransportDashboard() {
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      <div>
-        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+      <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+        <div className="flex gap-2">
           <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Transport" : "Transport Overview"}
           </h2>
-          <button
-            onClick={handleAddNew}
-            className="px-3 py-1.5 md:px-4 md:py-2 bg-brand-primary text-white rounded-lg shadow hover:bg-brand-primary-dark whitespace-nowrap text-sm md:text-base"
-          >
-            + Add Transport
-          </button>
+          <Tooltip title="Add transport">
+            <span>
+              <IconButton
+                onClick={handleAddNew}
+                size="medium"
+                className="!bg-brand-primary hover:!bg-brand-primary-dark"
+              >
+                <Plus className="h-5 w-5 text-white" />
+              </IconButton>
+            </span>
+          </Tooltip>
         </div>
 
-        <div className="mb-3">
-          <UniversalSearch
-            placeholder="Search transports..."
-            query={query}
-            setQuery={setQuery}
-            searchFn={TransportService.searchTransports}
-            onResult={handleSearchResult}
-            onClear={handleClearSearch}
-            suggestionKey="name"
-            pageSize={rowsPerPage}
-            showSuggestions={false}
-          />
-        </div>
+        <UniversalSearch
+          placeholder="Search transports..."
+          query={query}
+          setQuery={setQuery}
+          searchFn={TransportService.searchTransports}
+          onResult={handleSearchResult}
+          onClear={handleClearSearch}
+          suggestionKey="name"
+          pageSize={rowsPerPage}
+          showSuggestions={false}
+        />
       </div>
 
       <div className="flex-1 min-h-0">
