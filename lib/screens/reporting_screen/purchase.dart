@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/screens/entry_screen/purchase_entry.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
@@ -26,8 +27,8 @@ class _PurchaseState extends State<Purchase> {
   final ScrollController _scrollController = ScrollController();
 
   int _page = 0;
-  int _size = 20;
-
+  final int _size = 20;
+  bool isFilterApplied = false;
   bool _isFetchingMore = false;
   bool _hasMore = true;
   bool isDeleting = false;
@@ -45,7 +46,14 @@ class _PurchaseState extends State<Purchase> {
   @override
   void initState() {
     super.initState();
+    print("Purchase initState");
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
 
+    final formatter = DateFormat('yyyy-MM-dd');
+
+    fromDateController.text = formatter.format(tenDaysAgo);
+    toDateController.text = formatter.format(now);
     _scrollController.addListener(_scrollListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -60,7 +68,12 @@ class _PurchaseState extends State<Purchase> {
       _page = 0;
       _hasMore = true;
 
-      await purchaseProvider.searchPurchases(page: _page, size: _size);
+      await purchaseProvider.searchPurchases(
+        page: _page,
+        size: _size,
+        fromDate: fromDateController.text,
+        toDate: toDateController.text,
+      );
     });
   }
 
@@ -78,13 +91,12 @@ class _PurchaseState extends State<Purchase> {
     }
 
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200 &&
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isFetchingMore &&
         _hasMore) {
       _loadMore();
     }
   }
-
 
   Future<void> _loadMore() async {
     final provider = context.read<PurchaseProvider>();
@@ -141,23 +153,35 @@ class _PurchaseState extends State<Purchase> {
     String? toDate = toDateController.text.isEmpty
         ? null
         : toDateController.text;
+    setState(() {
+      isFilterApplied = true;
+    });
     await purchaseProvider.searchPurchases(
       fromDate: fromDate,
       toDate: toDate,
       supplierId: supplierId,
       customerId: customerId,
     );
+    _clearFilters();
   }
 
   void _clearFilters() async {
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat('yyyy-MM-dd');
     setState(() {
-      fromDateController.clear();
-      toDateController.clear();
+      fromDateController.text = formatter.format(tenDaysAgo);
+      toDateController.text = formatter.format(now);
       selectedSupplier = null;
       selectedCustomer = null;
     });
 
-    await context.read<PurchaseProvider>().searchPurchases();
+    // await context.read<PurchaseProvider>().searchPurchases(
+    //   page: 0,
+    //   size: 20,
+    //   fromDate: fromDateController.text,
+    //   toDate: toDateController.text,
+    // );
   }
 
   void _showFilterBottomSheet() {
@@ -291,8 +315,7 @@ class _PurchaseState extends State<Purchase> {
                     curve: Curves.easeInOut,
                   );
                 },
-                child: const Icon(Icons.keyboard_arrow_up,
-                  color: Colors.white,),
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
               ),
             ),
 
@@ -302,28 +325,30 @@ class _PurchaseState extends State<Purchase> {
             onPressed: isOpening
                 ? null
                 : () async {
-              setState(() {
-                isOpening = true;
-              });
-              await Future.delayed(const Duration(milliseconds: 100));
-              if (!mounted) return;
+                    setState(() {
+                      isOpening = true;
+                    });
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (!context.mounted) return;
 
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PurchaseEntryScreen()),
-              );
-              if (mounted) {
-                setState(() {
-                  isOpening = false;
-                });
-              }
-            },
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PurchaseEntryScreen(),
+                      ),
+                    );
+                    if (mounted) {
+                      setState(() {
+                        isOpening = false;
+                      });
+                    }
+                  },
             child: isOpening
                 ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Iconsax.add, color: Colors.white),
           ),
         ],
@@ -335,6 +360,8 @@ class _PurchaseState extends State<Purchase> {
         ),
         child: Consumer<EntriesProvider>(
           builder: (context, provider, child) {
+            print("EntriesProvider loading: ${provider.isLoading}");
+
             if (provider.isLoading) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -354,6 +381,7 @@ class _PurchaseState extends State<Purchase> {
                 Expanded(
                   child: Consumer<PurchaseProvider>(
                     builder: (context, purchaseProvider, child) {
+                      print("PurchaseProvider loading: ${purchaseProvider.isLoading}");
                       if (purchaseProvider.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
@@ -361,7 +389,9 @@ class _PurchaseState extends State<Purchase> {
                       if (purchaseProvider.purchaseEntries.isEmpty) {
                         return Center(
                           child: Text(
-                            "Apply filters to view purchase history",
+                            isFilterApplied
+                                ? "No data found"
+                                : "Apply filters to view purchase history",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: width * 0.06,
@@ -393,29 +423,29 @@ class _PurchaseState extends State<Purchase> {
                               chips: [
                                 ReportChip(
                                   icon: Iconsax.calendar,
-                                  text: purchase.date ?? "-",
+                                  text: purchase.date,
                                 ),
                               ],
                               fields: [
                                 ReportField(
                                   icon: Iconsax.profile_2user,
                                   label: "Staff",
-                                  value: purchase.staffName ?? "-",
+                                  value: purchase.staffName,
                                 ),
                                 ReportField(
                                   icon: Iconsax.shop,
                                   label: "Supplier",
-                                  value: purchase.supplierName
+                                  value: purchase.supplierName,
                                 ),
                                 ReportField(
                                   icon: Iconsax.user,
                                   label: "Customer",
-                                  value: purchase.customerName
+                                  value: purchase.customerName,
                                 ),
                                 ReportField(
                                   icon: Iconsax.note,
                                   label: "Remarks",
-                                  value: purchase.remarks
+                                  value: purchase.remarks,
                                 ),
                               ],
                               onTap: () async {
@@ -432,17 +462,17 @@ class _PurchaseState extends State<Purchase> {
                                     purchase.id,
                                   );
 
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
 
                                   Navigator.pop(context);
 
                                   Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => PurchaseDetailsScreen(
-                                          purchaseData: data["data"],
-                                        ),
-                                      )
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PurchaseDetailsScreen(
+                                        purchaseData: data["data"],
+                                      ),
+                                    ),
                                   );
                                 } catch (e) {
                                   Navigator.pop(context);
@@ -459,23 +489,22 @@ class _PurchaseState extends State<Purchase> {
 
                                 if (!context.mounted) return;
 
-                              Navigator.push(
-                                  context, MaterialPageRoute(
-                                  builder: (_)=>EditPurchaseScreen(
-                                      purchaseData: details["data"])));
-
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EditPurchaseScreen(
+                                      purchaseData: details["data"],
+                                    ),
+                                  ),
+                                );
                               },
                               onDelete: () async {
                                 ExitConfirmationDialog.show(
                                   context,
                                   bodyText:
-                                  "Are you sure you want to delete this purchase?",
-                                  saveButtonText: "Delete",
-                                  discardButtonText: "Cancel",
-
-                                  onClose: () {
-                                    Navigator.pop(context);
-                                  },
+                                      "Are you sure you want to delete this purchase?",
+                                  saveButtonText: "Yes",
+                                  discardButtonText: "No",
 
                                   onDiscard: () {
                                     Navigator.pop(context);
@@ -488,11 +517,9 @@ class _PurchaseState extends State<Purchase> {
                                         .read<PurchaseProvider>()
                                         .deletePurchase(purchase.id);
 
-                                    if (!mounted) return;
+                                    if (!context.mounted) return;
 
-                                    ScaffoldMessenger.of(
-                                      context,
-                                    ).showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           success
@@ -504,8 +531,8 @@ class _PurchaseState extends State<Purchase> {
                                   },
                                 );
                               },
-                            ));
-
+                            ),
+                          );
                         },
                       );
                     },

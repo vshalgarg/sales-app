@@ -25,6 +25,7 @@ class Bills extends StatefulWidget {
 class _BillsState extends State<Bills> {
   final ScrollController _scrollController = ScrollController();
   bool _showGoToTop = false;
+  bool isFilterApplied = false;
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
@@ -118,20 +119,51 @@ class _BillsState extends State<Bills> {
     if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => BillDetailsScreen(data: data),
-      ),
+      MaterialPageRoute(builder: (_) => BillDetailsScreen(data: data)),
     );
   }
 
   Future<void> _applyFilters() async {
-    await Provider.of<BillsProvider>(context, listen: false).fetchBills(
-      fromDate: fromDateController.text,
-      toDate: toDateController.text,
+    final provider = Provider.of<EntriesProvider>(context, listen: false);
+
+    final billsProvider = Provider.of<BillsProvider>(context, listen: false);
+
+    int? supplierId;
+    int? customerId;
+
+    if (selectedSupplier != null) {
+      final supplier = provider.entries.firstWhere(
+            (e) => e.supplierName == selectedSupplier,
+      );
+
+      supplierId = supplier.id?.toInt();
+    }
+
+    if (selectedCustomer != null) {
+      final customer = provider.customerEntries.firstWhere(
+            (e) => e.customerName == selectedCustomer,
+      );
+      customerId = customer.id?.toInt();
+    }
+    String? fromDate = fromDateController.text.isEmpty
+        ? null
+        : fromDateController.text;
+
+    String? toDate = toDateController.text.isEmpty
+        ? null
+        : toDateController.text;
+
+    page = 0;
+    setState(() {
+      isFilterApplied = true;
+    });
+    await billsProvider.fetchBills(
+      page: 0,
+      fromDate: fromDate,
+      toDate: toDate,
+      supplierId: supplierId,
+      customerId: customerId,
     );
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Filters Applied")));
   }
 
   void _clearFilters() {
@@ -142,14 +174,14 @@ class _BillsState extends State<Bills> {
     setState(() {
       fromDateController.text = formatter.format(tenDaysAgo);
       toDateController.text = formatter.format(now);
-
+      isFilterApplied = false;
       selectedSupplier = null;
       selectedCustomer = null;
     });
-    context.read<BillsProvider>().fetchBills(
-      fromDate: fromDateController.text,
-      toDate: toDateController.text,
-    );
+    // context.read<BillsProvider>().fetchBills(
+    //   fromDate: fromDateController.text,
+    //   toDate: toDateController.text,
+    // );
   }
 
   void _showFilterBottomSheet() {
@@ -226,7 +258,7 @@ class _BillsState extends State<Bills> {
                     selectedCustomer = null;
                   });
 
-            _clearFilters();
+                  _clearFilters();
                 },
               ),
             );
@@ -287,8 +319,10 @@ class _BillsState extends State<Bills> {
                     curve: Curves.easeInOut,
                   );
                 },
-                child: const Icon(Icons.keyboard_arrow_up,
-                color: Color(0xFFFFFFFF),),
+                child: const Icon(
+                  Icons.keyboard_arrow_up,
+                  color: Color(0xFFFFFFFF),
+                ),
               ),
             ),
 
@@ -306,20 +340,31 @@ class _BillsState extends State<Bills> {
                     });
                     await Future.delayed(const Duration(milliseconds: 100));
 
-                    if (!mounted) return;
+                    if (!context.mounted) return;
 
-                    await Navigator.push(
+                    final bool? refresh = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const EntriesBillEntry(),
                       ),
                     );
 
-                    if (mounted) {
-                      setState(() {
-                        isOpening = false;
-                      });
+                    if (!context.mounted) return;
+
+                    if (refresh == true) {
+                      page = 0;
+                      hasMore = true;
+
+                      await context.read<BillsProvider>().fetchBills(
+                        page: 0,
+                        fromDate: fromDateController.text,
+                        toDate: toDateController.text,
+                      );
                     }
+
+                    setState(() {
+                      isOpening = false;
+                    });
                   },
             child: isOpening
                 ? const SizedBox(
@@ -364,7 +409,9 @@ class _BillsState extends State<Bills> {
                       if (billProvider.bills.isEmpty) {
                         return Center(
                           child: Text(
-                            "Apply filters to view bill history",
+                            isFilterApplied
+                                ? "No data found"
+                                : "Apply filters to view bill history",
                             style: TextStyle(
                               fontSize: width * 0.06,
                               color: Colors.white,
@@ -395,13 +442,13 @@ class _BillsState extends State<Bills> {
                               builder: (context, constraints) {
                                 return ReportingCard(
                                   leadingIcon: Iconsax.document,
-                                  title: "Bill No : ",
-                                  value: bill.billNumber ?? "-",
+                                  title: "Invoice Number : ",
+                                  value: bill.billNumber,
 
                                   chips: [
                                     ReportChip(
                                       icon: Iconsax.calendar,
-                                      text: bill.date ?? "-",
+                                      text: bill.date,
                                     ),
                                   ],
 
@@ -409,16 +456,16 @@ class _BillsState extends State<Bills> {
                                     ReportField(
                                       icon: Iconsax.shop,
                                       label: "Supplier",
-                                      value: bill.supplierName ?? "-",
+                                      value: bill.supplierName ,
                                     ),
                                     ReportField(
                                       icon: Iconsax.user,
                                       label: "Customer",
-                                      value: bill.customerName ?? "-",
+                                      value: bill.customerName ,
                                     ),
                                   ],
 
-                                  amount: (bill.billAmount ?? 0).toString(),
+                                  amount: (bill.billAmount ).toString(),
 
                                   onTap: () async {
                                     await _showBillDetails(bill.billNumber);
@@ -426,12 +473,17 @@ class _BillsState extends State<Bills> {
 
                                   onEdit: () async {
                                     try {
-                                      final billDetails = await getBillDetails(bill.billNumber);
+                                      final billDetails = await getBillDetails(
+                                        bill.billNumber,
+                                      );
 
                                       if (!context.mounted) return;
 
-                                      final billsProvider = context.read<BillsProvider>();
-                                      final messenger = ScaffoldMessenger.of(context);
+                                      final billsProvider = context
+                                          .read<BillsProvider>();
+                                      final messenger = ScaffoldMessenger.of(
+                                        context,
+                                      );
 
                                       final updated = await Navigator.push(
                                         context,
@@ -455,7 +507,9 @@ class _BillsState extends State<Bills> {
 
                                         messenger.showSnackBar(
                                           const SnackBar(
-                                            content: Text("Bill Updated Successfully"),
+                                            content: Text(
+                                              "Bill Updated Successfully",
+                                            ),
                                           ),
                                         );
                                       }
@@ -468,12 +522,8 @@ class _BillsState extends State<Bills> {
                                       context,
                                       bodyText:
                                           "Are you sure you want to delete this bill?",
-                                      saveButtonText: "Delete",
-                                      discardButtonText: "Cancel",
-
-                                      onClose: () {
-                                        Navigator.pop(context);
-                                      },
+                                      saveButtonText: "Yes",
+                                      discardButtonText: "No",
 
                                       onDiscard: () {
                                         Navigator.pop(context);
@@ -486,7 +536,7 @@ class _BillsState extends State<Bills> {
                                             .read<BillsProvider>()
                                             .deleteBill(bill.billNumber);
 
-                                        if (!mounted) return;
+                                        if (!context.mounted) return;
 
                                         ScaffoldMessenger.of(
                                           context,
@@ -502,10 +552,11 @@ class _BillsState extends State<Bills> {
                                       },
                                     );
                                   },
+                                  deleteWithAmount: true,
                                 );
                               },
                             ),
-                          );
+                      );
                         },
                       );
                     },

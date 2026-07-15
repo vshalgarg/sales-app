@@ -106,57 +106,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                 context,
                 onSave: () async {
                   Navigator.pop(context);
-                  if (!_formKey.currentState!.validate()) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      "Please fill all the required fields",
-                    );
-                    return;
-                  }
-
-                  final payload = {
-                    "date": dateController.text,
-                    "name": nameController.text,
-                    "staffId": selectedStaff?.staffId,
-                    "referredByCustomerId": selectedReffered?.id,
-                    "suppliers": List.generate(
-                      selectedSuppliers.length,
-                          (index) => {
-                        "supplierId": selectedSuppliers[index]?.id,
-                        "totalAmount":
-                        double.tryParse(totalAmount[index].text) ??
-                            0,
-                        "depositAmount":
-                        double.tryParse(
-                          depositAmount[index].text,
-                        ) ??
-                            0,
-                        "balanceAmount":
-                        double.tryParse(
-                          balancedAmount[index].text,
-                        ) ??
-                            0,
-                      },
-                    ),
-                  };
-
-                  try {
-                    final message = await provider.addRetailEntry(
-                      payload,
-                    );
-
-                    if (!context.mounted) return;
-                    ScaffoldSnackBar.show(
-                      context,
-                      message ?? "Retail Entry Saved",
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Retail()),
-                    );
-                  } catch (e) {
-                    ScaffoldSnackBar.show(context, e.toString());
-                  }
                 },discardButtonText: "Leave",
                 saveButtonText: "Stay",
                 onDiscard: () {

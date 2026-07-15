@@ -120,32 +120,6 @@ class _CreditEntryState extends State<CreditEntry> {
                 context,
                 onSave: () async {
                   Navigator.pop(context);
-                  if (!_formKey.currentState!.validate()) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      "Please fill all the required fields",
-                    );
-                    return;
-                  }
-                  try {
-                    final body = _creditBody();
-                    final response = await context
-                        .read<EntriesProvider>()
-                        .addCreditEntry(body);
-
-                    if (!context.mounted) return;
-                    ScaffoldSnackBar.show(
-                      context,
-                      response?.message ?? "Success",
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Credit()),
-                    );
-                  } catch (e) {
-                    if (!mounted) return;
-                    ScaffoldSnackBar.show(context, e.toString());
-                  }
                 },discardButtonText: "Leave",
                 saveButtonText: "Stay",
                 onDiscard: () {

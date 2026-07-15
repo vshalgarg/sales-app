@@ -38,13 +38,14 @@ class PurchaseProvider extends ChangeNotifier {
     int? customerId,
     int? staffId,
   }) async {
+    print("searchPurchases called");
     try {
       if (!isLoadMore) {
         _isLoading = true;
         _error = null;
         notifyListeners();
       }
-
+      print("API CALLED");
       final response = await searchPurchaseEntries(
         fromDate: fromDate,
         toDate: toDate,

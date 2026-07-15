@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/screens/entry_screen/credit_entry.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
@@ -22,7 +23,9 @@ class Credit extends StatefulWidget {
 
 class _CreditState extends State<Credit> {
   final ScrollController _scrollController = ScrollController();
-
+  List<String> supplierItems = [];
+  List<String> customerItems = [];
+  bool isFilterApplied = false;
   int _page = 0;
   final int _size = 20;
   bool _isFetchingMore = false;
@@ -42,19 +45,51 @@ class _CreditState extends State<Credit> {
   @override
   void initState() {
     super.initState();
+
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+
+    final formatter = DateFormat('yyyy-MM-dd');
+
+    fromDateController.text = formatter.format(tenDaysAgo);
+    toDateController.text = formatter.format(now);
+
     _scrollController.addListener(_scrollListener);
 
-    Future.microtask(() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
       final entriesProvider = context.read<EntriesProvider>();
       final creditProvider = context.read<CreditProvider>();
 
       _page = 0;
       _hasMore = true;
 
-      await creditProvider.fetchCredits(page: _page, size: _size);
+      await creditProvider.fetchCredits(
+        page: 0,
+        size: _size,
+        fromDate: fromDateController.text,
+        toDate: toDateController.text,
+      );
+      setState(() {
+        _hasMore = !creditProvider.last;
+      });
+      await Future.wait([
+        entriesProvider.fetchSuppliers(),
+        entriesProvider.fetchCustomer(),
+      ]);
 
-      await entriesProvider.fetchSuppliers();
-      await entriesProvider.fetchCustomer();
+      supplierItems = entriesProvider.entries
+          .map((e) => e.supplierName ?? '')
+          .where((e) => e.isNotEmpty)
+          .toSet()
+          .toList();
+
+      customerItems = entriesProvider.customerEntries
+          .map((e) => e.customerName ?? '')
+          .where((e) => e.isNotEmpty)
+          .toSet()
+          .toList();
     });
   }
 
@@ -80,21 +115,28 @@ class _CreditState extends State<Credit> {
   }
 
   Future<void> _loadMore() async {
-    _isFetchingMore = true;
+    if (_isFetchingMore || !_hasMore) return;
+
+    setState(() {
+      _isFetchingMore = true;
+    });
 
     _page++;
 
     final provider = context.read<CreditProvider>();
 
-    final oldCount = provider.credits.length;
+    await provider.fetchCredits(
+      page: _page,
+      size: _size,
+      isLoadMore: true,
+      fromDate: fromDateController.text,
+      toDate: toDateController.text,
+    );
 
-    await provider.fetchCredits(page: _page, size: _size, isLoadMore: true);
-
-    if (provider.credits.length == oldCount) {
-      _hasMore = false;
-    }
-
-    _isFetchingMore = false;
+    setState(() {
+      _hasMore = !provider.last;
+      _isFetchingMore = false;
+    });
   }
 
   void _applyFilters() async {
@@ -127,22 +169,44 @@ class _CreditState extends State<Credit> {
         ? null
         : toDateController.text;
 
+    _page = 0;
+    _hasMore = true;
+    setState(() {
+      isFilterApplied = true;
+    });
     await creditProvider.fetchCredits(
+      page: 0,
+      size: _size,
       fromDate: fromDate,
       toDate: toDate,
       supplierId: supplierId,
       customerId: customerId,
     );
-  }
-
-  void _clearFilters() {
     setState(() {
       fromDateController.clear();
       toDateController.clear();
-
       selectedSupplier = null;
       selectedCustomer = null;
     });
+    setState(() {
+      _hasMore = !creditProvider.last;
+    });
+  }
+
+  void _clearFilters() {
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat('yyyy-MM-dd');
+    setState(() {
+      fromDateController.text = formatter.format(tenDaysAgo);
+      toDateController.text = formatter.format(now);
+      selectedSupplier = null;
+      selectedCustomer = null;
+    });
+    // context.read<CreditProvider>().fetchCredits(
+    //   fromDate: fromDateController.text,
+    //   toDate: toDateController.text,
+    // );
   }
 
   void _showFilterBottomSheet() {
@@ -171,34 +235,20 @@ class _CreditState extends State<Credit> {
                   FilterDropdown(
                     label: "Supplier",
                     value: selectedSupplier,
-                    items: provider.entries
-                        .map((e) => e.supplierName ?? '')
-                        .where((e) => e.isNotEmpty)
-                        .toList(),
-                    onChanged: (value) {
-                      bottomSheetSetState(() {
-                        selectedSupplier = value;
-                      });
-
-                      setState(() {
-                        selectedSupplier = value;
-                      });
+                    items: supplierItems,
+                  onChanged: (value) {
+                    bottomSheetSetState(() {
+                      selectedSupplier = value;
+                    });
                     },
                   ),
 
                   FilterDropdown(
                     label: "Customer",
                     value: selectedCustomer,
-                    items: provider.customerEntries
-                        .map((e) => e.customerName ?? '')
-                        .where((e) => e.isNotEmpty)
-                        .toList(),
+                    items: customerItems,
                     onChanged: (value) {
                       bottomSheetSetState(() {
-                        selectedCustomer = value;
-                      });
-
-                      setState(() {
                         selectedCustomer = value;
                       });
                     },
@@ -214,7 +264,6 @@ class _CreditState extends State<Credit> {
                   bottomSheetSetState(() {
                     fromDateController.clear();
                     toDateController.clear();
-
                     selectedSupplier = null;
                     selectedCustomer = null;
                   });
@@ -279,8 +328,7 @@ class _CreditState extends State<Credit> {
                     curve: Curves.easeInOut,
                   );
                 },
-                child: const Icon(Icons.keyboard_arrow_up,
-                color: Colors.white,),
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
               ),
             ),
 
@@ -349,7 +397,9 @@ class _CreditState extends State<Credit> {
                       if (creditProvider.credits.isEmpty) {
                         return Center(
                           child: Text(
-                            "Apply filters to view credits",
+                            isFilterApplied
+                                ? "No data found"
+                                : "Apply filters to view credit history",
                             style: TextStyle(
                               fontSize: width * 0.06,
                               color: Colors.white,
@@ -376,8 +426,8 @@ class _CreditState extends State<Credit> {
                               builder: (context, constraints) {
                                 return ReportingCard(
                                   leadingIcon: Iconsax.document,
-                                  title: "Bill No : ",
-                                  value: credit.billNumber??"-",
+                                  title: "Invoice Number : ",
+                                  value: credit.billNumber ?? "-",
                                   chips: [
                                     ReportChip(
                                       icon: Iconsax.calendar,
@@ -388,12 +438,7 @@ class _CreditState extends State<Credit> {
                                       text: credit.paymentType ?? "-",
                                     ),
                                   ],
-                                  fields: [
-                                    ReportField(
-                                      icon: Iconsax.receipt,
-                                      label: "Reference No",
-                                      value: credit.referenceNumber ?? "-",
-                                    ),
+                                   fields: [
                                     ReportField(
                                       icon: Iconsax.shop,
                                       label: "Supplier",
@@ -406,7 +451,8 @@ class _CreditState extends State<Credit> {
                                     ),
                                   ],
 
-                                  amount: (credit.receivedAmount ?? 0).toString(),
+                                  amount: (credit.receivedAmount ?? 0)
+                                      .toString(),
                                   onTap: () async {
                                     setState(() {
                                       isOpeningView = true;
@@ -419,32 +465,31 @@ class _CreditState extends State<Credit> {
                                     });
 
                                     Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                      builder: (_) => CreditDetailsScreen(
-                                        credit: credit,
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            CreditDetailsScreen(credit: credit),
                                       ),
-                                    )
                                     );
                                   },
 
                                   onEdit: () async {
-                                   Navigator.push(context, MaterialPageRoute(builder: (_)=>
-                                       EditCreditBottomSheet(
-                                         credit: credit,
-                                       )));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => EditCreditBottomSheet(
+                                          credit: credit,
+                                        ),
+                                      ),
+                                    );
                                   },
                                   onDelete: () async {
                                     ExitConfirmationDialog.show(
                                       context,
                                       bodyText:
                                           "Are you sure you want to delete this credit?",
-                                      saveButtonText: "Delete",
-                                      discardButtonText: "Cancel",
-
-                                      onClose: () {
-                                        Navigator.pop(context);
-                                      },
+                                      saveButtonText: "Yes",
+                                      discardButtonText: "No",
 
                                       onDiscard: () {
                                         Navigator.pop(context);
@@ -473,6 +518,7 @@ class _CreditState extends State<Credit> {
                                       },
                                     );
                                   },
+                                  deleteWithAmount: true,
                                 );
                               },
                             ),

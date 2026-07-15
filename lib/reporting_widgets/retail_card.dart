@@ -24,7 +24,7 @@ class RetailCard extends StatelessWidget {
     const primary = Color(0xff4A4CCB);
 
     final date = fields.firstWhere(
-          (e) => e.key.toLowerCase() == "date",
+      (e) => e.key.toLowerCase() == "date",
       orElse: () => const MapEntry("", ""),
     );
 
@@ -37,35 +37,29 @@ class RetailCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: Card(
         elevation: 1.8,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(15),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 // LEFT
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       // DATE CHIP
                       if (date.value.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.all(5
-                          ),
+                          padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            color:Colors.deepOrange[50],
+                            color: Colors.deepOrange[50],
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-
                               const Icon(
                                 Iconsax.calendar,
                                 size: 16,
@@ -110,18 +104,13 @@ class RetailCard extends StatelessWidget {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-
                               Container(
                                 width: 18,
                                 decoration: const BoxDecoration(
                                   color: Color(0xffF3F2FF),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(
-                                  icon,
-                                  size: 18,
-                                  color: primary,
-                                ),
+                                child: Icon(icon, size: 18, color: primary),
                               ),
 
                               const SizedBox(width: 5),
@@ -148,16 +137,12 @@ class RetailCard extends StatelessWidget {
 
                               Expanded(
                                 child: Text(
-                                  field.value
-                                      .trim()
-                                      .isEmpty
+                                  field.value.trim().isEmpty
                                       ? "-"
                                       : field.value,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                  ),
+                                  style: const TextStyle(fontSize: 14),
                                 ),
                               ),
                             ],
@@ -170,10 +155,7 @@ class RetailCard extends StatelessWidget {
 
                 const SizedBox(width: 5),
 
-                Container(
-                  width: 1,
-                  color: const Color(0xffECECF7),
-                ),
+                Container(width: 1, color: const Color(0xffECECF7)),
 
                 const SizedBox(width: 5),
 
@@ -181,7 +163,6 @@ class RetailCard extends StatelessWidget {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-
                     _actionButton(
                       icon: Iconsax.add_circle,
                       color: const Color(0xff3CB44B),
@@ -225,13 +206,9 @@ class RetailCard extends StatelessWidget {
         onTap: onTap,
         child: SizedBox(
           width: 32,
-         // height: 52,
+          // height: 52,
           child: Center(
-            child: customIcon(
-              icon: icon,
-              iconColor: color,
-              bgColor: color,
-            ),
+            child: customIcon(icon: icon, iconColor: color, bgColor: color),
           ),
         ),
       ),

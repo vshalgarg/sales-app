@@ -5,7 +5,6 @@ import '../services/search_bill_api.dart' as billService;
 
 class BillsProvider extends ChangeNotifier {
   List<BillEntry> bills = [];
-
   bool isBillsLoading = false;
   bool isLoadingMore = false;
   bool hasMore = true;

@@ -270,22 +270,14 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                     ExitConfirmationDialog.show(
                       context,
                       //bodyText: "",
-                      saveButtonText: "Save & Exit",
+                      saveButtonText: "Stay",
+                      discardButtonText: "Leave",
                       onSave: () async {
-                        if (isLoading) return;
-
-                        await _updatePurchase();
-
-                        if (!context.mounted) return;
-
-                        Navigator.pop(context, true);
-                      },
-                      onClose: () {
                         Navigator.pop(context);
                       },
                       onDiscard: () {
                         Navigator.pop(context);
-                        Navigator.pop(context, false);
+                        Navigator.pop(context,false);
                       },
                     );
                   },

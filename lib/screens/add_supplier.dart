@@ -29,7 +29,7 @@ class _AddSupplierState extends State<AddSupplier> {
   @override
   void initState() {
     super.initState();
-    print("Received retailId = ${widget.retailId}");
+   // print("Received retailId = ${widget.retailId}");
     dateController.text = DateFormat("dd-MM-yyyy").format(DateTime.now());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -85,7 +85,7 @@ class _AddSupplierState extends State<AddSupplier> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(5),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: Colors.grey),
       ),
     );
   }

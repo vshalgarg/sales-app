@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hisabio/reporting_widgets/retail_details_screen.dart';
 import 'package:hisabio/screens/add_supplier.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
@@ -28,13 +29,13 @@ class _RetailState extends State<Retail> {
   int _page = 0;
   int _size = 20;
 
+  String? selectedSupplier;
+  String? selectedCustomer;
   bool _isFetchingMore = false;
   bool _hasMore = true;
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
-
-  String? selectedSupplier;
   int? selectedCustomerId;
   int? selectedStaffId;
   bool isOpening = false;
@@ -43,14 +44,23 @@ class _RetailState extends State<Retail> {
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+
+    final formatter = DateFormat('yyyy-MM-dd');
+    fromDateController.text = formatter.format(tenDaysAgo);
+    toDateController.text = formatter.format(now);
     _scrollController.addListener(_scrollListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _page = 0;
       _hasMore = true;
+      await context.read<StaffProvider>().fetchStaffs();
       await context.read<RetailProvider>().fetchRetails(
         page: _page,
         size: _size,
+        fromDate: fromDateController.text,
+        toDate: toDateController.text,
       );
     });
   }
@@ -100,21 +110,39 @@ class _RetailState extends State<Retail> {
   }
 
   void _applyFilters() async {
-    _page = 0;
-    _hasMore = true;
+    final provider = Provider.of<EntriesProvider>(context, listen: false);
+
+    int? supplierId;
+
+    if (selectedSupplier != null) {
+      final supplier = provider.entries.firstWhere(
+            (e) => e.supplierName == selectedSupplier,
+      );
+
+      supplierId = supplier.id?.toInt();
+    }
     await context.read<RetailProvider>().fetchRetails(
-      page: _page,
+      page: 0,
       size: _size,
       fromDate: fromDateController.text.isEmpty
           ? null
           : fromDateController.text,
-      toDate: toDateController.text.isEmpty ? null : toDateController.text,
+      toDate: toDateController.text.isEmpty
+          ? null
+          : toDateController.text,
+      supplierId: supplierId,
+      customerId: selectedCustomerId,
+      staffId: selectedStaffId,
     );
+    _clearFilters();
   }
 
   void _clearFilters() {
-    fromDateController.clear();
-    toDateController.clear();
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat('yyyy-MM-dd');
+      fromDateController.text = formatter.format(tenDaysAgo);
+      toDateController.text = formatter.format(now);
 
     setState(() {
       selectedSupplier = null;
@@ -122,7 +150,7 @@ class _RetailState extends State<Retail> {
       selectedStaffId = null;
     });
 
-    context.read<RetailProvider>().fetchRetails();
+   // context.read<RetailProvider>().fetchRetails();
   }
 
   void _showFilterBottomSheet() {
@@ -439,8 +467,8 @@ class _RetailState extends State<Retail> {
                                 context,
                                 bodyText:
                                     "Are you sure you want to delete this retail?",
-                                saveButtonText: "Delete",
-                                discardButtonText: "Cancel",
+                                saveButtonText: "Yes",
+                                discardButtonText: "No",
                                 onDiscard: () {
                                   Navigator.pop(context);
                                 },

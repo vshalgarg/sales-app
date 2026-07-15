@@ -92,49 +92,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                 context,
                 onSave: () async {
                   Navigator.pop(context);
-                  if (!_formKey.currentState!.validate()) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      "Please fill all the required fields",
-                    );
-                    return;
-                  }
-
-                  final payload = {
-                    "date": transactionController.text,
-                    "staffId": selectedStaff?.staffId,
-                    "customerId": selectedCustomer?.id,
-                    "suppliers": List.generate(
-                      selectedSuppliers.length,
-                      (index) => {
-                        "supplierId": selectedSuppliers[index]?.id,
-                        "remarks": remarksControllers[index].text,
-                      },
-                    ),
-                  };
-                  final images = uploadedFiles
-                      .expand((files) => files)
-                      .where((e) => e.path != null)
-                      .map((e) => File(e.path!))
-                      .toList();
-
-                  try {
-                    final message = await provider.savePurchase(
-                      payload: payload,
-                      images: images,
-                    );
-                    if (!context.mounted) return;
-                    ScaffoldSnackBar.show(
-                      context,
-                      message ?? "Purchase Saved Successfully",
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Purchase()),
-                    );
-                  } catch (e) {
-                    ScaffoldSnackBar.show(context, e.toString());
-                  }
                 },discardButtonText: "Leave",
                 saveButtonText: "Stay",
                 onDiscard: () {

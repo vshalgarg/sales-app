@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
@@ -83,10 +84,13 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
       text: widget.credit.slipNumber ?? "",
     );
 
-    amountController = TextEditingController(
-      text: "${widget.credit.receivedAmount ?? 0}",
-    );
+    final amount = widget.credit.receivedAmount ?? 0;
 
+    amountController = TextEditingController(
+      text: amount % 1 == 0
+          ? amount.toInt().toString()
+          : amount.toString(),
+    );
     remarkController = TextEditingController(text: widget.credit.remark ?? "");
 
     paymentType = widget.credit.paymentType;
@@ -151,56 +155,14 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                 ExitConfirmationDialog.show(
                   context,
                   //bodyText: "",
-                  saveButtonText: "Save & Exit",
+                  saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onSave: () async {
-                    if (isLoading) return;
-
-                    setState(() {
-                      isLoading = true;
-                    });
-
-                    try {
-                      await updateCredit(
-                        id: widget.credit.id!,
-                        date: dateController.text,
-                        supplierId: supplierId ?? 0,
-                        paymentType: paymentType ?? "",
-                        customerId: customerId,
-                        referenceNumber: referenceController.text,
-                        referenceDate: referenceDateController.text,
-                        slipNumber: slipController.text,
-                        drawType: drawType,
-                        receivedAmount: double.tryParse(amountController.text) ?? 0,
-                        remark: remarkController.text,
-                      );
-
-                      if (!mounted) return;
-
-                      // Close the confirmation dialog
-                      Navigator.pop(context);
-
-                      // Close the Edit Credit screen and return success
-                      Navigator.pop(context, true);
-                    } catch (e) {
-                      if (!mounted) return;
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Update Failed: $e")),
-                      );
-                    } finally {
-                      if (mounted) {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      }
-                    }
-                  },
-                  onClose: () {
                     Navigator.pop(context);
                   },
                   onDiscard: () {
                     Navigator.pop(context);
-                    Navigator.pop(context, false);
+                    Navigator.pop(context,false);
                   },
                 );
               },
@@ -326,7 +288,14 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
                       });
                     }),
                     SizedBox(height: 15),
-                    _textField(amountController, "Received Amount"),
+                    _textField(
+                      amountController,
+                      "Received Amount",
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$')),
+                      ],
+                    ),
                     SizedBox(height: 15),
                     _fieldContainer(
                       label: "Remark",
@@ -391,12 +360,20 @@ class _EditCreditBottomSheetState extends State<EditCreditBottomSheet> {
     );
   }
 
-  Widget _textField(TextEditingController controller, String label) {
+  Widget _textField(
+      TextEditingController controller,
+      String label,{
+  List<TextInputFormatter>? inputFormatters,
+  TextInputType? keyboardType,
+  }) {
     return _fieldContainer(
       label: label,
       child: TextField(
         controller: controller,
-        decoration: const InputDecoration(border: InputBorder.none),
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        decoration: const InputDecoration(
+            border: InputBorder.none),
       ),
     );
   }

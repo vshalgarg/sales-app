@@ -78,7 +78,7 @@ class _SupplierState extends State<Supplier> {
             );
           },
         ),
-        title: "Supplier",
+        title: "Suppliers",
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,

@@ -172,7 +172,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
   Widget buildField({required String label, required Widget child}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 13),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -180,7 +180,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             label,
             style: const TextStyle(color: Colors.white, fontSize: 18),
           ),
-          const SizedBox(height: 5),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
@@ -223,7 +222,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
           },
         ),
 
-        const SizedBox(height: 15),
+        const SizedBox(height: 10),
 
         if (showRetailInfo) ...[
           buildField(
@@ -299,54 +298,51 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
           const SizedBox(height: 10),
 
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
               ),
-              onPressed: () async {
-                final success = await retailProvider.updateRetail(
-                  retailId: retail.retailId,
-                  name: retailerController.text,
-                  date: dateController.text,
-                  referredByCustomerId: selectedCustomerId!,
-                  staffId: selectedStaffId,
-                );
-
-                if (success && mounted) {
-                  context.read<RetailProvider>().fetchRetails();
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Retail Updated Successfully"),
-                    ),
-                  );
-                }
-              },
-              child: retailProvider.isUpdating
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      "SAVE INFORMATION",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
             ),
+            onPressed: () async {
+              final success = await retailProvider.updateRetail(
+                retailId: retail.retailId,
+                name: retailerController.text,
+                date: dateController.text,
+                referredByCustomerId: selectedCustomerId!,
+                staffId: selectedStaffId,
+              );
+
+              if (success && mounted) {
+                context.read<RetailProvider>().fetchRetails();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Retail Updated Successfully"),
+                  ),
+                );
+              }
+            },
+            child: retailProvider.isUpdating
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text(
+                    "SAVE INFORMATION",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
         ],
+        SizedBox(height: 10)
       ],
     );
   }
@@ -354,7 +350,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   Widget buildDepositSection(RetailModel retail) {
     while (depositAmountControllers.length < retail.suppliers.length) {
       depositAmountControllers.add(TextEditingController());
-
       depositDateControllers.add(TextEditingController());
     }
 
@@ -375,53 +370,67 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
           },
         ),
 
-        const SizedBox(height: 15),
+        const SizedBox(height: 10),
 
         if (showDeposits) ...[
           ...List.generate(retail.suppliers.length, (index) {
             final supplier = retail.suppliers[index];
 
             return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text("Supplier",style: TextStyle(
+                    color:Colors.white,
+                    fontSize: 18
+                )),
                 TextFormField(
                   initialValue: supplier.supplierName,
                   enabled: false,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: "Supplier",
+                    hintText: "Supplier",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide.none
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 15),
-
+                const SizedBox(height: 5),
+                Text("Balance",style: TextStyle(
+                    color:Colors.white,
+                    fontSize: 18
+                )),
                 TextFormField(
                   initialValue: supplier.balanceAmount.toString(),
                   enabled: false,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: "Balance",
+                    hintText: "Balance",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide.none
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 15),
-
+                const SizedBox(height: 5),
+                Text("Date",style: TextStyle(
+                    color:Colors.white,
+                    fontSize: 18
+                )),
                 TextFormField(
                   controller: depositDateControllers[index],
                   readOnly: true,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: "Date",
+                    hintText: "Date",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide.none
                     ),
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
@@ -441,108 +450,109 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                   },
                 ),
 
-                const SizedBox(height: 10),
-
+                const SizedBox(height: 5),
+Text("Amount",style: TextStyle(
+  color:Colors.white,
+  fontSize: 18
+)),
                 TextFormField(
                   controller: depositAmountControllers[index],
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: "Amount",
+                    hintText: "Amount",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none
                     ),
                   ),
                 ),
               ],
             );
           }),
-          SizedBox(height: 15),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: Consumer<RetailDetailsProvider>(
-              builder: (context, provider, child) {
-                return ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
+          SizedBox(height: 10),
+          Consumer<RetailDetailsProvider>(
+            builder: (context, provider, child) {
+              return ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
                   ),
-                  onPressed: provider.isSavingDeposits
-                      ? null
-                      : () async {
-                          final List<DepositItem> items = [];
+                ),
+                onPressed: provider.isSavingDeposits
+                    ? null
+                    : () async {
+                        final List<DepositItem> items = [];
 
-                          for (int i = 0; i < retail.suppliers.length; i++) {
-                            final amount = depositAmountControllers[i].text;
+                        for (int i = 0; i < retail.suppliers.length; i++) {
+                          final amount = depositAmountControllers[i].text;
 
-                            final date = depositDateControllers[i].text;
+                          final date = depositDateControllers[i].text;
 
-                            if (amount.isEmpty || date.isEmpty) {
-                              continue;
-                            }
-
-                            items.add(
-                              DepositItem(
-                                retailSupplierId:
-                                    retail.suppliers[i].retailSupplierId,
-                                depositDate: date,
-                                amount: int.parse(amount),
-                              ),
-                            );
+                          if (amount.isEmpty || date.isEmpty) {
+                            continue;
                           }
 
-                          if (items.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Please enter at least one deposit",
-                                ),
-                              ),
-                            );
-                            return;
-                          }
-
-                          final success = await provider.addDeposits(
-                            AddDepositModel(deposits: items),
+                          items.add(
+                            DepositItem(
+                              retailSupplierId:
+                                  retail.suppliers[i].retailSupplierId,
+                              depositDate: date,
+                              amount: int.parse(amount),
+                            ),
                           );
+                        }
 
-                          if (success && mounted) {
-                            await provider.fetchRetailDetails(widget.retailId);
-                            await provider.fetchDepositHistory(widget.retailId);
-
-                            for (final c in depositAmountControllers) {
-                              c.clear();
-                            }
-
-                            for (final c in depositDateControllers) {
-                              c.clear();
-                            }
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Deposits Added Successfully"),
+                        if (items.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Please enter at least one deposit",
                               ),
-                            );
+                            ),
+                          );
+                          return;
+                        }
+
+                        final success = await provider.addDeposits(
+                          AddDepositModel(deposits: items),
+                        );
+
+                        if (success && mounted) {
+                          await provider.fetchRetailDetails(widget.retailId);
+                          await provider.fetchDepositHistory(widget.retailId);
+
+                          for (final c in depositAmountControllers) {
+                            c.clear();
                           }
-                        },
-                  child: provider.isSavingDeposits
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          "SAVE DEPOSITS",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+
+                          for (final c in depositDateControllers) {
+                            c.clear();
+                          }
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Deposits Added Successfully"),
+                            ),
+                          );
+                        }
+                      },
+                child: provider.isSavingDeposits
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        "SAVE DEPOSITS",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                );
-              },
-            ),
+                      ),
+              );
+            },
           ),
         ],
+        SizedBox(height: 10)
       ],
     );
   }
@@ -569,7 +579,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
         ),
 
         if (showHistory) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 15),
 
           ListView.builder(
             shrinkWrap: true,
@@ -920,6 +930,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
               Text(
                 value,
+                maxLines: 1,
                 style: TextStyle(
                   color: color,
                   fontSize: 14,
@@ -968,42 +979,14 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 ExitConfirmationDialog.show(
                   context,
                   //bodyText: "",
-                  saveButtonText: "Save & Exit",
+                  saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onSave: () async {
-                    final retailProvider = context
-                        .read<RetailDetailsProvider>();
-
-                    final success = await retailProvider.updateRetail(
-                      retailId: retail.retailId,
-                      name: retailerController.text,
-                      date: dateController.text,
-                      referredByCustomerId: selectedCustomerId!,
-                      staffId: selectedStaffId,
-                    );
-
-                    if (!mounted) return;
-
-                    if (success) {
-                      context.read<RetailProvider>().fetchRetails();
-
-                      Navigator.pop(context); // close dialog
-                      Navigator.pop(context, true); // close screen
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Failed to update retail"),
-                        ),
-                      );
-                    }
-                  },
-                  onClose: () {
                     Navigator.pop(context);
                   },
-
-                  onDiscard: () {
-                    Navigator.pop(context);
-
-                    Navigator.pop(context, false);
+                    onDiscard: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context,false);
                   },
                 );
               },
@@ -1024,9 +1007,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                   staffProvider,
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
                 buildDepositSection(retail),
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
                 buildHistorySection(retailProvider, retail),
               ],
             ),
