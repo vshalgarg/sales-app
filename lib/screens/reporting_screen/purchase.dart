@@ -26,7 +26,7 @@ class _PurchaseState extends State<Purchase> {
   final ScrollController _scrollController = ScrollController();
 
   int _page = 0;
-  int _size = 20;
+   final int _size = 20;
 
   bool _isFetchingMore = false;
   bool _hasMore = true;
@@ -59,7 +59,7 @@ class _PurchaseState extends State<Purchase> {
       _page = 0;
       _hasMore = true;
 
-      await purchaseProvider.searchPurchases(page: _page, size: _size);
+    //  await purchaseProvider.searchPurchases(page: _page, size: _size);
     });
   }
 
@@ -242,6 +242,7 @@ class _PurchaseState extends State<Purchase> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("Purchase build");
     final size = MediaQuery.of(context).size;
     final width = size.width;
     final height = size.height;
