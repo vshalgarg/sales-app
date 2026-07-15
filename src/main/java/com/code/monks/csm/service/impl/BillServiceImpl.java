@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -73,7 +74,7 @@ public class BillServiceImpl implements BillService {
         billEntry.setTaxableValue(
                 MoneyUtil.toPaisa(requestDto.getTaxableValue()));
         billEntry.setBillAmount(
-                MoneyUtil.toPaisa(requestDto.getBillAmount()));
+                MoneyUtil.toPaisaBigInteger(requestDto.getBillAmount()));
 
         // Detail mapping
         List<BillDetailEntity> billItems =
@@ -129,7 +130,7 @@ public class BillServiceImpl implements BillService {
         bill.setTaxableValue(
                 MoneyUtil.toPaisa(request.getTaxableValue()));
         bill.setBillAmount(
-                MoneyUtil.toPaisa(request.getBillAmount()));
+                MoneyUtil.toPaisaBigInteger(request.getBillAmount()));
 
         handleBillImageUpdate(
                 bill,
@@ -178,7 +179,7 @@ public class BillServiceImpl implements BillService {
         Page<BillEntryEntity> billRecords =
                 billRepo.findAll(spec, pageable);
 
-        Long totalAmountPaisa =
+        BigInteger totalAmountPaisa =
                 aggregateHelper.sumAmount(
                         BillEntryEntity.class,
                         "billAmount",

@@ -3,6 +3,7 @@ package com.code.monks.csm.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,7 @@ public class BillEntryEntity extends BaseEntity{
     private Long taxableValue;
 
     @Column(name = "bill_amount")
-    private Long billAmount;
+    private BigInteger billAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transport_id")

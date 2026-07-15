@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +134,7 @@ public class CreditServiceImpl implements CreditService {
         Page<CreditEntryEntity> records =
                 creditEntryRepo.findAll(spec, pageable);
 
-        Long totalAmountPaisa =
+        BigInteger totalAmountPaisa =
                 aggregateHelper.sumAmount(
                         CreditEntryEntity.class,
                         "receivedAmount",
@@ -217,10 +218,8 @@ public class CreditServiceImpl implements CreditService {
                     DrawTypeEnum.valueOf(request.getDrawType())
             );
         }
-        long amount = request.getReceivedAmount() == null
-                ? 0L
-                : Math.round(request.getReceivedAmount() * 100);
-        credit.setReceivedAmount(amount);
+        credit.setReceivedAmount(MoneyUtil.toPaisaBigInteger(
+                request.getReceivedAmount() == null ? BigDecimal.ZERO : BigDecimal.valueOf(request.getReceivedAmount())));
         credit.setRemark(request.getRemark());
 
         creditEntryRepo.save(credit);
@@ -254,7 +253,7 @@ public class CreditServiceImpl implements CreditService {
                 .date(entity.getDate())
                 .referenceNumber(entity.getReferenceNumber())
                 .referenceDate(entity.getReferenceDate())
-                .receivedAmount(entity.getReceivedAmount() / 100.0)
+                .receivedAmount(MoneyUtil.toRupee(entity.getReceivedAmount()).doubleValue())
                 .supplierName(supplierEntity != null ? supplierEntity.getSupplierName() : null)
                 .customerName(customerEntity != null ? customerEntity.getCustomerName() : null)
                 .customerCity(customerEntity.getCity())
