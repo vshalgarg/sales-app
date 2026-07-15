@@ -329,7 +329,7 @@ const hasCustomerBarFilters = (filters) =>
   hasFilterDate(filters.toDate);
 
 const Reports = () => {
-  const showSnackbar = useSnackbar();
+  const { showSnackbar } = useSnackbar();
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
   const [lineChartFilters, setLineChartFilters] = useState({
