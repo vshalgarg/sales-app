@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
@@ -173,7 +174,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .stream()
                 .collect(Collectors.toMap(SupplierEntity::getId, SupplierEntity::getSupplierName));
 
-        Map<Integer, Long> creditAmountMap = creditData.stream()
+        Map<Integer, BigInteger> creditAmountMap = creditData.stream()
                 .collect(Collectors.toMap(SupplierAmountView::getSupplierId, SupplierAmountView::getAmount));
 
         List<String> labels = new ArrayList<>();
@@ -187,7 +188,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
             labels.add(supplierNameMap.get(sid));
             billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
-            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, 0L))));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, BigInteger.ZERO))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -250,7 +251,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .stream()
                 .collect(Collectors.toMap(CustomerEntity::getId, CustomerEntity::getCustomerName));
 
-        Map<Integer, Long> creditAmountMap = creditData.stream()
+        Map<Integer, BigInteger> creditAmountMap = creditData.stream()
                 .collect(Collectors.toMap(CustomerAmountView::getCustomerId, CustomerAmountView::getAmount));
 
         List<String> labels = new ArrayList<>();
@@ -264,7 +265,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
             labels.add(customerNameMap.get(cid));
             billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
-            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, 0L))));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, BigInteger.ZERO))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -386,8 +387,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Setter
     private static class MonthlyAnalyticsAccumulator {
 
-        private Long billAmount = 0L;
-        private Long creditAmount = 0L;
+        private BigInteger billAmount = BigInteger.ZERO;
+        private BigInteger creditAmount = BigInteger.ZERO;
         private long billCount;
         private long creditCount;
     }
