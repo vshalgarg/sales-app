@@ -72,4 +72,5 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
 }
