@@ -1,6 +1,7 @@
 package com.code.monks.csm.utils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 
 public class MoneyUtil {
@@ -27,6 +28,14 @@ public class MoneyUtil {
             return null;
         }
         return BigDecimal.valueOf(paisa)
+                .divide(HUNDRED, 2, RoundingMode.HALF_UP);
+    }
+
+    public static BigDecimal toRupee(BigInteger paisa) {
+        if (paisa == null) {
+            return null;
+        }
+        return new BigDecimal(paisa)
                 .divide(HUNDRED, 2, RoundingMode.HALF_UP);
     }
 

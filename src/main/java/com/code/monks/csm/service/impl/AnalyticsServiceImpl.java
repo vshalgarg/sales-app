@@ -1,18 +1,6 @@
 package com.code.monks.csm.service.impl;
 
-import com.code.monks.csm.dto.analytics.ChartDataDto;
-import com.code.monks.csm.dto.analytics.DatasetDto;
-import com.code.monks.csm.dto.analytics.MetricType;
-import com.code.monks.csm.dto.analytics.MonthlyDataPoint;
-import com.code.monks.csm.dto.analytics.MonthlyAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.MonthlyAnalyticsResponseDto;
-import com.code.monks.csm.dto.analytics.StaffAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.StaffAnalyticsResponseDto;
-import com.code.monks.csm.dto.analytics.StaffMetricType;
-import com.code.monks.csm.dto.analytics.CustomerAmountAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.CustomerAmountAnalyticsResponseDto;
-import com.code.monks.csm.dto.analytics.SupplierAmountAnalyticsRequestDto;
-import com.code.monks.csm.dto.analytics.SupplierAmountAnalyticsResponseDto;
+import com.code.monks.csm.dto.analytics.*;
 import com.code.monks.csm.dto.analytics.projection.CustomerAmountView;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
 import com.code.monks.csm.dto.analytics.projection.StaffAnalyticsView;
@@ -20,7 +8,6 @@ import com.code.monks.csm.dto.analytics.projection.SupplierAmountView;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.StaffEntity;
 import com.code.monks.csm.entity.SupplierEntity;
-import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.repository.*;
 import com.code.monks.csm.service.AnalyticsService;
 import com.code.monks.csm.utils.MoneyUtil;
@@ -31,18 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -194,7 +174,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .stream()
                 .collect(Collectors.toMap(SupplierEntity::getId, SupplierEntity::getSupplierName));
 
-        Map<Integer, Long> creditAmountMap = creditData.stream()
+        Map<Integer, BigInteger> creditAmountMap = creditData.stream()
                 .collect(Collectors.toMap(SupplierAmountView::getSupplierId, SupplierAmountView::getAmount));
 
         List<String> labels = new ArrayList<>();
@@ -208,7 +188,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
             labels.add(supplierNameMap.get(sid));
             billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
-            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, 0L))));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(sid, BigInteger.ZERO))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -271,7 +251,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .stream()
                 .collect(Collectors.toMap(CustomerEntity::getId, CustomerEntity::getCustomerName));
 
-        Map<Integer, Long> creditAmountMap = creditData.stream()
+        Map<Integer, BigInteger> creditAmountMap = creditData.stream()
                 .collect(Collectors.toMap(CustomerAmountView::getCustomerId, CustomerAmountView::getAmount));
 
         List<String> labels = new ArrayList<>();
@@ -285,7 +265,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
             labels.add(customerNameMap.get(cid));
             billAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(bill.getAmount())));
-            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, 0L))));
+            creditAmounts.add(MoneyUtil.roundToNearestInteger(MoneyUtil.toRupee(creditAmountMap.getOrDefault(cid, BigInteger.ZERO))));
         }
 
         DatasetDto billDataset = DatasetDto.builder()
@@ -407,8 +387,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Setter
     private static class MonthlyAnalyticsAccumulator {
 
-        private Long billAmount;
-        private Long creditAmount;
+        private BigInteger billAmount = BigInteger.ZERO;
+        private BigInteger creditAmount = BigInteger.ZERO;
         private long billCount;
         private long creditCount;
     }
