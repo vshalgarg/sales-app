@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/screens/entry_screen/purchase_entry.dart';
-import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 
+import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/purchase_provider.dart';
-import '../../reporting_widgets/edit_purchase_bottom_sheet.dart';
-import '../../reporting_widgets/purchase_details_bottom_sheet.dart';
+import '../../reporting_widgets/edit_purchase_screen.dart';
+import '../../reporting_widgets/purchase_details_screen.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../services/purchase_details_api.dart';
@@ -26,14 +27,16 @@ class _PurchaseState extends State<Purchase> {
   final ScrollController _scrollController = ScrollController();
 
   int _page = 0;
-   final int _size = 20;
 
+  final int _size = 20;
+  bool isFilterApplied = false;
   bool _isFetchingMore = false;
   bool _hasMore = true;
   bool isDeleting = false;
   bool isOpeningView = false;
   bool isOpeningEdit = false;
   bool isOpening = false;
+  bool _showGoToTop = false;
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
@@ -44,7 +47,14 @@ class _PurchaseState extends State<Purchase> {
   @override
   void initState() {
     super.initState();
+    print("Purchase initState");
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
 
+    final formatter = DateFormat('yyyy-MM-dd');
+
+    fromDateController.text = formatter.format(tenDaysAgo);
+    toDateController.text = formatter.format(now);
     _scrollController.addListener(_scrollListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -59,20 +69,29 @@ class _PurchaseState extends State<Purchase> {
       _page = 0;
       _hasMore = true;
 
-    //  await purchaseProvider.searchPurchases(page: _page, size: _size);
+      await purchaseProvider.searchPurchases(
+        page: _page,
+        size: _size,
+        fromDate: fromDateController.text,
+        toDate: toDateController.text,
+      );
+     await purchaseProvider.searchPurchases(page: _page, size: _size);
     });
   }
 
-  @override
-  void dispose() {
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    fromDateController.dispose();
-    toDateController.dispose();
-    super.dispose();
-  }
-
   void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+
+    if (_scrollController.offset > 200) {
+      if (!_showGoToTop) {
+        setState(() => _showGoToTop = true);
+      }
+    } else {
+      if (_showGoToTop) {
+        setState(() => _showGoToTop = false);
+      }
+    }
+
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !_isFetchingMore &&
@@ -136,23 +155,35 @@ class _PurchaseState extends State<Purchase> {
     String? toDate = toDateController.text.isEmpty
         ? null
         : toDateController.text;
+    setState(() {
+      isFilterApplied = true;
+    });
     await purchaseProvider.searchPurchases(
       fromDate: fromDate,
       toDate: toDate,
       supplierId: supplierId,
       customerId: customerId,
     );
+    _clearFilters();
   }
 
   void _clearFilters() async {
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat('yyyy-MM-dd');
     setState(() {
-      fromDateController.clear();
-      toDateController.clear();
+      fromDateController.text = formatter.format(tenDaysAgo);
+      toDateController.text = formatter.format(now);
       selectedSupplier = null;
       selectedCustomer = null;
     });
 
-    await context.read<PurchaseProvider>().searchPurchases();
+    // await context.read<PurchaseProvider>().searchPurchases(
+    //   page: 0,
+    //   size: 20,
+    //   fromDate: fromDateController.text,
+    //   toDate: toDateController.text,
+    // );
   }
 
   void _showFilterBottomSheet() {
@@ -225,12 +256,7 @@ class _PurchaseState extends State<Purchase> {
                     selectedCustomer = null;
                   });
 
-                  setState(() {
-                    fromDateController.clear();
-                    toDateController.clear();
-                    selectedSupplier = null;
-                    selectedCustomer = null;
-                  });
+                  _clearFilters();
                 },
               ),
             );
@@ -263,7 +289,7 @@ class _PurchaseState extends State<Purchase> {
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
-          fontSize: width < 600 ? 22 : 26,
+          fontSize: 25,
         ),
         actions: [
           IconButton(
@@ -275,16 +301,60 @@ class _PurchaseState extends State<Purchase> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        backgroundColor: AppColors.primaryPurple,
-        child: const Icon(Iconsax.add, color: Colors.white),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PurchaseEntryScreen()),
-          );
-        },
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_showGoToTop)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: FloatingActionButton.small(
+                heroTag: "top",
+                backgroundColor: AppColors.primaryPurple,
+                onPressed: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
+              ),
+            ),
+
+          FloatingActionButton(
+            heroTag: "add",
+            backgroundColor: AppColors.primaryPurple,
+            onPressed: isOpening
+                ? null
+                : () async {
+                    setState(() {
+                      isOpening = true;
+                    });
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (!context.mounted) return;
+
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PurchaseEntryScreen(),
+                      ),
+                    );
+                    if (mounted) {
+                      setState(() {
+                        isOpening = false;
+                      });
+                    }
+                  },
+            child: isOpening
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Iconsax.add, color: Colors.white),
+          ),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
@@ -293,6 +363,8 @@ class _PurchaseState extends State<Purchase> {
         ),
         child: Consumer<EntriesProvider>(
           builder: (context, provider, child) {
+            print("EntriesProvider loading: ${provider.isLoading}");
+
             if (provider.isLoading) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -312,6 +384,7 @@ class _PurchaseState extends State<Purchase> {
                 Expanded(
                   child: Consumer<PurchaseProvider>(
                     builder: (context, purchaseProvider, child) {
+                      print("PurchaseProvider loading: ${purchaseProvider.isLoading}");
                       if (purchaseProvider.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
@@ -319,7 +392,9 @@ class _PurchaseState extends State<Purchase> {
                       if (purchaseProvider.purchaseEntries.isEmpty) {
                         return Center(
                           child: Text(
-                            "Apply filters to view purchase history",
+                            isFilterApplied
+                                ? "No data found"
+                                : "Apply filters to view purchase history",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: width * 0.06,
@@ -347,12 +422,34 @@ class _PurchaseState extends State<Purchase> {
                           return Padding(
                             padding: EdgeInsets.only(bottom: height * 0.015),
                             child: ReportingCard(
+                              showHeader: false,
+                              chips: [
+                                ReportChip(
+                                  icon: Iconsax.calendar,
+                                  text: purchase.date,
+                                ),
+                              ],
                               fields: [
-                                MapEntry("Date", purchase.date),
-                                MapEntry("Staff", purchase.staffName),
-                                MapEntry("Supplier", purchase.supplierName),
-                                MapEntry("Customer", purchase.customerName),
-                                MapEntry("Remarks", purchase.remarks),
+                                ReportField(
+                                  icon: Iconsax.profile_2user,
+                                  label: "Staff",
+                                  value: purchase.staffName,
+                                ),
+                                ReportField(
+                                  icon: Iconsax.shop,
+                                  label: "Supplier",
+                                  value: purchase.supplierName,
+                                ),
+                                ReportField(
+                                  icon: Iconsax.user,
+                                  label: "Customer",
+                                  value: purchase.customerName,
+                                ),
+                                ReportField(
+                                  icon: Iconsax.note,
+                                  label: "Remarks",
+                                  value: purchase.remarks,
+                                ),
                               ],
                               onTap: () async {
                                 showDialog(
@@ -368,16 +465,16 @@ class _PurchaseState extends State<Purchase> {
                                     purchase.id,
                                   );
 
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
 
                                   Navigator.pop(context);
 
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.white,
-                                    builder: (_) => PurchaseDetailsBottomSheet(
-                                      purchaseData: data["data"],
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PurchaseDetailsScreen(
+                                        purchaseData: data["data"],
+                                      ),
                                     ),
                                   );
                                 } catch (e) {
@@ -395,77 +492,47 @@ class _PurchaseState extends State<Purchase> {
 
                                 if (!context.mounted) return;
 
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (_) => EditPurchaseBottomSheet(
-                                    purchaseData: details["data"],
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EditPurchaseScreen(
+                                      purchaseData: details["data"],
+                                    ),
                                   ),
                                 );
                               },
                               onDelete: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text("Delete Purchase"),
-                                    content: const Text(
-                                      "Are you sure you want to delete this purchase entry?",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text("Cancel"),
+                                ExitConfirmationDialog.show(
+                                  context,
+                                  bodyText:
+                                      "Are you sure you want to delete this purchase?",
+                                  saveButtonText: "Yes",
+                                  discardButtonText: "No",
+
+                                  onDiscard: () {
+                                    Navigator.pop(context);
+                                  },
+
+                                  onSave: () async {
+                                    Navigator.pop(context);
+
+                                    final bool success = await context
+                                        .read<PurchaseProvider>()
+                                        .deletePurchase(purchase.id);
+
+                                    if (!context.mounted) return;
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          success
+                                              ? "Purchase deleted successfully"
+                                              : "Failed to delete credit",
+                                        ),
                                       ),
-                                      ElevatedButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: const Text("Delete"),
-                                      ),
-                                    ],
-                                  ),
+                                    );
+                                  },
                                 );
-
-                                if (confirm != true) return;
-
-                                try {
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (_) => const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  );
-
-                                  final token = await AppStorage.getToken();
-
-                                  await context
-                                      .read<PurchaseProvider>()
-                                      .deletePurchaseEntry(
-                                        purchase.id!,
-                                        token!,
-                                      );
-
-                                  if (!mounted) return;
-
-                                  Navigator.pop(context);
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Purchase entry deleted successfully",
-                                      ),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  if (!mounted) return;
-
-                                  Navigator.pop(context);
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
-                                  );
-                                }
                               },
                             ),
                           );
