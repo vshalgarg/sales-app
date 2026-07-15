@@ -4,7 +4,6 @@ import {
   Phone,
   Receipt,
   MapPinned,
-  CircleDot,
   Plus,
 } from "lucide-react";
 import TransportService from "../service/TransportService";
@@ -210,33 +209,36 @@ export default function TransportDashboard() {
 
   const buildTransportCardProps = (transport) => ({
     title: transport.name,
+    titleAside: <StatusBadge status={transport.status} />,
     fields: [
       {
         label: "GST No.",
+        key: "gstNo",
         icon: Receipt,
         value: transport.gstNo,
+        showLabel: false,
       },
       {
         label: "Contact",
+        key: "contact",
         icon: Phone,
         value: transport.contacts,
         render: () => formatContact(transport.contacts),
+        showLabel: false,
       },
       {
         label: "Address",
+        key: "address",
         icon: MapPinned,
         value: formatAddress(transport),
+        showLabel: false,
       },
       {
         label: "City",
+        key: "city",
         icon: MapPin,
         value: transport.city,
-      },
-      {
-        label: "Status",
-        icon: CircleDot,
-        value: transport.status,
-        render: () => <StatusBadge status={transport.status} />,
+        showLabel: false,
       },
     ],
     onEdit: () => handleEdit(transport),

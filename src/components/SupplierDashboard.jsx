@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { MapPin, Plus, MapPinned, Phone, Receipt } from "lucide-react";
+import { Plus, MapPinned, Phone, Receipt } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import AddNewSupplier from "../modals/AddNewSupplier";
 import SupplierDetail from "../modals/SupplierDetail";
@@ -16,7 +16,6 @@ import { IconButton, Tooltip } from "@mui/material";
 
 const SUPPLIER_CARD_FIELDS = [
   { label: "GST", key: "supplierGstNo", icon: Receipt },
-  { label: "City", key: "city", icon: MapPin },
   { label: "Mobile", key: "mobile", icon: Phone },
   { label: "Address", key: "address", icon: MapPinned },
 ];
@@ -77,11 +76,14 @@ export default function SupplierDashboard() {
 
   const buildSupplierCardProps = (supplier) => ({
     code: supplier.code,
+    codeAside: supplier.city,
     title: supplier.supplierName,
     fields: SUPPLIER_CARD_FIELDS.map(({ label, key, icon }) => ({
       label,
+      key,
       icon,
       value: supplier[key],
+      showLabel: false,
     })),
     onView: () => {
       setSelectedSupplier(supplier.id);

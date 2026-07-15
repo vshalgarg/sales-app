@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { MapPin, MapPinned, Phone, Receipt, Plus } from "lucide-react";
+import { MapPinned, Phone, Receipt, Plus } from "lucide-react";
 import { useSnackbar } from "../context/SnackbarContext";
 import CustomerService from "../service/CustomerService";
 import AddNewCustomer from "../modals/AddNewCustomer";
@@ -16,7 +16,6 @@ import { IconButton, Tooltip } from "@mui/material";
 
 const CUSTOMER_CARD_FIELDS = [
   { label: "GST", key: "customerGstNo", icon: Receipt },
-  { label: "City", key: "city", icon: MapPin },
   {
     label: "Mobile",
     key: "mobile",
@@ -81,11 +80,14 @@ export default function CustomerDashboard() {
 
   const buildCustomerCardProps = (customer) => ({
     code: customer.code,
+    codeAside: customer.city,
     title: customer.customerName,
     fields: CUSTOMER_CARD_FIELDS.map(({ label, key, icon, getValue }) => ({
       label,
+      key,
       icon,
       value: getValue ? getValue(customer) : customer[key],
+      showLabel: false,
     })),
     onView: () => {
       setSelectedCustomer(customer);
