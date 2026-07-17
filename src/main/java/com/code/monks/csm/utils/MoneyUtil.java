@@ -16,6 +16,13 @@ public class MoneyUtil {
                 .longValue();
     }
 
+    public static BigInteger toPaisaBigInteger(BigDecimal amount) {
+        if (amount == null) return BigInteger.ZERO;
+        return amount.multiply(HUNDRED)
+                .setScale(0, RoundingMode.HALF_UP)
+                .toBigInteger();
+    }
+
     public static BigDecimal toRupee(Long paisa) {
         if (paisa == null) {
             return null;

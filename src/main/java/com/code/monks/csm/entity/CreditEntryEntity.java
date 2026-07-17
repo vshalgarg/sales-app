@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Entity
@@ -33,7 +34,7 @@ public class CreditEntryEntity extends BaseEntity{
     private LocalDate referenceDate;
 
     @Column(name = "received_amount")
-    private long receivedAmount;
+    private BigInteger receivedAmount;
 
     @Column(name = "draw_type")
     private DrawTypeEnum drawType;

@@ -6,20 +6,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
+
 @Component
 @RequiredArgsConstructor
 public class SpecificationAggregateHelper {
 
     private final EntityManager entityManager;
 
-    public <T> Long sumAmount(
+    public <T> BigInteger sumAmount(
             Class<T> entityClass,
             String fieldName,
             Specification<T> specification
     ) {
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        CriteriaQuery<BigInteger> query = cb.createQuery(BigInteger.class);
         Root<T> root = query.from(entityClass);
         Predicate predicate =
                 specification.toPredicate(
@@ -33,7 +35,7 @@ public class SpecificationAggregateHelper {
                         cb.sum(
                                 root.get(fieldName)
                         ),
-                        0L
+                        BigInteger.ZERO
                 )
         );
 
