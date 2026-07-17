@@ -56,6 +56,7 @@ public class ApiPaths {
     public static final String SEARCH_CREDIT_ENTRIES = "/credit/entries/search";
     public static final String UPDATE_CREDIT_ENTRY = "/credit/entry/update/{id}";
     public static final String DELETE_CREDIT_ENTRY ="/credit/entry/delete/{id}";
+    public static final String GET_CREDIT_DETAILS = "/credit/details/{id}";
 
     public static final String SEARCH_USER = "/users/search";
 

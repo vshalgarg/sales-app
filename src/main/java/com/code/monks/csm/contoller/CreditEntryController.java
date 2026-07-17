@@ -2,6 +2,7 @@ package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.request.AddCreditEntryRequestDto;
 import com.code.monks.csm.dto.request.CreditUpdateRequest;
+import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.CreditService;
 import jakarta.validation.Valid;
@@ -88,6 +89,17 @@ public class CreditEntryController {
     public ResponseEntity<Map<String, Object>> updateCreditEntry(@PathVariable int id, @RequestBody CreditUpdateRequest creditUpdateRequest){
         Map<String, Object> response = creditService.updateCreditEntry(id, creditUpdateRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(GET_CREDIT_DETAILS)
+    public ResponseEntity<ApiResponse<CreditDetailResponse>> getCreditDetails(@PathVariable int id) {
+        log.info("Received request to fetch credit details for id: {}", id);
+
+        CreditDetailResponse response = creditService.getCreditDetailById(id);
+
+        log.info("Credit details fetched successfully for id: {}", id);
+
+        return ResponseEntity.ok(ApiResponse.success("Credit details fetched successfully", response));
     }
 
 }

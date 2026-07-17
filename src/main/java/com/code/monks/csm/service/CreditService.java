@@ -21,4 +21,5 @@ public interface CreditService {
 
     Map<String, Object> deleteCreditEntry(int id);
     Map<String, Object> updateCreditEntry(int id, CreditUpdateRequest request);
+    CreditDetailResponse getCreditDetailById(int id);
 }

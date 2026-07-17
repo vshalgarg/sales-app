@@ -10,6 +10,7 @@ import com.code.monks.csm.enums.CreditEntryEnum;
 import com.code.monks.csm.enums.DrawTypeEnum;
 import com.code.monks.csm.exception.CreditException;
 import com.code.monks.csm.exception.ResourceNotFoundException;
+import com.code.monks.csm.mapper.CreditMapper;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CreditEntryRepo;
 import com.code.monks.csm.repository.CustomerRepo;
@@ -51,6 +52,7 @@ public class CreditServiceImpl implements CreditService {
 
     private final SupplierRepo supplierRepo;
     private final SpecificationAggregateHelper aggregateHelper;
+    private final CreditMapper creditMapper;
 
     @Transactional
     public AddCreditEntryResponseDto addCreditEntry(AddCreditEntryRequestDto requestDto) {
@@ -230,6 +232,27 @@ public class CreditServiceImpl implements CreditService {
         );
     }
 
+
+    @Override
+    public CreditDetailResponse getCreditDetailById(int id) {
+        log.info("Fetching credit entry details for id: {}", id);
+
+        CreditEntryEntity entity = creditEntryRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(CREDIT_ENTRY_NOT_FOUND, " with id " + id));
+
+        CustomerEntity customerEntity = null;
+        SupplierEntity supplierEntity = null;
+
+        if (entity.getCustomerId() > 0) {
+            customerEntity = customerRepo.findById(entity.getCustomerId()).orElse(null);
+        }
+        if (entity.getSupplierId() > 0) {
+            supplierEntity = supplierRepo.findById(entity.getSupplierId()).orElse(null);
+        }
+
+        log.info("Credit entry details fetched successfully for id: {}", id);
+        return creditMapper.toCreditDetail(entity, customerEntity, supplierEntity);
+    }
 
     private SearchCreditEntryResponse convertToResponseDto(CreditEntryEntity entity) {
         CustomerEntity customerEntity = null;
