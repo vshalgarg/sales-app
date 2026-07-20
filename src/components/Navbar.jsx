@@ -10,6 +10,7 @@ import {
   NAV_TAB_INACTIVE_CLASS,
   SETTINGS_ICON_CLASS,
 } from "../theme/appTheme";
+import AppButton from "./common/AppButton";
 
 export default function Navbar({
   activeSection,
@@ -179,21 +180,13 @@ export default function Navbar({
             </h2>
 
             <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowLogoutModal(false)}
-                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-brand-navy dark:text-white"
-              >
+              <AppButton type="cancel" onClick={() => setShowLogoutModal(false)}>
                 Cancel
-              </button>
+              </AppButton>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
-              >
+              <AppButton type="primary" onClick={handleLogout}>
                 Logout
-              </button>
+              </AppButton>
             </div>
           </div>
         </div>

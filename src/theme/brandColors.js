@@ -1,4 +1,3 @@
-/** Single source of truth for brand hex values (Tailwind + MUI). */
 export const BRAND_COLORS = {
   navy: "#1e3a6e",
   primary: "#203A8F",
@@ -11,7 +10,6 @@ export const BRAND_COLORS = {
   icon: "#5b6abf",
 };
 
-/** Tailwind `theme.extend.colors.brand` shape (kebab-case keys). */
 export const BRAND_TAILWIND_COLORS = {
   navy: BRAND_COLORS.navy,
   primary: BRAND_COLORS.primary,

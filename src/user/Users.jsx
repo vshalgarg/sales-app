@@ -14,6 +14,12 @@ import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { CARD_GRID_SHELL_CLASS } from "../theme/cardTheme";
 import { IconButton, Tooltip } from "@mui/material";
 
+const RoleChip = ({ role }) => (
+  <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-brand-primary/10 text-brand-primary">
+    {role}
+  </span>
+);
+
 const Users = () => {
   const { showSnackbar } = useSnackbar();
   const { auth } = useAuth();
@@ -111,6 +117,21 @@ const Users = () => {
       key: "roles",
       label: "Role",
       width: "40%",
+      render: (row) => {
+        const roles = Array.isArray(row.roles)
+          ? row.roles
+          : row.roles
+            ? [row.roles]
+            : [];
+        if (roles.length === 0) return "-";
+        return (
+          <div className="flex flex-wrap gap-1">
+            {roles.map((role) => (
+              <RoleChip key={role} role={role} />
+            ))}
+          </div>
+        );
+      },
     },
   ];
 
@@ -217,8 +238,11 @@ const Users = () => {
         title="Delete User"
         message={
           <>
-            Are you sure you want to delete <b>{userToDelete?.username}</b>?
-            This action cannot be undone.
+            Are you sure you want to delete
+            <span className="font-medium text-blue-600">
+              {userToDelete?.username}
+            </span>
+            ? This action cannot be undone.
           </>
         }
         confirmText="Delete"
