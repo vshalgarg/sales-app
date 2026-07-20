@@ -25,19 +25,19 @@ const EntityCard = ({
   >
     {code && (
       <div className="flex items-center gap-2 mb-1.5 min-w-0">
-        <span
-          className={`rounded-md px-2 py-0.5 text-xs font-semibold ${CODE_BADGE_CLASS}`}
-        >
-          {code}
-        </span>
         {codeAside != null && String(codeAside).trim() !== "" && (
           <span
-            className="ml-auto text-sm font-medium text-gray-700 dark:text-gray-300 truncate min-w-0 max-w-[40%] text-right"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate min-w-0 max-w-[55%]"
             title={String(codeAside)}
           >
             {codeAside}
           </span>
         )}
+        <span
+          className={`ml-auto rounded-md px-2 py-0.5 text-xs font-semibold shrink-0 ${CODE_BADGE_CLASS}`}
+        >
+          {code}
+        </span>
       </div>
     )}
 

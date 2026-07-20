@@ -291,8 +291,10 @@ export default function CustomerDashboard() {
         message={
           <>
             Are you sure you want to permanently delete{" "}
-            <b>{customerToDelete?.customerName}</b>? This action cannot be
-            undone.
+            <span className="font-medium text-blue-600">
+              {customerToDelete?.customerName}
+            </span>
+            ? This action cannot be undone.
           </>
         }
         confirmText="Delete"

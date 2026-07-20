@@ -298,8 +298,10 @@ export default function SupplierDashboard() {
         message={
           <>
             Are you sure you want to permanently delete{" "}
-            <b>{supplierToDelete?.supplierName}</b>? This action cannot be
-            undone.
+            <span className="font-medium text-blue-600">
+              {supplierToDelete?.supplierName}
+            </span>
+            ? This action cannot be undone.
           </>
         }
         confirmText="Delete"

@@ -428,10 +428,18 @@ const RetailerViewEdit = ({
   }, [mode]);
 
   const [expanded, setExpanded] = useState(
-    mode === "view" ? "all" : "retailer",
+    mode === "view" ? null : "retailer",
   );
+  const [viewOpen, setViewOpen] = useState({
+    retailer: true,
+    history: true,
+  });
 
   const handleAccordionChange = (panel) => (_, isExpanded) => {
+    if (mode === "view") {
+      setViewOpen((prev) => ({ ...prev, [panel]: isExpanded }));
+      return;
+    }
     setExpanded(isExpanded ? panel : false);
   };
 
@@ -529,7 +537,7 @@ const RetailerViewEdit = ({
 
   useEffect(() => {
     if (mode === "view") {
-      setExpanded("all");
+      setViewOpen({ retailer: true, history: true });
     } else {
       setExpanded("retailer");
     }
@@ -604,9 +612,7 @@ const RetailerViewEdit = ({
       >
         <Accordion
           expanded={
-            mode === "view"
-              ? expanded === "all" || expanded === "retailer"
-              : expanded === "retailer"
+            mode === "view" ? viewOpen.retailer : expanded === "retailer"
           }
           onChange={handleAccordionChange("retailer")}
           disableGutters
@@ -800,9 +806,7 @@ const RetailerViewEdit = ({
         <HistorySection
           suppliers={historyData}
           expanded={
-            mode === "view"
-              ? expanded === "all" || expanded === "history"
-              : expanded === "history"
+            mode === "view" ? viewOpen.history : expanded === "history"
           }
           onChange={handleAccordionChange("history")}
         />
