@@ -258,11 +258,13 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                     bodyText:
                                         "Are you sure you want to permanently delete ${isSearching ? customer.customerName : customer['customerName']}? This action cannot be undo.",
                                     onSave: () async {
-                                      await context.read<DeleteCustomerProvider>().deleteCustomer({
-                                        "customerCode": isSearching
-                                            ? customer.code
-                                            : customer['code'],
-                                      });
+                                      await context
+                                          .read<DeleteCustomerProvider>()
+                                          .deleteCustomer({
+                                            "customerCode": isSearching
+                                                ? customer.code
+                                                : customer['code'],
+                                          });
                                       if (!context.mounted) {
                                         return;
                                       }
@@ -271,11 +273,15 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                         Navigator.pop(context);
 
                                         if (isSearching) {
-                                          await context.read<SearchCustomerProvider>().searchCustomer(
-                                            searchController.text.trim(),
-                                          );
+                                          await context
+                                              .read<SearchCustomerProvider>()
+                                              .searchCustomer(
+                                                searchController.text.trim(),
+                                              );
                                         } else {
-                                          await context.read<CustomersProvider>().refreshCustomers();
+                                          await context
+                                              .read<CustomersProvider>()
+                                              .refreshCustomers();
                                         }
 
                                         ScaffoldSnackBar.show(
@@ -335,7 +341,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                   final id = isSearching
                                       ? customer.id
                                       : customer['id'];
-                                  Navigator.push(
+                                  Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => AddNewCustomer(
@@ -358,7 +364,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         onPressed: () {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => AddNewCustomer()),
           );

@@ -36,7 +36,6 @@ class _SupplierState extends State<Supplier> {
 
     Future.microtask(() async {
       context.read<SupplierProvider>().fetchSuppliers(refresh: true);
-
     });
 
     _scrollController.addListener(() {
@@ -185,19 +184,30 @@ class _SupplierState extends State<Supplier> {
                           },
                           child: MasterContainer(
                             elevation: 1,
-                            name: (item.supplierName?.toString().trim().isNotEmpty ?? false)
+                            name:
+                                (item.supplierName
+                                        ?.toString()
+                                        .trim()
+                                        .isNotEmpty ??
+                                    false)
                                 ? item.supplierName!
                                 : "-",
 
-                            mobile: (item.mobile?.toString().trim().isNotEmpty ?? false)
+                            mobile:
+                                (item.mobile?.toString().trim().isNotEmpty ??
+                                    false)
                                 ? item.mobile!
                                 : "-",
 
-                            code: (item.code?.toString().trim().isNotEmpty ?? false)
+                            code:
+                                (item.code?.toString().trim().isNotEmpty ??
+                                    false)
                                 ? item.code!
                                 : "-",
 
-                            city: (item.city?.toString().trim().isNotEmpty ?? false)
+                            city:
+                                (item.city?.toString().trim().isNotEmpty ??
+                                    false)
                                 ? item.city!
                                 : "-",
                             trashIconTap: () {
@@ -220,19 +230,25 @@ class _SupplierState extends State<Supplier> {
                                   if (!context.mounted) return;
                                   Navigator.pop(context);
                                   if (searchController.text.trim().isNotEmpty) {
-                                    await context.read<SearchSupplierProvider>().searchSuppliers(
-                                      searchController.text.trim(),
-                                    );
+                                    await context
+                                        .read<SearchSupplierProvider>()
+                                        .searchSuppliers(
+                                          searchController.text.trim(),
+                                        );
                                   } else {
-                                    await context.read<SupplierProvider>().refreshSuppliers();
+                                    await context
+                                        .read<SupplierProvider>()
+                                        .refreshSuppliers();
                                   }
-                                  if(!context.mounted)return;
+                                  if (!context.mounted) return;
 
                                   ScaffoldSnackBar.show(
                                     context,
                                     provider.message,
                                   );
-                                  await context.read<SupplierProvider>().refreshSuppliers();
+                                  await context
+                                      .read<SupplierProvider>()
+                                      .refreshSuppliers();
                                 },
                               );
                             },
@@ -267,13 +283,13 @@ class _SupplierState extends State<Supplier> {
                                     address:
                                         provider.supplier?.addressLine1 ?? "",
                                     gstNo: provider.supplier?.gstNo ?? "",
-                                    emails: provider.supplier?.email??"",
+                                    emails: provider.supplier?.email ?? "",
                                   );
                                 },
                               );
                             },
                             editIconTap: () {
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => AddNewSupplier(
@@ -294,7 +310,7 @@ class _SupplierState extends State<Supplier> {
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         onPressed: () {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => AddNewSupplier()),
           );

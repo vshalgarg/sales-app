@@ -53,14 +53,38 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                   children: [
                     Center(
                       child: Text(
-                        "Change Password: ${widget.name}",
+                        "Change Password",
                         style: TextStyle(
                           color: AppColors.primaryPurple,
-                          fontWeight:FontWeight.w200,
+                          fontWeight:FontWeight.w500,
                           fontSize: 18,
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+
+                    TextFormField(
+
+                      initialValue: widget.name,
+                      enabled: false,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: "Email",
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 0.5,
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+
                     SizedBox(height:10),
                     Column(
                       mainAxisSize: MainAxisSize.min,
@@ -145,7 +169,7 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                           ),
                         ),
                         SizedBox(height: 15),
-                        Column(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             CustomElevatedButton(

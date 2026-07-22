@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hisabio/constants/list_items.dart';
 
 import '../constants/colors_used.dart';
+import '../customs/dropdown_test.dart';
 import '../enums/customer_mode.dart';
 
 class SupplierBasicInfo extends StatefulWidget {
@@ -180,33 +181,17 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
           SizedBox(height: 15),
 
           Text("MSME", style: TextStyle(color: Colors.white, fontSize: 18)),
-          DropdownButtonFormField<String>(
-            initialValue: ListItems.msmeItems.contains(selectedMsme)
-                ? selectedMsme
-                : null,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              enabled: widget.mode != FormMode.view,
-              hintText: "MSME",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            items: ListItems.msmeItems.map((msme) {
-              return DropdownMenuItem(value: msme, child: Text(msme));
-            }).toList(),
-
-            onChanged: widget.mode == FormMode.view
-                ? null
-                : (value) {
-                    setState(() {
-                      selectedMsme = value;
-
-                      widget.msmeController!.text = value ?? "";
-                    });
-                  },
+          CustomDropdown(
+            hintText: "MSME",
+            isDisabled: widget.mode == FormMode.view,
+            items: ListItems.msmeItems,
+            initialValue: selectedMsme,
+            onChanged: (value) {
+              setState(() {
+                selectedMsme = value;
+                widget.msmeController?.text = value ?? "";
+              });
+            },
           ),
           if (widget.showCommissionScheme) ...[
             SizedBox(height: 15),
@@ -215,38 +200,17 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               "Commission Scheme",
               style: TextStyle(color: Colors.white, fontSize: 18),
             ),
-            DropdownButtonFormField<String>(
-              initialValue:
-                  ListItems.commissionScheme.contains(selectedCommissionScheme)
-                  ? selectedCommissionScheme
-                  : null,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                enabled: widget.mode != FormMode.view,
-                hintText: "Commission Scheme",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(5),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-
-              items: ListItems.commissionScheme.map((commissionSchemeList) {
-                return DropdownMenuItem(
-                  value: commissionSchemeList,
-                  child: Text(commissionSchemeList),
-                );
-              }).toList(),
-
-              onChanged: widget.mode == FormMode.view
-                  ? null
-                  : (value) {
-                      setState(() {
-                        selectedCommissionScheme = value;
-
-                        widget.commissionSchemeController!.text = value ?? "";
-                      });
-                    },
+            CustomDropdown(
+              hintText: "Commission Scheme",
+              isDisabled: widget.mode == FormMode.view,
+              items: ListItems.commissionScheme,
+              initialValue: selectedCommissionScheme,
+              onChanged: (value) {
+                setState(() {
+                  selectedCommissionScheme = value;
+                  widget.commissionSchemeController?.text = value ?? "";
+                });
+              },
             ),
           ],
           if (widget.showCommissionRate) ...[

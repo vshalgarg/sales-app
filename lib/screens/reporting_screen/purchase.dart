@@ -5,9 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
-
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
+import '../../provider/get_purchase_provider.dart';
 import '../../provider/purchase_provider.dart';
 import '../../reporting_widgets/edit_purchase_screen.dart';
 import '../../reporting_widgets/purchase_details_screen.dart';
@@ -49,7 +49,6 @@ class _PurchaseState extends State<Purchase> {
     print("Purchase initState");
     final now = DateTime.now();
     final tenDaysAgo = now.subtract(const Duration(days: 10));
-
     final formatter = DateFormat('yyyy-MM-dd');
 
     fromDateController.text = formatter.format(tenDaysAgo);
@@ -449,6 +448,8 @@ class _PurchaseState extends State<Purchase> {
                                 ),
                               ],
                               onTap: () async {
+                                final purchaseProvider = context.read<GetPurchaseProvider>();
+
                                 showDialog(
                                   context: context,
                                   barrierDismissible: false,
@@ -458,45 +459,104 @@ class _PurchaseState extends State<Purchase> {
                                 );
 
                                 try {
-                                  final data = await getPurchaseDetails(
-                                    purchase.id,
-                                  );
-
+                                  final success = await purchaseProvider.fetchPurchaseDetails(purchase.id);
                                   if (!context.mounted) return;
 
                                   Navigator.pop(context);
+
+                                  if (!success || purchaseProvider.purchaseDetails == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          purchaseProvider.errorMessage ??
+                                              "Failed to fetch purchase details",
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
 
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => PurchaseDetailsScreen(
-                                        purchaseData: data["data"],
+                                        purchaseData: purchaseProvider.purchaseDetails!,
                                       ),
                                     ),
                                   );
                                 } catch (e) {
-                                  Navigator.pop(context);
+                                  if (Navigator.canPop(context)) {
+                                    Navigator.pop(context);
+                                  }
 
-                                  ScaffoldMessenger.of(
-                                    context,
-                                  ).showSnackBar(SnackBar(content: Text("$e")));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(e.toString())),
+                                  );
                                 }
                               },
                               onEdit: () async {
-                                final details = await getPurchaseDetails(
+                                final purchaseProvider = context.read<
+                                    GetPurchaseProvider>();
+
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) =>
+                                  const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+
+                                final success = await purchaseProvider
+                                    .fetchPurchaseDetails(
                                   purchase.id,
                                 );
 
                                 if (!context.mounted) return;
 
-                                Navigator.push(
+                                Navigator.pop(context); // Close loading dialog
+
+                                if (!success ||
+                                    purchaseProvider.purchaseDetails == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        purchaseProvider.errorMessage ??
+                                            "Failed to fetch purchase details",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => EditPurchaseScreen(
-                                      purchaseData: details["data"],
-                                    ),
+                                    builder: (_) =>
+                                        EditPurchaseScreen(
+                                          purchaseData: purchaseProvider
+                                              .purchaseDetails!,
+                                        ),
                                   ),
                                 );
+                                print("RESULT FROM EDIT = $result");
+                                print("CONTEXT MOUNTED = ${context.mounted}");
+
+                                if (result == true) {
+                                  if (!mounted) return;
+
+                                  final purchaseProvider = Provider.of<PurchaseProvider>(
+                                    this.context,
+                                    listen: false,
+                                  );
+
+                                  await purchaseProvider.searchPurchases(
+                                    page: 0,
+                                    size: 20,
+                                    fromDate: fromDateController.text,
+                                    toDate: toDateController.text,
+                                  );
+                                }
                               },
                               onDelete: () async {
                                 ExitConfirmationDialog.show(
@@ -519,12 +579,16 @@ class _PurchaseState extends State<Purchase> {
 
                                     if (!context.mounted) return;
 
+                                    final provider = context.read<PurchaseProvider>();
+
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           success
-                                              ? "Purchase deleted successfully"
-                                              : "Failed to delete credit",
+                                              ? (provider.successMessage ??
+                                              "Purchase deleted successfully")
+                                              : (provider.errorMessage ??
+                                              "Failed to delete purchase"),
                                         ),
                                       ),
                                     );

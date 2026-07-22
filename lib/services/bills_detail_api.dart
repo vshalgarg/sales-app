@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import '../shared_preferences/login_token.dart';
 
 Future<Map<String, dynamic>> getBillDetails(String billNumber) async {

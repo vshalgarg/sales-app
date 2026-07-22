@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
 

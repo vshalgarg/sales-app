@@ -11,6 +11,7 @@ class ContactInfo extends StatefulWidget {
   final VoidCallback onAdd;
   final Function(int) onDelete;
   final FormMode? mode;
+  final ScrollController? scrollController;
 
   const ContactInfo({
     super.key,
@@ -18,6 +19,7 @@ class ContactInfo extends StatefulWidget {
     required this.contacts,
     required this.onAdd,
     required this.onDelete,
+    this.scrollController,
   });
 
   @override
@@ -25,6 +27,8 @@ class ContactInfo extends StatefulWidget {
 }
 
 class _ContactInfoState extends State<ContactInfo> {
+  final GlobalKey _contactKey = GlobalKey();
+  final GlobalKey _expandedKey = GlobalKey();
   bool isExpanded = false;
 
   @override
@@ -38,11 +42,26 @@ class _ContactInfoState extends State<ContactInfo> {
             setState(() {
               isExpanded = !isExpanded;
             });
+            if (isExpanded) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Scrollable.ensureVisible(
+                  _contactKey.currentContext!,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                  alignment: 0.0,
+                );
+              });
+            }
           },
           child: TextFormField(
             enabled: false,
             decoration: InputDecoration(
-              suffixIcon: Icon(isExpanded?Icons.keyboard_arrow_up:Icons.keyboard_arrow_down, color: Colors.white),
+              suffixIcon: Icon(
+                isExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: Colors.white,
+              ),
               iconColor: Colors.white,
               filled: true,
               fillColor: AppColors.primaryPurple,
@@ -64,20 +83,23 @@ class _ContactInfoState extends State<ContactInfo> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 0),
                 child: Container(
-                  // margin: const EdgeInsets.all(10),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: AppColors.bodyFillColor,
                   ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             "Contact ${index + 1}",
-                            style: const TextStyle(fontWeight: FontWeight.bold,color:Colors.white),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
 
                           if (widget.mode != FormMode.view && index > 0)
@@ -128,6 +150,7 @@ class _ContactInfoState extends State<ContactInfo> {
                           hintText: "Mobile No.",
                         ),
                       ),
+                      SizedBox(height: 15),
                       Text(
                         "Type",
                         style: TextStyle(color: Colors.white, fontSize: 18),
@@ -145,7 +168,7 @@ class _ContactInfoState extends State<ContactInfo> {
                           hintText: "Type",
                         ),
                       ),
-                     // SizedBox(height: 5),
+                      // SizedBox(height: 5),
                     ],
                   ),
                 ),
@@ -156,25 +179,37 @@ class _ContactInfoState extends State<ContactInfo> {
           widget.mode == FormMode.view
               ? SizedBox()
               : Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: Colors.white),
-              ),
-              child: TextButton(
-                onPressed: widget.onAdd,
-                child: const Text(
-                  "+ ADD CONTACT",
-                  style: TextStyle(
-                    color: AppColors.primaryPurple,
-                    fontSize: 15,
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: Colors.white),
+                    ),
+                    child: TextButton(
+                      onPressed: () {
+                        widget.onAdd();
+
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (widget.scrollController != null) {
+                            widget.scrollController!.animateTo(
+                              widget.scrollController!.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        });
+                      },
+                      child: const Text(
+                        "+ ADD CONTACT",
+                        style: TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
         ],
       ],
     );

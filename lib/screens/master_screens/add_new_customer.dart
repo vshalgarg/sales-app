@@ -9,6 +9,7 @@ import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/master_screens/customer.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
+import '../../customs/dropdown_test.dart';
 import '../../customs/new_test.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/get_customer_byid_model.dart';
@@ -32,6 +33,7 @@ class AddNewCustomer extends StatefulWidget {
 
 class _AddNewCustomerState extends State<AddNewCustomer> {
   final GlobalKey financialSectionKey = GlobalKey();
+  final GlobalKey _contactKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
   bool isExpanded = false;
   final nameController = TextEditingController();
@@ -257,35 +259,36 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
-        leading:widget.mode == FormMode.view? IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context
-            );
-          },
-        ):null,
-        actions:[if( widget.mode != FormMode.view)IconButton(
-                icon: const Icon(Icons.close),
+        leading: widget.mode == FormMode.view
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () {
-                  ExitConfirmationDialog.show(
-                    context,
-                    onSave: () async{
-                      Navigator.pop(context);
-                    },
-                    discardButtonText: "Leave",
-                    saveButtonText: "Stay",
-                    onDiscard: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CustomerScreen(),
-                        ),
-                      );
-                    },
-                  );
+                  Navigator.pop(context);
                 },
-          ),
+              )
+            : null,
+        actions: [
+          if (widget.mode != FormMode.view)
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                ExitConfirmationDialog.show(
+                  context,
+                  onSave: () async {
+                    Navigator.pop(context);
+                  },
+                  discardButtonText: "Leave",
+                  saveButtonText: "Stay",
+                  onDiscard: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => CustomerScreen()),
+                    );
+                  },
+                );
+              },
+            ),
         ],
         title: widget.mode == FormMode.view
             ? "Customer Details"
@@ -303,7 +306,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               (widget.mode == FormMode.view || widget.mode == FormMode.edit)
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-            controller: _scrollController,
+              controller: _scrollController,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -345,46 +348,59 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                       contacts: contacts,
                       onAdd: addContact,
                       onDelete: deleteContact,
+                      scrollController: _scrollController,
                     ),
                     SizedBox(height: 15),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isExpanded = !isExpanded;
-                        });
-                        if (isExpanded) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _scrollController.animateTo(
-                              _scrollController.position.maxScrollExtent,
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut,
-                            );
-                          });
-                        }
-                      },
-                      child: TextFormField(
-                        enabled: false,
-                        decoration: InputDecoration(
-                          suffixIcon: Icon(
-                            isExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.white,
+                    Container(
+                      key: _contactKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isExpanded = !isExpanded;
+                              });
+                              if (isExpanded) {
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  _scrollController.animateTo(
+                                    _scrollController.offset + 250,
+                                    // _scrollController.position.maxScrollExtent,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOut,
+                                  );
+                                });
+                              }
+                            },
+                            child: TextFormField(
+                              enabled: false,
+                              decoration: InputDecoration(
+                                suffixIcon: Icon(
+                                  isExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.white,
+                                ),
+                                iconColor: Colors.white,
+                                filled: true,
+                                fillColor: AppColors.primaryPurple,
+                                hintText: "Financial and Logistics",
+                                hintStyle: TextStyle(color: Colors.white),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
                           ),
-                          iconColor: Colors.white,
-                          filled: true,
-                          fillColor: AppColors.primaryPurple,
-                          hintText: "Financial and Logistics",
-                          hintStyle: TextStyle(color: Colors.white),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                     if (isExpanded) ...[
-                      Column( key: financialSectionKey,
+                      Column(
+                        key: financialSectionKey,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 15),
@@ -402,8 +418,8 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
                               final transports = transportProvider.transports;
 
-                              return CustomDropdownMenu(
-                                //label: "Preferred Transport",
+                              return CustomDropdown(
+                                hintText: "Preferred Transport",
                                 items: transports
                                     .map((e) => e.name ?? "")
                                     .toList(),
@@ -412,21 +428,19 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
                                 isDisabled: widget.mode == FormMode.view,
 
-                                width: MediaQuery.of(context).size.width,
-
                                 onChanged: (value) {
+                                  if (value == null) return;
+
                                   final selected = transports.firstWhere(
                                     (e) => e.name == value,
                                   );
 
                                   setState(() {
                                     selectedType = selected.name;
-
                                     selectedTransportId = selected.id
                                         .toString();
-
                                     preferredTransportController.text =
-                                        selectedType ?? "";
+                                        selected.name ?? "";
                                   });
                                 },
                               );
@@ -480,9 +494,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                   if (!context.mounted) return;
 
                   if (updateProvider.errorMessage == null) {
-                    await context
-                        .read<CustomersProvider>()
-                        .refreshCustomers();
+                    await context.read<CustomersProvider>().refreshCustomers();
                     if (!context.mounted) return;
                     ScaffoldSnackBar.show(
                       context,

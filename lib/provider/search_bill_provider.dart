@@ -8,6 +8,7 @@ class BillsProvider extends ChangeNotifier {
   bool isBillsLoading = false;
   bool isLoadingMore = false;
   bool hasMore = true;
+
   Future<bool> deleteBill(String billNumber) async {
     try {
       final success = await billApi.deleteBill(billNumber);

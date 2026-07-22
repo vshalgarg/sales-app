@@ -15,6 +15,7 @@ import 'package:hisabio/screens/master_screens/supplier.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
+import '../../customs/dropdown_test.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/get_supplier_provider.dart';
@@ -348,8 +349,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     discardButtonText: "Leave",
                     saveButtonText: "Stay",
                     onDiscard: () {
-                      Navigator.pop(context);
-                      Navigator.push(
+                      Navigator.pop(context,true);
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => Supplier()),
                       );
@@ -431,7 +432,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     });
                   }
                 },
-                child: TextFormField(
+                child:
+                TextFormField(
                   enabled: false,
                   decoration: InputDecoration(
                     suffixIcon: Icon(
@@ -460,42 +462,33 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 ),
                 Consumer<TransportProvider>(
                   builder: (context, provider, child) {
-                    final transportIds = provider.transports
-                        .map((t) => t.id.toString())
-                        .toSet();
-                    return DropdownButtonFormField<String>(
-                      initialValue:
-                          selectedTransportId != null &&
-                              transportIds.contains(selectedTransportId)
-                          ? selectedTransportId
+                    // final transportIds = provider.transports
+                    //     .map((t) => t.id.toString())
+                    //     .toSet();
+                    return CustomDropdown(
+                      hintText: "Preferred Transport",
+                      items: provider.transports
+                          .map((e) => e.name ?? "")
+                          .toList(),
+                      initialValue: provider.transports
+                          .any((e) => e.id.toString() == selectedTransportId)
+                          ? provider.transports
+                          .firstWhere(
+                            (e) => e.id.toString() == selectedTransportId,
+                      )
+                          .name
                           : null,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        enabled: widget.mode != FormMode.view,
-                        hintText: "Preferred Transport",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      items: provider.transports.map((t) {
-                        return DropdownMenuItem<String>(
-                          value: t.id.toString(),
-                          child: Text(t.name ?? ""),
+                      onChanged: (value) {
+                        final transport = provider.transports.firstWhere(
+                              (e) => e.name == value,
                         );
-                      }).toList(),
 
-                      onChanged: widget.mode == FormMode.view
-                          ? null
-                          : (value) {
-                              setState(() {
-                                selectedTransportId = value;
-                              });
-                            },
+                        setState(() {
+                          selectedTransportId = transport.id.toString();
+                        });
+                      },
                     );
-                  },
+                  }
                 ),
                 SizedBox(height: 15),
                 Text(
@@ -514,8 +507,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                ),
-              ],
+
+                  )
+                  ],
             ],
           ),
         ),

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:hisabio/reporting_widgets/pdf_preview_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
+import '../model_classes/get_purchase_model.dart';
+import 'image_preview_screen.dart';
 
 class PurchaseDetailsScreen extends StatefulWidget {
-  final Map<String, dynamic> purchaseData;
+  final PurchaseDetails purchaseData;
 
   const PurchaseDetailsScreen({super.key, required this.purchaseData});
 
@@ -15,7 +18,40 @@ class PurchaseDetailsScreen extends StatefulWidget {
 class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
   bool basicInfoExpanded = true;
   bool attachmentExpanded = false;
+  Future<void> _viewAttachment(String url) async {
+    final lower = url.toLowerCase();
 
+    if (lower.endsWith(".png") ||
+        lower.endsWith(".jpg") ||
+        lower.endsWith(".jpeg") ||
+        lower.endsWith(".webp")) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ImagePreviewScreen(imageUrl: url),
+        ),
+      );
+    } else if (lower.endsWith(".pdf")) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PdfPreviewScreen(pdfUrl: url),
+        ),
+      );
+    } else {
+      await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+    }
+  }
+
+  Future<void> _downloadAttachment(String url) async {
+    await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,28 +85,23 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                         },
                         child: Column(
                           children: [
-                            _field("Date", widget.purchaseData["date"] ?? ""),
+                            _field("Date", widget.purchaseData.date ),
                             _field(
                               "Staff",
-                              widget.purchaseData["staffName"] ?? "",
+                                widget.purchaseData.staffName
                             ),
                             _field(
                               "Customer",
-                              widget.purchaseData["customerName"] ?? "",
+                              widget.purchaseData.customerName,
                             ),
                             _field(
                               "Remarks",
-                              widget.purchaseData["remarks"] ?? "",
+                              widget.purchaseData.remarks,
                             ),
                             _field(
                               "Supplier",
-                              (widget.purchaseData["supplier"]
-                                      as Map<
-                                        String,
-                                        dynamic
-                                      >?)?["supplierName"] ??
-                                  "",
-                            ),
+                              widget.purchaseData.supplier.supplierName,
+                            )
                           ],
                         ),
                       ),
@@ -79,14 +110,15 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
 
                       _sectionCard(
                         title:
-                            "Attachments (${(widget.purchaseData['publicUrls'] as List? ?? []).length})",
+                        "Attachments (${widget.purchaseData.supplier.images.length})",
                         isExpanded: attachmentExpanded,
                         onTap: () {
                           setState(() {
                             attachmentExpanded = !attachmentExpanded;
                           });
                         },
-                        child: Container(
+                        child: widget.purchaseData.supplier.images.isEmpty
+                            ? Container(
                           width: double.infinity,
                           height: 150,
                           decoration: BoxDecoration(
@@ -111,6 +143,61 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                               ),
                             ],
                           ),
+                        )
+                            : Column(
+                          children: widget.purchaseData.supplier.images.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final image = entry.value;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        image.fileName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.visibility_outlined,
+                                        color: AppColors.primaryPurple,
+                                      ),
+                                      onPressed: () {
+                                        _viewAttachment(image.url);
+                                      },
+                                    ),
+
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.download,
+                                        color: Colors.green,
+                                      ),
+                                      onPressed: () {
+                                        _downloadAttachment(image.url);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
 

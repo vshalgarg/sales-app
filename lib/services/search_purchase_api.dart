@@ -25,24 +25,26 @@ Future<PurchaseSearchResponse> searchPurchaseEntries({
     "page": page.toString(),
     "size": size.toString(),
   };
-
-  final uri = Uri.http(
-    "192.168.1.100:8087",
-    "/csm/api/v1/purchase/entries/search",
-    queryParams,
-  );
+try{
+  final url = Uri.parse(
+    "http://192.168.1.100:8087/csm/api/v1/purchase/entries/search",
+  ).replace(queryParameters: queryParams);
 
   final response = await http.get(
-    uri,
+    url,
     headers: {
       "Authorization": "Bearer $token",
       "Content-Type": "application/json",
     },
   );
-
+  final data = jsonDecode(response.body);
   if (response.statusCode == 200) {
-    return PurchaseSearchResponse.fromJson(jsonDecode(response.body));
-  }
+    return PurchaseSearchResponse.fromJson(data);
+  } else {
+    throw Exception(data['message'] ?? "Failed to search Purchase");
+       }
+    } catch (e) {
+        throw Exception("Error $e");
+    }
+   }
 
-  throw Exception("Failed to search purchase entries: ${response.statusCode}");
-}

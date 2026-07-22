@@ -32,9 +32,7 @@ class _TransportScreenState extends State<TransportScreen> {
     super.initState();
 
     Future.microtask(() {
-      context.read<GetTransportProvider>().getTransportDetails(
-        refresh: true,
-      );
+      context.read<GetTransportProvider>().getTransportDetails(refresh: true);
     });
 
     _scrollController.addListener(() {
@@ -44,6 +42,7 @@ class _TransportScreenState extends State<TransportScreen> {
       }
     });
   }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -118,7 +117,9 @@ class _TransportScreenState extends State<TransportScreen> {
                     final keyword = value.trim();
 
                     if (keyword.isEmpty) {
-                      await context.read<GetTransportProvider>().refreshTransport();
+                      await context
+                          .read<GetTransportProvider>()
+                          .refreshTransport();
                       return;
                     }
                     await context
@@ -139,7 +140,7 @@ class _TransportScreenState extends State<TransportScreen> {
                   final itemCount = isSearching
                       ? searchProvider.response?.content?.length ?? 0
                       : transportProvider.transports.length +
-                      (transportProvider.isLoadingMore ? 1 : 0);
+                            (transportProvider.isLoadingMore ? 1 : 0);
                   if (itemCount == 0) {
                     return Center(
                       child: Text(
@@ -158,20 +159,19 @@ class _TransportScreenState extends State<TransportScreen> {
                   return ListView.separated(
                     separatorBuilder: (context, index) {
                       return SizedBox(height: 8);
-                    },controller: _scrollController,
+                    },
+                    controller: _scrollController,
                     itemCount: isSearching
                         ? searchProvider.response?.content?.length ?? 0
                         : transportProvider.transports.length +
-                        (transportProvider.isLoadingMore ? 1 : 0),
+                              (transportProvider.isLoadingMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (!isSearching &&
                           index == transportProvider.transports.length &&
                           transportProvider.isLoadingMore) {
                         return const Padding(
                           padding: EdgeInsets.all(15),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          child: Center(child: CircularProgressIndicator()),
                         );
                       }
                       final dynamic transport = isSearching
@@ -185,25 +185,27 @@ class _TransportScreenState extends State<TransportScreen> {
                       return TransportContainer(
                         name: (transport.name?.trim().isNotEmpty ?? false)
                             ? transport.name!
-                            :  " -",
+                            : " -",
 
                         status: (transport.status?.trim().isNotEmpty ?? false)
                             ? transport.status!
-                            :  " -",
+                            : " -",
 
                         gst: (transport.gstNo?.trim().isNotEmpty ?? false)
                             ? transport.gstNo!
-                            :  " -",
+                            : " -",
 
                         city: (transport.city?.trim().isNotEmpty ?? false)
                             ? transport.city!
-                            :  " -",
+                            : " -",
 
-                        phone: (firstContact?.contactNumber?.trim().isNotEmpty ?? false)
+                        phone:
+                            (firstContact?.contactNumber?.trim().isNotEmpty ??
+                                false)
                             ? firstContact!.contactNumber!
-                            :"-",
+                            : "-",
                         editIconTap: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) => AddNewTransport(
@@ -235,7 +237,10 @@ class _TransportScreenState extends State<TransportScreen> {
                                 transport.id!.toInt(),
                               );
                               if (!context.mounted) return;
-                              Navigator.of(parentContext, rootNavigator: true).pop();
+                              Navigator.of(
+                                parentContext,
+                                rootNavigator: true,
+                              ).pop();
                               if (provider.error != null) {
                                 ScaffoldSnackBar.show(
                                   parentContext,
@@ -244,17 +249,21 @@ class _TransportScreenState extends State<TransportScreen> {
                                 );
                               } else {
                                 ScaffoldSnackBar.show(
-                                    parentContext,
+                                  parentContext,
                                   provider.deleteResponse?.message ??
                                       "Transport deleted successfully",
                                 );
                               }
                               if (searchController.text.trim().isNotEmpty) {
-                                await parentContext.read<SearchTransportProvider>().getSearchTransport(
-                                  searchController.text.trim(),
-                                );
+                                await parentContext
+                                    .read<SearchTransportProvider>()
+                                    .getSearchTransport(
+                                      searchController.text.trim(),
+                                    );
                               } else {
-                                await parentContext.read<GetTransportProvider>().refreshTransport();
+                                await parentContext
+                                    .read<GetTransportProvider>()
+                                    .refreshTransport();
                               }
                             },
                           );
@@ -268,8 +277,8 @@ class _TransportScreenState extends State<TransportScreen> {
                                 firmName: transport.name ?? "",
                                 address: transport.addressLine1 ?? "",
                                 gstNo: transport.gstNo ?? "",
-                               contact: firstContact?.contactNumber ?? "",
-                                emails: transport.email??"",
+                                contact: firstContact?.contactNumber ?? "",
+                                emails: transport.email ?? "",
                               );
                             },
                           );
@@ -286,11 +295,9 @@ class _TransportScreenState extends State<TransportScreen> {
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         onPressed: () async {
-          final result = await Navigator.push<bool>(
+          final result = await Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => const AddNewTransport(),
-            ),
+            MaterialPageRoute(builder: (_) => const AddNewTransport()),
           );
 
           if (result == true) {

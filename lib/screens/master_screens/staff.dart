@@ -89,6 +89,10 @@ class _StaffScreenState extends State<StaffScreen> {
                   ),
                 ),
                 controller: searchStaffController,
+                elevation: WidgetStatePropertyAll(2),
+                hintText: "Search Staff...",
+                leading: Icon(Icons.search_outlined, size: 30),
+                backgroundColor: WidgetStatePropertyAll(Colors.white),
                 trailing: [
                   if (searchStaffController.text.isNotEmpty)
                     IconButton(
@@ -100,21 +104,26 @@ class _StaffScreenState extends State<StaffScreen> {
                     ),
                 ],
                 onChanged: (value) {
+                  setState(() {});
                   if (_debounce?.isActive ?? false) {
                     _debounce!.cancel();
                   }
-                  if (value.trim().isEmpty) {
-                    context.read<SearchStaffProvider>().clearSearch();
-                    return;
-                  }
+                  // if (value.trim().isEmpty) {
+                  //   context.read<SearchStaffProvider>().clearSearch();
+                  //   return;
+                  // }
                   _debounce = Timer(const Duration(milliseconds: 500), () {
+                    if (value.trim().isEmpty) {
+                      setState(() {});
+                      return;
+                    }
                     context.read<SearchStaffProvider>().searchStaff(value);
                   });
                 },
-                elevation: WidgetStatePropertyAll(2),
-                hintText: "Search Staff...",
-                leading: Icon(Icons.search_outlined, size: 30),
-                backgroundColor: WidgetStatePropertyAll(Colors.white),
+                // elevation: WidgetStatePropertyAll(2),
+                // hintText: "Search Staff...",
+                // leading: Icon(Icons.search_outlined, size: 30),
+                // backgroundColor: WidgetStatePropertyAll(Colors.white),
               ),
             ),
             SizedBox(height: 25),

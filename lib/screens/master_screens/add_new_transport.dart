@@ -27,7 +27,7 @@ class AddNewTransport extends StatefulWidget {
 
 class _AddNewTransportState extends State<AddNewTransport> {
   bool isExpanded = true;
-
+  final ScrollController _scrollController = ScrollController();
   @override
   @override
   void initState() {
@@ -135,6 +135,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     transportNameController.dispose();
     gstNoController.dispose();
     emailController.dispose();
@@ -202,7 +203,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                 discardButtonText: "Leave",
                 onDiscard: () {
                   Navigator.pop(context);
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const TransportScreen(),
@@ -223,6 +224,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
         ),
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.all(15.0),
           child: Column(
@@ -324,6 +326,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                 contacts: contacts,
                 onAdd: addContact,
                 onDelete: deleteContact,
+                scrollController: _scrollController,
               ),
             ],
           ),

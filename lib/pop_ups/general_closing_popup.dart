@@ -28,7 +28,7 @@ class ExitConfirmationDialog {
                   child: Container(
                    // width:350,
                     //height:150,
-                    padding: const EdgeInsets.all(50),
+                    padding: const EdgeInsets.all(40),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(5),

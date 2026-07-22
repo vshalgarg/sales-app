@@ -15,6 +15,7 @@ import 'package:hisabio/provider/entries_provider/add_bill_item_calculation.dart
 import 'package:hisabio/provider/entries_provider/entries_section_provider.dart';
 import 'package:hisabio/provider/get_customer_byid_provider.dart';
 import 'package:hisabio/provider/get_customers_provider.dart';
+import 'package:hisabio/provider/get_purchase_provider.dart';
 import 'package:hisabio/provider/get_staff_by_id_provider.dart';
 import 'package:hisabio/provider/get_staff_provider.dart';
 import 'package:hisabio/provider/get_supplier_provider.dart';
@@ -36,6 +37,7 @@ import 'package:hisabio/provider/search_supplier_provider.dart';
 import 'package:hisabio/provider/search_transport_provider.dart';
 import 'package:hisabio/provider/staff_provider.dart';
 import 'package:hisabio/provider/update_customer_provider.dart';
+import 'package:hisabio/provider/update_purchase_provider.dart';
 import 'package:hisabio/provider/update_staff_provider.dart';
 import 'package:hisabio/provider/update_supplier_provider.dart';
 import 'package:hisabio/provider/user_all_provider.dart';
@@ -87,6 +89,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GraphProvider(),),
         ChangeNotifierProvider(create: (_) => ConfigProvider(),),
         ChangeNotifierProvider(create: (_) => RetailDetailsProvider(),),
+        ChangeNotifierProvider(create: (_) => UpdatePurchaseProvider(),),
+        ChangeNotifierProvider(create: (_) => GetPurchaseProvider(),),
       ],
       child: const MyApp(),
 

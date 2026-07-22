@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/list_items.dart';
+import 'package:hisabio/customs/dropdown_test.dart';
 
 import '../constants/colors_used.dart';
 import '../enums/customer_mode.dart';
@@ -28,7 +29,7 @@ class AddressDetails extends StatefulWidget {
 
 class _AddressDetailsState extends State<AddressDetails> {
   String? selectedState;
-   bool isExpanded=false;
+  bool isExpanded = false;
 
   @override
   void initState() {
@@ -53,117 +54,126 @@ class _AddressDetailsState extends State<AddressDetails> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        GestureDetector(onTap:(){setState(() {
-          isExpanded=!isExpanded;
-
-        });},
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              isExpanded = !isExpanded;
+            });
+          },
           child: TextFormField(
             enabled: false,
             decoration: InputDecoration(
-              suffixIcon: Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,color:Colors.white),
+              suffixIcon: Icon(
+                isExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: Colors.white,
+              ),
               iconColor: Colors.white,
-              filled:true,
+              filled: true,
               fillColor: AppColors.primaryPurple,
-              hintText: "Address Details",hintStyle: TextStyle(color:Colors.white),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
+              hintText: "Address Details",
+              hintStyle: TextStyle(color: Colors.white),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide.none,
+              ),
             ),
-
           ),
         ),
-    if (isExpanded) ...[
-
-        SizedBox(height: 15),
-        Text("Address Line1",style:TextStyle(color:Colors.white,fontSize: 18)),
-        TextFormField(
-          minLines: 1,
-          maxLines: 5,
-          enabled: widget.mode != FormMode.view,
-          controller: widget.addressLine1,
-          decoration: InputDecoration(
-            filled:true,
-            fillColor: Colors.white,
-            hintText: "Address Line1",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
+        if (isExpanded) ...[
+          SizedBox(height: 15),
+          Text(
+            "Address Line1",
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
-        ),
-
-        SizedBox(height: 15),
-        Text("Address Line2",style:TextStyle(color:Colors.white,fontSize: 18)),
-        TextFormField(
-          minLines: 1,
-          maxLines: 5,
-          enabled: widget.mode != FormMode.view,
-          controller: widget.addressLine2,
-          decoration: InputDecoration(
-            filled:true,
-            fillColor: Colors.white,
-            hintText: "Address Line2",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
-          ),
-        ),
-        SizedBox(height: 15),
-
-        Text("State",style:TextStyle(color:Colors.white,fontSize: 18),
-        ),
-        DropdownButtonFormField<String>(
-          initialValue: ListItems.indianStates.contains(selectedState)
-              ? selectedState
-              : null,
-          isExpanded: true,
-          decoration: InputDecoration(
-            filled:true,
-            fillColor: Colors.white,
+          TextFormField(
+            minLines: 1,
+            maxLines: 5,
             enabled: widget.mode != FormMode.view,
-            hintText: "State",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 14,
+            controller: widget.addressLine1,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              hintText: "Address Line1",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
-          menuMaxHeight: double.infinity,
-          items: ListItems.indianStates.map((state) {
-            return DropdownMenuItem(value: state, child: Text(state));
-          }).toList(),
-          onChanged: widget.mode == FormMode.view
-              ? null
-              : (value) {
-                  setState(() {
-                    selectedState = value;
-                    widget.state.text = value ?? "";
-                  });
-                },
-        ),
 
-        SizedBox(height: 15),
-        Text("City",style:TextStyle(color:Colors.white,fontSize: 18)),
-        TextFormField(
-          enabled: widget.mode != FormMode.view,
-          controller: widget.city,
-          decoration: InputDecoration(
-            filled:true,
-            fillColor: Colors.white,
-            hintText: "city",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
+          SizedBox(height: 15),
+          Text(
+            "Address Line2",
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
-        ),
-        SizedBox(height: 15),
-        Text("Pin Code",style:TextStyle(color:Colors.white,fontSize: 18)),
-        TextFormField(
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          enabled: widget.mode != FormMode.view,
-          controller: widget.pinCode,
-          decoration: InputDecoration(
-            filled:true,
-            fillColor: Colors.white,
+          TextFormField(
+            minLines: 1,
+            maxLines: 5,
+            enabled: widget.mode != FormMode.view,
+            controller: widget.addressLine2,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              hintText: "Address Line2",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          SizedBox(height: 15),
 
-            hintText: "Pin Code",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
+          Text("State", style: TextStyle(color: Colors.white, fontSize: 18)),
+          CustomDropdown(
+            hintText: "State",
+            isDisabled: widget.mode == FormMode.view,
+            items: ListItems.indianStates,
+            initialValue: selectedState,
+            onChanged: (value) {
+              setState(() {
+                selectedState = value;
+                widget.state.text = value ?? "";
+              });
+            },
           ),
-        ),
-     ] ],
+
+          SizedBox(height: 15),
+          Text("City", style: TextStyle(color: Colors.white, fontSize: 18)),
+          TextFormField(
+            enabled: widget.mode != FormMode.view,
+            controller: widget.city,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              hintText: "city",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          SizedBox(height: 15),
+          Text("Pin Code", style: TextStyle(color: Colors.white, fontSize: 18)),
+          TextFormField(
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            enabled: widget.mode != FormMode.view,
+            controller: widget.pinCode,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+
+              hintText: "Pin Code",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

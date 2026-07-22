@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/containers/master_containers/users_container.dart';
+import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
@@ -159,6 +160,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                 bodyText:
                                 "Are you sure you want to permanently delete ${user['username']}? This action cannot be undo.",
                                 onSave: () async {
+
                                   await context.read<UserProvider>().deleteUser(
                                     user['id']!.toInt(),
                                   );
@@ -309,6 +311,10 @@ class _UsersScreenState extends State<UsersScreen> {
                                         ),
                                       ),
                                     );
+                                    return;
+                                  }
+                                  if(newPassword.text.isEmpty||confirmPassword.text.isEmpty){
+                                    ScaffoldSnackBar.show(context,"Please fill Password and confirm Password");
                                     return;
                                   }
                                   await context
