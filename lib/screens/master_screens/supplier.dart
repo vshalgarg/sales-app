@@ -26,7 +26,24 @@ class Supplier extends StatefulWidget {
 }
 
 class _SupplierState extends State<Supplier> {
-  final ScrollController _scrollController = ScrollController();
+  List<List<dynamic>> splitIntoPages(List<dynamic> suppliers) {
+    const pageSize = 10;
+
+    List<List<dynamic>> pages = [];
+
+    for (int i = 0; i < suppliers.length; i += pageSize) {
+      pages.add(
+        suppliers.sublist(
+          i,
+          (i + pageSize > suppliers.length) ? suppliers.length : i + pageSize,
+        ),
+      );
+    }
+
+    return pages;
+  }
+
+  final PageController _pageController = PageController();
   final searchController = TextEditingController();
   Timer? _debounce;
 
@@ -36,19 +53,11 @@ class _SupplierState extends State<Supplier> {
 
     Future.microtask(() async {
       context.read<SupplierProvider>().fetchSuppliers(refresh: true);
-    });
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        context.read<SupplierProvider>().fetchSuppliers();
       }
-    });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     searchController.dispose();
     _debounce?.cancel();
     super.dispose();
@@ -65,6 +74,7 @@ class _SupplierState extends State<Supplier> {
     final List<dynamic> suppliers = isSearching
         ? searchProvider.searchSupplier?.content ?? []
         : provider.suppliers;
+    final pages = splitIntoPages(suppliers);
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -84,8 +94,6 @@ class _SupplierState extends State<Supplier> {
           fontSize: 25,
         ),
       ),
-      // bottomNavigationBar: CustomBottomNavigationBar(currentIndex: 0,),
-      // drawer: MasterDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
@@ -152,6 +160,58 @@ class _SupplierState extends State<Supplier> {
                         ),
                       ),
                     )
+                  : PageView.builder(
+                controller: _pageController,
+                itemCount: pages.length + (provider.hasMore ? 1 : 0),
+
+                onPageChanged: (index) {
+                  final supplierProvider = context.read<SupplierProvider>();
+
+                  if (index == pages.length && supplierProvider.hasMore) {
+                    supplierProvider.fetchSuppliers();
+                  }
+                },
+
+                itemBuilder: (context, pageIndex) {
+
+                  if (pageIndex == pages.length) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  final pageSuppliers = pages[pageIndex];
+
+                  return ListView.builder(
+                    itemCount: pageSuppliers.length,
+
+                    itemBuilder: (context, index) {
+
+                      final item = pageSuppliers[index];
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddNewSupplier(
+                                id: item.id,
+                                mode: FormMode.view,
+                              ),
+                            ),
+                          );
+                        },
+
+                        child: MasterContainer(
+                                elevation: 1,
+                                name:
+                                    (item.supplierName
+                                            ?.toString()
+                                            .trim()
+                                            .isNotEmpty ??
+                                        false)
+                                    ? item.supplierName!
+                                    : "-",
                   : ListView.separated(
                       controller: _scrollController,
                       itemCount:
@@ -193,17 +253,21 @@ class _SupplierState extends State<Supplier> {
                                 ? item.supplierName!
                                 : "-",
 
-                            mobile:
-                                (item.mobile?.toString().trim().isNotEmpty ??
-                                    false)
-                                ? item.mobile!
-                                : "-",
+                                mobile:
+                                    (item.mobile
+                                            ?.toString()
+                                            .trim()
+                                            .isNotEmpty ??
+                                        false)
+                                    ? item.mobile!
+                                    : "-",
 
                             code:
                                 (item.code?.toString().trim().isNotEmpty ??
                                     false)
                                 ? item.code!
                                 : "-",
+
 
                             city:
                                 (item.city?.toString().trim().isNotEmpty ??
@@ -241,7 +305,62 @@ class _SupplierState extends State<Supplier> {
                                         .refreshSuppliers();
                                   }
                                   if (!context.mounted) return;
+                                city:
+                                    (item.city?.toString().trim().isNotEmpty ??
+                                        false)
+                                    ? item.city!
+                                    : "-",
+                                trashIconTap: () {
+                                  ExitConfirmationDialog.show(
+                                    context,
+                                    discardButtonText: "No",
+                                    saveButtonText: "Yes",
+                                    onDiscard: () {
+                                      Navigator.pop(context);
+                                    },
+                                    bodyText:
+                                        "Are you sure you want to permanently delete ${item.supplierName}? This action cannot be undo.",
+                                    onSave: () async {
+                                      final provider =
+                                          Provider.of<DeleteSupplierProvider>(
+                                            context,
+                                            listen: false,
+                                          );
+                                      await provider.deleteSupplier(item.code!);
+                                      if (!context.mounted) return;
+                                      Navigator.pop(context);
+                                      if (searchController.text
+                                          .trim()
+                                          .isNotEmpty) {
+                                        await context
+                                            .read<SearchSupplierProvider>()
+                                            .searchSuppliers(
+                                              searchController.text.trim(),
+                                            );
+                                      } else {
+                                        await context
+                                            .read<SupplierProvider>()
+                                            .refreshSuppliers();
+                                      }
+                                      if (!context.mounted) return;
 
+                                      ScaffoldSnackBar.show(
+                                        context,
+                                        provider.message,
+                                      );
+                                      await context
+                                          .read<SupplierProvider>()
+                                          .refreshSuppliers();
+                                    },
+                                  );
+                                },
+                                copyIconTap: () async {
+                                  final provider = context
+                                      .read<GetSupplierByIdProvider>();
+                                  await provider.fetchSupplierById(
+                                    item.id!.toInt(),
+                                  );
+                                  final data = provider.supplier;
                                   ScaffoldSnackBar.show(
                                     context,
                                     provider.message,
@@ -260,14 +379,50 @@ class _SupplierState extends State<Supplier> {
                               );
                               final data = provider.supplier;
 
-                              if (data == null) return;
+                                  if (data == null) return;
 
-                              String contactNumber = "";
+                                  String contactNumber = "";
 
-                              if (data.contacts != null &&
-                                  data.contacts!.isNotEmpty) {
-                                final firstContact = data.contacts![0];
+                                  if (data.contacts != null &&
+                                      data.contacts!.isNotEmpty) {
+                                    final firstContact = data.contacts![0];
 
+                                    if (firstContact is Map) {
+                                      contactNumber =
+                                          firstContact['mobileNumber'] ?? "";
+                                    }
+                                  }
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return CustomCopyDetailsDialog(
+                                        firmName:
+                                            provider.supplier?.supplierName ??
+                                            "",
+                                        contact: contactNumber,
+                                        address:
+                                            provider.supplier?.addressLine1 ??
+                                            "",
+                                        gstNo: provider.supplier?.gstNo ?? "",
+                                        emails: provider.supplier?.email ?? "",
+                                      );
+                                    },
+                                  );
+                                },
+                                editIconTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AddNewSupplier(
+                                        id: item.id,
+                                        mode: FormMode.edit,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
                                 if (firstContact is Map) {
                                   contactNumber =
                                       firstContact['mobileNumber'] ?? "";

@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
+import '../model_classes/reporting_get_bill.dart';
 import '../shared_preferences/login_token.dart';
 
-Future<Map<String, dynamic>> getBillDetails(String billNumber) async {
+Future<BillResponse> getBillDetails(String billNumber) async {
+  try{
   final token = await AppStorage.getToken();
 
   final response = await http.get(
@@ -12,11 +15,16 @@ Future<Map<String, dynamic>> getBillDetails(String billNumber) async {
       "Content-Type": "application/json",
     },
   );
+  final data = jsonDecode(response.body);
 
   if (response.statusCode == 200) {
 
-    return jsonDecode(response.body);
+    return BillResponse.fromJson(data);
   }
-
-  throw Exception("Failed to load bill details");
+  else{
+    throw Exception(data["message"]);
+  }
 }
+catch (e) {
+  throw Exception("Error $e");
+}}

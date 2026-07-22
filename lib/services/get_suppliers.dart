@@ -14,7 +14,6 @@ class GetSuppliersApi {
       final url = Uri.parse(
         "http://192.168.1.100:8087/csm/api/v1/suppliers/get",
       ).replace(queryParameters: {"page": "$page", "size": "$size"});
-      print("Request URL: $url");
       final response = await http.get(
         url,
         headers: {

@@ -86,14 +86,18 @@ class ReportingCard extends StatelessWidget {
                             ),
                           ),
 
-                          const SizedBox(height: 5),
+                         // const SizedBox(height: 5),
 
-                          Text(
-                            value!,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: primary,
+                          Expanded(
+                            child: Text(
+                              value!,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: primary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

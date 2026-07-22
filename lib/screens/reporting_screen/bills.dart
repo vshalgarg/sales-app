@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/enums/customer_mode.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -114,12 +115,10 @@ class _BillsState extends State<Bills> {
   }
 
   Future<void> _showBillDetails(String billNumber) async {
-    final data = await getBillDetails(billNumber);
-
-    if (!mounted) return;
+    //if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => BillDetailsScreen(data: data)),
+      MaterialPageRoute(builder: (_) => EntriesBillEntry(mode:FormMode.view,id:billNumber)),
     );
   }
 
@@ -442,7 +441,7 @@ class _BillsState extends State<Bills> {
                               builder: (context, constraints) {
                                 return ReportingCard(
                                   leadingIcon: Iconsax.document,
-                                  title: "Invoice Number : ",
+                                  title: "Invoice : ",
                                   value: bill.billNumber,
 
                                   chips: [
@@ -468,54 +467,59 @@ class _BillsState extends State<Bills> {
                                   amount: (bill.billAmount ).toString(),
 
                                   onTap: () async {
-                                    await _showBillDetails(bill.billNumber);
+                                    await _showBillDetails(bill.billNumber );
                                   },
 
                                   onEdit: () async {
-                                    try {
-                                      final billDetails = await getBillDetails(
-                                        bill.billNumber,
-                                      );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => EntriesBillEntry(mode:FormMode.edit,id:bill.billNumber)),
+                                    );
 
-                                      if (!context.mounted) return;
-
-                                      final billsProvider = context
-                                          .read<BillsProvider>();
-                                      final messenger = ScaffoldMessenger.of(
-                                        context,
-                                      );
-
-                                      final updated = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => EditBillScreen(
-                                            billData: billDetails,
-                                          ),
-                                        ),
-                                      );
-
-                                      if (updated == true) {
-                                        await billsProvider.fetchBills(
-                                          page: 0,
-                                          fromDate: fromDateController.text,
-                                          toDate: toDateController.text,
-                                        );
-
-                                        if (!mounted) return;
-
-                                        setState(() {});
-
-                                        messenger.showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              "Bill Updated Successfully",
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      debugPrint("REFRESH ERROR => $e");
-                                    }
+                                    // try {
+                                       //final billDetails = await getBillDetails(
+                                    //     bill.billNumber,
+                                    //   );
+                                    //
+                                    //   if (!context.mounted) return;
+                                    //
+                                    //   final billsProvider = context
+                                    //       .read<BillsProvider>();
+                                    //   final messenger = ScaffoldMessenger.of(
+                                    //     context,
+                                    //   );
+                                    //
+                                    //   final updated = await Navigator.push(
+                                    //     context,
+                                    //     MaterialPageRoute(
+                                             // builder: (_) => EditBillScreen(
+                                    //         billData: billDetails,
+                                    //       ),
+                                    //     ),
+                                    //   );
+                                    //
+                                    //   if (updated == true) {
+                                    //     await billsProvider.fetchBills(
+                                    //       page: 0,
+                                    //       fromDate: fromDateController.text,
+                                    //       toDate: toDateController.text,
+                                    //     );
+                                    //
+                                    //     if (!mounted) return;
+                                    //
+                                    //     setState(() {});
+                                    //
+                                    //     messenger.showSnackBar(
+                                    //       const SnackBar(
+                                    //         content: Text(
+                                    //           "Bill Updated Successfully",
+                                    //         ),
+                                    //       ),
+                                    //     );
+                                    //   }
+                                    // } catch (e) {
+                                    //   debugPrint("REFRESH ERROR => $e");
+                                    // }
                                   },
                                   onDelete: () async {
                                     ExitConfirmationDialog.show(

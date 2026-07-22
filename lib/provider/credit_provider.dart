@@ -42,7 +42,6 @@ class CreditProvider extends ChangeNotifier {
         credits = response.content;
       }
 
-      // Sort descending by bill number
       credits.sort((a, b) {
         final aNum =
             int.tryParse((a.billNumber ?? "0").split('-').last) ?? 0;

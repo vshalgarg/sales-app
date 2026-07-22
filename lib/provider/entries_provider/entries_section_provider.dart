@@ -6,6 +6,7 @@ import 'package:hisabio/model_classes/entries_supplier.dart';
 import 'package:hisabio/model_classes/get_transportname_id_model.dart';
 
 import '../../model_classes/add_newsupplier.dart';
+import '../../model_classes/creditdetails_byid.dart';
 import '../../model_classes/get_staff_entry.dart';
 import '../../services/add_supplier.dart';
 import '../../services/entries_services/entries_api.dart';
@@ -14,7 +15,8 @@ class EntriesProvider extends ChangeNotifier {
   final EntriesApi _api = EntriesApi();
 
   List<EntriesModel> _entries = [];
-
+  CreditDetailsResponse? _creditDetails;
+  CreditDetailsResponse? get creditDetails => _creditDetails;
   List<EntriesModel> get entries => _entries;
   List<EntriesCustomerModel>_customerEntries=[];
   List<GetTransportnameIdModel> _transport=[];
@@ -146,6 +148,68 @@ class EntriesProvider extends ChangeNotifier {
       _error = e.toString();
       rethrow;
     } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  Future<String?> updateBillEntry({
+    required int id,
+    required Map<String, dynamic> payload,
+    required List<File> images,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final message = await _api.updateBillEntry(
+        id: id,
+        payload: payload,
+        images: images,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+
+      return message;
+    } catch (e) {
+      _error = e.toString().replaceFirst("Exception: ", "");
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+  Future<void> getCreditDetailsById(int id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _creditDetails = await _api.getCreditDetailsById(id);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  Future<AddNewsupplier?> updateCreditDetails({
+    required Map<String, dynamic> body,
+    required int id,
+  }) async {
+    _isLoading = true;
+    //_error = null;
+    notifyListeners();
+    try {
+      final response = await _api.updateCreditDetails(
+        body: body,
+        id: id,
+      );
+      notifyListeners();
+      return response;
+    } catch (e) {
+      throw Exception(e.toString());
+    } finally{
       _isLoading = false;
       notifyListeners();
     }

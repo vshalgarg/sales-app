@@ -6,13 +6,15 @@ class CustomListTextField extends StatelessWidget {
   final String? value;
   final ValueChanged<String?> onChanged;
   final String? Function(String?)? validator;
+  final bool enabled;
   const CustomListTextField({
     super.key,
     required this.hintText,
     required this.items,
     required this.value,
     required this.onChanged,
-    this.validator
+    this.validator,
+    this.enabled = true,
   });
 
   @override
@@ -42,7 +44,7 @@ class CustomListTextField extends StatelessWidget {
           child: Text(e),
         );
       }).toList(),
-      onChanged: onChanged,
+      onChanged: enabled ? onChanged : null,
     );
   }
 }
