@@ -134,8 +134,13 @@ class RetailDetailsProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<bool> addDeposits(AddDepositModel model) async {
-    if (isSavingDeposits) return false;
+  Future<Map<String, dynamic>> addDeposits(AddDepositModel model) async {
+    if (isSavingDeposits) {
+      return {
+        "success": false,
+        "message": "Request already in progress",
+      };
+    }
 
     isSavingDeposits = true;
     notifyListeners();
@@ -147,7 +152,6 @@ class RetailDetailsProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
   Future<bool> updateRetail({
     required int retailId,
     required String name,

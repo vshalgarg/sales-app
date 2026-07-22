@@ -336,35 +336,19 @@ class _RetailState extends State<Retail> {
           FloatingActionButton(
             heroTag: "add",
             backgroundColor: AppColors.primaryPurple,
-            onPressed: isOpening
-                ? null
-                : () async {
-                    setState(() {
-                      isOpening = true;
-                    });
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (!mounted) return;
-
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const RetailEntryScreen(),
-                      ),
-                    );
-                    if (mounted) {
-                      setState(() {
-                        isOpening = false;
-                      });
-                    }
-                  },
-            child: isOpening
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Iconsax.add, color: Colors.white),
-          ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const RetailEntryScreen(),
+                ),
+              );
+            },
+            child: const Icon(
+              Iconsax.add,
+              color: Colors.white,
+            ),
+          )
         ],
       ),
       body: Padding(

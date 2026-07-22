@@ -43,11 +43,8 @@ class SupplierProvider extends ChangeNotifier {
         size: _size,
       );
       final List<Content> newSuppliers = response.content ?? [];
-      print("Page: $_page");
-      print("Supplier count: ${response.content?.length}");
 
       for (final s in response.content ?? []) {
-        print(s.supplierName);
       }
 
       suppliers.addAll(newSuppliers);

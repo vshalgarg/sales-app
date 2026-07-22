@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/pop_ups/scafold_type.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -61,6 +63,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       final entriesProvider = context.read<EntriesProvider>();
 
       final staffProvider = context.read<StaffProvider>();
+      for (var controller in depositDateControllers) {
+        controller.text = DateFormat("yyyy-MM-dd").format(DateTime.now());
+      }
 
       await Future.wait([
         retailProvider.fetchRetailDetails(widget.retailId),
@@ -206,6 +211,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     final staffIds = staffProvider.staffs.map((e) => e.staffId).toList();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         sectionHeader(
           title: "Retail Information",
@@ -215,16 +221,17 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               showRetailInfo = !showRetailInfo;
 
               if (showRetailInfo) {
-                showDeposits = false;
-                showHistory = false;
+                //showDeposits = false;
+                //showHistory = false;
               }
             });
           },
         ),
 
-        const SizedBox(height: 10),
+       //
 
         if (showRetailInfo) ...[
+          const SizedBox(height: 10),
           buildField(
             label: "Retailer",
             child: TextFormField(
@@ -241,7 +248,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               onTap: pickDate,
               decoration: const InputDecoration(
                 border: InputBorder.none,
-                suffixIcon: Icon(Icons.calendar_today),
+                suffixIcon: Icon(Iconsax.calendar),
               ),
             ),
           ),
@@ -318,9 +325,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 context.read<RetailProvider>().fetchRetails();
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Retail Updated Successfully"),
-                  ),
+                  const SnackBar(content: Text("Retail Updated Successfully")),
                 );
               }
             },
@@ -342,7 +347,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                   ),
           ),
         ],
-        SizedBox(height: 10)
+        SizedBox(height: 10),
       ],
     );
   }
@@ -353,7 +358,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       depositDateControllers.add(TextEditingController());
     }
 
-    return Column(
+    return Column(crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         sectionHeader(
           title: "Add Deposits",
@@ -362,15 +367,15 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             setState(() {
               showDeposits = !showDeposits;
 
-              if (showDeposits) {
-                showRetailInfo = false;
-                showHistory = false;
-              }
+              // if (showDeposits) {
+              //   showRetailInfo = true;
+              //   showHistory = false;
+              // }
             });
           },
         ),
 
-        const SizedBox(height: 10),
+       //
 
         if (showDeposits) ...[
           ...List.generate(retail.suppliers.length, (index) {
@@ -379,10 +384,11 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Supplier",style: TextStyle(
-                    color:Colors.white,
-                    fontSize: 18
-                )),
+                const SizedBox(height: 10),
+                Text(
+                  "Supplier${index + 1}",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
                 TextFormField(
                   initialValue: supplier.supplierName,
                   enabled: false,
@@ -392,16 +398,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                     hintText: "Supplier",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
-                        borderSide: BorderSide.none
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 5),
-                Text("Balance",style: TextStyle(
-                    color:Colors.white,
-                    fontSize: 18
-                )),
+                Text(
+                  "Balance",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
                 TextFormField(
                   initialValue: supplier.balanceAmount.toString(),
                   enabled: false,
@@ -411,16 +417,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                     hintText: "Balance",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
-                        borderSide: BorderSide.none
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 5),
-                Text("Date",style: TextStyle(
-                    color:Colors.white,
-                    fontSize: 18
-                )),
+                Text(
+                  "Date",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
                 TextFormField(
                   controller: depositDateControllers[index],
                   readOnly: true,
@@ -430,9 +436,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                     hintText: "Date",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
-                        borderSide: BorderSide.none
+                      borderSide: BorderSide.none,
                     ),
-                    suffixIcon: Icon(Icons.calendar_today),
+                    suffixIcon: Icon(Iconsax.calendar),
                   ),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -444,17 +450,17 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
                     if (picked != null) {
                       depositDateControllers[index].text = DateFormat(
-                        "dd-MM-yyyy",
+                        "yyy-MM-dd",
                       ).format(picked);
                     }
                   },
                 ),
 
                 const SizedBox(height: 5),
-Text("Amount",style: TextStyle(
-  color:Colors.white,
-  fontSize: 18
-)),
+                Text(
+                  "Amount",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
                 TextFormField(
                   controller: depositAmountControllers[index],
                   keyboardType: TextInputType.number,
@@ -464,14 +470,20 @@ Text("Amount",style: TextStyle(
                     hintText: "Amount",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
+
+                if (index != retail.suppliers.length - 1) ...[
+                  const Divider(color: Colors.white54, thickness: 1),
+                  const SizedBox(height: 20),
+                ],
               ],
             );
           }),
-          SizedBox(height: 10),
+          SizedBox(height: 0),
           Consumer<RetailDetailsProvider>(
             builder: (context, provider, child) {
               return ElevatedButton(
@@ -494,7 +506,6 @@ Text("Amount",style: TextStyle(
                           if (amount.isEmpty || date.isEmpty) {
                             continue;
                           }
-
                           items.add(
                             DepositItem(
                               retailSupplierId:
@@ -509,18 +520,18 @@ Text("Amount",style: TextStyle(
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                "Please enter at least one deposit",
+                                "Please enter at least one deposit and select date",
                               ),
                             ),
                           );
                           return;
                         }
 
-                        final success = await provider.addDeposits(
+                        final result = await provider.addDeposits(
                           AddDepositModel(deposits: items),
                         );
 
-                        if (success && mounted) {
+                        if (result["success"]) {
                           await provider.fetchRetailDetails(widget.retailId);
                           await provider.fetchDepositHistory(widget.retailId);
 
@@ -531,12 +542,8 @@ Text("Amount",style: TextStyle(
                           for (final c in depositDateControllers) {
                             c.clear();
                           }
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Deposits Added Successfully"),
-                            ),
-                          );
+                          ScaffoldSnackBar.show(context, result["message"]);
+                          Navigator.pop(context);
                         }
                       },
                 child: provider.isSavingDeposits
@@ -552,7 +559,7 @@ Text("Amount",style: TextStyle(
             },
           ),
         ],
-        SizedBox(height: 10)
+        SizedBox(height: 10),
       ],
     );
   }
@@ -570,10 +577,10 @@ Text("Amount",style: TextStyle(
             setState(() {
               showHistory = !showHistory;
 
-              if (showHistory) {
-                showRetailInfo = false;
-                showDeposits = false;
-              }
+              // if (showHistory) {
+              //   showRetailInfo = false;
+              //   showDeposits = false;
+              // }
             });
           },
         ),
@@ -627,7 +634,7 @@ Text("Amount",style: TextStyle(
   }) {
     final bool expanded = expandedSupplierIndex == index;
 
-    return Card(
+    return Card(color:Colors.white,
       // margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shadowColor: Colors.black12,
@@ -685,6 +692,7 @@ Text("Amount",style: TextStyle(
                           ],
                         ),
                       ),
+                      SizedBox(height: 5),
 
                       RichText(
                         text: TextSpan(
@@ -984,9 +992,9 @@ Text("Amount",style: TextStyle(
                   onSave: () async {
                     Navigator.pop(context);
                   },
-                    onDiscard: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context,false);
+                  onDiscard: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context, false);
                   },
                 );
               },
