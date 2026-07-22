@@ -7,9 +7,11 @@ class EntryDateTextField extends StatelessWidget {
   final DateTime? firstDate;
   final DateTime? lastDate;
   final VoidCallback? onTap;
+  final bool? enabled;
   final String? Function(String?)? validator;
   const EntryDateTextField({
     super.key,
+    this.enabled,
     required this.label,
     required this.controller,
     this.firstDate,
@@ -35,6 +37,7 @@ class EntryDateTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: enabled,
       controller: controller,
       validator: validator,
       readOnly: true,
@@ -50,9 +53,14 @@ class EntryDateTextField extends StatelessWidget {
         fillColor:Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Colors.white),
           ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: const BorderSide(color: Colors.white),
+        ),
 
-          enabledBorder: OutlineInputBorder(
+        enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5),
             borderSide: const BorderSide(color: Colors.white),
           ),

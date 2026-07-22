@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import '../model_classes/reporting_get_bill.dart';
 import '../model_classes/search_bills.dart';
+import '../services/bills_detail_api.dart';
 import '../services/delete_bills_api.dart' as billApi;
 import '../services/search_bill_api.dart' as billService;
 
 class BillsProvider extends ChangeNotifier {
   List<BillEntry> bills = [];
+  BillResponse? bill;
   bool isBillsLoading = false;
   bool isLoadingMore = false;
   bool hasMore = true;
+  bool isLoading = false;
+  String?error;
   Future<bool> deleteBill(String billNumber) async {
     try {
       final success = await billApi.deleteBill(billNumber);
@@ -21,6 +26,28 @@ class BillsProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Delete Bill Error: $e");
       return false;
+    }
+  }
+  Future<void> fetchBillById(String billNumber) async {
+    isLoading = true;
+    error = null;
+    bill = null;
+    notifyListeners();
+
+    try {
+      print("Fetching bill: $billNumber");
+      final result= await getBillDetails(billNumber);
+      bill=result;
+      print("API returned: $result");
+      print("Provider bill assigned: $bill");
+    } catch (e, stack) {
+      print("🔥 fetchBillById error: $e");
+      print(stack);
+
+      error = e.toString().replaceFirst("Exception: ", "");
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
   Future<bool> fetchBills({

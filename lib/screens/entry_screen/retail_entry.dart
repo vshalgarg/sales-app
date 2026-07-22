@@ -24,7 +24,6 @@ class RetailEntryScreen extends StatefulWidget {
   @override
   State<RetailEntryScreen> createState() => _RetailEntryScreenState();
 }
-
 class _RetailEntryScreenState extends State<RetailEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController dateController = TextEditingController();
@@ -80,9 +79,11 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
     dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     Future.microtask(() async {
       final provider = context.read<EntriesProvider>();
-      await provider.fetchStaff();
-      await provider.fetchCustomer();
-      await provider.fetchSuppliers();
+      await Future.wait([
+        provider.fetchStaff(),
+        provider.fetchCustomer(),
+        provider.fetchSuppliers(),
+      ]);
     });
   }
 
@@ -120,334 +121,353 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isExpanded = !isExpanded;
-                      });
-                    },
-                    child: TextFormField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        filled: true,
-                        suffixIcon: Icon(
-                          isExpanded
-                              ? Icons.keyboard_arrow_up
-                              : Icons.keyboard_arrow_down,
-                          color: Colors.white,
-                        ),
-                        fillColor: AppColors.primaryPurple,
-                        hintText: "Information",
-                        hintStyle: TextStyle(color: Colors.white),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                  EntryContainer(
-                    children: [
-                      if (isExpanded) ...[
-                        SizedBox(height: 15),
-                        Text(
-                          "Date",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
-                        EntryDateTextField(
-                          label: "Date",
-                          controller: dateController,
-                            validator: (value) {
-                              if (value == null || value
-                                  .trim()
-                                  .isEmpty) {
-                                return "Please enter date";
-                              }
-                              return null;
-                            }
-                        ),
-                        SizedBox(height: 15),
-                        Text(
-                          "Retailer Name",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
-                        EntryTextField(
-                          controller: nameController,
-                          hintText: "Retailer Name*",
-                            validator: (value) {
-                              if (value == null || value
-                                  .trim()
-                                  .isEmpty) {
-                                return "Please enter a retailer name";
-                              }
-                              return null;
-                            }
-                        ),
-                        SizedBox(height: 15),
-                        Text(
-                          "Staff",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
-                        CustomApiTextField<GetStaffEntry>(
-                          hintText: "Staff",
-                          value: selectedStaff,
-                          items: provider.staffList,
-                          itemLabel: (e) => e.staffName ?? '',
-                          onChanged: (value) {
-                            setState(() {
-                              selectedStaff = value;
-                            });
-                          },
-                        ),
-                        SizedBox(height: 15),
-                        Text(
-                          "Customer",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
-                        CustomApiTextField<EntriesCustomerModel>(
-                          hintText: "Customer",
-                          value: selectedReffered,
-                          items: provider.customerEntries,
-                          itemLabel: (e) => e.customerName ?? '',
-                          validator: (value) {
-                            if (value == null) {
-                              return "Please select at least one customer";
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              selectedReffered = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ],
-                  ),
-                  SizedBox(height: 15),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isSupplierExpanded = !isSupplierExpanded;
-                      });
-                    },
-                    child: TextFormField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        filled: true,
-                        suffixIcon: Icon(
-                          isSupplierExpanded
-                              ? Icons.keyboard_arrow_up
-                              : Icons.keyboard_arrow_down,
-                          color: Colors.white,
-                        ),
-                        fillColor: AppColors.primaryPurple,
-                        hintText: "Suppliers",
-                        hintStyle: TextStyle(color: Colors.white),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5),
-                          borderSide: BorderSide.none,
-                        ),
-
-                      ),
-                    ),
-                  ),
-                  if (isSupplierExpanded) ...[
-                    SizedBox(height: 15),
-                    CustomElevatedButton(
-                      color: AppColors.primaryPurple,
-                      text: "+ Add More Supplier",
-                      textStyle: TextStyle(color: Colors.white),
-                      onPressed: () async {
+      body: Stack(
+        children:[ Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
                         setState(() {
-                          suppliers.add(suppliers.length);
-                          totalAmount.add(TextEditingController());
-                          balancedAmount.add(TextEditingController());
-                          depositAmount.add(TextEditingController());
-
-                          selectedSuppliers.add(null);
+                          isExpanded = !isExpanded;
                         });
                       },
-                      borderRadius: 5,
+                      child: TextFormField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          filled: true,
+                          suffixIcon: Icon(
+                            isExpanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                          ),
+                          fillColor: AppColors.primaryPurple,
+                          hintText: "Information",
+                          hintStyle: TextStyle(color: Colors.white),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
                     ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: suppliers.length,
-                      itemBuilder: (context, index) => EntryContainer(
-                        children: [
+                    EntryContainer(
+                      children: [
+                        if (isExpanded) ...[
                           SizedBox(height: 15),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Supplier ${index + 1} ",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  if (suppliers.length > 1) {
-                                    setState(() {
-                                      suppliers.removeAt(index);
-                                      totalAmount.removeAt(index);
-                                      balancedAmount.removeAt(index);
-                                      depositAmount.removeAt(index);
-                                      selectedSuppliers.removeAt(index);
-                                    });
-                                  }
-                                },
-                                child: Icon(Iconsax.trash, color: Colors.red),
-                              ),
-                            ],
+                          Text(
+                            "Date",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          EntryDateTextField(
+                            label: "Date",
+                            controller: dateController,
+                              validator: (value) {
+                                if (value == null || value
+                                    .trim()
+                                    .isEmpty) {
+                                  return "Please enter date";
+                                }
+                                return null;
+                              }
                           ),
                           SizedBox(height: 15),
                           Text(
-                            "Supplier",
+                            "Retailer Name",
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          CustomApiTextField<EntriesModel>(
-                            hintText: index == 0 ? "Supplier *" : "Supplier",
-                            validator: (value) {
-                              if (value == null) {
-                                return "Please select at least one supplier";
+                          EntryTextField(
+                            controller: nameController,
+                            hintText: "Retailer Name*",
+                              validator: (value) {
+                                if (value == null || value
+                                    .trim()
+                                    .isEmpty) {
+                                  return "Please enter a retailer name";
+                                }
+                                return null;
                               }
-                              return null;
-                            },
-                            value: selectedSuppliers[index],
-                            items: provider.entries,
-                            itemLabel: (e) => e.supplierName ?? '',
+                          ),
+                          SizedBox(height: 15),
+                          Text(
+                            "Staff",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          CustomApiTextField<GetStaffEntry>(
+                            hintText: "Staff",
+                            value: selectedStaff,
+                            items: provider.staffList,
+                            itemLabel: (e) => e.staffName ?? '',
                             onChanged: (value) {
                               setState(() {
-                                selectedSuppliers[index] = value;
+                                selectedStaff = value;
                               });
                             },
                           ),
                           SizedBox(height: 15),
                           Text(
-                            "Total Amount",
+                            "Customer",
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          EntryTextField(integerOnly: true,
-                            controller: totalAmount[index],
-                            hintText: "Total Amount",
-                            onChanged: (_) {
-                              calculateBalance(index);
+                          CustomApiTextField<EntriesCustomerModel>(
+                            hintText: "Customer",
+                            value: selectedReffered,
+                            items: provider.customerEntries,
+                            itemLabel: (e) => e.customerName ?? '',
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please select at least one customer";
+                              }
+                              return null;
                             },
-                          ),
-                          SizedBox(height: 15),
-                          Text(
-                            "Deposit Amount",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
-                          EntryTextField(integerOnly: true,
-                            controller: depositAmount[index],
-                            hintText: "Deposit Amount",
-                            onChanged: (_) {
-                              calculateBalance(index);
+                            onChanged: (value) {
+                              setState(() {
+                                selectedReffered = value;
+                              });
                             },
-                          ),
-                          SizedBox(height: 15),
-                          Text(
-                            "Balance Amount",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
-                          EntryTextField(integerOnly: true,
-                            controller: balancedAmount[index],
-                            hintText: "Balance Amount",
-                            enabled: false,
                           ),
                         ],
+                      ],
+                    ),
+                    SizedBox(height: 15),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isSupplierExpanded = !isSupplierExpanded;
+                        });
+                      },
+                      child: TextFormField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          filled: true,
+                          suffixIcon: Icon(
+                            isSupplierExpanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                          ),
+                          fillColor: AppColors.primaryPurple,
+                          hintText: "Suppliers",
+                          hintStyle: TextStyle(color: Colors.white),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            borderSide: BorderSide.none,
+                          ),
+
+                        ),
                       ),
                     ),
-                  ],
-                  SizedBox(height: 15),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
+                    if (isSupplierExpanded) ...[
+                      SizedBox(height: 15),
                       CustomElevatedButton(
-                        text: "Reset",
-                        textStyle: TextStyle(color: Colors.black, fontSize: 20),
-                        onPressed: ()async{
-                          clearFields();
+                        color: AppColors.primaryPurple,
+                        text: "+ Add More Supplier",
+                        textStyle: TextStyle(color: Colors.white),
+                        onPressed: () async {
+                          setState(() {
+                            suppliers.add(suppliers.length);
+                            totalAmount.add(TextEditingController());
+                            balancedAmount.add(TextEditingController());
+                            depositAmount.add(TextEditingController());
+
+                            selectedSuppliers.add(null);
+                          });
                         },
                         borderRadius: 5,
                       ),
-                      SizedBox(height: 5),
-                      CustomElevatedButton(
-                        text: "Save",
-                        textStyle: TextStyle(color: Colors.white, fontSize: 20),
-                        onPressed: () async {
-                          if (!_formKey.currentState!.validate()) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Please fill all the required fields",
-                            );
-                            return;
-                          }
-
-                          final payload = {
-                            "date": dateController.text,
-                            "name": nameController.text,
-                            "staffId": selectedStaff?.staffId,
-                            "referredByCustomerId": selectedReffered?.id,
-                            "suppliers": List.generate(
-                              selectedSuppliers.length,
-                              (index) => {
-                                "supplierId": selectedSuppliers[index]?.id,
-                                "totalAmount":
-                                    double.tryParse(totalAmount[index].text) ??
-                                    0,
-                                "depositAmount":
-                                    double.tryParse(
-                                      depositAmount[index].text,
-                                    ) ??
-                                    0,
-                                "balanceAmount":
-                                    double.tryParse(
-                                      balancedAmount[index].text,
-                                    ) ??
-                                    0,
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: suppliers.length,
+                        itemBuilder: (context, index) => EntryContainer(
+                          children: [
+                            SizedBox(height: 15),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Supplier ${index + 1} ",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (suppliers.length > 1) {
+                                      setState(() {
+                                        suppliers.removeAt(index);
+                                        totalAmount.removeAt(index);
+                                        balancedAmount.removeAt(index);
+                                        depositAmount.removeAt(index);
+                                        selectedSuppliers.removeAt(index);
+                                      });
+                                    }
+                                  },
+                                  child: Icon(Iconsax.trash, color: Colors.red),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 15),
+                            Text(
+                              "Supplier",
+                              style: TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                            CustomApiTextField<EntriesModel>(
+                              hintText: index == 0 ? "Supplier *" : "Supplier",
+                              validator: (value) {
+                                if (value == null) {
+                                  return "Please select at least one supplier";
+                                }
+                                return null;
+                              },
+                              value: selectedSuppliers[index],
+                              items: provider.entries,
+                              itemLabel: (e) => e.supplierName ?? '',
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedSuppliers[index] = value;
+                                });
                               },
                             ),
-                          };
-
-                          try {
-                            final message = await provider.addRetailEntry(
-                              payload,
-                            );
-
-                            if (!context.mounted) return;
-                            ScaffoldSnackBar.show(
-                              context,
-                              message ?? "Retail Entry Saved",
-                            );
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => Retail()),
-                            );
-                          } catch (e) {
-                            ScaffoldSnackBar.show(context, e.toString());
-                          }
-                        },
-                        borderRadius: 5,
-                        color: AppColors.primaryPurple,
+                            SizedBox(height: 15),
+                            Text(
+                              "Total Amount",
+                              style: TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                            EntryTextField(integerOnly: true,
+                              controller: totalAmount[index],
+                              hintText: "Total Amount",
+                              onChanged: (_) {
+                                calculateBalance(index);
+                              },
+                            ),
+                            SizedBox(height: 15),
+                            Text(
+                              "Deposit Amount",
+                              style: TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                            EntryTextField(integerOnly: true,
+                              controller: depositAmount[index],
+                              hintText: "Deposit Amount",
+                              onChanged: (_) {
+                                calculateBalance(index);
+                              },
+                            ),
+                            SizedBox(height: 15),
+                            Text(
+                              "Balance Amount",
+                              style: TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                            EntryTextField(integerOnly: true,
+                              controller: balancedAmount[index],
+                              hintText: "Balance Amount",
+                              enabled: false,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                  ),
-                  SizedBox(height: 40),
-                ],
+                    SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: CustomElevatedButton(
+                            text: "Reset",
+                            textStyle: TextStyle(color: Colors.black, fontSize: 20),
+                            onPressed: ()async{
+                              clearFields();
+                            },
+                            borderRadius: 5,
+                          ),
+                        ),
+                        SizedBox(width: 20),
+                        Expanded(
+                          child: CustomElevatedButton(
+                            text: "Save",
+                            textStyle: TextStyle(color: Colors.white, fontSize: 20),
+                            onPressed: () async {
+                              if (!_formKey.currentState!.validate()) {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  "Please fill all the required fields",
+                                );
+                                return;
+                              }
+
+                              final payload = {
+                                "date": dateController.text,
+                                "name": nameController.text,
+                                "staffId": selectedStaff?.staffId,
+                                "referredByCustomerId": selectedReffered?.id,
+                                "suppliers": List.generate(
+                                  selectedSuppliers.length,
+                                  (index) => {
+                                    "supplierId": selectedSuppliers[index]?.id,
+                                    "totalAmount":
+                                        double.tryParse(totalAmount[index].text) ??
+                                        0,
+                                    "depositAmount":
+                                        double.tryParse(
+                                          depositAmount[index].text,
+                                        ) ??
+                                        0,
+                                    "balanceAmount":
+                                        double.tryParse(
+                                          balancedAmount[index].text,
+                                        ) ??
+                                        0,
+                                  },
+                                ),
+                              };
+
+                              try {
+                                final message = await provider.addRetailEntry(
+                                  payload,
+                                );
+
+                                if (!context.mounted) return;
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  message ?? "Retail Entry Saved",
+                                );
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => Retail()),
+                                );
+                              } catch (e) {
+                                ScaffoldSnackBar.show(context, e.toString());
+                              }
+                            },
+                            borderRadius: 5,
+                            color: AppColors.primaryPurple,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+        ),Consumer<EntriesProvider>(
+          builder: (context, provider, child) {
+            if (!provider.isLoading) {
+              return const SizedBox.shrink();
+            }
+
+            return Container(
+              color: Colors.black45,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          },
+        )],
       ),
     );
   }

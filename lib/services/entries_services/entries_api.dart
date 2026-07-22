@@ -7,78 +7,96 @@ import 'package:hisabio/shared_preferences/login_token.dart';
 import 'package:http/http.dart' as http;
 
 import '../../model_classes/add_newsupplier.dart';
+import '../../model_classes/creditdetails_byid.dart';
 import '../../model_classes/get_staff_entry.dart';
 
 class EntriesApi {
   Future<List<EntriesModel>> getEntrySupplier() async {
     try {
       final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/suppliers/get/all");
+        "http://192.168.1.100:8087/csm/api/v1/suppliers/get/all",
+      );
       final token = await AppStorage.getToken();
       final response = await http.get(
-        url, headers: { "Content-Type": "application/json",
-        "Authorization": "Bearer $token"},);
-      final  List<dynamic>data = jsonDecode(response.body);
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+      final List<dynamic> data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return data
-            .map((e) => EntriesModel.fromJson(e))
-            .toList();
+        return data.map((e) => EntriesModel.fromJson(e)).toList();
       } else {
-        throw Exception( "Failed to fetch suppliers");
+        throw Exception("Failed to fetch suppliers");
       }
     } catch (e) {
       throw Exception("Error $e");
     }
   }
+
   Future<List<EntriesCustomerModel>> getEntryCustomer() async {
     try {
       final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/customers/get/all");
+        "http://192.168.1.100:8087/csm/api/v1/customers/get/all",
+      );
       final token = await AppStorage.getToken();
       final response = await http.get(
-        url, headers: { "Content-Type": "application/json",
-        "Authorization": "Bearer $token"},);
-      final  List<dynamic>data = jsonDecode(response.body);
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+      final List<dynamic> data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return data
-            .map((e) => EntriesCustomerModel.fromJson(e))
-            .toList();
+        return data.map((e) => EntriesCustomerModel.fromJson(e)).toList();
       } else {
-        throw Exception( "Failed to fetch customers");
+        throw Exception("Failed to fetch customers");
       }
     } catch (e) {
       throw Exception("Error $e");
     }
   }
+
   Future<List<GetTransportnameIdModel>> getTransporters() async {
     try {
       final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/transports/getAll");
+        "http://192.168.1.100:8087/csm/api/v1/transports/getAll",
+      );
       final token = await AppStorage.getToken();
       final response = await http.get(
-        url, headers: { "Content-Type": "application/json",
-        "Authorization": "Bearer $token"},);
-      final  List<dynamic>data = jsonDecode(response.body);
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+      final List<dynamic> data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return data
-            .map((e) => GetTransportnameIdModel.fromJson(e))
-            .toList();
+        return data.map((e) => GetTransportnameIdModel.fromJson(e)).toList();
       } else {
-        throw Exception( "Failed to fetch transport");
+        throw Exception("Failed to fetch transport");
       }
     } catch (e) {
       throw Exception("Error $e");
     }
   }
+
   Future<AddNewsupplier> addNewCreditEntry(Map<String, dynamic> body) async {
     try {
       final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/credit/entry/add");
+        "http://192.168.1.100:8087/csm/api/v1/credit/entry/add",
+      );
       final token = await AppStorage.getToken();
       final response = await http.post(
-        url, headers: { "Content-Type": "application/json",
-        "Authorization": "Bearer $token"},
-        body: jsonEncode(body),);
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode(body),
+      );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return AddNewsupplier.fromJson(data);
@@ -89,6 +107,7 @@ class EntriesApi {
       throw Exception("Error $e");
     }
   }
+
   Future<String?> addBillEntry({
     required Map<String, dynamic> payload,
     required List<File> images,
@@ -99,10 +118,7 @@ class EntriesApi {
 
     final token = await AppStorage.getToken();
 
-    final request = http.MultipartRequest(
-      'POST',
-      url,
-    );
+    final request = http.MultipartRequest('POST', url);
 
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -116,10 +132,7 @@ class EntriesApi {
 
     for (final image in images) {
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'images',
-          image.path,
-        ),
+        await http.MultipartFile.fromPath('images', image.path),
       );
     }
 
@@ -134,26 +147,31 @@ class EntriesApi {
       throw Exception(data["message"] ?? "Failed to save bill");
     }
   }
+
   Future<List<GetStaffEntry>> getStaffEntry() async {
     try {
       final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/staffs/get/all");
+        "http://192.168.1.100:8087/csm/api/v1/staffs/get/all",
+      );
       final token = await AppStorage.getToken();
       final response = await http.get(
-        url, headers: { "Content-Type": "application/json",
-        "Authorization": "Bearer $token"},);
-      final  List<dynamic>data = jsonDecode(response.body);
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+      final List<dynamic> data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return data
-            .map((e) => GetStaffEntry.fromJson(e))
-            .toList();
+        return data.map((e) => GetStaffEntry.fromJson(e)).toList();
       } else {
-        throw Exception( "Failed to fetch staff");
+        throw Exception("Failed to fetch staff");
       }
     } catch (e) {
       throw Exception("Error $e");
     }
   }
+
   Future<String?> addPurchaseEntry({
     required Map<String, dynamic> payload,
     required List<File> images,
@@ -164,10 +182,7 @@ class EntriesApi {
 
     final token = await AppStorage.getToken();
 
-    final request = http.MultipartRequest(
-      'POST',
-      url,
-    );
+    final request = http.MultipartRequest('POST', url);
 
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -181,10 +196,7 @@ class EntriesApi {
 
     for (final image in images) {
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'images',
-          image.path,
-        ),
+        await http.MultipartFile.fromPath('images', image.path),
       );
     }
 
@@ -199,18 +211,21 @@ class EntriesApi {
       throw Exception(data["message"] ?? "Failed to save purchase");
     }
   }
+
   Future<String?> addNewRetailEntry(Map<String, dynamic> body) async {
     try {
       final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/retail/create");
+        "http://192.168.1.100:8087/csm/api/v1/retail/create",
+      );
       final token = await AppStorage.getToken();
       final response = await http.post(
-        url, headers: { "Content-Type": "application/json",
-        "Authorization": "Bearer $token"},
-        body: jsonEncode(body),);
-      print("STATUS CODE : ${response.statusCode}");
-      print("REQUEST BODY: ${jsonEncode(body)}");
-      print("RESPONSE    : ${response.body}");
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode(body),
+      );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return data["message"];
@@ -219,6 +234,105 @@ class EntriesApi {
       }
     } catch (e) {
       throw Exception("Error $e");
+    }
+  }
+
+  Future<String?> updateBillEntry({
+    required Map<String, dynamic> payload,
+    required List<File> images,
+    required int id,
+  }) async {
+    final url = Uri.parse(
+      "http://192.168.1.100:8087/csm/api/v1/bill/entry/update/$id",
+    );
+
+    final token = await AppStorage.getToken();
+
+    final request = http.MultipartRequest("PATCH", url);
+
+    request.headers.addAll({
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+    });
+
+    request.files.add(
+      http.MultipartFile.fromString(
+        "data",
+        jsonEncode(payload),
+        contentType: http.MediaType("application", "json"),
+      ),
+    );
+
+    print(jsonEncode(payload));
+
+    for (final image in images) {
+      request.files.add(
+        await http.MultipartFile.fromPath("images", image.path),
+      );
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return body["message"] ?? "Bill updated successfully";
+    } else {
+      throw Exception(body["message"] ?? "Failed to update bill");
+    }
+  }
+
+  Future<CreditDetailsResponse> getCreditDetailsById(int id) async {
+    try {
+      final url = Uri.parse(
+        "http://192.168.1.100:8087/csm/api/v1/credit/details/$id",
+      );
+      final token = await AppStorage.getToken();
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return CreditDetailsResponse.fromJson(data);
+      } else {
+        throw Exception(data['message'] ?? "Failed to fetch Credit Details");
+      }
+    } catch (e) {
+      throw Exception("Error $e");
+    }
+  }
+  Future<AddNewsupplier> updateCreditDetails({
+    required Map<String, dynamic> body,
+    required int id,
+  }) async {
+    try {
+      final url = Uri.parse(
+        "http://192.168.1.100:8087/csm/api/v1/credit/entry/update/$id",
+      );
+      final token = await AppStorage.getToken();
+      final response = await http.patch(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode(body),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200||response.statusCode==201) {
+        return AddNewsupplier.fromJson(data);
+      } else {
+        throw Exception(data['message'] ?? "Failed to update credit details");
+      }
+    } catch (e) {
+      throw Exception("$e");
     }
   }
 }

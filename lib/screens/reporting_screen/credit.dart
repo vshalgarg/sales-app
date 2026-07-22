@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
+import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/credit_provider.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
@@ -426,7 +427,7 @@ class _CreditState extends State<Credit> {
                               builder: (context, constraints) {
                                 return ReportingCard(
                                   leadingIcon: Iconsax.document,
-                                  title: "Invoice Number : ",
+                                  title: "Invoice : ",
                                   value: credit.billNumber ?? "-",
                                   chips: [
                                     ReportChip(
@@ -454,21 +455,11 @@ class _CreditState extends State<Credit> {
                                   amount: (credit.receivedAmount ?? 0)
                                       .toString(),
                                   onTap: () async {
-                                    setState(() {
-                                      isOpeningView = true;
-                                    });
-
-                                    if (!mounted) return;
-
-                                    setState(() {
-                                      isOpeningView = false;
-                                    });
-
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) =>
-                                            CreditDetailsScreen(credit: credit),
+                                            CreditEntry(mode:FormMode.view,id:credit.id),
                                       ),
                                     );
                                   },
@@ -477,11 +468,9 @@ class _CreditState extends State<Credit> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => EditCreditBottomSheet(
-                                          credit: credit,
+                                        builder: (_) => CreditEntry(mode:FormMode.edit,id:credit.id),
                                         ),
-                                      ),
-                                    );
+                                      );
                                   },
                                   onDelete: () async {
                                     ExitConfirmationDialog.show(

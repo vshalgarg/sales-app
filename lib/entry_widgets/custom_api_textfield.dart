@@ -7,10 +7,12 @@ class CustomApiTextField<T> extends StatelessWidget {
   final ValueChanged<T?> onChanged;
   final String? hintText;
   final String? Function(T?)? validator;
+  final bool enabled;
 
   const CustomApiTextField({
     super.key,
     required this.value,
+    this.enabled=true,
     required this.items,
     required this.itemLabel,
     required this.onChanged,
@@ -65,8 +67,7 @@ class CustomApiTextField<T> extends StatelessWidget {
           child: Text(itemLabel(item)),
         );
       }).toList(),
-
-      onChanged: onChanged,
+      onChanged: enabled ? onChanged : null,
     );
   }
 }
