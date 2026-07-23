@@ -2,6 +2,7 @@ package com.code.monks.csm.dto.response;
 
 import com.code.monks.csm.entity.CreditEntryEntity;
 import com.code.monks.csm.enums.CreditEntryEnum;
+import com.code.monks.csm.utils.MoneyUtil;
 import lombok.Builder;
 import lombok.Data;
 
@@ -29,7 +30,7 @@ public class GetCreditEntries {
                 .date(creditEntry.getDate())
                 .referenceNumber(creditEntry.getReferenceNumber())
                 .referenceDate(creditEntry.getReferenceDate())
-                .receivedAmount(creditEntry.getReceivedAmount() / 100.0)
+                .receivedAmount(MoneyUtil.toRupee(creditEntry.getReceivedAmount()).doubleValue())
                 .remark(creditEntry.getRemark())
                 .supplierId(creditEntry.getSupplierId())
                 .customerId(creditEntry.getCustomerId())

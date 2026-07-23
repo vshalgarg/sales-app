@@ -1,6 +1,7 @@
 package com.code.monks.csm.utils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 
 public class MoneyUtil {
@@ -15,11 +16,26 @@ public class MoneyUtil {
                 .longValue();
     }
 
+    public static BigInteger toPaisaBigInteger(BigDecimal amount) {
+        if (amount == null) return BigInteger.ZERO;
+        return amount.multiply(HUNDRED)
+                .setScale(0, RoundingMode.HALF_UP)
+                .toBigInteger();
+    }
+
     public static BigDecimal toRupee(Long paisa) {
         if (paisa == null) {
             return null;
         }
         return BigDecimal.valueOf(paisa)
+                .divide(HUNDRED, 2, RoundingMode.HALF_UP);
+    }
+
+    public static BigDecimal toRupee(BigInteger paisa) {
+        if (paisa == null) {
+            return null;
+        }
+        return new BigDecimal(paisa)
                 .divide(HUNDRED, 2, RoundingMode.HALF_UP);
     }
 

@@ -2,8 +2,11 @@ package com.code.monks.csm.dto.response;
 
 import com.code.monks.csm.dto.request.AddCreditEntryRequestDto;
 import com.code.monks.csm.entity.CreditEntryEntity;
+import com.code.monks.csm.utils.MoneyUtil;
 import lombok.Builder;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -18,10 +21,8 @@ public class AddCreditEntryResponseDto {
         entity.setReferenceNumber(dto.getReferenceNumber());
         entity.setReferenceDate(dto.getReferenceDate());
 
-        long amount = dto.getReceivedAmount() == null
-                ? 0L
-                : Math.round(dto.getReceivedAmount() * 100);
-        entity.setReceivedAmount(amount);
+        entity.setReceivedAmount(MoneyUtil.toPaisaBigInteger(
+                dto.getReceivedAmount() == null ? BigDecimal.ZERO : BigDecimal.valueOf(dto.getReceivedAmount())));
 
         entity.setDrawType(dto.getDrawType());
         entity.setRemark(dto.getRemark());
