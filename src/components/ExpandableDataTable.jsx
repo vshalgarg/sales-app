@@ -70,7 +70,7 @@ const SubTableRow = ({ row, index, columns, actionItems = [], isMobile }) => (
 
     {actionItems.length > 0 && (
       <TableCell sx={{ px: 1 }}>
-        <Box sx={{ display: "flex", gap: 0.75, justifyContent: "center" }}>
+        <Box sx={{ display: "flex", gap: 0.75, justifyContent: "flex-start" }}>
           {actionItems.map((item, i) => {
             const isDelete = item.label === "Delete";
             const Icon = item.icon;
