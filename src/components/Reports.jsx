@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Grid,
   IconButton,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import DoneIcon from "@mui/icons-material/Done";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { Check, RotateCcw } from "lucide-react";
 
 import GenericMultiAutocomplete from "../components/common/GenericMultiAutocomplete";
 import CustomDatePicker from "../components/common/CustomDatePicker";
@@ -27,6 +26,38 @@ import {
 } from "../service/ChartsService";
 import dayjs from "dayjs";
 import { formatIndianCurrency } from "../utils/currencyUtils";
+
+const FilterActionButtons = ({ onApply, onClear, disabled }) => (
+  <div className="flex items-center justify-end gap-2 shrink-0 flex-wrap mt-1">
+    <Tooltip title="Apply filters">
+      <span>
+        <IconButton
+          onClick={onApply}
+          disabled={disabled}
+          size="medium"
+          aria-label="Apply filters"
+          className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
+        >
+          <Check className="h-5 w-5 text-white" />
+        </IconButton>
+      </span>
+    </Tooltip>
+
+    <Tooltip title="Clear filters">
+      <span>
+        <IconButton
+          onClick={onClear}
+          disabled={disabled}
+          size="medium"
+          aria-label="Clear filters"
+          className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg disabled:!opacity-40"
+        >
+          <RotateCcw className="h-5 w-5 text-brand-navy" />
+        </IconButton>
+      </span>
+    </Tooltip>
+  </div>
+);
 
 const formatChartAmount = (value) =>
   formatIndianCurrency(Math.round(Number(value) || 0));
@@ -298,7 +329,7 @@ const hasCustomerBarFilters = (filters) =>
   hasFilterDate(filters.toDate);
 
 const Reports = () => {
-  const showSnackbar = useSnackbar();
+  const { showSnackbar } = useSnackbar();
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
   const [lineChartFilters, setLineChartFilters] = useState({
@@ -764,7 +795,7 @@ const Reports = () => {
               </Typography>
 
               <Box mb={4}>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ alignItems: "flex-start" }}>
                   <Grid size={{ xs: 12, md: 4, lg: 3 }}>
                     <GenericMultiAutocomplete
                       label="Suppliers"
@@ -809,41 +840,13 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <IconButton
-                    onClick={handleLineChartApplyFilters}
-                    disabled={!hasLineChartFilters(lineChartFilters)}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <DoneIcon />
-                  </IconButton>
-
-                  <IconButton
-                    disabled={!hasLineChartFilters(lineChartFilters)}
-                    onClick={handleLineChartResetFilters}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <RestartAltIcon />
-                  </IconButton>
+                  <Grid size={{ xs: 12, md: "auto" }} className="flex items-start">
+                    <FilterActionButtons
+                      onApply={handleLineChartApplyFilters}
+                      onClear={handleLineChartResetFilters}
+                      disabled={!hasLineChartFilters(lineChartFilters)}
+                    />
+                  </Grid>
                 </Grid>
               </Box>
 
@@ -885,7 +888,7 @@ const Reports = () => {
               </Typography>
 
               <Box mb={4}>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ alignItems: "flex-start" }}>
                   <Grid size={{ xs: 12, md: 2 }}>
                     <CustomDatePicker
                       label="From Date"
@@ -908,41 +911,13 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <IconButton
-                    disabled={!hasDateRangeFilters(pieChartFilters)}
-                    onClick={handlePieChartApplyFilters}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <DoneIcon />
-                  </IconButton>
-
-                  <IconButton
-                    disabled={!hasDateRangeFilters(pieChartFilters)}
-                    onClick={handlePieChartResetFilters}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <RestartAltIcon />
-                  </IconButton>
+                  <Grid size={{ xs: 12, md: "auto" }} className="flex items-start">
+                    <FilterActionButtons
+                      onApply={handlePieChartApplyFilters}
+                      onClear={handlePieChartResetFilters}
+                      disabled={!hasDateRangeFilters(pieChartFilters)}
+                    />
+                  </Grid>
                 </Grid>
               </Box>
 
@@ -1038,7 +1013,7 @@ const Reports = () => {
               </Typography>
 
               <Box mb={4}>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ alignItems: "flex-start" }}>
                   <Grid size={{ xs: 12, md: 4 }}>
                     <GenericMultiAutocomplete
                       label="Suppliers"
@@ -1076,41 +1051,13 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <IconButton
-                    disabled={!hasSupplierBarFilters(supplierBarFilters)}
-                    onClick={handleSupplierBarApplyFilters}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <DoneIcon />
-                  </IconButton>
-
-                  <IconButton
-                    disabled={!hasSupplierBarFilters(supplierBarFilters)}
-                    onClick={handleSupplierBarResetFilters}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <RestartAltIcon />
-                  </IconButton>
+                  <Grid size={{ xs: 12, md: "auto" }} className="flex items-start">
+                    <FilterActionButtons
+                      onApply={handleSupplierBarApplyFilters}
+                      onClear={handleSupplierBarResetFilters}
+                      disabled={!hasSupplierBarFilters(supplierBarFilters)}
+                    />
+                  </Grid>
                 </Grid>
               </Box>
 
@@ -1146,7 +1093,7 @@ const Reports = () => {
               </Typography>
 
               <Box mb={4}>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ alignItems: "flex-start" }}>
                   <Grid size={{ xs: 12, md: 4 }}>
                     <GenericMultiAutocomplete
                       label="Customers"
@@ -1184,41 +1131,13 @@ const Reports = () => {
                     />
                   </Grid>
 
-                  <IconButton
-                    disabled={!hasCustomerBarFilters(customerBarFilters)}
-                    onClick={handleCustomerBarApplyFilters}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <DoneIcon />
-                  </IconButton>
-
-                  <IconButton
-                    disabled={!hasCustomerBarFilters(customerBarFilters)}
-                    onClick={handleCustomerBarResetFilters}
-                    sx={{
-                      border: 1,
-                      borderColor: "divider",
-                      bgcolor: "primary.main",
-                      color: "common.white",
-                      borderRadius: 2,
-                      p: 1,
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                  >
-                    <RestartAltIcon />
-                  </IconButton>
+                  <Grid size={{ xs: 12, md: "auto" }} className="flex items-start">
+                    <FilterActionButtons
+                      onApply={handleCustomerBarApplyFilters}
+                      onClear={handleCustomerBarResetFilters}
+                      disabled={!hasCustomerBarFilters(customerBarFilters)}
+                    />
+                  </Grid>
                 </Grid>
               </Box>
 

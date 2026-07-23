@@ -1,19 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Plus } from "lucide-react";
-import {
-  getUsers,
-  deleteUser,
-  searchUsers,
-} from "../service/UserService";
+import { getUsers, deleteUser, searchUsers } from "../service/UserService";
 import { useSnackbar } from "../context/SnackbarContext";
 import { useAuth } from "../context/AuthContext";
-
 import DataTable from "../components/DataTable";
 import UniversalSearch from "../components/UniversalSearch";
-
+import ListPagination from "../components/common/ListPagination";
 import ChangePasswordModal from "./modals/ChangePasswordModal";
 import AddUserModal from "./modals/AddUserModal";
 import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
+import AppButton from "../components/common/AppButton";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { CARD_GRID_SHELL_CLASS } from "../theme/cardTheme";
+import { IconButton, Tooltip } from "@mui/material";
+
+const RoleChip = ({ role }) => (
+  <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-brand-primary/10 text-brand-primary">
+    {role}
+  </span>
+);
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
@@ -22,6 +27,8 @@ const Users = () => {
 
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -39,9 +46,26 @@ const Users = () => {
     try {
       const data = await getUsers();
       setUsers(data.users);
+      setCurrentPage(1);
     } catch (error) {
       showSnackbar(error.message, "error");
     }
+  };
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return users.slice(start, start + rowsPerPage);
+  }, [users, currentPage, rowsPerPage]);
+
+  const handleChangePage = (newPage) => {
+    const totalPages = Math.max(1, Math.ceil(users.length / rowsPerPage));
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (newSize) => {
+    setRowsPerPage(newSize);
+    setCurrentPage(1);
   };
 
   const handleSearchResult = (response, searchQuery) => {
@@ -55,8 +79,8 @@ const Users = () => {
     } else {
       setUsers(response.content || []);
     }
+    setCurrentPage(1);
   };
-
 
   const handleDelete = async () => {
     if (!userToDelete?.id) return;
@@ -73,61 +97,124 @@ const Users = () => {
     }
   };
 
+  const tableHeaderRowSx = {
+    backgroundColor: "#f3f0ff",
+  };
+  const tableHeaderCellSx = {
+    color: "#203A8F",
+    fontWeight: 600,
+    backgroundColor: "inherit",
+    whiteSpace: "nowrap",
+  };
+
   const columns = [
     {
       key: "username",
       label: "Username",
-      width: "70%",
+      width: "40%",
+    },
+    {
+      key: "roles",
+      label: "Role",
+      width: "40%",
+      render: (row) => {
+        const roles = Array.isArray(row.roles)
+          ? row.roles
+          : row.roles
+            ? [row.roles]
+            : [];
+        if (roles.length === 0) return "-";
+        return (
+          <div className="flex flex-wrap gap-1">
+            {roles.map((role) => (
+              <RoleChip key={role} role={role} />
+            ))}
+          </div>
+        );
+      },
     },
   ];
 
   return (
-    <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      {/* HEADER */}
-      <div className="pt-4 flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Users</h1>
+    <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full min-h-0">
+      <div className="shrink-0">
+        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+          <div className="flex gap-2">
+            <h2 className={PAGE_TITLE_CLASS}>Users</h2>
 
-        {isAdmin && (
-          <button
-            onClick={() => setIsAddUserOpen(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus size={18} className="mr-2" />
-            Add New User
-          </button>
-        )}
+            {isAdmin && (
+              <Tooltip title="Add user">
+                <span>
+                  <IconButton
+                    onClick={() => setIsAddUserOpen(true)}
+                    size="medium"
+                    className="!bg-brand-primary hover:!bg-brand-primary-dark"
+                  >
+                    <Plus className="h-5 w-5 text-white" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+          </div>
+
+          <UniversalSearch
+            placeholder="Search users..."
+            query={query}
+            setQuery={setQuery}
+            searchFn={searchUsers}
+            onResult={handleSearchResult}
+            onClear={fetchUsers}
+            suggestionKey="username"
+            showSuggestions={false}
+          />
+        </div>
       </div>
 
-      {/* SEARCH */}
-      <UniversalSearch
-        placeholder="Search users..."
-        query={query}
-        setQuery={setQuery}
-        searchFn={searchUsers}
-        onResult={handleSearchResult}
-        onClear={fetchUsers}
-        suggestionKey="username"
-        showSuggestions={false}
-      />
+      <div
+        className={`flex-1 min-h-0 flex flex-col overflow-hidden ${CARD_GRID_SHELL_CLASS}`}
+      >
+        <div className="flex-1 min-h-0 overflow-hidden p-3 md:p-4">
+          <div className="h-full min-h-0">
+            <DataTable
+              columns={columns}
+              data={paginatedUsers}
+              loading={false}
+              actions={isAdmin}
+              onEdit={
+                isAdmin
+                  ? (u) => {
+                      setSelectedUser(u);
+                      setChangePwdModalOpen(true);
+                    }
+                  : undefined
+              }
+              onDelete={
+                isAdmin
+                  ? (u) => {
+                      setUserToDelete(u);
+                      setDeleteModalOpen(true);
+                    }
+                  : undefined
+              }
+              emptyMessage="No users found"
+              disablePagination
+              headerRowSx={tableHeaderRowSx}
+              headerCellSx={tableHeaderCellSx}
+              actionsHeaderSx={tableHeaderCellSx}
+            />
+          </div>
+        </div>
 
-      {/* TABLE */}
-      <div className="flex-1 mt-4">
-        <DataTable
-          columns={columns}
-          data={users}
-          loading={false}
-          actions={isAdmin}
-          onEdit={isAdmin ? (u) => {
-            setSelectedUser(u);
-            setChangePwdModalOpen(true);
-          } : undefined}
-          onDelete={isAdmin ? (u) => {
-            setUserToDelete(u);
-            setDeleteModalOpen(true);
-          } : undefined}
-          emptyMessage="No users found"
-          disablePagination
-        />
+        <div className="shrink-0 px-3 md:px-4 pb-3 md:pb-4">
+          <ListPagination
+            page={currentPage}
+            totalCount={users.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            entityLabel="users"
+          />
+        </div>
       </div>
 
       {/* MODALS */}
@@ -151,9 +238,11 @@ const Users = () => {
         title="Delete User"
         message={
           <>
-            Are you sure you want to delete{" "}
-            <b>{userToDelete?.username}</b>?
-            This action cannot be undone.
+            Are you sure you want to delete
+            <span className="font-medium text-blue-600">
+              {userToDelete?.username}
+            </span>
+            ? This action cannot be undone.
           </>
         }
         confirmText="Delete"
@@ -164,7 +253,6 @@ const Users = () => {
         }}
         onConfirm={handleDelete}
       />
-
     </div>
   );
 };

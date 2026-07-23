@@ -5,6 +5,9 @@ pipeline {
     skipDefaultCheckout true
   }
 
+  parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'frontend_sales_dev', description: 'Branch to build')
+    }
   environment {
     IMAGE_NAME = "sales-app-ui"
     CONTAINER_NAME = "sales-app-ui"
@@ -15,8 +18,9 @@ pipeline {
 
     stage('Checkout') {
       steps {
+        echo "checking out branch from git ${params.BRANCH_NAME}"
         script {
-          def branch = params.BRANCH?.trim() ?: 'frontend_sales_dev'
+          def branch = params.BRANCH_NAME?.trim() ?: 'frontend_sales_dev'
           branch = branch.replaceFirst(/^origin\//, '')
           env.DEPLOY_BRANCH = branch
         }

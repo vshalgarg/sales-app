@@ -3,7 +3,7 @@ import CustomTextField from "../../components/CustomTextField";
 import { IconButton } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-
+import AppButton from "../../components/common/AppButton";
 import AdminService from "../../service/AdminService";
 import { useSnackbar } from "../../context/SnackbarContext";
 
@@ -99,12 +99,12 @@ const ChangePasswordModal = ({ open, onClose, user }) => {
             Cancel
           </button>
 
-          <button
+          <AppButton
             onClick={handleChangePassword}
-            className="px-3 py-2 bg-blue-600 text-white rounded"
+            variant="primary"
           >
             Update Password
-          </button>
+          </AppButton>
         </div>
       </div>
     </div>

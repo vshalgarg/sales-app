@@ -4,7 +4,21 @@ import { useBillForm } from "../customHooks/useBillForm";
 import { useState, useEffect, useRef } from "react";
 import { addBill } from "../service/BillService";
 import { useSnackbar } from "../context/SnackbarContext";
-import { Trash2, Pencil } from "lucide-react";
+import {
+  Trash2,
+  Pencil,
+  FileText,
+  Building2,
+  Users,
+  Receipt,
+  Truck,
+  Upload,
+  Plus,
+  Percent,
+  CircleDollarSign,
+  BadgePercent,
+  Calculator,
+} from "lucide-react";
 import ConfirmationModal from "./ConfirmationModel";
 import SupplierService from "../service/SupplierService";
 import CustomerService from "../service/CustomerService";
@@ -17,10 +31,12 @@ import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
 import ImagePreviewDialog from "./common/ImagePreviewDialog";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import UploadDialog from "./common/UploadDialog";
+import FormSection from "./common/FormSection";
+import FormFooter from "./common/FormFooter";
+import AppButton from "./common/AppButton";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { CARD_GRID_SHELL_CLASS, FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
 import CloseIcon from "@mui/icons-material/Close";
 import { formatIndianCurrency } from "../utils/currencyUtils";
 
@@ -434,26 +450,17 @@ const BillEntry = () => {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      {/* Card */}
-      <div className="bg-gray-50 w-full h-[91vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
-        {/* Header */}
-        <div className="px-6 py-3 border-b border-gray-200 shrink-0 bg-gradient-to-r from-gray-50 to-white">
-          <h2 className="text-2xl font-semibold text-gray-800">Bill Entry</h2>
-          <p className="text-sm text-gray-500 mt-1">
+    <div className="flex flex-col h-full min-h-0">
+      <div className={`flex flex-col h-full min-h-0 overflow-hidden ${CARD_GRID_SHELL_CLASS}`}>
+        <div className="px-4 md:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700 shrink-0 bg-white dark:bg-zinc-900">
+          <h2 className={PAGE_TITLE_CLASS}>Bill Entry</h2>
+          <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
             Fill in all required fields to create a new bill
           </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 md:px-8 md:py-6 space-y-6">
-          {/* Order Information Card */}
-          <div className="border border-gray-200 p-4 md:p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-blue-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Order Information
-              </h3>
-            </div>
+        <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
+          <FormSection title="Order Information" icon={FileText} variantIndex={0}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {/* Bill Date */}
               <CustomDatePicker
@@ -483,16 +490,9 @@ const BillEntry = () => {
                 helperText={errors.order || ""}
               />
             </div>
-          </div>
+          </FormSection>
 
-          {/* Supplier Information Card */}
-          <div className="border border-gray-200 p-4 md:p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-green-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Supplier Information
-              </h3>
-            </div>
+          <FormSection title="Supplier Information" icon={Building2} variantIndex={1}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
               <div>
                 <Autocomplete
@@ -549,16 +549,9 @@ const BillEntry = () => {
                 disabled
               />
             </div>
-          </div>
+          </FormSection>
 
-          {/* Customer Information Card */}
-          <div className="border border-gray-200 p-4 md:p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-purple-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Customer Information
-              </h3>
-            </div>
+          <FormSection title="Customer Information" icon={Users} variantIndex={2}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
               <div>
                 <Autocomplete
@@ -615,79 +608,40 @@ const BillEntry = () => {
                 disabled
               />
             </div>
-          </div>
+          </FormSection>
 
-          <div
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 mt-4"
-          >
-            {/* Upload */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
             <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-              <Button
+              <AppButton
+                type="secondary"
                 fullWidth
                 onClick={() => {
                   setTempDocuments(billDocuments);
                   setIsUploadOpen(true);
                 }}
-                variant="outlined"
-                startIcon={<UploadFileIcon />}
+                startIcon={<Upload className="h-4 w-4" />}
                 sx={{
-                  textTransform: "none",
-                  fontWeight: 500,
-                  borderRadius: "10px",
-                  px: 2.5,
-                  py: 1,
-
-                  borderColor: "#dbeafe",
-                  color: "#2563eb",
-                  backgroundColor: "#eff6ff",
-
-                  "&:hover": {
-                    borderColor: "#2563eb",
-                    backgroundColor: "#dbeafe",
-                  },
-
-                  "@media (min-width:640px)": {
-                    width: "auto",
-                  },
+                  "@media (min-width:640px)": { width: "auto" },
                 }}
               >
                 Upload Documents
-              </Button>
-              {/* File count */}
-              <span className="text-xs text-gray-500 whitespace-nowrap">
+              </AppButton>
+              <span className="text-xs text-brand-search-muted dark:text-gray-400 whitespace-nowrap">
                 {billDocuments.length} files
               </span>
             </div>
 
-            {/* Add Item */}
-            <Button
+            <AppButton
+              type="primary"
               fullWidth
               onClick={() => setIsAddItemModalOpen(true)}
-              variant="contained"
-              startIcon={<AddIcon />}
+              startIcon={<Plus className="h-4 w-4" />}
               sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: "10px",
-                px: 2.5,
-                py: 1,
-
-                backgroundColor: "#2563eb",
-                boxShadow: "0 2px 8px rgba(37, 99, 235, 0.25)",
-
-                "&:hover": {
-                  backgroundColor: "#1d4ed8",
-                  boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
-                },
-
-                "@media (min-width:640px)": {
-                  width: "auto",
-                },
+                "@media (min-width:640px)": { width: "auto" },
               }}
             >
               Add Bill Item
-            </Button>
-
+            </AppButton>
           </div>
 
           {errors.items && (
@@ -700,21 +654,18 @@ const BillEntry = () => {
 
           {/* Total Bills Table */}
           {savedItems.length > 0 && (
-            <div className="border border-gray-200 p-2 md:p-6 rounded-xl shadow-sm bg-white hover:shadow-md transition-shadow duration-200 mt-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center">
-                  <div className="w-1 h-8 bg-orange-600 rounded-full mr-3"></div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Bill Details ({savedItems.length}{" "}
-                    {savedItems.length === 1 ? "Item" : "Items"})
-                  </h3>
-                </div>
-                <div className="bg-blue-50 text-blue-600 text-sm font-medium px-3 py-1 rounded-full">
+            <FormSection
+              title={`Bill Details (${savedItems.length} ${savedItems.length === 1 ? "Item" : "Items"})`}
+              icon={Receipt}
+              variantIndex={3}
+            >
+              <div className="flex justify-end mb-4">
+                <div className="bg-brand-primary/10 text-brand-primary text-sm font-medium px-3 py-1 rounded-full">
                   Total: {billEntry}
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-gray-100">
+              <div className="overflow-x-auto rounded-lg border border-brand-surface-border/60 dark:border-zinc-700/40">
                 <table className="w-full table-auto border-collapse">
                   <thead>
                     <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
@@ -793,7 +744,7 @@ const BillEntry = () => {
                           <div className="flex justify-center items-center space-x-3">
                             <button
                               onClick={() => handleEditClick(idx)}
-                              className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors duration-200"
+                              className="text-brand-primary hover:text-brand-primaryDark p-2 rounded-full hover:bg-brand-primary/10 transition-colors duration-200"
                               title="Edit"
                             >
                               <Pencil className="w-5 h-5" />
@@ -819,7 +770,7 @@ const BillEntry = () => {
                       <td className="px-4 py-3 text-center font-semibold text-gray-900">
                         {roundUp(taxableValue)}
                       </td>
-                      <td className="px-4 py-3 text-center font-bold text-blue-600">
+                      <td className="px-4 py-3 text-center font-bold text-brand-primary">
                         {roundUp(billEntry)}
                       </td>
                       <td></td>
@@ -827,17 +778,14 @@ const BillEntry = () => {
                   </tfoot>
                 </table>
               </div>
-            </div>
+            </FormSection>
           )}
 
-          {/* Logistics & Notes */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center mb-5">
-              <div className="w-1 h-8 bg-blue-600 rounded-full mr-3"></div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Logistics & Notes
-              </h3>
-            </div>
+          <FormSection
+            title="Logistics & Notes"
+            icon={Truck}
+            variantIndex={savedItems.length > 0 ? 4 : 3}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
               {/* Transport */}
               <div className="space-y-1">
@@ -924,40 +872,22 @@ const BillEntry = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </FormSection>
         </div>
 
-        {/* Footer */}
-        <div className="px-4 sm:px-6 py-3 border-t border-gray-200 bg-gray-50 shrink-0">
-
-          <div className="flex items-center justify-end gap-3">
-
-            <button
-              onClick={handleResetForm}
-              disabled={isSaving}
-              className={`px-4 py-2 rounded-lg border text-sm font-medium shadow-sm
-        ${isSaving
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-                }`}
-            >
-              Reset
-            </button>
-
-            <button
-              onClick={handleOpenConfirm}
-              disabled={isSaving}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold shadow-md
-        ${isSaving
-                  ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-            >
-              {isSaving ? "Saving..." : "Save Bill"}
-            </button>
-
-          </div>
-        </div>
+        <FormFooter background="bg-white dark:bg-zinc-900 border-brand-surface-border dark:border-zinc-700">
+          <AppButton type="secondary" onClick={handleResetForm} disabled={isSaving}>
+            Reset
+          </AppButton>
+          <AppButton
+            type="primary"
+            onClick={handleOpenConfirm}
+            disabled={isSaving}
+            loading={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save Bill"}
+          </AppButton>
+        </FormFooter>
 
         {/* Confirmation Modal*/}
         <ConfirmationModal
@@ -1008,12 +938,9 @@ const BillEntry = () => {
               </div>
 
               {/* MODAL CONTENT*/}
-              <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
+              <div className={`p-4 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
-                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
-                      Bill Details
-                    </h3>
+                  <FormSection title="Bill Details" icon={Receipt} variantIndex={0}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="pieces"
@@ -1048,12 +975,9 @@ const BillEntry = () => {
                         helperText={errors.grossAmount || ""}
                       />
                     </div>
-                  </div>
+                  </FormSection>
 
-                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
-                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
-                      Add Discount
-                    </h3>
+                  <FormSection title="Add Discount" icon={Percent} variantIndex={1}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="discountPercent"
@@ -1079,12 +1003,9 @@ const BillEntry = () => {
                         InputProps={{ readOnly: true }}
                       />
                     </div>
-                  </div>
+                  </FormSection>
 
-                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
-                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
-                      Add On Charges
-                    </h3>
+                  <FormSection title="Add On Charges" icon={CircleDollarSign} variantIndex={2}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="addOnAmount"
@@ -1117,12 +1038,9 @@ const BillEntry = () => {
                         helperText={errors.ecrAmount || ""}
                       />
                     </div>
-                  </div>
+                  </FormSection>
 
-                  <div className="border border-gray-100 p-4 rounded-lg bg-white">
-                    <h3 className="text-base font-medium mb-3 border-b border-gray-100 pb-2">
-                      Add GST Details
-                    </h3>
+                  <FormSection title="Add GST Details" icon={BadgePercent} variantIndex={3}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
                         name="gstPercent"
@@ -1148,48 +1066,59 @@ const BillEntry = () => {
                         InputProps={{ readOnly: true }}
                       />
                     </div>
+                  </FormSection>
+                </div>
+
+                <div className="mt-2 flex flex-col md:flex-row md:divide-x divide-brand-surface-border dark:divide-zinc-700/40 rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-blue-50/70 dark:bg-blue-950/20 overflow-hidden">
+                  <div className="flex flex-1 items-center gap-3 justify-center p-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40">
+                      <Calculator className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm text-brand-search-muted dark:text-gray-400">Taxable Value</p>
+                      <p className="md:text-lg font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
+                        {formatIndianCurrency(roundUp(billForm.taxableValue))}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-1 items-center gap-3 justify-center p-4 border-t md:border-t-0 border-brand-surface-border dark:border-zinc-700/40">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
+                      <Percent className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm text-brand-search-muted dark:text-gray-400">GST Amount</p>
+                      <p className="md:text-lg font-semibold text-green-600 dark:text-green-400 mt-0.5">
+                        {formatIndianCurrency(roundUp(billForm.gstAmount))}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-1 items-center gap-3 justify-center p-4 border-t md:border-t-0 border-brand-surface-border dark:border-zinc-700/40">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/40">
+                      <Receipt className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm text-brand-search-muted dark:text-gray-400">Bill Amount</p>
+                      <p className="md:text-xl font-semibold text-violet-600 dark:text-violet-400 mt-0.5">
+                        {formatIndianCurrency(roundUp(billForm.billAmount))}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white rounded-lg border border-gray-200">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">Taxable Value</p>
-                    <p className="md:text-lg font-medium text-blue-600 mt-1">
-                      {formatIndianCurrency(roundUp(billForm.taxableValue))}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">GST Amount</p>
-                    <p className="md:text-lg font-medium text-green-600 mt-1">
-                      {formatIndianCurrency(roundUp(billForm.gstAmount))}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">Bill Amount</p>
-                    <p className="md:text-xl font-medium text-indigo-600 mt-1">
-                      {formatIndianCurrency(roundUp(billForm.billAmount))}
-                    </p>
-                  </div>
-                </div>
-
-                {/* BUTTON SECTION*/}
-                <div className="flex justify-end mt-5 gap-4">
+                <div className="flex justify-end mt-2 gap-3">
                   {!isEditing ? (
-                    <button
-                      onClick={handleResetBillDetail}
-                      className="px-6 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 text-sm font-medium"
-                    >
+                    <AppButton type="secondary" onClick={handleResetBillDetail}>
                       Reset
-                    </button>
+                    </AppButton>
                   ) : null}
-                  <button
+                  <AppButton
+                    type="primary"
                     onClick={() => {
                       handleSaveItem();
                     }}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
                   >
                     {isEditing ? "Update Item" : "Save Item"}
-                  </button>
+                  </AppButton>
                 </div>
               </div>
             </div>

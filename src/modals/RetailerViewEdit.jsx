@@ -16,14 +16,17 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
   Chip,
-  Divider,
   Box,
   Button,
   CircularProgress,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import CloseIcon from "@mui/icons-material/Close";
+import { Store, History, CircleDollarSign } from "lucide-react";
 import dayjs from "dayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -32,6 +35,91 @@ import CustomerService from "../service/CustomerService";
 import { getAllActiveStaffs } from "../service/StaffService";
 import { mapToOption } from "../utils/optionMapper";
 import { formatIndianCurrency } from "../utils/currencyUtils";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import {
+  SECTION_ICON_CLASS,
+  SECTION_ICON_WRAPPER_CLASS,
+} from "../theme/cardTheme";
+import { BRAND_COLORS } from "../theme/brandColors";
+import useResponsive from "../customHooks/useResponsive";
+
+const nestedHeaderCellSx = {
+  fontWeight: 600,
+  bgcolor: "#f7f5ff",
+  color: BRAND_COLORS.primary,
+  whiteSpace: "nowrap",
+};
+
+const sectionSurfaceBg = (variantIndex = 0) =>
+  variantIndex % 2 === 0 ? "rgba(239,246,255,0.8)" : "rgba(245,243,255,0.8)";
+
+const sectionAccordionSx = (variantIndex = 0) => ({
+  border: `1px solid ${BRAND_COLORS.surfaceBorder}`,
+  borderRadius: "12px !important",
+  bgcolor: sectionSurfaceBg(variantIndex),
+  "&:before": { display: "none" },
+  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+  flexShrink: 0,
+  "& .MuiAccordionDetails-root": {
+    p: 0,
+    borderBottomLeftRadius: "12px",
+    borderBottomRightRadius: "12px",
+  },
+});
+
+const sectionScrollMaxHeight = {
+  xs: "36vh",
+  sm: "260px",
+};
+
+const historyScrollMaxHeight = {
+  xs: "48vh",
+  sm: "380px",
+};
+
+const ScrollableSectionBody = ({
+  variantIndex = 0,
+  maxHeight = sectionScrollMaxHeight,
+  sx = {},
+  children,
+}) => (
+  <Box
+    sx={{
+      maxHeight,
+      overflowY: "auto",
+      overflowX: "hidden",
+      overscrollBehavior: "contain",
+      WebkitOverflowScrolling: "touch",
+      bgcolor: sectionSurfaceBg(variantIndex),
+      px: 2,
+      py: 2,
+      ...sx,
+    }}
+  >
+    {children}
+  </Box>
+);
+
+const sectionSummarySx = {
+  bgcolor: "transparent",
+  minHeight: 52,
+  flexShrink: 0,
+};
+
+const SectionHeader = ({ title, icon: Icon }) => (
+  <div className="flex items-center gap-3">
+    {Icon && (
+      <div
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
+      >
+        <Icon className={`h-4 w-4 ${SECTION_ICON_CLASS}`} />
+      </div>
+    )}
+    <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
+      {title}
+    </span>
+  </div>
+);
 
 /* Read-only field */
 const InfoField = ({ label, value }) => (
@@ -49,128 +137,212 @@ const InfoField = ({ label, value }) => (
   </div>
 );
 
-/* Section 2: History accordion per supplier */
+const historyTableCardSx = {
+  bgcolor: "#fff",
+  border: `1px solid ${BRAND_COLORS.surfaceBorder}`,
+  borderRadius: "10px",
+  overflow: "hidden",
+};
+
+const historyTableSx = {
+  minWidth: 640,
+  "& .MuiTableCell-root": {
+    borderColor: BRAND_COLORS.surfaceBorder,
+  },
+};
+
+const HistoryTable = ({ children }) => (
+  <TableContainer sx={{ maxWidth: "100%", overflowX: "auto" }}>
+    <Table size="small" sx={historyTableSx}>
+      {children}
+    </Table>
+  </TableContainer>
+);
+
+const amountChipSx = {
+  total: {
+    bgcolor: "#eff6ff",
+    color: BRAND_COLORS.primary,
+    borderColor: "#bfdbfe",
+  },
+  deposited: {
+    bgcolor: "#f0fdf4",
+    color: "#16a34a",
+    borderColor: "#bbf7d0",
+  },
+  remaining: {
+    bgcolor: "#fef2f2",
+    color: "#dc2626",
+    borderColor: "#fecaca",
+  },
+};
+
+const SupplierHistoryRow = ({ supplier }) => {
+  const [open, setOpen] = useState(false);
+  const deposits = supplier.deposits ?? [];
+
+  const rowSx = {
+    bgcolor: "#fff",
+    "& td": {
+      borderBottom: `1px solid ${BRAND_COLORS.surfaceBorder}`,
+    },
+  };
+
+  return (
+    <>
+      <TableRow sx={rowSx}>
+        <TableCell sx={{ fontWeight: 600, color: BRAND_COLORS.navy }}>
+          {supplier.supplierName || "-"}
+        </TableCell>
+        <TableCell>
+          <Chip
+            label={`Total: ₹${formatIndianCurrency(Math.round(supplier.totalAmount ?? 0))}`}
+            size="small"
+            variant="outlined"
+            sx={amountChipSx.total}
+          />
+        </TableCell>
+        <TableCell>
+          <Chip
+            label={`Deposited: ₹${formatIndianCurrency(Math.round(supplier.depositAmount ?? 0))}`}
+            size="small"
+            variant="outlined"
+            sx={amountChipSx.deposited}
+          />
+        </TableCell>
+        <TableCell>
+          <Chip
+            label={`Remaining: ₹${formatIndianCurrency(Math.round(supplier.balanceAmount ?? 0))}`}
+            size="small"
+            variant="outlined"
+            sx={amountChipSx.remaining}
+          />
+        </TableCell>
+        <TableCell align="center" sx={{ width: 48, px: 1 }}>
+          <IconButton
+            size="small"
+            onClick={() => setOpen((prev) => !prev)}
+            disabled={deposits.length === 0}
+            aria-label={open ? "Collapse deposits" : "Expand deposits"}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+      </TableRow>
+
+      {open && (
+        <TableRow>
+          <TableCell colSpan={5} sx={{ p: 0, bgcolor: "#fff", border: 0 }}>
+            <Box
+              sx={{
+                mx: { xs: 1, sm: 2 },
+                mb: 2,
+                ...historyTableCardSx,
+              }}
+            >
+              <HistoryTable>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={nestedHeaderCellSx}>Date</TableCell>
+                  <TableCell sx={nestedHeaderCellSx}>Deposit Amount</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {deposits.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={2}>
+                      <Typography variant="body2" color="text.secondary">
+                        No deposits yet.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  deposits.map((dep, di) => (
+                    <TableRow key={di} hover sx={{ bgcolor: "#fff" }}>
+                      <TableCell>
+                        {dep.date
+                          ? dayjs(dep.date).format("DD-MM-YYYY")
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {dep.amount
+                          ? `₹${formatIndianCurrency(Math.round(dep.amount))}`
+                          : "-"}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+              </HistoryTable>
+            </Box>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+};
+
+/* Section 2: History grid per supplier */
 const HistorySection = ({ suppliers = [], expanded, onChange }) => (
   <Accordion
     expanded={expanded}
     onChange={onChange}
     disableGutters
     elevation={0}
-    sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+    sx={sectionAccordionSx(1)}
   >
-    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-      <Typography variant="subtitle2" fontWeight={600}>
-        History
-      </Typography>
+    <AccordionSummary
+      expandIcon={<ExpandMoreIcon sx={{ color: BRAND_COLORS.primary }} />}
+      sx={sectionSummarySx}
+    >
+      <SectionHeader title="History" icon={History} />
     </AccordionSummary>
-    <AccordionDetails sx={{ p: 0 }}>
+    <AccordionDetails sx={{ bgcolor: sectionSurfaceBg(1) }}>
+      <ScrollableSectionBody variantIndex={1} maxHeight={historyScrollMaxHeight}>
       {suppliers.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
+        <Typography variant="body2" color="text.secondary">
           No supplier history found.
         </Typography>
       ) : (
-        suppliers.map((supplier, si) => (
-          <Accordion
-            key={si}
-            disableGutters
-            elevation={0}
-            sx={{
-              borderTop: "1px solid",
-              borderColor: "divider",
-              "&:before": { display: "none" },
-            }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              sx={{ bgcolor: "#fafafa", px: 2 }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  width: "100%",
-                }}
-              >
-                <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>
-                  {supplier.supplierName || "-"}
-                </Typography>
-                <Chip
-                  label={`Total: ₹${formatIndianCurrency(Math.round(supplier.totalAmount ?? 0))}`}
-                  size="small"
-                  variant="outlined"
-                />
-                <Chip
-                  label={`Deposited: ₹${formatIndianCurrency(Math.round(supplier.depositAmount ?? 0))}`}
-                  size="small"
-                  color="success"
-                  variant="outlined"
-                />
-                <Chip
-                  label={`Remaining: ₹${formatIndianCurrency(Math.round(supplier.balanceAmount ?? 0))}`}
-                  size="small"
-                  color={supplier.balanceAmount > 0 ? "warning" : "success"}
-                  variant="outlined"
-                />
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 0 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ bgcolor: "#f5f5f5" }}>
-                    <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>
-                      Deposit Amount
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(supplier.deposits ?? []).length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={2}>
-                        <Typography variant="body2" color="text.secondary">
-                          No deposits yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    supplier.deposits.map((dep, di) => (
-                      <TableRow key={di} hover>
-                        <TableCell>
-                          {dep.date
-                            ? dayjs(dep.date).format("DD-MM-YYYY")
-                            : "-"}
-                        </TableCell>
-                        <TableCell>
-                          {dep.amount
-                            ? `₹${formatIndianCurrency(Math.round(dep.amount))}`
-                            : "-"}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </AccordionDetails>
-          </Accordion>
-        ))
+        <Box sx={historyTableCardSx}>
+          <HistoryTable>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={nestedHeaderCellSx}>Supplier</TableCell>
+              <TableCell sx={nestedHeaderCellSx}>Total Amount</TableCell>
+              <TableCell sx={nestedHeaderCellSx}>Deposited</TableCell>
+              <TableCell sx={nestedHeaderCellSx}>Remaining</TableCell>
+              <TableCell sx={{ ...nestedHeaderCellSx, width: 48 }} />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {suppliers.map((supplier, si) => (
+              <SupplierHistoryRow
+                key={supplier.retailSupplierId ?? supplier.supplierId ?? si}
+                supplier={supplier}
+              />
+            ))}
+          </TableBody>
+          </HistoryTable>
+        </Box>
       )}
+      </ScrollableSectionBody>
     </AccordionDetails>
   </Accordion>
 );
 
 /* Section 3: Deposit form row per supplier (edit only) */
-const DepositRow = ({ supplier, depositData, onChange }) => (
+const DepositRow = ({ supplier, depositData, onChange, variantIndex = 0 }) => (
   <Box
     sx={{
       display: "flex",
-      alignItems: "center",
+      flexWrap: "wrap",
+      alignItems: { xs: "stretch", sm: "center" },
       gap: 2,
       p: 1.5,
-      border: "1px solid",
-      borderColor: "divider",
-      borderRadius: 1,
-      bgcolor: "#fafafa",
+      border: `1px solid ${BRAND_COLORS.surfaceBorder}`,
+      borderRadius: 2,
+      bgcolor: sectionSurfaceBg(variantIndex),
     }}
   >
     <TextField
@@ -178,7 +350,7 @@ const DepositRow = ({ supplier, depositData, onChange }) => (
       value={supplier.supplierName || ""}
       size="small"
       disabled
-      sx={{ flex: 2 }}
+      sx={{ flex: { xs: "1 1 100%", sm: "2 1 180px" }, minWidth: 0 }}
     />
     <TextField
       label="Balance Amount"
@@ -187,7 +359,7 @@ const DepositRow = ({ supplier, depositData, onChange }) => (
       }
       size="small"
       disabled
-      sx={{ flex: 1 }}
+      sx={{ flex: { xs: "1 1 100%", sm: "1 1 120px" }, minWidth: 0 }}
     />
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DatePicker
@@ -197,7 +369,12 @@ const DepositRow = ({ supplier, depositData, onChange }) => (
         onChange={(v) =>
           onChange("date", v ? dayjs(v).format("YYYY-MM-DD") : "")
         }
-        slotProps={{ textField: { size: "small", sx: { flex: 1 } } }}
+        slotProps={{
+          textField: {
+            size: "small",
+            sx: { flex: { xs: "1 1 100%", sm: "1 1 140px" }, minWidth: 0 },
+          },
+        }}
       />
     </LocalizationProvider>
     <TextField
@@ -211,7 +388,7 @@ const DepositRow = ({ supplier, depositData, onChange }) => (
           onChange("amount", val);
         }
       }}
-      sx={{ flex: 1 }}
+      sx={{ flex: { xs: "1 1 100%", sm: "1 1 120px" }, minWidth: 0 }}
       inputProps={{ min: 0 }}
     />
   </Box>
@@ -227,6 +404,8 @@ const RetailerViewEdit = ({
   onSaveRetailer,
   onSaveDeposits,
 }) => {
+  const { isMobile } = useResponsive();
+
   // ── Dropdown options ──
   const [allCustomers, setAllCustomers] = useState([]);
   const [allStaffs, setAllStaffs] = useState([]);
@@ -249,10 +428,18 @@ const RetailerViewEdit = ({
   }, [mode]);
 
   const [expanded, setExpanded] = useState(
-    mode === "view" ? "all" : "retailer",
+    mode === "view" ? null : "retailer",
   );
+  const [viewOpen, setViewOpen] = useState({
+    retailer: true,
+    history: true,
+  });
 
   const handleAccordionChange = (panel) => (_, isExpanded) => {
+    if (mode === "view") {
+      setViewOpen((prev) => ({ ...prev, [panel]: isExpanded }));
+      return;
+    }
     setExpanded(isExpanded ? panel : false);
   };
 
@@ -350,7 +537,7 @@ const RetailerViewEdit = ({
 
   useEffect(() => {
     if (mode === "view") {
-      setExpanded("all");
+      setViewOpen({ retailer: true, history: true });
     } else {
       setExpanded("retailer");
     }
@@ -362,47 +549,84 @@ const RetailerViewEdit = ({
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 2 } }}
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          borderRadius: isMobile ? 0 : 3,
+          height: isMobile ? "100dvh" : "90vh",
+          maxHeight: isMobile ? "100dvh" : "90vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          m: isMobile ? 0 : 2,
+        },
+      }}
     >
       <DialogTitle
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          pb: 1,
+          pb: 2,
+          pt: 2.5,
+          px: { xs: 2, sm: 3 },
+          flexShrink: 0,
         }}
       >
-        <Typography variant="h6" fontWeight={600}>
-          {mode === "edit" ? "Edit Retailer" : "View Retailer"}
-        </Typography>
-        <IconButton size="small" onClick={onClose}>
-          <CloseIcon />
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
+          >
+            <Store className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+          </div>
+          <h2 className={PAGE_TITLE_CLASS}>
+            {mode === "edit" ? "Edit Retailer" : "View Retailer"}
+          </h2>
+        </div>
+        <IconButton
+          size="small"
+          onClick={onClose}
+          sx={{
+            border: `1px solid ${BRAND_COLORS.surfaceBorder}`,
+            borderRadius: 2,
+          }}
+        >
+          <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
 
-      <Divider />
-
       <DialogContent
-        sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}
+        dividers
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          p: 0,
+          px: { xs: 2, sm: 3 },
+          py: 2,
+          overflowY: "auto",
+          overflowX: "hidden",
+          flex: "1 1 auto",
+          minHeight: 0,
+        }}
       >
-        {/* ── Section 1: Retailer Info ── */}
         <Accordion
           expanded={
-            mode === "view"
-              ? expanded === "all" || expanded === "retailer"
-              : expanded === "retailer"
+            mode === "view" ? viewOpen.retailer : expanded === "retailer"
           }
           onChange={handleAccordionChange("retailer")}
           disableGutters
           elevation={0}
-          sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+          sx={sectionAccordionSx(0)}
         >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle2" fontWeight={600}>
-              Retailer Info
-            </Typography>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: BRAND_COLORS.primary }} />}
+            sx={sectionSummarySx}
+          >
+            <SectionHeader title="Retailer Info" icon={Store} />
           </AccordionSummary>
-          <AccordionDetails>
+          <AccordionDetails sx={{ bgcolor: sectionSurfaceBg(0) }}>
+            <ScrollableSectionBody variantIndex={0}>
             {mode === "view" ? (
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -507,6 +731,7 @@ const RetailerViewEdit = ({
                 </Box>
               </Box>
             )}
+            </ScrollableSectionBody>
           </AccordionDetails>
         </Accordion>
 
@@ -517,18 +742,16 @@ const RetailerViewEdit = ({
             onChange={handleAccordionChange("deposits")}
             disableGutters
             elevation={0}
-            sx={{
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-            }}
+            sx={sectionAccordionSx(1)}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle2" fontWeight={600}>
-                Add Deposits
-              </Typography>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: BRAND_COLORS.primary }} />}
+              sx={sectionSummarySx}
+            >
+              <SectionHeader title="Add Deposits" icon={CircleDollarSign} />
             </AccordionSummary>
-            <AccordionDetails>
+            <AccordionDetails sx={{ bgcolor: sectionSurfaceBg(1) }}>
+              <ScrollableSectionBody variantIndex={1}>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                 {suppliers.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
@@ -536,9 +759,10 @@ const RetailerViewEdit = ({
                   </Typography>
                 ) : (
                   <>
-                    {suppliers.map((s) => (
+                    {suppliers.map((s, index) => (
                       <DepositRow
                         key={s.supplierId}
+                        variantIndex={index}
                         supplier={s}
                         depositData={
                           depositInputs[s.supplierId] ?? {
@@ -573,6 +797,7 @@ const RetailerViewEdit = ({
                   </>
                 )}
               </Box>
+              </ScrollableSectionBody>
             </AccordionDetails>
           </Accordion>
         )}
@@ -581,9 +806,7 @@ const RetailerViewEdit = ({
         <HistorySection
           suppliers={historyData}
           expanded={
-            mode === "view"
-              ? expanded === "all" || expanded === "history"
-              : expanded === "history"
+            mode === "view" ? viewOpen.history : expanded === "history"
           }
           onChange={handleAccordionChange("history")}
         />

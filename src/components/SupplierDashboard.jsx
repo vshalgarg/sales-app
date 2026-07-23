@@ -1,17 +1,24 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, MapPinned, Phone, Receipt } from "lucide-react";
 import SupplierService from "../service/SupplierService";
 import AddNewSupplier from "../modals/AddNewSupplier";
 import SupplierDetail from "../modals/SupplierDetail";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
-import DataTable from "./DataTable";
-import { Typography } from "@mui/material";
+import EntityCardGrid from "./common/EntityCardGrid";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import UpdateSupplierModal from "../modals/UpdateSupplierModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { getSupplierFormattedText } from "../utils/copyFormatter";
+import { IconButton, Tooltip } from "@mui/material";
 
+const SUPPLIER_CARD_FIELDS = [
+  { label: "GST", key: "supplierGstNo", icon: Receipt },
+  { label: "Mobile", key: "mobile", icon: Phone },
+  { label: "Address", key: "address", icon: MapPinned },
+];
 
 export default function SupplierDashboard() {
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -20,7 +27,7 @@ export default function SupplierDashboard() {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -33,53 +40,6 @@ export default function SupplierDashboard() {
   const { isMobile } = useResponsive();
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [supplierToCopy, setSupplierToCopy] = useState(null);
-
-
-  const handleCopyDetails = async (supplier) => {
-  try {
-    const response = await SupplierService.getSupplierById(supplier.id);
-    setSupplierToCopy(response.data);
-    setCopyModalOpen(true);
-  } catch (error) {
-    console.error("Error fetching supplier details:", error);
-    showSnackbar(error.message, "error");
-  }
-};
-
-  const columns = {
-    desktop: [
-      { key: "code", label: "Code", width: "8%" },
-      { key: "supplierName", label: "Name", width: "20%" },
-      { key: "supplierGstNo", label: "GST", width: "16%" },
-      {
-        key: "address",
-        label: "Address",
-        width: "32%",
-        render: (row) => (
-          <Typography
-            variant="body2"
-            noWrap
-            title={row.address}
-            sx={{ width: "100%" }}
-          >
-            {row.address || "-"}
-          </Typography>
-        ),
-      },
-      { key: "city", label: "City", width: "10%" },
-
-      {
-        key: "mobile",
-        label: "Mobile",
-        width: "10%",
-        render: (row) => row.mobile || "-",
-      },
-    ],
-    mobile: [
-      { key: "supplierName", label: "Name" },
-      { key: "city", label: "City" },
-    ],
-  };
 
   const [form, setForm] = useState({
     supplierName: "",
@@ -103,6 +63,43 @@ export default function SupplierDashboard() {
     remark: "",
   });
 
+  const handleCopyDetails = async (supplier) => {
+    try {
+      const response = await SupplierService.getSupplierById(supplier.id);
+      setSupplierToCopy(response.data);
+      setCopyModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching supplier details:", error);
+      showSnackbar(error.message, "error");
+    }
+  };
+
+  const buildSupplierCardProps = (supplier) => ({
+    code: supplier.code,
+    codeAside: supplier.city,
+    title: supplier.supplierName,
+    fields: SUPPLIER_CARD_FIELDS.map(({ label, key, icon }) => ({
+      label,
+      key,
+      icon,
+      value: supplier[key],
+      showLabel: false,
+    })),
+    onView: () => {
+      setSelectedSupplier(supplier.id);
+      setIsModalOpen(true);
+    },
+    onEdit: () => {
+      setEditingSupplierId(supplier.id);
+      setOpenEdit(true);
+    },
+    onCopy: () => handleCopyDetails(supplier),
+    onDelete: () => {
+      setSupplierToDelete(supplier);
+      setDeleteModalOpen(true);
+    },
+  });
+
   const fetchSuppliers = useCallback(
     async (uiPage = 1) => {
       const backendPage = uiPage - 1;
@@ -121,7 +118,6 @@ export default function SupplierDashboard() {
         setTotalPages(0);
         setTotalItems(0);
         showSnackbar(error.message, "error");
-      } finally {
       }
     },
     [rowsPerPage],
@@ -134,6 +130,24 @@ export default function SupplierDashboard() {
     setTotalItems(response.totalElements || 0);
     setIsSearchActive(searchQuery.trim() !== "");
     setCurrentPage(page);
+  };
+
+  const handleRowsPerPageChange = async (newSize) => {
+    setRowsPerPage(newSize);
+    setCurrentPage(1);
+
+    if (isSearchActive && query.trim()) {
+      try {
+        const response = await SupplierService.searchSuppliers(
+          query,
+          0,
+          newSize,
+        );
+        handleSearchResult(response, query, 1);
+      } catch (error) {
+        showSnackbar(error.message, "error");
+      }
+    }
   };
 
   const handleChangePage = async (newPage) => {
@@ -196,22 +210,26 @@ export default function SupplierDashboard() {
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
-      {/* Header Section */}
-      <div>
-        <div className="flex justify-between items-center my-2">
-          <h2 className=" text-lg md:text-2xl font-bold">{isMobile ? "Supplier" : "Supplier Overview"}</h2>
-          <button
-            onClick={() => setOpen(true)}
-            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-          >
-            Add Supplier
-          </button>
+      <div className="flex justify-between items-center my-2  gap-3">
+        <div className="flex gap-2">
+          <h2 className={PAGE_TITLE_CLASS}>
+            {isMobile ? "Supplier" : "Supplier Overview"}
+          </h2>
+          <Tooltip title="Add supplier">
+            <span>
+              <IconButton
+                onClick={() => setOpen(true)}
+                size="medium"
+                className="!bg-brand-primary hover:!bg-brand-primary-dark"
+              >
+                <Plus className="h-5 w-5 text-white" />
+              </IconButton>
+            </span>
+          </Tooltip>
         </div>
-
-        {/* Search Section */}
-        <div className="flex items-center mb-2">
+        <div>
           <UniversalSearch
-            placeholder="Search suppliers ..."
+            placeholder="Search suppliers..."
             query={query}
             setQuery={setQuery}
             searchFn={SupplierService.searchSuppliers}
@@ -224,33 +242,20 @@ export default function SupplierDashboard() {
         </div>
       </div>
 
-      {/* Table Section*/}
-      <div className="flex-1 min-h-0  border rounded-lg mb-2 bg-white dark:bg-zinc-900">
-        <DataTable
-          columns={isMobile ? columns.mobile : columns.desktop}
-          data={suppliers}
-          onView={(supplier) => {
-            setSelectedSupplier(supplier.id);
-            setIsModalOpen(true);
-          }}
-          onEdit={(supplier) => {
-            setEditingSupplierId(supplier.id);
-            setOpenEdit(true);
-          }}
-          onDelete={(supplier) => {
-            setSupplierToDelete(supplier);
-            setDeleteModalOpen(true);
-          }}
-            onCopy={handleCopyDetails}
-            emptyMessage="No suppliers found"
-            page={currentPage}
-            totalCount={totalItems}
-            rowsPerPage={rowsPerPage}
-            onPageChange={handleChangePage}
-          />
-        </div>
+      <div className="flex-1 min-h-0">
+        <EntityCardGrid
+          items={suppliers}
+          buildCardProps={buildSupplierCardProps}
+          emptyMessage="No suppliers found"
+          page={currentPage}
+          totalCount={totalItems}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          entityLabel="suppliers"
+        />
+      </div>
 
-      {/* Modals */}
       {isModalOpen && selectedSupplier && (
         <SupplierDetail
           supplierId={selectedSupplier}
@@ -283,9 +288,9 @@ export default function SupplierDashboard() {
           onClose={() => setCopyModalOpen(false)}
           title="Copy Supplier Details"
           formattedText={getSupplierFormattedText(supplierToCopy)}
+          splitBankCopy
         />
       )}
-
 
       <DeleteConfirmModal
         open={deleteModalOpen}
@@ -293,8 +298,10 @@ export default function SupplierDashboard() {
         message={
           <>
             Are you sure you want to permanently delete{" "}
-            <b>{supplierToDelete?.supplierName}</b>?
-            This action cannot be undone.
+            <span className="font-medium text-blue-600">
+              {supplierToDelete?.supplierName}
+            </span>
+            ? This action cannot be undone.
           </>
         }
         confirmText="Delete"
@@ -305,7 +312,6 @@ export default function SupplierDashboard() {
         }}
         onConfirm={handleDelete}
       />
-
     </div>
   );
 }

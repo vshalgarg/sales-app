@@ -12,9 +12,15 @@ import CreditHistory from "./CreditHistory";
 import CreditDetail from "../modals/CreditDetail";
 import EditCreditDetail from "../modals/EditCreditDetail";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
-import AppButton from "./common/AppButton";
 import GenericAutocomplete from "./common/GenericAutocomplete";
 import { formatIndianCurrency } from "../utils/currencyUtils";
+import { IconButton, Tooltip } from "@mui/material";
+import { CreditCard, Check, RotateCcw } from "lucide-react";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import {
+  SECTION_ICON_CLASS,
+  SECTION_ICON_WRAPPER_CLASS,
+} from "../theme/cardTheme";
 
 
 const Credit = () => {
@@ -144,19 +150,28 @@ const Credit = () => {
 
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 gap-3 mt-2">
       {/* ================= FILTER CARD ================= */}
-      <div className="bg-gray-50 border rounded-t-lg shadow-sm mt-4">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold">Credits</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Filter and review credit history by supplier, customer and date range
-          </p>
+      <div className="rounded-xl border border-brand-surface-border dark:border-zinc-700/40 bg-brand-tab-inactive/60 dark:bg-zinc-900 shrink-0">
+        <div className="px-4 md:px-6 py-3 border-b border-brand-surface-border dark:border-zinc-700/40">
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SECTION_ICON_WRAPPER_CLASS}`}
+            >
+              <CreditCard className={`h-5 w-5 ${SECTION_ICON_CLASS}`} />
+            </div>
+            <div>
+              <h2 className={PAGE_TITLE_CLASS}>Credits</h2>
+              <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
+                Filter and review credit history by supplier, customer and date range
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="px-6 py-5">
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
-
+        <div className="px-4 md:px-6 py-4 flex flex-col gap-3 lg:flex-row lg:items-end">
+          <div className="grid flex-1 grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="From Date"
@@ -257,55 +272,67 @@ const Credit = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="flex items-center justify-end gap-2 shrink-0 pb-0.5">
+            <Tooltip title="Apply filters">
+              <span>
+                <IconButton
+                  onClick={() => handleCreditHistory(1)}
+                  disabled={!isAnyFilterSelected || loading}
+                  size="medium"
+                  aria-label="Apply filters"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
+                >
+                  <Check className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-            <AppButton
-              type="secondary"
-              onClick={clearFiltersAndResults}
-            >
-              Clear Filters
-            </AppButton>
-
-            <AppButton
-              type="primary"
-              onClick={() => handleCreditHistory(1)}
-              disabled={!isAnyFilterSelected}
-              loading={loading}
-            >
-              Apply Filters
-            </AppButton>
-
+            <Tooltip title="Clear filters">
+              <span>
+                <IconButton
+                  onClick={clearFiltersAndResults}
+                  disabled={!isAnyFilterSelected || loading}
+                  size="medium"
+                  aria-label="Clear filters"
+                  className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg"
+                >
+                  <RotateCcw className="h-5 w-5 text-brand-navy" />
+                </IconButton>
+              </span>
+            </Tooltip>
           </div>
-
         </div>
       </div>
 
       {/* ================= TABLE ================= */}
-      <CreditHistory
-        data={creditHistoryData}
-        page={currentPage}
-        totalItems={totalItems}
-        rowsPerPage={rowsPerPage}
-        totalAmount={totalAmount}
-        onPageChange={handleCreditHistory}
-        emptyMessage={
-          filtersApplied
-            ? "No data found for selected filters"
-            : "Apply filters to view credit history"
-        }
-        onView={(row) => {
-          setSelectedCreditDetail(row);
-          setIsModalOpen(true);
-        }}
-        onEdit={(row) => {
-          setCreditToEdit(row);
-          setIsEditOpen(true);
-        }}
-        onDelete={(row) => {
-          setCreditToDelete(row);
-          setIsDeleteOpen(true);
-        }}
-      />
+      <div className="flex-1 min-h-0 rounded-xl border border-brand-surface-border dark:border-zinc-700/40 overflow-hidden bg-white dark:bg-zinc-900">
+        <CreditHistory
+          data={creditHistoryData}
+          page={currentPage}
+          totalItems={totalItems}
+          rowsPerPage={rowsPerPage}
+          totalAmount={totalAmount}
+          onPageChange={handleCreditHistory}
+          emptyMessage={
+            filtersApplied
+              ? "No data found for selected filters"
+              : "Apply filters to view credit history"
+          }
+          onView={(row) => {
+            setSelectedCreditDetail(row);
+            setIsModalOpen(true);
+          }}
+          onEdit={(row) => {
+            setCreditToEdit(row);
+            setIsEditOpen(true);
+          }}
+          onDelete={(row) => {
+            setCreditToDelete(row);
+            setIsDeleteOpen(true);
+          }}
+        />
+      </div>
+      </div>
 
       {isModalOpen && selectedCreditDetail && (
         <CreditDetail

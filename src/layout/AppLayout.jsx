@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import Sidebar, { SidebarNavList } from "../components/Sidebar";
+import { GRID_SIDEBAR_NAV_CLASS, SHELL_BORDER } from "../theme/appTheme";
 import { useMediaQuery } from "@mui/material";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import { useUnsaved } from "../context/UnsavedChangesContext";
@@ -9,8 +10,10 @@ import { useUnsaved } from "../context/UnsavedChangesContext";
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [navbarHeight, setNavbarHeight] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia("(min-width: 769px)").matches;
+  });
   const activeSection = (() => {
     if (location.pathname.startsWith("/graph")) {
       return "graph";
@@ -37,8 +40,8 @@ const AppLayout = () => {
     if (
       location.pathname.startsWith("/bills") ||
       location.pathname.startsWith("/credits") ||
-      location.pathname.startsWith("/purchase")||
-      location.pathname.startsWith("/retail")||
+      location.pathname.startsWith("/purchase") ||
+      location.pathname.startsWith("/retail") ||
       location.pathname.startsWith("/ledger")
     ) {
       return "reporting";
@@ -52,10 +55,11 @@ const AppLayout = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const { isDirty, setIsDirty } = useUnsaved();
   const entryPaths = ["/bill-entry", "/credit-entry", "/purchase-entry"];
-  const isEntryPage = entryPaths.some(path =>
-    location.pathname.startsWith(path)
+  const isEntryPage = entryPaths.some((path) =>
+    location.pathname.startsWith(path),
   );
 
+  const showDesktopSidebar = !isGraphPage && !isMobile && isSidebarOpen;
 
   const safeNavigate = (path) => {
     if (isDirty && isEntryPage) {
@@ -67,12 +71,11 @@ const AppLayout = () => {
     navigate(path);
   };
 
-const handleConfirmLeave = () => {
-  setShowConfirm(false);
-  setIsDirty(false);
-  console.log("app layout == ",isDirty)
-  navigate(pendingPath);
-};
+  const handleConfirmLeave = () => {
+    setShowConfirm(false);
+    setIsDirty(false);
+    navigate(pendingPath);
+  };
 
   const handleStay = () => {
     setShowConfirm(false);
@@ -84,7 +87,6 @@ const handleConfirmLeave = () => {
       localStorage.setItem("lastRoute", location.pathname);
     }
   }, [location.pathname]);
-
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -98,9 +100,7 @@ const handleConfirmLeave = () => {
     }
   }, [location.pathname, navigate]);
 
-
   const handleSectionChange = (section) => {
-
     switch (section) {
       case "master":
         safeNavigate("/suppliers");
@@ -117,6 +117,9 @@ const handleConfirmLeave = () => {
       default:
         break;
     }
+    if (section !== "graph" && section !== activeSection) {
+      setIsSidebarOpen(true);
+    }
   };
 
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -125,40 +128,70 @@ const handleConfirmLeave = () => {
   };
 
   useEffect(() => {
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
     if (isGraphPage) {
       setIsSidebarOpen(false);
     }
   }, [isGraphPage]);
 
+  const sidebarNavProps = {
+    activeSection,
+    isOpen: isSidebarOpen,
+    isMobile,
+    onClose: closeSidebar,
+    safeNavigate,
+  };
+
   return (
-    <div className="h-screen flex flex-col">
-      <Navbar
-        onSectionChange={handleSectionChange}
-        activeSection={activeSection}
-        onMenuClick={toggleSidebar}
-        isMobile={isMobile}
-        setNavbarHeight={setNavbarHeight}
-        showMenuButton={!isGraphPage}
-      />
-      <div className="flex flex-1 min-h-0">
-        {isSidebarOpen && !isGraphPage && (
-          <div
-            className="fixed inset-x-0 bottom-0 bg-black/40 z-30 md:hidden"
-            style={{ top: navbarHeight }}
-            onClick={closeSidebar}
-          />
-        )}
+    <div className="relative h-screen min-h-0 flex flex-col overflow-hidden">
+      {isSidebarOpen && !isGraphPage && isMobile && (
+        <div
+          className="fixed top-16 left-0 right-0 bottom-0 bg-black/40 z-30 md:hidden transition-opacity duration-300"
+          onClick={closeSidebar}
+        />
+      )}
+
+      <div className="shrink-0 z-30">
+        <Navbar
+          onSectionChange={handleSectionChange}
+          activeSection={activeSection}
+          onMenuClick={toggleSidebar}
+          showMenuButton={!isGraphPage}
+          className="w-full"
+        />
+      </div>
+
+      <div className="flex flex-1 min-h-0 min-w-0">
         {!isGraphPage && (
-          <Sidebar
-            activeSection={activeSection}
-            isOpen={isSidebarOpen}
-            isMobile={isMobile}
-            onClose={closeSidebar}
-            navbarHeight={navbarHeight}
-            safeNavigate={safeNavigate}
-          />
+          <aside
+            aria-hidden={!showDesktopSidebar}
+            className={`
+              hidden md:flex flex-col min-h-0 shrink-0 overflow-hidden
+              border-r ${SHELL_BORDER} bg-brand-sidebar dark:bg-zinc-900
+              transition-[width,border-color] duration-300 ease-in-out
+              ${showDesktopSidebar ? "w-64" : "w-0 border-transparent"}
+            `}
+          >
+            <div
+              className={`${GRID_SIDEBAR_NAV_CLASS} min-w-64 transition-opacity duration-300 ${
+                showDesktopSidebar
+                  ? "opacity-100"
+                  : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <SidebarNavList {...sidebarNavProps} />
+            </div>
+          </aside>
         )}
-        <main className=" flex-1 min-h-0 px-4 overflow-hidden ">
+
+        {!isGraphPage && <Sidebar {...sidebarNavProps} />}
+
+        <main className="flex-1 min-h-0 min-w-0 overflow-hidden px-4 pb-4 bg-white dark:bg-zinc-950">
           <Outlet />
         </main>
       </div>

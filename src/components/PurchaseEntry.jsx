@@ -14,6 +14,12 @@ import { useUnsaved } from "../context/UnsavedChangesContext";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import CustomDatePicker from "./common/CustomDatePicker";
 import UploadDialog from "./common/UploadDialog";
+import FormSection from "./common/FormSection";
+import FormFooter from "./common/FormFooter";
+import AppButton from "./common/AppButton";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
+import { CARD_GRID_SHELL_CLASS, FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
+import { FileText, Building2, Plus } from "lucide-react";
 
 
 const PurchaseEntry = () => {
@@ -257,37 +263,17 @@ const PurchaseEntry = () => {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      <div className="bg-gray-50 w-full h-[91vh] flex flex-col rounded-2xl shadow-xl border border-gray-200">
-
-        {/* Header */}
-        <div className="px-6 py-3 border-b border-gray-200 shrink-0 bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
-                Purchase Entry
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Record purchase transactions and manage inventory
-              </p>
-            </div>
-          </div>
+    <div className="flex flex-col h-full min-h-0">
+      <div className={`flex flex-col h-full min-h-0 overflow-hidden ${CARD_GRID_SHELL_CLASS}`}>
+        <div className="px-4 md:px-6 py-4 border-b border-brand-surface-border dark:border-zinc-700 shrink-0 bg-white dark:bg-zinc-900">
+          <h2 className={PAGE_TITLE_CLASS}>Purchase Entry</h2>
+          <p className="text-sm text-brand-search-muted dark:text-gray-400 mt-0.5">
+            Record purchase transactions and manage inventory
+          </p>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-3 md:px-8 md:py-6 space-y-6">
-
-          {/* Party Information */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white">
-            <div className="flex items-start mb-5">
-              <div className="w-1 h-10 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-3"></div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Information
-                </h3>
-              </div>
-            </div>
-
+        <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
+          <FormSection title="Information" icon={FileText} variantIndex={0}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Customer */}
@@ -336,35 +322,9 @@ const PurchaseEntry = () => {
                 }}
               />
             </div>
-          </div>
+          </FormSection>
 
-
-          {/* Suppliers Section */}
-          <div className="border border-gray-200 p-6 rounded-xl bg-white shadow-sm">
-
-            {/* Section Header */}
-            <div className="flex items-start justify-between mb-5">
-
-              <div className="flex items-start">
-                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full mr-3"></div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Suppliers
-                  </h3>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={addSuppliers}
-                className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm"
-              >
-                <span className="sm:hidden">+ Add</span>
-                <span className="hidden sm:inline">+ Add More Supplier</span>
-              </button>
-
-            </div>
+          <FormSection title="Suppliers" icon={Building2} variantIndex={1}>
 
             {/* Supplier Card */}
             {suppliers.map((supplier, index) => (
@@ -457,32 +417,28 @@ const PurchaseEntry = () => {
               </div>
             ))}
 
-          </div>
+            <div className="flex justify-end mt-2">
+              <AppButton
+                type="primary"
+                onClick={addSuppliers}
+                startIcon={<Plus className="h-4 w-4" />}
+              >
+                <span className="sm:hidden">Add</span>
+                <span className="hidden sm:inline">Add More Supplier</span>
+              </AppButton>
+            </div>
+
+          </FormSection>
         </div>
 
-        {/* Footer */}
-        <div className="px-4 sm:px-8 py-3 border-t border-gray-200 bg-white shrink-0 shadow-sm">
-
-          <div className="flex items-center justify-end gap-3">
-
-            <button
-              onClick={handleReset}
-              type="button"
-              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
-            >
-              Reset
-            </button>
-
-            <button
-              onClick={handleSubmit}
-              type="button"
-              className="px-5 py-2 text-sm font-semibold text-white rounded-lg bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2"
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </button>
-
-          </div>
-        </div>
+        <FormFooter background="bg-white dark:bg-zinc-900 border-brand-surface-border dark:border-zinc-700">
+          <AppButton type="secondary" onClick={handleReset}>
+            Reset
+          </AppButton>
+          <AppButton type="primary" onClick={handleSubmit} loading={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </AppButton>
+        </FormFooter>
 
         <UploadDialog
           open={openUploader}

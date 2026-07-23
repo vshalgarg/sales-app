@@ -1,54 +1,35 @@
-import { Settings, MoonStar, SunMedium, LogOut, User, Menu } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { Settings, User, LogOut, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  BRAND_TITLE_CLASS,
+  GRID_NAVBAR_CLASS,
+  NAV_ICON_BUTTON_CLASS,
+  NAV_MENU_ICON_CLASS,
+  NAV_TAB_ACTIVE_CLASS,
+  NAV_TAB_INACTIVE_CLASS,
+  SETTINGS_ICON_CLASS,
+} from "../theme/appTheme";
+import AppButton from "./common/AppButton";
 
 export default function Navbar({
   activeSection,
   onSectionChange,
   onMenuClick,
-  isMobile,
-  setNavbarHeight,
   showMenuButton = true,
+  className = "",
 }) {
-  const navRef = useRef(null);
   const [name, setName] = useState("");
-  const [userId, setUserId] = useState("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const mainActiveSection = activeSection;
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (theme === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  useEffect(() => {
-    if (!navRef.current) return;
-
-    const updateHeight = () => {
-      setNavbarHeight(navRef.current.offsetHeight);
-    };
-
-    updateHeight();
-
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, [setNavbarHeight]);
-
-  const toggleTheme = () =>
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-
-  useEffect(() => {
     const storedName = localStorage.getItem("username");
-    const storedId = localStorage.getItem("userId");
     if (storedName) setName(storedName);
-    if (storedId) setUserId(storedId);
   }, []);
 
   const handleLogout = () => {
@@ -77,149 +58,102 @@ export default function Navbar({
 
   return (
     <>
-      {/*Top Navbar */}
       <nav
-        ref={navRef}
-        className="flex justify-between items-center
-       p-3 w-full bg-white dark:bg-zinc-900 
-       shadow border-b border-gray-300 dark:border-gray-700 
-        transition-colors
-    relative z-40
-"
+        className={`${GRID_NAVBAR_CLASS} transition-colors relative z-30 shrink-0 ${className}`}
       >
-        {/* Left: App Title + Section Buttons */}
-        <div className="flex items-center">
+        <div className="flex items-center min-w-0 gap-3 flex-1">
           {showMenuButton && (
-            <Menu
+            <button
+              type="button"
               onClick={onMenuClick}
-              className="w-5 h-5 md:w-8 md:h-8 md:hidden mr-3 text-gray-700 dark:text-white"
-            />
+              aria-label="Toggle menu"
+              className={`${NAV_ICON_BUTTON_CLASS} shrink-0`}
+            >
+              <Menu className={NAV_MENU_ICON_CLASS} />
+            </button>
           )}
 
-          {
-            isMobile ? <div className="flex justify-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="#6c63ff"
-                className="w-7 h-7"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4l6 8H6l6-8zM6 20h12"
-                />
-              </svg>
-            </div> : <h1 className="ml-4 text-xl font-bold text-blue-600 dark:text-blue-400 tracking-wide">
-              Hisabio
-            </h1>
-          }
-          {/* Section Buttons */}
-          <div className="hidden md:flex space-x-3 md:ml-[200px]">
+          <div className="hidden md:flex items-center gap-2">
             {["master", "entries", "reporting", "graph"].map((section) => (
               <button
                 key={section}
+                type="button"
                 onClick={() => handleSectionClick(section)}
-                className={`px-3 py-1 rounded-md font-medium transition-colors
-                  ${mainActiveSection === section
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
-                  }`}
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  mainActiveSection === section
+                    ? NAV_TAB_ACTIVE_CLASS
+                    : NAV_TAB_INACTIVE_CLASS
+                }`}
               >
                 {sectionLabels[section]}
               </button>
             ))}
           </div>
-          {/* Mobile section dropdown */}
-          <div className="relative md:hidden ml-3">
+
+          <div className="relative md:hidden">
             <select
               value={activeSection}
               onChange={(e) => handleSectionClick(e.target.value)}
-              className="px-3 pr-8 min-h-[36px] leading-normal whitespace-normal rounded-md border
- bg-white dark:bg-zinc-800 text-gray-800 dark:text-white border-gray-300 dark:border-zinc-700
-    appearance-none
-  "
+              className="px-3 pr-8 min-h-[36px] leading-normal whitespace-normal rounded-lg border appearance-none bg-brand-tab-inactive dark:bg-zinc-800 text-brand-navy dark:text-white border-violet-100 dark:border-zinc-700 text-sm"
             >
-
               <option value="master">Master</option>
               <option value="entries">Entries</option>
               <option value="reporting">Reporting</option>
-              <option value="graph">Graph</option>
+              <option value="graph">Monitoring</option>
             </select>
 
-            <span
-              className="pointer-events-none absolute right-2  inset-y-0 flex items-center text-gray-500 text-xs
-    "
-            >
+            <span className="pointer-events-none absolute right-2 inset-y-0 flex items-center text-brand-icon text-xs">
               ▼
             </span>
           </div>
         </div>
 
-        {/* Right: Profile Menu */}
-        <div className="relative profile-dropdown">
-          <Settings onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-5 h-5 md:w-8 md:h-8 text-gray-700 dark:text-white" />
+        <div className="relative profile-dropdown flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            aria-label="Account settings"
+            className={NAV_ICON_BUTTON_CLASS}
+          >
+            <Settings className={SETTINGS_ICON_CLASS} />
+          </button>
 
-          {/* Dropdown */}
           {showProfileMenu && (
-            <div
-              className="absolute right-0 mt-2 w-40 md:w-48
-             bg-white dark:bg-zinc-800 shadow-lg rounded-lg border
-              border-gray-200 dark:border-zinc-700 py-2 z-50"
-            >
-              {/*Theme Toggle */}
-              {/* <button
-                onClick={toggleTheme}
-                className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-800 dark:text-white"
-              >
-                {theme === "light" ? (
-                  <MoonStar className="w-4 h-4" />
-                ) : (
-                  <SunMedium className="w-4 h-4 text-yellow-400" />
-                )} */}
-              {/* <span className="ml-2">
-                  {theme === "light" ? "Dark Mode" : "Light Mode"}
-                </span>
-              </button> */}
-
-              {/*Profile */}
+            <div className="absolute right-0 top-full mt-2 w-40 md:w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-lg border border-violet-100 dark:border-zinc-700 py-2 z-50">
               <button
+                type="button"
                 onClick={() => {
                   setShowProfileMenu(false);
                   setShowProfileModal(true);
                 }}
-                className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-800 dark:text-white"
+                className="flex items-center w-full text-left px-4 py-2 hover:bg-brand-tab-inactive dark:hover:bg-zinc-700 text-brand-navy dark:text-white"
               >
-                <User className="w-4 h-4 mr-2" /> My Profile
+                <User className="w-4 h-4 mr-2 shrink-0" /> My Profile
               </button>
 
-              {/*Logout */}
               <button
+                type="button"
                 onClick={() => {
                   setShowProfileMenu(false);
                   setShowLogoutModal(true);
                 }}
-                className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-zinc-700 dark:text-red-400"
+                className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-brand-tab-inactive dark:hover:bg-zinc-700 dark:text-red-400"
               >
-                <LogOut className="w-4 h-4 mr-2" /> Logout
+                <LogOut className="w-4 h-4 mr-2 shrink-0" /> Logout
               </button>
             </div>
           )}
         </div>
       </nav>
 
-      {/*Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6 w-[360px] mx-4 md:mx-0
-">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6 w-[360px] mx-4 md:mx-0">
+            <h2 className={`text-lg font-semibold mb-4 ${BRAND_TITLE_CLASS}`}>
               My Profile
             </h2>
 
-            <div className="space-y-2 text-gray-800 dark:text-gray-100">
+            <div className="space-y-2 text-brand-navy dark:text-gray-100">
               <p>
                 <strong>Username:</strong> {name || "Not available"}
               </p>
@@ -227,8 +161,9 @@ export default function Navbar({
 
             <div className="flex justify-end mt-5">
               <button
+                type="button"
                 onClick={() => setShowProfileModal(false)}
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                className="px-4 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary-dark"
               >
                 Close
               </button>
@@ -237,28 +172,21 @@ export default function Navbar({
         </div>
       )}
 
-      {/*Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6 w-[320px]">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+            <h2 className={`text-lg font-semibold mb-4 ${BRAND_TITLE_CLASS}`}>
               Are you sure you want to logout?
             </h2>
 
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-800 dark:text-white"
-              >
+            <div className="flex justify-end gap-3">
+              <AppButton type="cancel" onClick={() => setShowLogoutModal(false)}>
                 Cancel
-              </button>
+              </AppButton>
 
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
-              >
+              <AppButton type="primary" onClick={handleLogout}>
                 Logout
-              </button>
+              </AppButton>
             </div>
           </div>
         </div>

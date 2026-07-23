@@ -1,4 +1,4 @@
-import { Button, IconButton, Autocomplete, TextField, Chip } from "@mui/material";
+import { Button, IconButton, Autocomplete, Chip } from "@mui/material";
 import { useState, useEffect } from "react";
 import BasicSelect from "../components/BasicSelect";
 import CustomTextField from "../components/CustomTextField";
@@ -12,9 +12,18 @@ import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FormFooter from "../components/common/FormFooter";
+import FormSection from "../components/common/FormSection";
+import { FORM_SCROLL_AREA_CLASS } from "../theme/cardTheme";
 import AppButton from "../components/common/AppButton";
 import useUnsavedChanges from "../customHooks/useUnsavedChanges";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import {
+  Building2,
+  MapPin,
+  Phone,
+  Truck,
+  Landmark,
+} from "lucide-react";
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -28,8 +37,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const { isDirty } = useUnsavedChanges(form, open);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-
-  /* ---------- Load all transports once ---------- */
   useEffect(() => {
     const loadTransports = async () => {
       try {
@@ -43,26 +50,24 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
       }
     };
     loadTransports();
-  }, []);
+  }, [showSnackbar]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
 
-    // PinCode: digits only, max 6
     if (name === "pinCode") {
       if (!/^\d{0,6}$/.test(value)) return;
 
-      setForm(prev => ({ ...prev, pinCode: value }));
-      setErrors(prev => ({ ...prev, pinCode: validate("pinCode", value) }));
+      setForm((prev) => ({ ...prev, pinCode: value }));
+      setErrors((prev) => ({ ...prev, pinCode: validate("pinCode", value) }));
       return;
     }
 
-    // fields (state, city, others)
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
-    setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
+    setErrors((prev) => ({ ...prev, [name]: validate(name, value) }));
   };
 
   const handleClose = () => {
@@ -120,12 +125,10 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const handleContactChange = (index, e) => {
     const { name, value } = e.target;
 
-    // Update form
     const newContacts = [...form.contacts];
     newContacts[index][name] = value;
     setForm({ ...form, contacts: newContacts });
 
-    // Validate field
     const errorMsg = validate(name, value);
     const updatedContactErrors = [...errors.contacts];
     if (!updatedContactErrors[index]) updatedContactErrors[index] = {};
@@ -143,7 +146,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     const nameError = validate("customerName", form.customerName);
 
     if (nameError) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         customerName: nameError,
       }));
@@ -187,7 +190,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
         Object.keys(form).map((key) => [
           key,
           Array.isArray(form[key]) ? [] : "",
-        ])
+        ]),
       ),
       contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
       preferredTransportIds: [],
@@ -199,32 +202,26 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   return (
     <>
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 
-                flex items-start md:items-center justify-center">
-          <div className="bg-white w-full 
-                h-[100dvh] md:h-auto
-                md:max-w-4xl md:max-h-[90vh] 
-                md:rounded-lg shadow-lg 
-                flex flex-col">
-            {/* Header */}
-            <div className="p-4 md:p-6 border-b flex items-center gap-3">
-              <IconButton
-                onClick={handleClose}
-                className="md:hidden"
-              >
-                <ArrowBackIcon />
-              </IconButton>
-
-              <h2 className="text-lg md:text-xl font-semibold">
-                Add New Customer
-              </h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start md:items-center justify-center">
+          <div className="bg-white dark:bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-5xl md:max-h-[90vh] md:rounded-lg shadow-lg flex flex-col">
+            <div className="p-4 md:p-6 border-b border-gray-200 dark:border-zinc-700">
+              <div className="flex items-center gap-3">
+                <IconButton onClick={handleClose} aria-label="Go back">
+                  <ArrowBackIcon />
+                </IconButton>
+                <div>
+                  <h2 className="text-lg md:text-xl font-semibold">
+                    Create Customer
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    Enter customer details to add a new customer
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Scrollable form content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-              {/* Basic Information */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Basic Information</h3>
+            <div className={`flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 ${FORM_SCROLL_AREA_CLASS}`}>
+              <FormSection title="Basic Information" icon={Building2} variantIndex={0}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="customerName"
@@ -274,56 +271,9 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     label="Referenced By"
                   />
                 </div>
-              </div>
+              </FormSection>
 
-              {/* Bank Details */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Bank Details</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  <CustomTextField
-                    name="bankName"
-                    value={form.bankName}
-                    onChange={handleFormChange}
-                    label="Bank Name"
-                  />
-
-                  <CustomTextField
-                    name="branch"
-                    value={form.branch}
-                    onChange={handleFormChange}
-                    label="Branch"
-                  />
-
-                  <CustomTextField
-                    name="ifsc"
-                    value={form.ifsc}
-                    onChange={handleFormChange}
-                    label="IFSC Code"
-                  />
-
-                  <CustomTextField
-                    name="accountName"
-                    value={form.accountName}
-                    onChange={handleFormChange}
-                    label="Account Holder Name"
-                  />
-
-                  <CustomTextField
-                    name="accountNumber"
-                    value={form.accountNumber}
-                    onChange={handleFormChange}
-                    label="Account Number"
-                    type="number"
-                  />
-
-                </div>
-              </div>
-
-              {/* Address Details */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Address Details</h3>
+              <FormSection title="Address Details" icon={MapPin} variantIndex={1}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomTextField
                     name="addressLine1"
@@ -335,7 +285,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     name="addressLine2"
                     value={form.addressLine2}
                     onChange={handleFormChange}
-                    label="Address Line 2"
+                    label="Address Line 2 (Optional)"
                   />
                   <StateAutocomplete
                     value={form.state}
@@ -364,20 +314,14 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     }}
                   />
                 </div>
-              </div>
+              </FormSection>
 
-              {/* Contact Information */}
-              <div>
-                <h3 className="text-lg font-medium mb-2">Contact Information</h3>
+              <FormSection title="Contact Information" icon={Phone} variantIndex={2}>
                 {form.contacts.map((contact, index) => (
                   <div key={index} className="mb-6">
-
-                    {/* Mobile Contact Card */}
-                    <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50">
-
-                      {/* Heading */}
+                    <div className="md:hidden border rounded-xl p-4 space-y-4 bg-gray-50 dark:bg-zinc-800/50">
                       <div className="flex justify-between items-center">
-                        <h4 className="text-sm font-semibold text-gray-700">
+                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                           Contact {index + 1}
                         </h4>
 
@@ -424,9 +368,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                       />
                     </div>
 
-                    {/* Desktop Layout */}
                     <div className="hidden md:grid grid-cols-12 gap-4 items-start">
-
                       <div className="col-span-4">
                         <CustomTextField
                           name="contactPerson"
@@ -486,107 +428,110 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 >
                   Add Contact
                 </Button>
-              </div>
+              </FormSection>
 
-              {/* Financial & Logistics - Transport & Remark*/}
-              <div>
-                <h3 className="text-lg font-medium mb-3">Financial & Logistics</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Transport Autocomplete */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Preferred Transports
-                    </label>
-                    <Autocomplete
-                      multiple
-                      options={allTransports}
-                      value={selectedTransports}
-                      loading={transportLoading}
-                      filterSelectedOptions
-                      isOptionEqualToValue={(o, v) => o.id === v.id}
+              <FormSection title="Preferred Transports" icon={Truck} variantIndex={3}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Autocomplete
+                    multiple
+                    options={allTransports}
+                    value={selectedTransports}
+                    loading={transportLoading}
+                    filterSelectedOptions
+                    isOptionEqualToValue={(o, v) => o.id === v.id}
+                    getOptionLabel={(o) => o.name}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.id}>
+                        {option.name} – {option.city}
+                      </li>
+                    )}
+                    onChange={(e, values) => {
+                      setSelectedTransports(values);
+                      setForm((prev) => ({
+                        ...prev,
+                        preferredTransportIds: values.map((v) => v.id),
+                      }));
+                      setErrors((prev) => ({
+                        ...prev,
+                        preferredTransportIds: "",
+                      }));
+                    }}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
 
-                      // search NAME
-                      getOptionLabel={(o) => o.name}
+                        return (
+                          <Chip
+                            key={key}
+                            label={option.name}
+                            size="small"
+                            {...tagProps}
+                          />
+                        );
+                      })
+                    }
+                    renderInput={(params) => (
+                      <CustomTextField
+                        {...params}
+                        label="Preferred Transports"
+                        placeholder="Type transport name"
+                      />
+                    )}
+                  />
 
-                      // dropdown NAME + CITY
-                      renderOption={(props, option) => (
-                        <li {...props} key={option.id}>
-                          {option.name} – {option.city}
-                        </li>
-                      )}
-
-                      onChange={(e, values) => {
-                        setSelectedTransports(values);
-                        setForm((prev) => ({
-                          ...prev,
-                          preferredTransportIds: values.map((v) => v.id),
-                        }));
-                        setErrors((prev) => ({ ...prev, preferredTransportIds: "" }));
-                      }}
-
-                      renderTags={(value, getTagProps) =>
-                        value.map((option, index) => {
-                          const { key, ...tagProps } = getTagProps({ index });
-
-                          return (
-                            <Chip
-                              key={key}
-                              label={option.name}
-                              size="small"
-                              {...tagProps}
-                            />
-                          );
-                        })
-                      }
-
-                      renderInput={(params) => (
-                        <CustomTextField
-                          {...params}
-                          label="Preferred Transports"
-                          placeholder="Type transport name"
-                        />
-                      )}
-                    />
-                  </div>
-
-                  {/* Remark */}
-                  <div>
-                    <label className=" text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Remarks
-                    </label>
-                    <CustomTextField
-                      name="remark"
-                      value={form.remark}
-                      onChange={handleFormChange}
-                      label="Remarks (optional)"
-                      size="small"
-                      multiline
-                    />
-                  </div>
+                  <CustomTextField
+                    name="remark"
+                    value={form.remark}
+                    onChange={handleFormChange}
+                    label="Remarks (optional)"
+                    size="small"
+                    multiline
+                  />
                 </div>
-              </div>
+              </FormSection>
+
+              <FormSection title="Bank Details" icon={Landmark} variantIndex={4}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <CustomTextField
+                    name="bankName"
+                    value={form.bankName}
+                    onChange={handleFormChange}
+                    label="Bank Name"
+                  />
+
+                  <CustomTextField
+                    name="ifsc"
+                    value={form.ifsc}
+                    onChange={handleFormChange}
+                    label="IFSC Code"
+                  />
+
+                  <CustomTextField
+                    name="branch"
+                    value={form.branch}
+                    onChange={handleFormChange}
+                    label="Branch Name"
+                  />
+
+                  <CustomTextField
+                    name="accountName"
+                    value={form.accountName}
+                    onChange={handleFormChange}
+                    label="Account Holder Name"
+                  />
+
+                  <CustomTextField
+                    name="accountNumber"
+                    value={form.accountNumber}
+                    onChange={handleFormChange}
+                    label="Account Number"
+                    type="number"
+                  />
+                </div>
+              </FormSection>
             </div>
 
-            <FormFooter className="border-t p-4">
-              {/* Save Customer */}
-              <AppButton
-                type="primary"
-                loading={isSaving}
-                onClick={() => handleAddCustomer({ closeAfterSave: true })}
-              >
-                Save Customer
-              </AppButton>
-
-              {/* Save & Add New */}
-              <AppButton
-                type="secondary"
-                loading={isSaving}
-                onClick={() => handleAddCustomer({ closeAfterSave: false })}
-              >
-                Save & Add New
-              </AppButton>
-
-              {/* Cancel */}
+            <FormFooter>
               <AppButton
                 type="cancel"
                 disabled={isSaving}
@@ -595,6 +540,21 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                 Cancel
               </AppButton>
 
+              <AppButton
+                type="secondary"
+                loading={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: false })}
+              >
+                Save & Add New
+              </AppButton>
+
+              <AppButton
+                type="primary"
+                loading={isSaving}
+                onClick={() => handleAddCustomer({ closeAfterSave: true })}
+              >
+                Save Customer
+              </AppButton>
             </FormFooter>
 
             <ConfirmDialog
@@ -602,7 +562,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
               onConfirm={handleConfirmLeave}
               onCancel={handleStay}
             />
-
           </div>
         </div>
       )}

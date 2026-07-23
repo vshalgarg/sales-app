@@ -1,32 +1,40 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { MapPinned, Phone, Receipt, Plus } from "lucide-react";
 import { useSnackbar } from "../context/SnackbarContext";
 import CustomerService from "../service/CustomerService";
 import AddNewCustomer from "../modals/AddNewCustomer";
 import CustomerDetail from "../modals/CustomerDetail";
 import UniversalSearch from "../components/UniversalSearch";
-import DataTable from "./DataTable";
+import EntityCardGrid from "./common/EntityCardGrid";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
-import UpdateCustomerModal from "../modals/UpdateCustomerModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
+import UpdateCustomerModal from "../modals/UpdateCustomerModal";
+import { PAGE_TITLE_CLASS } from "../theme/appTheme";
 import { getCustomerFormattedText } from "../utils/copyFormatter";
-import { Typography } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
+
+const CUSTOMER_CARD_FIELDS = [
+  { label: "GST", key: "customerGstNo", icon: Receipt },
+  {
+    label: "Mobile",
+    key: "mobile",
+    icon: Phone,
+    getValue: (customer) => customer.contacts?.[0]?.mobileNumber,
+  },
+  { label: "Address", key: "address", icon: MapPinned },
+];
 
 export default function CustomerDashboard() {
-  const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [open, setOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const rowsPerPage = 10;
-  const dropdownRef = useRef(null);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const searchRef = useRef(null);
   const { showSnackbar } = useSnackbar();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
@@ -34,10 +42,8 @@ export default function CustomerDashboard() {
   const { isMobile } = useResponsive();
   const [openEdit, setOpenEdit] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState(null);
-
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [customerToCopy, setCustomerToCopy] = useState(null);
-
 
   const [form, setForm] = useState({
     customerName: "",
@@ -61,7 +67,6 @@ export default function CustomerDashboard() {
     accountNumber: "",
   });
 
-
   const handleCopyDetails = async (customer) => {
     try {
       const customerData = await CustomerService.getCustomerById(customer.id);
@@ -73,39 +78,31 @@ export default function CustomerDashboard() {
     }
   };
 
-  const columns = {
-    desktop: [
-      { key: "code", label: "Code", width: "8%" },
-      { key: "customerName", label: "Name", width: "20%" },
-      { key: "customerGstNo", label: "GST", width: "16%" },
-      {
-        key: "address",
-        label: "Address",
-        width: "32%",
-        render: (row) => (
-          <Typography
-            variant="body2"
-            noWrap
-            title={row.address}
-            sx={{ width: "100%" }}
-          >
-            {row.address || "-"}
-          </Typography>
-        ),
-      },
-      { key: "city", label: "City", width: "10%" },
-      {
-        key: "mobile",
-        label: "Mobile",
-        width: "10%",
-        render: (row) => row.contacts?.[0]?.mobileNumber || "-",
-      },
-    ],
-    mobile: [
-      { key: "customerName", label: "Name" },
-      { key: "city", label: "City" },
-    ],
-  };
+  const buildCustomerCardProps = (customer) => ({
+    code: customer.code,
+    codeAside: customer.city,
+    title: customer.customerName,
+    fields: CUSTOMER_CARD_FIELDS.map(({ label, key, icon, getValue }) => ({
+      label,
+      key,
+      icon,
+      value: getValue ? getValue(customer) : customer[key],
+      showLabel: false,
+    })),
+    onView: () => {
+      setSelectedCustomer(customer);
+      setModalOpen(true);
+    },
+    onEdit: () => {
+      setEditingCustomerId(customer.id);
+      setOpenEdit(true);
+    },
+    onCopy: () => handleCopyDetails(customer),
+    onDelete: () => {
+      setCustomerToDelete(customer);
+      setDeleteModalOpen(true);
+    },
+  });
 
   const fetchCustomers = useCallback(
     async (uiPage = 1) => {
@@ -125,7 +122,6 @@ export default function CustomerDashboard() {
         setTotalPages(0);
         setTotalItems(0);
         showSnackbar(error.message, "error");
-      } finally {
       }
     },
     [rowsPerPage],
@@ -135,10 +131,27 @@ export default function CustomerDashboard() {
     const results = response.content || [];
     setCustomers(results);
     setTotalPages(response.totalPages || 0);
-
     setTotalItems(response.totalElements || 0);
     setIsSearchActive(searchQuery.trim() !== "");
     setCurrentPage(page);
+  };
+
+  const handleRowsPerPageChange = async (newSize) => {
+    setRowsPerPage(newSize);
+    setCurrentPage(1);
+
+    if (isSearchActive && query.trim()) {
+      try {
+        const response = await CustomerService.searchCustomers(
+          query,
+          0,
+          newSize,
+        );
+        handleSearchResult(response, query, 1);
+      } catch (error) {
+        showSnackbar(error.message, "error");
+      }
+    }
   };
 
   const handleChangePage = async (newPage) => {
@@ -166,7 +179,6 @@ export default function CustomerDashboard() {
 
   const handleClearSearch = useCallback(() => {
     setQuery("");
-    setSuggestions([]);
     setIsSearchActive(false);
     fetchCustomers(1);
   }, [fetchCustomers]);
@@ -180,26 +192,6 @@ export default function CustomerDashboard() {
   useEffect(() => {
     fetchCustomers(1);
   }, [fetchCustomers]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenMenuIndex(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleDelete = async () => {
     if (!customerToDelete) return;
@@ -219,23 +211,26 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <div className="text-gray-900 flex flex-col dark:text-gray-100 h-full">
-      {/* Header Section*/}
-      <div className="pt-4">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg md:text-2xl font-bold">
-            {isMobile ? "Customer" : "Customer Overview"}
-          </h2>
-          <button
-            onClick={() => setOpen(true)}
-            className="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-          >
-            Add Customer
-          </button>
-        </div>
+    <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
+      <div>
+        <div className="flex justify-between items-center mt-2 mb-3 gap-3">
+          <div className="flex gap-2">
+            <h2 className={PAGE_TITLE_CLASS}>
+              {isMobile ? "Customer" : "Customer Overview"}
+            </h2>
+            <Tooltip title="Add customer">
+              <span>
+                <IconButton
+                  onClick={() => setOpen(true)}
+                  size="medium"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark"
+                >
+                  <Plus className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </div>
 
-        {/* Search Section */}
-        <div className="flex items-center gap-2 mb-2 md:mb-6">
           <UniversalSearch
             placeholder="Search customers..."
             query={query}
@@ -250,33 +245,20 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      {/* Table Section */}
-      <div className="flex-1 min-h-0 border rounded-lg mb-2 bg-white dark:bg-zinc-900">
-        <DataTable
-          columns={isMobile ? columns.mobile : columns.desktop}
-          data={customers}
-          onView={(customer) => {
-            setSelectedCustomer(customer);
-            setModalOpen(true);
-          }}
-          onEdit={(customer) => {
-            setEditingCustomerId(customer.id);
-            setOpenEdit(true);
-          }}
-          onDelete={(customer) => {
-            setCustomerToDelete(customer);
-            setDeleteModalOpen(true);
-          }}
-          onCopy={handleCopyDetails}
+      <div className="flex-1 min-h-0">
+        <EntityCardGrid
+          items={customers}
+          buildCardProps={buildCustomerCardProps}
           emptyMessage="No customers found"
           page={currentPage}
           totalCount={totalItems}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          entityLabel="customers"
         />
       </div>
 
-      {/* Modals*/}
       {modalOpen && selectedCustomer && (
         <CustomerDetail
           customerId={selectedCustomer?.id}
@@ -294,7 +276,6 @@ export default function CustomerDashboard() {
         />
       )}
 
-      {/* Update Customer Modal */}
       {openEdit && (
         <UpdateCustomerModal
           customerId={editingCustomerId}
@@ -304,15 +285,16 @@ export default function CustomerDashboard() {
         />
       )}
 
-
       <DeleteConfirmModal
         open={deleteModalOpen}
         title="Delete Customer"
         message={
           <>
             Are you sure you want to permanently delete{" "}
-            <b>{customerToDelete?.customerName}</b>?
-            This action cannot be undone.
+            <span className="font-medium text-blue-600">
+              {customerToDelete?.customerName}
+            </span>
+            ? This action cannot be undone.
           </>
         }
         confirmText="Delete"
@@ -330,9 +312,9 @@ export default function CustomerDashboard() {
           onClose={() => setCopyModalOpen(false)}
           title="Copy Customer Details"
           formattedText={getCustomerFormattedText(customerToCopy)}
+          splitBankCopy
         />
       )}
-
     </div>
   );
 }
