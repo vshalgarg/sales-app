@@ -120,7 +120,7 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                         child: widget.purchaseData.supplier.images.isEmpty
                             ? Container(
                           width: double.infinity,
-                          height: 150,
+                         // height: 150,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -154,11 +154,11 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
-                                  vertical: 14,
+                                  vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(5),
                                 ),
                                 child: Row(
                                   children: [
@@ -238,8 +238,8 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                     title,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                     // fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -264,7 +264,7 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
 
   Widget _field(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -272,19 +272,24 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
             label,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+              fontSize: 18,
+              //fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+        //  const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(5),
             ),
-            child: Text(value.isEmpty ? "-" : value),
+            child: Text(
+              value.trim().isEmpty ? "-" : value,
+              style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87),
+            ),
           ),
         ],
       ),

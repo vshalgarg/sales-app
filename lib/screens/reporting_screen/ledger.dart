@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../constants/save_excel_ledger.dart';
 import '../../customs/app_bar.dart';
-import '../../entry_widgets/custom_api_textfield.dart';
-import '../../entry_widgets/custom_list_textfield.dart';
 import '../../model_classes/entries_customer_model.dart';
 import '../../model_classes/entries_supplier.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
@@ -40,7 +39,9 @@ class _LedgerReportingState extends State<LedgerReporting> {
 
   bool loading = true;
   EntriesModel? selectedSupplier;
+  String?selectedSupplierName;
   EntriesCustomerModel? selectedCustomer;
+  String?selectedCustomerName;
   String? generatingFor;
   final List<String> generatesList = ["SUPPLIER", "CUSTOMER"];
 
@@ -82,14 +83,19 @@ class _LedgerReportingState extends State<LedgerReporting> {
                       "Supplier",
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
-                    CustomApiTextField<EntriesModel>(
+                    CustomDropdown(
                       hintText: "Supplier",
-                      value: selectedSupplier,
-                      items: provider.entries,
-                      itemLabel: (e) => e.supplierName ?? '',
+                      initialValue: selectedSupplierName,
+                      items: provider.entries
+                          .map((e) => e.supplierName ?? "")
+                          .toList(),
                       onChanged: (value) {
                         setState(() {
-                          selectedSupplier = value;
+                          selectedSupplierName = value;
+
+                          selectedSupplier = provider.entries.firstWhere(
+                                (e) => e.supplierName == value,
+                          );
                         });
                       },
                     ),
@@ -98,14 +104,19 @@ class _LedgerReportingState extends State<LedgerReporting> {
                       "Customer",
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
-                    CustomApiTextField<EntriesCustomerModel>(
+                    CustomDropdown(
                       hintText: "Customer",
-                      value: selectedCustomer,
-                      items: provider.customerEntries,
-                      itemLabel: (e) => e.customerName ?? '',
+                      initialValue: selectedCustomerName,
+                      items: provider.customerEntries
+                          .map((e) => e.customerName ?? "")
+                          .toList(),
                       onChanged: (value) {
                         setState(() {
-                          selectedCustomer = value;
+                          selectedCustomerName = value;
+
+                          selectedCustomer = provider.customerEntries.firstWhere(
+                                (e) => e.customerName == value,
+                          );
                         });
                       },
                     ),
@@ -114,9 +125,9 @@ class _LedgerReportingState extends State<LedgerReporting> {
                       "Generating for",
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
-                    CustomListTextField(
+                    CustomDropdown(
                       hintText: "Generating for",
-                      value: generatingFor,
+                      initialValue: generatingFor,
                       items: generatesList,
                       onChanged: (value) {
                         setState(() {

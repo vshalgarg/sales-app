@@ -1,11 +1,7 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
-
 import 'package:hisabio/customs/elevated_button.dart';
-import 'package:hisabio/entry_widgets/custom_api_textfield.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
 import 'package:hisabio/model_classes/get_staff_entry.dart';
@@ -14,6 +10,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
+import '../../customs/dropdown_test.dart';
 import '../../dialog_boxes/entry_dialogboxes/bill_section_upload_documents_dialog.dart';
 
 import '../../entry_widgets/custom_date_textfield.dart';
@@ -35,7 +32,9 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
   bool isExpanded = true;
   bool isSupplierExpanded = false;
   EntriesCustomerModel? selectedCustomer;
+  String? selectedCustomerName;
   GetStaffEntry? selectedStaff;
+  String? selectedStaffName;
   List<int> suppliers = [0];
   final transactionController = TextEditingController();
   List<TextEditingController> remarksControllers = [TextEditingController()];
@@ -96,345 +95,385 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                 saveButtonText: "Stay",
                 onDiscard: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Purchase()),
-                  );
+                  Navigator.pop(context,true);
                 },
               );
             },
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isExpanded = !isExpanded;
-                    });
-                  },
-                  child: EntryContainer(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          suffixIcon: Icon(
-                            isExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.white,
-                          ),
-                          enabled: false,
-                          filled: true,
-                          fillColor: AppColors.primaryPurple,
-                          hintText: "Information",
-                          hintStyle: TextStyle(color: Colors.white),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                      if (isExpanded) ...[
-                        SizedBox(height: 10),
-                        Text(
-                          "Customer",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
-                        CustomApiTextField<EntriesCustomerModel>(
-                          hintText: "Customer*",
-                          value: selectedCustomer,
-                          items: provider.customerEntries,
-                          itemLabel: (e) => e.customerName ?? '',
-                          validator: (value) {
-                            if (value == null) {
-                              return "Customer is required";
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              selectedCustomer = value;
-                            });
-                          },
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          "Staff",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
-                        CustomApiTextField<GetStaffEntry>(
-                          hintText: "Staff",
-                          value: selectedStaff,
-                          items: provider.staffList,
-                          itemLabel: (e) => e.staffName ?? '',
-                          onChanged: (value) {
-                            setState(() {
-                              selectedStaff = value;
-                            });
-                          },
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          "Transaction Date",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
-                        EntryDateTextField(
-                          label: "Transaction Date",
-                          controller: transactionController,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                SizedBox(height: 15),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isSupplierExpanded = !isSupplierExpanded;
-                    });
-                  },
-                  child: EntryContainer(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          suffixIcon: Icon(
-                            isSupplierExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.white,
-                          ),
-                          enabled: false,
-                          filled: true,
-                          fillColor: AppColors.primaryPurple,
-                          hintText: "Suppliers",
-                          hintStyle: TextStyle(color: Colors.white),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                      if (isSupplierExpanded) ...[
-                        SizedBox(height: 10),
-                        CustomElevatedButton(
-                          color: AppColors.primaryPurple,
-                          text: "+ Add More Supplier",
-                          textStyle: TextStyle(color: Colors.white),
-                          onPressed: () async {
-                            setState(() {
-                              suppliers.add(suppliers.length);
-                              remarksControllers.add(TextEditingController());
-                              selectedSuppliers.add(null);
-                              uploadedFiles.add([]);
-                            });
-                          },
-                          borderRadius: 5,
-                        ),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: suppliers.length,
-                          itemBuilder: (context, index) => Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.bodyFillColor,
-                              borderRadius: BorderRadius.circular(10),
+      body: Stack(
+        children:[ Form(
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isExpanded = !isExpanded;
+                      });
+                    },
+                    child: EntryContainer(
+                      children: [
+                        TextField(
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(
+                              isExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: Colors.white,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Supplier",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  CustomApiTextField<EntriesModel>(
-                                    hintText: index == 0
-                                        ? "Supplier *"
-                                        : "Supplier",
-                                    value: selectedSuppliers[index],
-                                    items: provider.entries,
-                                    itemLabel: (e) => e.supplierName ?? '',
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return "Supplier is required";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedSuppliers[index] = value;
-                                      });
-                                    },
-                                  ),
-                                  SizedBox(height: 10),
-                                  Text(
-                                    "Remarks",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  EntryTextField(
-                                    controller: remarksControllers[index],
-                                    hintText: "Remarks",
-                                  ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          final files =
-                                              await showDialog<
-                                                List<PlatformFile>
-                                              >(
-                                                context: context,
-                                                builder: (context) =>
-                                                    BillEntryUploadDocuments(
-                                                      files:
-                                                          uploadedFiles[index],
-                                                    ),
-                                              );
-
-                                          if (files != null) {
-                                            setState(() {
-                                              uploadedFiles[index] = files;
-                                            });
-                                          }
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primaryPurpleLight,
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
+                            enabled: false,
+                            filled: true,
+                            fillColor: AppColors.primaryPurple,
+                            hintText: "Information",
+                            hintStyle: TextStyle(color: Colors.white),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        if (isExpanded) ...[
+                          SizedBox(height: 10),
+                          Text(
+                            "Customer",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          CustomDropdown(
+                           // label: "Customer",
+                            hintText: "Customer *",
+                            isRequired: true,
+                            items: provider.customerEntries
+                                .map((e) => e.customerName ?? "")
+                                .toList(),
+                            initialValue: selectedCustomer?.customerName,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Customer is required";
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                selectedCustomer = provider.customerEntries.firstWhere(
+                                      (e) => e.customerName == value,
+                                );
+                              });
+                            },
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Staff",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          CustomDropdown(
+                          //  label: "Staff",
+                            hintText: "Staff",
+                            items: provider.staffList
+                                .map((e) => e.staffName ?? "")
+                                .toList(),
+                            initialValue: selectedStaff?.staffName,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedStaff = provider.staffList.firstWhere(
+                                      (e) => e.staffName == value,
+                                );
+                              });
+                            },
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Transaction Date",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          EntryDateTextField(
+                            label: "Transaction Date",
+                            controller: transactionController,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 15),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isSupplierExpanded = !isSupplierExpanded;
+                      });
+                    },
+                    child: EntryContainer(
+                      children: [
+                        TextField(
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(
+                              isSupplierExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                            ),
+                            enabled: false,
+                            filled: true,
+                            fillColor: AppColors.primaryPurple,
+                            hintText: "Suppliers",
+                            hintStyle: TextStyle(color: Colors.white),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        if (isSupplierExpanded) ...[
+                          SizedBox(height: 10),
+                          CustomElevatedButton(
+                            color: AppColors.primaryPurple,
+                            text: "+ Add More Supplier",
+                            textStyle: TextStyle(color: Colors.white),
+                            onPressed: () async {
+                              setState(() {
+                                suppliers.add(suppliers.length);
+                                remarksControllers.add(TextEditingController());
+                                selectedSuppliers.add(null);
+                                uploadedFiles.add([]);
+                              });
+                            },
+                            borderRadius: 5,
+                          ),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: suppliers.length,
+                            itemBuilder: (context, index) => Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.bodyFillColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(height:5),
+                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Supplier ${index+1}",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
                                           ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  Iconsax.document_upload,
-                                                  color:
-                                                      AppColors.primaryPurple,
-                                                ),
-                                                Text(
-                                                  "Upload Documents",
-                                                  style: TextStyle(
+                                        ),
+                                        if(suppliers.length>1)
+                                        GestureDetector(onTap:(){ setState(() {
+                                          suppliers.removeAt(index);
+                                        });},
+                                            child: Icon(Iconsax.trash,color:Colors.red))
+                                      ],
+                                    ),
+                                    CustomDropdown(
+                                     // label: "Supplier",
+                                      hintText: "Supplier *",
+                                      isRequired: true,
+                                      items: provider.entries
+                                          .map((e) => e.supplierName ?? "")
+                                          .toList(),
+                                      initialValue: selectedSuppliers[index]?.supplierName,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return "Supplier is required";
+                                        }
+                                        return null;
+                                      },
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedSuppliers[index] = provider.entries.firstWhere(
+                                                (e) => e.supplierName == value,
+                                          );
+                                        });
+                                      },
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "Remarks",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    EntryTextField(
+                                      controller: remarksControllers[index],
+                                      hintText: "Remarks",
+                                    ),
+                                    SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final files =
+                                                await showDialog<
+                                                  List<PlatformFile>
+                                                >(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      BillEntryUploadDocuments(
+                                                        files:
+                                                            uploadedFiles[index],
+                                                      ),
+                                                );
+
+                                            if (files != null) {
+                                              setState(() {
+                                                uploadedFiles[index] = files;
+                                              });
+                                            }
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primaryPurpleLight,
+                                              borderRadius: BorderRadius.circular(
+                                                10,
+                                              ),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Iconsax.document_upload,
                                                     color:
                                                         AppColors.primaryPurple,
-                                                    fontSize: 15,
                                                   ),
-                                                ),
-                                              ],
+                                                  Text(
+                                                    "Upload Documents",
+                                                    style: TextStyle(
+                                                      color:
+                                                          AppColors.primaryPurple,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        "${uploadedFiles[index].length} Files",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                        SizedBox(width: 10),
+                                        Text(
+                                          "${uploadedFiles[index].length} Files",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomElevatedButton(
+                          text: "Reset",
+                          textStyle: TextStyle(color: Colors.black, fontSize: 20),
+                          onPressed: () async {
+                            clearFields();
+                          },
+                          borderRadius: 5,
+                        ),
+                      ),
+                      SizedBox(width: 20),
+                      Expanded(
+                        child: CustomElevatedButton(
+                          color: AppColors.primaryPurple,
+                          text: "Save",
+                          textStyle: TextStyle(color: Colors.white, fontSize: 20),
+                          onPressed: () async {
+                            if (!_formKey.currentState!.validate()) {
+                              ScaffoldSnackBar.show(
+                                context,
+                                "Please fill all the required fields",
+                              );
+                              return;
+                            }
+
+                            if (selectedCustomer == null ||
+                                selectedSuppliers.isEmpty) {
+                              ScaffoldSnackBar.show(
+                                context,
+                                "Please select  customer and supplier",
+                              );
+                              return;
+                            }
+                            final payload = {
+                              "date": transactionController.text,
+                              "staffId": selectedStaff?.staffId,
+                              "customerId": selectedCustomer?.id,
+                              "suppliers": List.generate(
+                                selectedSuppliers.length,
+                                (index) => {
+                                  "supplierId": selectedSuppliers[index]?.id,
+                                  "remarks": remarksControllers[index].text,
+                                },
+                              ),
+                            };
+                            // final images = uploadedFiles
+                            //     .expand((files) => files)
+                            //     .where((e) => e.path != null)
+                            //     .map((e) => File(e.path!))
+                            //     .toList();
+
+                            try {
+                              final message = await provider.savePurchase(
+                                payload: payload,
+                                uploadedFiles:uploadedFiles,
+                                selectedSuppliers:selectedSuppliers
+                              );
+                              if (!context.mounted) return;
+                              ScaffoldSnackBar.show(
+                                context,
+                                message ?? "Purchase Saved Successfully",
+                              );
+                              Navigator.pop(context,true);
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(builder: (context) => Purchase()),
+                              // );
+                            } catch (e) {
+                              ScaffoldSnackBar.show(context, e.toString());
+                            }
+                          },
+                          borderRadius: 5,
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                SizedBox(height: 10),
-                Column(
-                  children: [
-                    CustomElevatedButton(
-                      text: "Reset",
-                      textStyle: TextStyle(color: Colors.black, fontSize: 20),
-                      onPressed: () async {
-                        clearFields();
-                      },
-                      borderRadius: 5,
-                    ),
-                    SizedBox(height: 5),
-                    CustomElevatedButton(
-                      color: AppColors.primaryPurple,
-                      text: "Save",
-                      textStyle: TextStyle(color: Colors.white, fontSize: 20),
-                      onPressed: () async {
-                        if (!_formKey.currentState!.validate()) {
-                          ScaffoldSnackBar.show(
-                            context,
-                            "Please fill all the required fields",
-                          );
-                          return;
-                        }
-
-                        if (selectedCustomer == null ||
-                            selectedSuppliers.isEmpty) {
-                          ScaffoldSnackBar.show(
-                            context,
-                            "Please select  customer and supplier",
-                          );
-                          return;
-                        }
-                        final payload = {
-                          "date": transactionController.text,
-                          "staffId": selectedStaff?.staffId,
-                          "customerId": selectedCustomer?.id,
-                          "suppliers": List.generate(
-                            selectedSuppliers.length,
-                            (index) => {
-                              "supplierId": selectedSuppliers[index]?.id,
-                              "remarks": remarksControllers[index].text,
-                            },
-                          ),
-                        };
-                        final images = uploadedFiles
-                            .expand((files) => files)
-                            .where((e) => e.path != null)
-                            .map((e) => File(e.path!))
-                            .toList();
-
-                        try {
-                          final message = await provider.savePurchase(
-                            payload: payload,
-                            images: images,
-                          );
-                          if (!context.mounted) return;
-                          ScaffoldSnackBar.show(
-                            context,
-                            message ?? "Purchase Saved Successfully",
-                          );
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Purchase()),
-                          );
-                        } catch (e) {
-                          ScaffoldSnackBar.show(context, e.toString());
-                        }
-                      },
-                      borderRadius: 5,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 40),
-              ],
+                  SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
-        ),
+        ),Consumer<EntriesProvider>(
+          builder: (context, provider, child) {
+            if (!provider.isLoading) {
+              return const SizedBox.shrink();
+            }
+
+            return Container(
+              color: Colors.black45,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          },
+        )],
       ),
     );
   }

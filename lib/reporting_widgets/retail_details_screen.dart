@@ -509,13 +509,13 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(5),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         decoration: BoxDecoration(
           color: AppColors.primaryPurple,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(5),
         ),
         child: Row(
           children: [
@@ -524,8 +524,8 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                 title,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+                 // fontWeight: FontWeight.w600,
+                  fontSize: 18,
                 ),
               ),
             ),
@@ -545,12 +545,11 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
+        Text(title,
           style: const TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+           // fontWeight: FontWeight.w600,
+            fontSize: 18,
           ),
         ),
 
@@ -561,11 +560,13 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(5),
           ),
           child: Text(
             value.trim().isEmpty ? "-" : value,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
+            style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black87),
           ),
         ),
       ],

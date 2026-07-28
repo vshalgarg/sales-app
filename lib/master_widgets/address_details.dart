@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hisabio/constants/list_items.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 
@@ -158,6 +159,9 @@ class _AddressDetailsState extends State<AddressDetails> {
           Text("Pin Code", style: TextStyle(color: Colors.white, fontSize: 18)),
           TextFormField(
             keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
             maxLength: 6,
             enabled: widget.mode != FormMode.view,
             controller: widget.pinCode,

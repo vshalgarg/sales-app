@@ -52,7 +52,6 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                             }
                           },
                           child: Container(
-                       // margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),

@@ -53,7 +53,7 @@ class _SupplierState extends State<Supplier> {
 
     Future.microtask(() async {
       context.read<SupplierProvider>().fetchSuppliers(refresh: true);
-      }
+      });
   }
 
   @override
@@ -201,47 +201,6 @@ class _SupplierState extends State<Supplier> {
                             ),
                           );
                         },
-
-                        child: MasterContainer(
-                                elevation: 1,
-                                name:
-                                    (item.supplierName
-                                            ?.toString()
-                                            .trim()
-                                            .isNotEmpty ??
-                                        false)
-                                    ? item.supplierName!
-                                    : "-",
-                  : ListView.separated(
-                      controller: _scrollController,
-                      itemCount:
-                          suppliers.length +
-                          ((!isSearching && provider.isLoadingMore) ? 1 : 0),
-                      separatorBuilder: (context, index) {
-                        return SizedBox(height: 8);
-                      },
-                      itemBuilder: (context, index) {
-                        if (!isSearching &&
-                            index == suppliers.length &&
-                            provider.isLoadingMore) {
-                          return const Padding(
-                            padding: EdgeInsets.all(20),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        final item = suppliers[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AddNewSupplier(
-                                  id: item.id,
-                                  mode: FormMode.view,
-                                ),
-                              ),
-                            );
-                          },
                           child: MasterContainer(
                             elevation: 1,
                             name:
@@ -305,45 +264,6 @@ class _SupplierState extends State<Supplier> {
                                         .refreshSuppliers();
                                   }
                                   if (!context.mounted) return;
-                                city:
-                                    (item.city?.toString().trim().isNotEmpty ??
-                                        false)
-                                    ? item.city!
-                                    : "-",
-                                trashIconTap: () {
-                                  ExitConfirmationDialog.show(
-                                    context,
-                                    discardButtonText: "No",
-                                    saveButtonText: "Yes",
-                                    onDiscard: () {
-                                      Navigator.pop(context);
-                                    },
-                                    bodyText:
-                                        "Are you sure you want to permanently delete ${item.supplierName}? This action cannot be undo.",
-                                    onSave: () async {
-                                      final provider =
-                                          Provider.of<DeleteSupplierProvider>(
-                                            context,
-                                            listen: false,
-                                          );
-                                      await provider.deleteSupplier(item.code!);
-                                      if (!context.mounted) return;
-                                      Navigator.pop(context);
-                                      if (searchController.text
-                                          .trim()
-                                          .isNotEmpty) {
-                                        await context
-                                            .read<SearchSupplierProvider>()
-                                            .searchSuppliers(
-                                              searchController.text.trim(),
-                                            );
-                                      } else {
-                                        await context
-                                            .read<SupplierProvider>()
-                                            .refreshSuppliers();
-                                      }
-                                      if (!context.mounted) return;
-
                                       ScaffoldSnackBar.show(
                                         context,
                                         provider.message,
@@ -361,24 +281,6 @@ class _SupplierState extends State<Supplier> {
                                     item.id!.toInt(),
                                   );
                                   final data = provider.supplier;
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    provider.message,
-                                  );
-                                  await context
-                                      .read<SupplierProvider>()
-                                      .refreshSuppliers();
-                                },
-                              );
-                            },
-                            copyIconTap: () async {
-                              final provider = context
-                                  .read<GetSupplierByIdProvider>();
-                              await provider.fetchSupplierById(
-                                item.id!.toInt(),
-                              );
-                              final data = provider.supplier;
-
                                   if (data == null) return;
 
                                   String contactNumber = "";
@@ -409,8 +311,8 @@ class _SupplierState extends State<Supplier> {
                                     },
                                   );
                                 },
-                                editIconTap: () {
-                                  Navigator.push(
+                                editIconTap: () async {
+                                  final bool? refresh = await  Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => AddNewSupplier(
@@ -419,60 +321,27 @@ class _SupplierState extends State<Supplier> {
                                       ),
                                     ),
                                   );
+                                  if (refresh == true && mounted) {
+                                    await context.read<SupplierProvider>().refreshSuppliers();
+                                  }
                                 },
                               ),
-                            );
-                          },
-                                if (firstContact is Map) {
-                                  contactNumber =
-                                      firstContact['mobileNumber'] ?? "";
-                                }
-                              }
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return CustomCopyDetailsDialog(
-                                    firmName:
-                                        provider.supplier?.supplierName ?? "",
-                                    contact: contactNumber,
-                                    address:
-                                        provider.supplier?.addressLine1 ?? "",
-                                    gstNo: provider.supplier?.gstNo ?? "",
-                                    emails: provider.supplier?.email ?? "",
-                                  );
-                                },
-                              );
-                            },
-                            editIconTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AddNewSupplier(
-                                    id: item.id,
-                                    mode: FormMode.edit,
-                                  ),
-                                ),
-                              );
-                            },
+                            );});})
+
                           ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
+                        ]),
+                        ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         onPressed: () {
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddNewSupplier()),
           );
         },
         backgroundColor: AppColors.primaryPurple,
         child: Icon(Iconsax.add, color: Colors.white, size: 40),
-      ),
-    );
+    )
+        );
   }
 }

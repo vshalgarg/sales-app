@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/get_purchase_provider.dart';
 import '../../provider/purchase_provider.dart';
@@ -13,7 +14,6 @@ import '../../reporting_widgets/edit_purchase_screen.dart';
 import '../../reporting_widgets/purchase_details_screen.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
-import '../../services/purchase_details_api.dart';
 import '../home_screen.dart';
 
 class Purchase extends StatefulWidget {
@@ -40,10 +40,59 @@ class _PurchaseState extends State<Purchase> {
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
-
+  int? selectedCustomerId;
+  int? selectedStaffId;
   String? selectedSupplier;
   String? selectedCustomer;
+  void _showBottomSheetSnackBar(
+      BuildContext context,
+      String message,
+      ) {
+    final overlay = Overlay.of(context);
 
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: 16,
+        right: 16,
+        bottom: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.containerFillColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      //color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      entry.remove();
+    });
+  }
   @override
   void initState() {
     super.initState();
@@ -74,8 +123,8 @@ class _PurchaseState extends State<Purchase> {
         fromDate: fromDateController.text,
         toDate: toDateController.text,
       );
-     await purchaseProvider.searchPurchases(page: _page, size: _size);
-    });
+
+     });
   }
 
   void _scrollListener() {
@@ -167,12 +216,12 @@ class _PurchaseState extends State<Purchase> {
   }
 
   void _clearFilters() async {
-    final now = DateTime.now();
-    final tenDaysAgo = now.subtract(const Duration(days: 10));
-    final formatter = DateFormat('yyyy-MM-dd');
+    // final now = DateTime.now();
+    // final tenDaysAgo = now.subtract(const Duration(days: 10));
+    // final formatter = DateFormat('yyyy-MM-dd');
     setState(() {
-      fromDateController.text = formatter.format(tenDaysAgo);
-      toDateController.text = formatter.format(now);
+      // fromDateController.text = formatter.format(tenDaysAgo);
+      // toDateController.text = formatter.format(now);
       selectedSupplier = null;
       selectedCustomer = null;
     });
@@ -198,7 +247,7 @@ class _PurchaseState extends State<Purchase> {
             return Container(
               //height: 500,
               decoration: const BoxDecoration(
-                color: Color(0xFFF7F6FF),
+                color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),
@@ -209,7 +258,7 @@ class _PurchaseState extends State<Purchase> {
                 toDateController: toDateController,
                 dropdowns: [
                   FilterDropdown(
-                    label: "Supplier",
+                   label: "Supplier",
                     value: selectedSupplier,
                     items: provider.entries
                         .map((e) => e.supplierName ?? '')
@@ -243,7 +292,22 @@ class _PurchaseState extends State<Purchase> {
                     },
                   ),
                 ],
-                onApply: () {
+                onApply: () async {
+                  final hasFilter =
+                      fromDateController.text.isNotEmpty ||
+                          toDateController.text.isNotEmpty ||
+                          selectedSupplier != null ||
+                          selectedCustomerId != null ||
+                          selectedStaffId != null;
+
+                  if (!hasFilter) {
+                    _showBottomSheetSnackBar(
+                      context,
+                      "Please select at least one filter.",
+                    );
+                    return;
+                  }
+
                   Navigator.pop(context);
                   _applyFilters();
                 },
@@ -323,6 +387,9 @@ class _PurchaseState extends State<Purchase> {
 
           FloatingActionButton(
             heroTag: "add",
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
             backgroundColor: AppColors.primaryPurple,
             onPressed: isOpening
                 ? null
@@ -351,7 +418,7 @@ class _PurchaseState extends State<Purchase> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Iconsax.add, color: Colors.white),
+                : const Icon(Iconsax.add, color: Colors.white,size: 40,),
           ),
         ],
       ),
@@ -584,16 +651,12 @@ class _PurchaseState extends State<Purchase> {
 
                                     final provider = context.read<PurchaseProvider>();
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          success
+                                    ScaffoldSnackBar.show(context,success
                                               ? (provider.successMessage ??
                                               "Purchase deleted successfully")
                                               : (provider.errorMessage ??
                                               "Failed to delete purchase"),
-                                        ),
-                                      ),
+
                                     );
                                   },
                                 );

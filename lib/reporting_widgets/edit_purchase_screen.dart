@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
+import '../customs/dropdown_test.dart';
 import '../model_classes/get_purchase_model.dart';
 import '../pop_ups/general_closing_popup.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
@@ -23,6 +24,7 @@ class EditPurchaseScreen extends StatefulWidget {
 }
 
 class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
+  final ScrollController _scrollController = ScrollController();
   late TextEditingController remarksController;
   late TextEditingController dateController;
   bool basicInfoExpanded = true;
@@ -30,6 +32,9 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
   int? selectedCustomerId;
   int? selectedSupplierId;
   int? selectedStaffId;
+  String? selectedCustomerName;
+  String? selectedSupplierName;
+  String? selectedStaffName;
   bool isLoading = false;
   List<File> selectedFiles = [];
 
@@ -57,10 +62,13 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 18),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18),
               ),
             ),
-            const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+            const Icon(Icons.keyboard_arrow_down,
+                color: Colors.white),
           ],
         ),
       ),
@@ -79,8 +87,8 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
           ),
 
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+           width: double.infinity,
+           // padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(5),
@@ -178,6 +186,9 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
     selectedStaffId = widget.purchaseData.staffId;
 
     selectedSupplierId = supplier.supplierId;
+    selectedCustomerName = widget.purchaseData.customerName;
+    selectedStaffName = widget.purchaseData.staffName;
+    selectedSupplierName = supplier.supplierName;
   }
 
   Future<void> _loadData() async {
@@ -255,6 +266,7 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     remarksController.dispose();
     dateController.dispose();
     super.dispose();
@@ -333,6 +345,7 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
           child: Container(
             color: AppColors.bodyFillColor,
             child: SingleChildScrollView(
+              controller: _scrollController,
               padding: const EdgeInsets.all(15),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,7 +365,7 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.bodyFillColor,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(5),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,33 +378,22 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                                 builder: (_, provider, __) {
                                   return _buildField(
                                     label: "Customer",
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<int>(
-                                        isExpanded: true,
-                                        value:
-                                            provider.customerEntries.any(
-                                              (e) => e.id == selectedCustomerId,
-                                            )
-                                            ? selectedCustomerId
-                                            : null,
-                                        items: provider.customerEntries
-                                            .map(
-                                              (e) => DropdownMenuItem<int>(
-                                                value: e.id?.toInt(),
-                                                child: Text(
-                                                  e.customerName ?? "",
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            selectedCustomerId = value;
-                                          });
-                                        },
-                                      ),
+                                    child: CustomDropdown(
+                                      hintText: "Customer",
+                                      items: provider.customerEntries
+                                          .map((e) => e.customerName ?? '')
+                                          .toList(),
+                                      initialValue: selectedCustomerName,
+                                      onChanged: (value) {
+                                        final customer = provider.customerEntries.firstWhere(
+                                              (e) => e.customerName == value,
+                                        );
+
+                                        setState(() {
+                                          selectedCustomerName = value;
+                                          selectedCustomerId = customer.id?.toInt();
+                                        });
+                                      },
                                     ),
                                   );
                                 },
@@ -401,34 +403,22 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                                 builder: (_, provider, __) {
                                   return _buildField(
                                     label: "Staff",
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<int>(
-                                        isExpanded: true,
-                                        value:
-                                            provider.staffs.any(
-                                              (e) =>
-                                                  e.staffId == selectedStaffId,
-                                            )
-                                            ? selectedStaffId
-                                            : null,
-                                        items: provider.staffs
-                                            .map(
-                                              (staff) => DropdownMenuItem<int>(
-                                                value: staff.staffId,
-                                                child: Text(
-                                                  staff.staffName,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            selectedStaffId = value;
-                                          });
-                                        },
-                                      ),
+                                    child: CustomDropdown(
+                                      hintText: "Staff",
+                                      items: provider.staffs
+                                          .map((e) => e.staffName)
+                                          .toList(),
+                                      initialValue: selectedStaffName,
+                                      onChanged: (value) {
+                                        final staff = provider.staffs.firstWhere(
+                                              (e) => e.staffName == value,
+                                        );
+
+                                        setState(() {
+                                          selectedStaffName = value;
+                                          selectedStaffId = staff.staffId;
+                                        });
+                                      },
                                     ),
                                   );
                                 },
@@ -455,42 +445,38 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                             label: "Transaction Date",
                             child: TextFormField(
                               controller: dateController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
                                 border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 15,
+                                  vertical: 15
                               ),
                             ),
+                          ),
                           ),
 
                           Consumer<EntriesProvider>(
                             builder: (_, provider, __) {
                               return _buildField(
                                 label: "Supplier",
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<int>(
-                                    isExpanded: true,
-                                    value:
-                                        provider.entries.any(
-                                          (e) => e.id == selectedSupplierId,
-                                        )
-                                        ? selectedSupplierId
-                                        : null,
-                                    items: provider.entries
-                                        .map(
-                                          (e) => DropdownMenuItem<int>(
-                                            value: e.id?.toInt(),
-                                            child: Text(
-                                              e.supplierName ?? "",
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedSupplierId = value;
-                                      });
-                                    },
-                                  ),
+                                child:CustomDropdown(
+                                  hintText: "Supplier",
+                                  items: provider.entries
+                                      .map((e) => e.supplierName ?? '')
+                                      .toList(),
+                                  initialValue: selectedSupplierName,
+                                  onChanged: (value) {
+                                    final supplier = provider.entries.firstWhere(
+                                          (e) => e.supplierName == value,
+                                    );
+
+                                    setState(() {
+                                      selectedSupplierName = value;
+                                      selectedSupplierId = supplier.id?.toInt();
+                                    });
+                                  },
                                 ),
                               );
                             },
@@ -500,8 +486,14 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                             label: "Remarks",
                             child: TextFormField(
                               controller: remarksController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
                                 border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 15,
+                                    vertical: 14
+                                ),
                               ),
                             ),
                           ),
@@ -519,6 +511,15 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                       setState(() {
                         attachmentExpanded = !attachmentExpanded;
                       });
+                      if (attachmentExpanded) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOut,
+                          );
+                        });
+                      }
                     },
                   ),
 
@@ -557,19 +558,10 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(5,),
                                         ),
                                         child: Row(
                                           children: [
-                                            const Icon(
-                                              Icons.description_outlined,
-                                              color: Colors.grey,
-                                            ),
-
-                                            const SizedBox(width: 12),
-
                                             Expanded(
                                               child: Column(
                                                 crossAxisAlignment:
@@ -583,15 +575,6 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                                                     style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.w600,
-                                                    ),
-                                                  ),
-
-                                                  const SizedBox(height: 4),
-
-                                                  const Text(
-                                                    "Tap to preview",
-                                                    style: TextStyle(
-                                                      color: Colors.grey,
                                                     ),
                                                   ),
                                                 ],
@@ -647,17 +630,10 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(5,),
                                         ),
                                         child: Row(
                                           children: [
-                                            const Icon(
-                                              Icons.description_outlined,
-                                              color: Colors.grey,
-                                            ),
-                                            const SizedBox(width: 12),
                                             Expanded(
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -671,12 +647,6 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                                                     ),
                                                   ),
                                                   const SizedBox(height: 4),
-                                                  const Text(
-                                                    "Tap to preview",
-                                                    style: TextStyle(
-                                                      color: Colors.grey,
-                                                    ),
-                                                  ),
                                                 ],
                                               ),
                                             ),
@@ -739,6 +709,10 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                                 ),
                               ),
                             ),
+                          ]
+    ),
+    ),
+                          ],
                           const SizedBox(height: 10),
                           SizedBox(
                             width: double.infinity,
@@ -757,10 +731,6 @@ class _EditPurchaseScreenState extends State<EditPurchaseScreen> {
                             ),
                           ),
                           SizedBox(height: 30),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),

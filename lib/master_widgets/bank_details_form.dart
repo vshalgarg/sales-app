@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/colors_used.dart';
 import '../enums/customer_mode.dart';
 
@@ -50,8 +51,12 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
         if (isBasicInfoExpanded) ...[
         SizedBox(height: 15),
         Text("Account Number",style:TextStyle(color:Colors.white,fontSize: 18)),
-        TextFormField(  keyboardType: TextInputType.number,
+        TextFormField(
+          keyboardType: TextInputType.number,
           enabled: widget.mode != FormMode.view,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+          ],
 
           controller: widget.accountNumber,
           decoration: InputDecoration(

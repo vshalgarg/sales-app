@@ -14,6 +14,7 @@ class GetTransportDetailsApi {
         url, headers: { "Content-Type": "application/json",
         "Authorization": "Bearer $token"},);
       final data = jsonDecode(response.body);
+      print(response.body);
       if (response.statusCode == 200) {
         return GetTransport.fromJson(data);
       } else {

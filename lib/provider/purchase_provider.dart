@@ -49,7 +49,7 @@ class PurchaseProvider extends ChangeNotifier {
       if (!isLoadMore) {
         _isLoading = true;
         _error = null;
-        notifyListeners();
+       // notifyListeners();
       }
       print("API CALLED");
       final response = await searchPurchaseEntries(

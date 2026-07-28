@@ -258,7 +258,6 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                                           ScaffoldSnackBar.show(
                                             context,
                                             "All the fields are required",
-                                            backgroundColor: Colors.red,
                                           );
                                           return;
                                         }

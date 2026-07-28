@@ -3,7 +3,6 @@ import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/master_widgets/bottomnavigation_button.dart';
 import 'package:hisabio/master_widgets/contact_info.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/screens/master_screens/transport.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
@@ -12,7 +11,6 @@ import '../../master_widgets/address_details.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/add_new_transport.dart';
 import '../../provider/get_transport_by_id_provider.dart';
-import '../../provider/get_transport_details_provider.dart';
 import 'add_new_supplier.dart';
 
 class AddNewTransport extends StatefulWidget {
@@ -203,12 +201,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                 discardButtonText: "Leave",
                 onDiscard: () {
                   Navigator.pop(context);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TransportScreen(),
-                    ),
-                  );
+                  Navigator.pop(context,true);
                 },
               );
             },
@@ -358,6 +351,8 @@ class _AddNewTransportState extends State<AddNewTransport> {
               addTransportProvider.response?.message ??
                   "Transport Added Successfully",
             );
+           //
+          //  Navigator.pop(context);
             Navigator.pop(context,true);
           }
         },
@@ -375,7 +370,9 @@ class _AddNewTransportState extends State<AddNewTransport> {
           final id= widget.id!;
 
           await updateProvider.updateTransport(body,id);
+          print("Updated Name: ${transportNameController.text}");
           if (!context.mounted) return;
+
 
           if (updateProvider.error != null) {
             ScaffoldSnackBar.show(context, updateProvider.error!);
@@ -386,7 +383,14 @@ class _AddNewTransportState extends State<AddNewTransport> {
               updateProvider.updateResponse?.message ??
                   "Transport update manually message Successfully",
             );
-            Navigator.pop(context,true);
+         //   await context.read<GetTransportProvider>().getTransportDetails();
+           // Navigator.pop(context,true);
+            Navigator.pop(context, {
+              "id": widget.id,
+              "name": transportNameController.text,
+              "gstNo": gstNoController.text,
+              "city": cityController.text,
+            });
           }
         },
       ),

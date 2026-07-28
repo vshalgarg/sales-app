@@ -18,8 +18,7 @@ class AmountChartData extends StatelessWidget {
   Widget build(BuildContext context) {
     final billData = chartData.datasets[0].data;
     final creditData = chartData.datasets[1].data;
-    return Card(
-      margin: const EdgeInsets.all(0),
+    return Container(color:Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Column(

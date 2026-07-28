@@ -204,8 +204,11 @@ class _AmountCountMonthScreenState extends State<AmountCountMonthScreen> {
           }
 
           if (graphProvider.graphResponse == null) {
-            return const Center(
-              child: Text("No Data"),
+            return Container(
+              width:double.infinity,
+              height:double.infinity,
+              color:AppColors.bodyFillColor,
+              child: Center(child: Text("No Data")),
             );
           }
 

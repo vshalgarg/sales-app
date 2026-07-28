@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/retail_provider.dart';
 import '../../provider/staff_provider.dart';
@@ -14,7 +15,6 @@ import '../../reporting_widgets/edit_retail_screen.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../reporting_widgets/retail_card.dart';
 import '../../screens/entry_screen/retail_entry.dart';
-import '../home_screen.dart';
 
 class Retail extends StatefulWidget {
   const Retail({super.key});
@@ -24,13 +24,16 @@ class Retail extends StatefulWidget {
 }
 
 class _RetailState extends State<Retail> {
+
   final ScrollController _scrollController = ScrollController();
 
   int _page = 0;
   int _size = 20;
-
+  List<String> supplierItems = [];
+  List<String> customerItems = [];
   String? selectedSupplier;
   String? selectedCustomer;
+  bool isFilterApplied = false;
   bool _isFetchingMore = false;
   bool _hasMore = true;
   final TextEditingController fromDateController = TextEditingController();
@@ -40,7 +43,55 @@ class _RetailState extends State<Retail> {
   int? selectedStaffId;
   bool isOpening = false;
   bool _showGoToTop = false;
+  void _showBottomSheetSnackBar(
+      BuildContext context,
+      String message,
+      ) {
+    final overlay = Overlay.of(context);
 
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: 16,
+        right: 16,
+        bottom: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.containerFillColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      //color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      entry.remove();
+    });
+  }
   @override
   void initState() {
     super.initState();
@@ -55,6 +106,10 @@ class _RetailState extends State<Retail> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _page = 0;
       _hasMore = true;
+      final entriesProvider = context.read<EntriesProvider>();
+
+      await entriesProvider.fetchSuppliers();
+      await entriesProvider.fetchCustomer();
       await context.read<StaffProvider>().fetchStaffs();
       await context.read<RetailProvider>().fetchRetails(
         page: _page,
@@ -110,50 +165,61 @@ class _RetailState extends State<Retail> {
   }
 
   void _applyFilters() async {
+    if (fromDateController.text.isEmpty &&
+        toDateController.text.isEmpty &&
+        selectedSupplier == null &&
+        selectedCustomerId == null &&
+        selectedStaffId == null) {
+      ScaffoldSnackBar.show(context, "Please select at least one filter.");
+      return;
+    }
     final provider = Provider.of<EntriesProvider>(context, listen: false);
 
     int? supplierId;
 
     if (selectedSupplier != null) {
       final supplier = provider.entries.firstWhere(
-            (e) => e.supplierName == selectedSupplier,
+        (e) => e.supplierName == selectedSupplier,
       );
 
       supplierId = supplier.id?.toInt();
     }
+    setState(() {
+      isFilterApplied = true;
+    });
     await context.read<RetailProvider>().fetchRetails(
       page: 0,
       size: _size,
       fromDate: fromDateController.text.isEmpty
           ? null
           : fromDateController.text,
-      toDate: toDateController.text.isEmpty
-          ? null
-          : toDateController.text,
+      toDate: toDateController.text.isEmpty ? null : toDateController.text,
       supplierId: supplierId,
       customerId: selectedCustomerId,
       staffId: selectedStaffId,
     );
-    _clearFilters();
+    // _clearFilters();
   }
 
   void _clearFilters() {
-    final now = DateTime.now();
-    final tenDaysAgo = now.subtract(const Duration(days: 10));
-    final formatter = DateFormat('yyyy-MM-dd');
-      fromDateController.text = formatter.format(tenDaysAgo);
-      toDateController.text = formatter.format(now);
+    // final now = DateTime.now();
+    // final tenDaysAgo = now.subtract(const Duration(days: 10));
+    // final formatter = DateFormat('yyyy-MM-dd');
+    //   fromDateController.text = formatter.format(tenDaysAgo);
+    //   toDateController.text = formatter.format(now);
 
     setState(() {
+      isFilterApplied = false;
       selectedSupplier = null;
       selectedCustomerId = null;
       selectedStaffId = null;
     });
 
-   // context.read<RetailProvider>().fetchRetails();
+    // context.read<RetailProvider>().fetchRetails();
   }
 
   void _showFilterBottomSheet() {
+    String? errorMessage;
     final entriesProvider = Provider.of<EntriesProvider>(
       context,
       listen: false,
@@ -166,112 +232,127 @@ class _RetailState extends State<Retail> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, bottomSheetSetState) {
-            return Container(
-              // height: 600,
+              return Container(
               decoration: BoxDecoration(
-                color: Color(0xFFF7F6FF),
+                color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),
                 ),
               ),
               child: ReportingFilterSection(
-                fromDateController: fromDateController,
-                toDateController: toDateController,
-                dropdowns: [
-                  FilterDropdown(
-                    label: "Supplier",
-                    value: selectedSupplier,
-                    items: entriesProvider.entries
-                        .map((e) => e.supplierName ?? '')
-                        .where((e) => e.isNotEmpty)
-                        .toSet()
-                        .toList(),
-                    onChanged: (value) {
-                      bottomSheetSetState(() {
-                        selectedSupplier = value;
-                      });
+                    fromDateController: fromDateController,
+                    toDateController: toDateController,
+                    dropdowns: [
+                      FilterDropdown(
+                        label: "Supplier",
+                        value: selectedSupplier,
+                        items: entriesProvider.entries
+                            .map((e) => e.supplierName ?? '')
+                            .where((e) => e.isNotEmpty)
+                            .toSet()
+                            .toList(),
+                        onChanged: (value) {
+                          bottomSheetSetState(() {
+                            selectedSupplier = value;
+                          });
 
-                      setState(() {
-                        selectedSupplier = value;
-                      });
-                    },
-                  ),
-                  FilterDropdown(
-                    label: "Referred By",
-                    value: selectedCustomerId == null
-                        ? null
-                        : entriesProvider.customerEntries
-                              .firstWhere(
-                                (e) => e.id!.toInt() == selectedCustomerId,
-                              )
-                              .customerName,
-                    items: entriesProvider.customerEntries
-                        .map((e) => e.customerName ?? "")
-                        .toSet()
-                        .toList(),
-                    onChanged: (value) {
-                      final customer = entriesProvider.customerEntries
-                          .firstWhere((e) => e.customerName == value);
+                          setState(() {
+                            selectedSupplier = value;
+                          });
+                        },
+                      ),
+                      FilterDropdown(
+                        label: "Referred By",
+                        value: selectedCustomerId == null
+                            ? null
+                            : entriesProvider.customerEntries
+                                  .firstWhere(
+                                    (e) => e.id!.toInt() == selectedCustomerId,
+                                  )
+                                  .customerName,
+                        items: entriesProvider.customerEntries
+                            .map((e) => e.customerName ?? "")
+                            .toSet()
+                            .toList(),
+                        onChanged: (value) {
+                          final customer = entriesProvider.customerEntries
+                              .firstWhere((e) => e.customerName == value);
 
-                      bottomSheetSetState(() {
-                        selectedCustomerId = customer.id!.toInt();
-                      });
+                          bottomSheetSetState(() {
+                            selectedCustomerId = customer.id!.toInt();
+                          });
 
-                      setState(() {
-                        selectedCustomerId = customer.id!.toInt();
-                      });
-                    },
-                  ),
-                  FilterDropdown(
-                    label: "Staff",
-                    value: selectedStaffId == null
-                        ? null
-                        : staffProvider.staffs
-                              .firstWhere((e) => e.staffId == selectedStaffId)
-                              .staffName,
-                    items: staffProvider.staffs
-                        .map((e) => e.staffName)
-                        .toSet()
-                        .toList(),
-                    onChanged: (value) {
-                      final staff = staffProvider.staffs.firstWhere(
-                        (e) => e.staffName == value,
-                      );
+                          setState(() {
+                            selectedCustomerId = customer.id!.toInt();
+                          });
+                        },
+                      ),
+                      FilterDropdown(
+                        label: "Staff",
+                        value: selectedStaffId == null
+                            ? null
+                            : staffProvider.staffs
+                                  .firstWhere(
+                                    (e) => e.staffId == selectedStaffId,
+                                  )
+                                  .staffName,
+                        items: staffProvider.staffs
+                            .map((e) => e.staffName)
+                            .toSet()
+                            .toList(),
+                        onChanged: (value) {
+                          final staff = staffProvider.staffs.firstWhere(
+                            (e) => e.staffName == value,
+                          );
 
-                      bottomSheetSetState(() {
-                        selectedStaffId = staff.staffId;
-                      });
+                          bottomSheetSetState(() {
+                            selectedStaffId = staff.staffId;
+                          });
 
-                      setState(() {
-                        selectedStaffId = staff.staffId;
-                      });
-                    },
-                  ),
-                ],
-                onApply: () {
+                          setState(() {
+                            selectedStaffId = staff.staffId;
+                          });
+                        },
+                      ),
+                    ],
+                onApply: () async {
+                  final hasFilter =
+                      fromDateController.text.isNotEmpty ||
+                          toDateController.text.isNotEmpty ||
+                          selectedSupplier != null ||
+                          selectedCustomerId != null ||
+                          selectedStaffId != null;
+
+                  if (!hasFilter) {
+                    _showBottomSheetSnackBar(
+                      context,
+                      "Please select at least one filter.",
+                    );
+                    return;
+                  }
+
                   Navigator.pop(context);
-                  _applyFilters();
+                   _applyFilters();
                 },
-                onClear: () {
-                  bottomSheetSetState(() {
-                    fromDateController.clear();
-                    toDateController.clear();
-                    selectedSupplier = null;
-                    selectedCustomerId = null;
-                  });
+                    onClear: () {
+                      bottomSheetSetState(() {
+                        errorMessage = null;
+                        fromDateController.clear();
+                        toDateController.clear();
+                        selectedSupplier = null;
+                        selectedCustomerId = null;
+                      });
 
-                  setState(() {
-                    selectedSupplier = null;
-                    selectedCustomerId = null;
-                  });
+                      setState(() {
+                        selectedSupplier = null;
+                        selectedCustomerId = null;
+                      });
 
-                  Navigator.pop(context);
-
-                  _clearFilters();
-                },
-              ),
-            );
+                      _clearFilters();
+                    },
+                  ),
+              );
           },
         );
       },
@@ -291,10 +372,7 @@ class _RetailState extends State<Retail> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
+            Navigator.pop(context);
           },
         ),
         title: "Retailers",
@@ -335,20 +413,32 @@ class _RetailState extends State<Retail> {
 
           FloatingActionButton(
             heroTag: "add",
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
             backgroundColor: AppColors.primaryPurple,
             onPressed: () async {
-              await Navigator.push(
+              final bool? refresh = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const RetailEntryScreen(),
                 ),
               );
+
+              if (refresh == true && mounted) {
+                _page = 0;
+                _hasMore = true;
+
+                await context.read<RetailProvider>().fetchRetails(
+                  page: 0,
+                  size: _size,
+                  fromDate: fromDateController.text,
+                  toDate: toDateController.text,
+                );
+              }
             },
-            child: const Icon(
-              Iconsax.add,
-              color: Colors.white,
-            ),
-          )
+            child: const Icon(Iconsax.add, color: Colors.white, size: 40),
+          ),
         ],
       ),
       body: Padding(
@@ -436,7 +526,7 @@ class _RetailState extends State<Retail> {
                               }
                             },
                             onEdit: () async {
-                              Navigator.push(
+                              final bool? refresh = await  Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => EditRetailScreen(
@@ -444,6 +534,16 @@ class _RetailState extends State<Retail> {
                                   ),
                                 ),
                               );
+                              if (refresh == true && mounted) {
+                                _page = 0;
+
+                                await context.read<RetailProvider>().fetchRetails(
+                                  page: 0,
+                                  size: _size,
+                                  fromDate: fromDateController.text,
+                                  toDate: toDateController.text,
+                                );
+                              }
                             },
 
                             onDelete: () async {
@@ -466,14 +566,11 @@ class _RetailState extends State<Retail> {
 
                                   if (!mounted) return;
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        success
-                                            ? "Retail deleted successfully"
-                                            : "Failed to delete retail",
-                                      ),
-                                    ),
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    success
+                                        ? "Retail deleted successfully"
+                                        : "Failed to delete retail",
                                   );
                                 },
                               );

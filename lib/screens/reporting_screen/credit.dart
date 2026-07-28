@@ -7,10 +7,9 @@ import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../pop_ups/scafold_type.dart';
 import '../../provider/credit_provider.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../reporting_widgets/credit_details_screen.dart';
-import '../../reporting_widgets/edit_credit_screen.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../home_screen.dart';
@@ -39,10 +38,59 @@ class _CreditState extends State<Credit> {
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
-
+  int? selectedCustomerId;
+  int? selectedStaffId;
   String? selectedSupplier;
   String? selectedCustomer;
+  void _showBottomSheetSnackBar(
+      BuildContext context,
+      String message,
+      ) {
+    final overlay = Overlay.of(context);
 
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: 16,
+        right: 16,
+        bottom: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.containerFillColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      //color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      entry.remove();
+    });
+  }
   @override
   void initState() {
     super.initState();
@@ -195,12 +243,12 @@ class _CreditState extends State<Credit> {
   }
 
   void _clearFilters() {
-    final now = DateTime.now();
-    final tenDaysAgo = now.subtract(const Duration(days: 10));
-    final formatter = DateFormat('yyyy-MM-dd');
+    // final now = DateTime.now();
+    // final tenDaysAgo = now.subtract(const Duration(days: 10));
+    // final formatter = DateFormat('yyyy-MM-dd');
     setState(() {
-      fromDateController.text = formatter.format(tenDaysAgo);
-      toDateController.text = formatter.format(now);
+      // fromDateController.text = formatter.format(tenDaysAgo);
+      // toDateController.text = formatter.format(now);
       selectedSupplier = null;
       selectedCustomer = null;
     });
@@ -222,7 +270,7 @@ class _CreditState extends State<Credit> {
           builder: (context, bottomSheetSetState) {
             return Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFF7F6FF),
+                color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),
@@ -256,7 +304,22 @@ class _CreditState extends State<Credit> {
                   ),
                 ],
 
-                onApply: () {
+                onApply: () async {
+                  final hasFilter =
+                      fromDateController.text.isNotEmpty ||
+                          toDateController.text.isNotEmpty ||
+                          selectedSupplier != null ||
+                          selectedCustomerId != null ||
+                          selectedStaffId != null;
+
+                  if (!hasFilter) {
+                    _showBottomSheetSnackBar(
+                      context,
+                      "Please select at least one filter.",
+                    );
+                    return;
+                  }
+
                   Navigator.pop(context);
                   _applyFilters();
                 },
@@ -335,6 +398,9 @@ class _CreditState extends State<Credit> {
 
           FloatingActionButton(
             heroTag: "add",
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
             backgroundColor: AppColors.primaryPurple,
             onPressed: isOpening
                 ? null
@@ -345,10 +411,25 @@ class _CreditState extends State<Credit> {
                     await Future.delayed(const Duration(milliseconds: 100));
                     if (!mounted) return;
 
-                    await Navigator.push(
+                    final bool? refresh = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const CreditEntry()),
+                      MaterialPageRoute(
+                        builder: (_) => const CreditEntry(),
+                      ),
                     );
+
+                    if (refresh == true && mounted) {
+                      _page = 0;
+                      _hasMore = true;
+
+                      await context.read<CreditProvider>().fetchCredits(
+                        page: 0,
+                        size: _size,
+                        fromDate: fromDateController.text,
+                        toDate: toDateController.text,
+                      );
+                    }
+
                     if (mounted) {
                       setState(() {
                         isOpening = false;
@@ -361,7 +442,7 @@ class _CreditState extends State<Credit> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Iconsax.add, color: Colors.white),
+                : const Icon(Iconsax.add, color: Colors.white,size: 40,),
           ),
         ],
       ),
@@ -459,18 +540,33 @@ class _CreditState extends State<Credit> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) =>
-                                            CreditEntry(mode:FormMode.view,id:credit.id),
+                                            CreditEntry(
+                                                mode:FormMode.view,
+                                                id:credit.id),
                                       ),
                                     );
                                   },
 
                                   onEdit: () async {
-                                    Navigator.push(
+                                    final bool? refresh = await   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => CreditEntry(mode:FormMode.edit,id:credit.id),
+                                        builder: (_) => CreditEntry(
+                                            mode:FormMode.edit,
+                                            id:credit.id),
                                         ),
                                       );
+                                    if (refresh == true && mounted) {
+                                      _page = 0;
+                                      _hasMore = true;
+
+                                      await context.read<CreditProvider>().fetchCredits(
+                                        page: 0,
+                                        size: _size,
+                                        fromDate: fromDateController.text,
+                                        toDate: toDateController.text,
+                                      );
+                                    }
                                   },
                                   onDelete: () async {
                                     ExitConfirmationDialog.show(
@@ -493,16 +589,9 @@ class _CreditState extends State<Credit> {
 
                                         if (!mounted) return;
 
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              success
+                                        ScaffoldSnackBar.show(context,success
                                                   ? "Credit deleted successfully"
                                                   : "Failed to delete credit",
-                                            ),
-                                          ),
                                         );
                                       },
                                     );

@@ -182,8 +182,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
           Text("MSME", style: TextStyle(color: Colors.white, fontSize: 18)),
           CustomDropdown(
-            hintText: "MSME",
             isDisabled: widget.mode == FormMode.view,
+            hintText: "MSME",
             items: ListItems.msmeItems,
             initialValue: selectedMsme,
             onChanged: (value) {
@@ -201,8 +201,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               style: TextStyle(color: Colors.white, fontSize: 18),
             ),
             CustomDropdown(
-              hintText: "Commission Scheme",
               isDisabled: widget.mode == FormMode.view,
+              hintText: "Commission Scheme",
               items: ListItems.commissionScheme,
               initialValue: selectedCommissionScheme,
               onChanged: (value) {

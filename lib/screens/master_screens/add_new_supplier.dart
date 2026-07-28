@@ -349,11 +349,12 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     discardButtonText: "Leave",
                     saveButtonText: "Stay",
                     onDiscard: () {
-                      Navigator.pop(context,true);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => Supplier()),
-                      );
+                      Navigator.pop(context);
+                     Navigator.pop(context,true);
+                     //   Navigator.pushReplacement(
+                     //     context,
+                     //    MaterialPageRoute(builder: (context) => Supplier()),
+                     //   );
                     },
                   );
             },
@@ -415,6 +416,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 contacts: contacts,
                 onAdd: addContact,
                 onDelete: deleteContact,
+                scrollController: _scrollController,
               ),
               SizedBox(height: 15),
               GestureDetector(
@@ -466,6 +468,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     //     .map((t) => t.id.toString())
                     //     .toSet();
                     return CustomDropdown(
+                      isDisabled: widget.mode == FormMode.view,
                       hintText: "Preferred Transport",
                       items: provider.transports
                           .map((e) => e.name ?? "")
@@ -543,11 +546,11 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     updateProvider.response?.message ??
                         "Supplier Updated Successfully",
                   );
-
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => Supplier()),
-                  );
+                  Navigator.pop(context,true);
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (_) => Supplier()),
+                  // );
                 }
               } catch (e) {
                 ScaffoldSnackBar.show(context, "Something Went wrong $e");
@@ -580,10 +583,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                           provider.response!.message ??
                               "Supplier Added Successfully",
                         );
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => Supplier()),
-                        );
+                        Navigator.pop(context,true);
                         await context.read<SupplierProvider>().refreshSuppliers();
                       }
                     } catch (e) {

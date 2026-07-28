@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
+import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
 import 'package:hisabio/screens/reporting_screen/credit.dart';
@@ -8,9 +9,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 
 import '../../customs/elevated_button.dart';
-import '../../entry_widgets/custom_api_textfield.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
-import '../../entry_widgets/custom_list_textfield.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/entries_customer_model.dart';
 import '../../model_classes/entries_supplier.dart';
@@ -30,11 +29,14 @@ class CreditEntry extends StatefulWidget {
 
 class _CreditEntryState extends State<CreditEntry> {
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
   bool isExpanded = true;
   bool isTransactionExpanded = false;
   bool isAdditionalExpanded = false;
   EntriesModel? selectedSupplier;
+  String? selectedSupplierName;
   EntriesCustomerModel? selectedCustomer;
+  String? selectedCustomerName;
   String? drawType;
   String? paymentMode;
   final invoiceController = TextEditingController();
@@ -67,6 +69,7 @@ class _CreditEntryState extends State<CreditEntry> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     invoiceController.dispose();
     receivedAmountController.dispose();
     referenceController.dispose();
@@ -116,12 +119,12 @@ class _CreditEntryState extends State<CreditEntry> {
       (e) => e.id == credit.supplierId,
       orElse: () => provider.entries.first,
     );
-
+    selectedSupplierName = selectedSupplier?.supplierName;
     selectedCustomer = provider.customerEntries.firstWhere(
       (e) => e.id == credit.customerId,
       orElse: () => provider.customerEntries.first,
     );
-
+    selectedCustomerName = selectedCustomer?.customerName;
     setState(() {});
   }
 
@@ -138,7 +141,9 @@ class _CreditEntryState extends State<CreditEntry> {
     setState(() {
       drawType = null;
       selectedSupplier = null;
+      selectedSupplierName = null;
       selectedCustomer = null;
+      selectedCustomerName = null;
       paymentMode = null;
     });
   }
@@ -181,10 +186,7 @@ class _CreditEntryState extends State<CreditEntry> {
                   saveButtonText: "Stay",
                   onDiscard: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Credit()),
-                    );
+                    Navigator.pop(context,true);
                   },
                 );
               },
@@ -198,6 +200,7 @@ class _CreditEntryState extends State<CreditEntry> {
             child: Form(
               key: _formKey,
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   children: [
                     GestureDetector(
@@ -236,12 +239,13 @@ class _CreditEntryState extends State<CreditEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                            CustomApiTextField<EntriesModel>(
-                              enabled: !isViewMode,
-                              hintText: "Supplier*",
-                              value: selectedSupplier,
-                              items: provider.entries,
-                              itemLabel: (e) => e.supplierName ?? '',
+                            CustomDropdown(
+                              isDisabled: isViewMode,
+                              hintText: "Supplier",
+                              items: provider.entries
+                                  .map((e) => e.supplierName ?? '')
+                                  .toList(),
+                              initialValue: selectedSupplierName,
                               validator: (value) {
                                 if (value == null) {
                                   return "Supplier is required";
@@ -250,7 +254,11 @@ class _CreditEntryState extends State<CreditEntry> {
                               },
                               onChanged: (value) {
                                 setState(() {
-                                  selectedSupplier = value;
+                                  selectedSupplierName = value;
+
+                                  selectedSupplier = provider.entries.firstWhere(
+                                        (e) => e.supplierName == value,
+                                  );
                                 });
                               },
                             ),
@@ -262,12 +270,13 @@ class _CreditEntryState extends State<CreditEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                            CustomApiTextField<EntriesCustomerModel>(
-                              enabled: !isViewMode,
-                              hintText: "Customer*",
-                              value: selectedCustomer,
-                              items: provider.customerEntries,
-                              itemLabel: (e) => e.customerName ?? '',
+                            CustomDropdown(
+                              isDisabled: isViewMode,
+                              hintText: "Customer",
+                              items: provider.customerEntries
+                                  .map((e) => e.customerName ?? '')
+                                  .toList(),
+                              initialValue: selectedCustomerName,
                               validator: (value) {
                                 if (value == null) {
                                   return "Customer is required";
@@ -276,7 +285,11 @@ class _CreditEntryState extends State<CreditEntry> {
                               },
                               onChanged: (value) {
                                 setState(() {
-                                  selectedCustomer = value;
+                                  selectedCustomerName = value;
+
+                                  selectedCustomer = provider.customerEntries.firstWhere(
+                                        (e) => e.customerName == value,
+                                  );
                                 });
                               },
                             ),
@@ -323,10 +336,10 @@ class _CreditEntryState extends State<CreditEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                            CustomListTextField(
-                              enabled: !isViewMode,
+                           CustomDropdown(
+                              isDisabled: isViewMode,
                               hintText: "Payment Mode*",
-                              value: paymentMode,
+                              initialValue: paymentMode,
                               items: paymentModeList,
                               validator: (value) {
                                 if (value == null) {
@@ -443,6 +456,15 @@ class _CreditEntryState extends State<CreditEntry> {
                         setState(() {
                           isAdditionalExpanded = !isAdditionalExpanded;
                         });
+                        if (isAdditionalExpanded) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _scrollController.animateTo(
+                              _scrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                            );
+                          });
+                        }
                       },
                       child: EntryContainer(
                         children: [
@@ -474,11 +496,10 @@ class _CreditEntryState extends State<CreditEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                            CustomListTextField(
-                              enabled: !isViewMode,
-
+                            CustomDropdown(
+                              isDisabled: isViewMode,
                               hintText: "Draw Type",
-                              value: drawType,
+                              initialValue: drawType,
                               items: drawTypeList,
                               onChanged: (value) {
                                 setState(() {
@@ -548,12 +569,13 @@ class _CreditEntryState extends State<CreditEntry> {
                                     context,
                                     response?.message ?? "Success",
                                   );
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Credit(),
-                                    ),
-                                  );
+                                  Navigator.pop(context, true);
+                                  // Navigator.pushReplacement(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => Credit(),
+                                  //   ),
+                                  // );
                                 } catch (e) {
                                   if (!mounted) return;
                                   ScaffoldSnackBar.show(context, e.toString());
@@ -595,13 +617,14 @@ class _CreditEntryState extends State<CreditEntry> {
                               context,
                               response?.message ?? "Updated Successfully",
                             );
-
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const Credit(),
-                              ),
-                            );
+                            Navigator.pop(context, true);
+                            //
+                            // Navigator.pushReplacement(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => const Credit(),
+                            //   ),
+                            // );
                           } catch (e) {
                             if (!mounted) return;
                             ScaffoldSnackBar.show(context, e.toString());

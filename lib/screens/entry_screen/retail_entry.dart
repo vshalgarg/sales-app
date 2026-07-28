@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
+import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
 import 'package:iconsax/iconsax.dart';
@@ -8,12 +9,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
-import '../../entry_widgets/custom_api_textfield.dart';
 import '../../entry_widgets/custom_container_entry.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
 import '../../entry_widgets/custom_textfield.dart';
 import '../../model_classes/entries_customer_model.dart';
-import '../../model_classes/entries_supplier.dart';
 import '../../model_classes/get_staff_entry.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
@@ -29,9 +28,14 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   final TextEditingController dateController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   GetStaffEntry? selectedStaff;
+  String?selectedStaffName;
   EntriesCustomerModel? selectedReffered;
+  String?selectedRefferedName;
   final transactionController = TextEditingController();
-  List<EntriesModel?> selectedSuppliers = [null];
+  //List<EntriesModel?> selectedSuppliers = [null];
+  List<String?> selectedSuppliers = [null];
+  List<int?> selectedSupplierIds = [null];
+  String?selectedSupplierName;
   List<TextEditingController> totalAmount = [TextEditingController()];
   List<TextEditingController> depositAmount = [TextEditingController()];
   List<TextEditingController> balancedAmount = [TextEditingController()];
@@ -50,7 +54,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
       suppliers = [0];
       selectedSuppliers = [null];
-
+      selectedSupplierIds = [null];
       totalAmount = [TextEditingController()];
       depositAmount = [TextEditingController()];
       balancedAmount = [TextEditingController()];
@@ -72,6 +76,8 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   @override
   void initState() {
     super.initState();
+    // selectedSuppliers.add(null);
+    // selectedSupplierIds.add(null);
     // selectedSuppliers.add(null);
     // totalAmount.add(TextEditingController());
     // depositAmount.add(TextEditingController());
@@ -111,10 +117,11 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                 saveButtonText: "Stay",
                 onDiscard: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Retail()),
-                  );
+                  Navigator.pop(context,true);
+                  // Navigator.pushReplacement(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const Retail()),
+                  // );
                 },
               );
             },
@@ -198,14 +205,19 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                             "Staff",
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          CustomApiTextField<GetStaffEntry>(
+                          CustomDropdown(
                             hintText: "Staff",
-                            value: selectedStaff,
-                            items: provider.staffList,
-                            itemLabel: (e) => e.staffName ?? '',
+                            initialValue: selectedStaffName,
+                            items: provider.staffList.map((e)=>e.staffName??'')
+                              .toList(),
                             onChanged: (value) {
+                              final staff = provider.staffList.firstWhere(
+                                    (e) => e.staffName == value,
+                              );
+
                               setState(() {
-                                selectedStaff = value;
+                                selectedStaffName = value;
+                                selectedStaff = staff;
                               });
                             },
                           ),
@@ -214,11 +226,12 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                             "Customer",
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                          CustomApiTextField<EntriesCustomerModel>(
+                          CustomDropdown(
                             hintText: "Customer",
-                            value: selectedReffered,
-                            items: provider.customerEntries,
-                            itemLabel: (e) => e.customerName ?? '',
+                            initialValue: selectedRefferedName,
+                            items: provider.customerEntries
+                                .map((e) => e.customerName ?? '')
+                                .toList(),
                             validator: (value) {
                               if (value == null) {
                                 return "Please select at least one customer";
@@ -226,8 +239,13 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                               return null;
                             },
                             onChanged: (value) {
+                              final customer = provider.customerEntries.firstWhere(
+                                    (e) => e.customerName == value,
+                              );
+
                               setState(() {
-                                selectedReffered = value;
+                                selectedRefferedName = value;
+                                selectedReffered = customer;
                               });
                             },
                           ),
@@ -276,6 +294,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                             depositAmount.add(TextEditingController());
 
                             selectedSuppliers.add(null);
+                            selectedSupplierIds.add(null);
                           });
                         },
                         borderRadius: 5,
@@ -294,15 +313,17 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                                   "Supplier ${index + 1} ",
                                   style: TextStyle(color: Colors.white),
                                 ),
+                                if (suppliers.length > 1)
                                 GestureDetector(
                                   onTap: () {
-                                    if (suppliers.length > 1) {
-                                      setState(() {
+                                    {setState(() {
                                         suppliers.removeAt(index);
                                         totalAmount.removeAt(index);
                                         balancedAmount.removeAt(index);
                                         depositAmount.removeAt(index);
+                                      //  selectedSuppliers.removeAt(index);
                                         selectedSuppliers.removeAt(index);
+                                        selectedSupplierIds.removeAt(index);
                                       });
                                     }
                                   },
@@ -315,20 +336,26 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                               "Supplier",
                               style: TextStyle(color: Colors.white, fontSize: 18),
                             ),
-                            CustomApiTextField<EntriesModel>(
+                            CustomDropdown(
                               hintText: index == 0 ? "Supplier *" : "Supplier",
                               validator: (value) {
-                                if (value == null) {
+                                if (index == 0 && (value == null || value.isEmpty)) {
                                   return "Please select at least one supplier";
                                 }
                                 return null;
                               },
-                              value: selectedSuppliers[index],
-                              items: provider.entries,
-                              itemLabel: (e) => e.supplierName ?? '',
+                              initialValue: selectedSuppliers[index],
+                              items: provider.entries
+                                  .map((e) => e.supplierName ?? '')
+                                  .toList(),
                               onChanged: (value) {
+                                final supplier = provider.entries.firstWhere(
+                                      (e) => e.supplierName == value,
+                                );
+
                                 setState(() {
                                   selectedSuppliers[index] = value;
+                                  selectedSupplierIds[index] = supplier.id?.toInt();
                                 });
                               },
                             ),
@@ -406,7 +433,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                                 "suppliers": List.generate(
                                   selectedSuppliers.length,
                                   (index) => {
-                                    "supplierId": selectedSuppliers[index]?.id,
+                                    "supplierId": selectedSupplierIds[index],
                                     "totalAmount":
                                         double.tryParse(totalAmount[index].text) ??
                                         0,
@@ -434,10 +461,11 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                                   context,
                                   message ?? "Retail Entry Saved",
                                 );
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => Retail()),
-                                );
+                                Navigator.pop(context,true);
+                                // Navigator.pushReplacement(
+                                //   context,
+                                //   MaterialPageRoute(builder: (context) => Retail()),
+                                // );
                               } catch (e) {
                                 ScaffoldSnackBar.show(context, e.toString());
                               }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
+import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
@@ -235,60 +236,66 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                   ],
                 ),
                 SizedBox(height: 20),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Row(
                   children: [
-                    CustomElevatedButton(
-                      text: "Reset",
-                      textStyle: TextStyle(color: Colors.black, fontSize: 20),
-                      onPressed: () async {
-                        clearFields();
-                      },
-                      borderRadius: 5,
+                    Expanded(
+                      child: CustomElevatedButton(
+                        text: "Reset",
+                        textStyle: TextStyle(color: Colors.black, fontSize: 20),
+                        onPressed: () async {
+                          clearFields();
+                        },
+                        borderRadius: 5,
+                      ),
                     ),
                     SizedBox(width: 20),
-                    CustomElevatedButton(
-                      text: "Save",
-                      textStyle: TextStyle(color: Colors.white, fontSize: 20),
-                      onPressed: () async {
-                        final provider = context.read<BillItemProvider>();
+                    Expanded(
+                      child: CustomElevatedButton(
+                        text: "Save",
+                        textStyle: TextStyle(color: Colors.white, fontSize: 20),
+                        onPressed: () async {
+                          if(piecesController.text.isEmpty||grossAmountController.text.isEmpty)
+                            {return ScaffoldSnackBar.show(context,"Please Enter Pieces and Gross Amount");}
+                          final provider = context.read<BillItemProvider>();
 
-                        final item = BillItem(
-                          pieces: int.tryParse(piecesController.text) ?? 0,
-                          grossAmount:
-                              double.tryParse(grossAmountController.text) ?? 0,
+                          final item = BillItem(
+                            pieces: int.tryParse(piecesController.text) ?? 0,
+                            grossAmount:
+                                double.tryParse(grossAmountController.text) ?? 0,
 
-                          discountPercent:
-                              double.tryParse(
-                                discountPercentageController.text,
-                              ) ??
-                              0,
+                            discountPercent:
+                                double.tryParse(
+                                  discountPercentageController.text,
+                                ) ??
+                                0,
 
-                          discountAmount:
-                              double.tryParse(discountAmountController.text) ?? 0,
+                            discountAmount:
+                                double.tryParse(discountAmountController.text) ?? 0,
 
-                          addOnAmount:
-                              double.tryParse(addAmountController.text) ?? 0,
+                            addOnAmount:
+                                double.tryParse(addAmountController.text) ?? 0,
 
-                          ecrAmount:
-                              double.tryParse(ecrAmountController.text) ?? 0,
+                            ecrAmount:
+                                double.tryParse(ecrAmountController.text) ?? 0,
 
-                          gstPercent:
-                              double.tryParse(gstPercentageController.text) ?? 0,
+                            gstPercent:
+                                double.tryParse(gstPercentageController.text) ?? 0,
 
-                          gstAmount:
-                              double.tryParse(gstAmountController.text) ?? 0,
+                            gstAmount:
+                                double.tryParse(gstAmountController.text) ?? 0,
 
-                          taxableValue: provider.taxableValue,
-                          totalAmount: provider.billValue,
-                        );
-                        Navigator.pop(context, item);
-                      },
-                      borderRadius: 5,
-                      color: AppColors.primaryPurple,
+                            taxableValue: provider.taxableValue,
+                            totalAmount: provider.billValue,
+                          );
+                          Navigator.pop(context, item);
+                        },
+                        borderRadius: 5,
+                        color: AppColors.primaryPurple,
+                      ),
                     ),
                   ],
                 ),
+                SizedBox(height:30)
               ],
             ),
           ),

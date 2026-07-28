@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
+import '../customs/dropdown_test.dart';
 import '../model_classes/add_deposit_model.dart';
 import '../model_classes/retail_deposit_history_model.dart';
 import '../model_classes/retail_model.dart';
@@ -25,7 +26,7 @@ class EditRetailScreen extends StatefulWidget {
 
 class _EditRetailScreenState extends State<EditRetailScreen> {
   final retailerController = TextEditingController();
-
+  final ScrollController _scrollController = ScrollController();
   final dateController = TextEditingController();
 
   final List<TextEditingController> depositAmountControllers = [];
@@ -114,7 +115,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   @override
   void dispose() {
     retailerController.dispose();
-
+    _scrollController.dispose();
     dateController.dispose();
 
     for (final c in depositAmountControllers) {
@@ -175,7 +176,11 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     );
   }
 
-  Widget buildField({required String label, required Widget child}) {
+  Widget buildField({
+    required String label,
+    required Widget child,
+    bool addPadding = true,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 5),
       child: Column(
@@ -186,7 +191,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             style: const TextStyle(color: Colors.white, fontSize: 18),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            // padding: addPadding
+            //     ? const EdgeInsets.symmetric(horizontal: 15)
+            //     : EdgeInsets.zero,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(5),
@@ -228,15 +235,20 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
           },
         ),
 
-       //
-
+        //
         if (showRetailInfo) ...[
           const SizedBox(height: 10),
           buildField(
             label: "Retailer",
             child: TextFormField(
               controller: retailerController,
-              decoration: const InputDecoration(border: InputBorder.none),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
+                ),
+              ),
             ),
           ),
 
@@ -248,6 +260,10 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               onTap: pickDate,
               decoration: const InputDecoration(
                 border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
+                ),
                 suffixIcon: Icon(Iconsax.calendar),
               ),
             ),
@@ -255,51 +271,55 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
           buildField(
             label: "Referred By",
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                isExpanded: true,
-                value: customerIds.contains(selectedCustomerId)
-                    ? selectedCustomerId
-                    : null,
-                items: entriesProvider.customerEntries
-                    .map(
-                      (customer) => DropdownMenuItem<int>(
-                        value: customer.id!.toInt(),
-                        child: Text(customer.customerName ?? ""),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCustomerId = value;
-                  });
-                },
-              ),
+            // addPadding: false,
+            child: CustomDropdown(
+              hintText: "Referred By",
+              items: entriesProvider.customerEntries
+                  .map((e) => e.customerName ?? '')
+                  .toList(),
+              initialValue:
+                  entriesProvider.customerEntries
+                      .where((e) => e.id == selectedCustomerId)
+                      .isNotEmpty
+                  ? entriesProvider.customerEntries
+                        .firstWhere((e) => e.id == selectedCustomerId)
+                        .customerName
+                  : null,
+              onChanged: (value) {
+                final customer = entriesProvider.customerEntries.firstWhere(
+                  (e) => e.customerName == value,
+                );
+
+                setState(() {
+                  selectedCustomerId = customer.id!.toInt();
+                });
+              },
             ),
           ),
 
           buildField(
             label: "Staff",
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                isExpanded: true,
-                value: staffIds.contains(selectedStaffId)
-                    ? selectedStaffId
-                    : null,
-                items: staffProvider.staffs
-                    .map(
-                      (staff) => DropdownMenuItem<int>(
-                        value: staff.staffId,
-                        child: Text(staff.staffName),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedStaffId = value;
-                  });
-                },
-              ),
+            //  addPadding: false,
+            child: CustomDropdown(
+              hintText: "Staff",
+              items: staffProvider.staffs.map((e) => e.staffName).toList(),
+              initialValue:
+                  staffProvider.staffs
+                      .where((e) => e.staffId == selectedStaffId)
+                      .isNotEmpty
+                  ? staffProvider.staffs
+                        .firstWhere((e) => e.staffId == selectedStaffId)
+                        .staffName
+                  : null,
+              onChanged: (value) {
+                final staff = staffProvider.staffs.firstWhere(
+                  (e) => e.staffName == value,
+                );
+
+                setState(() {
+                  selectedStaffId = staff.staffId;
+                });
+              },
             ),
           ),
 
@@ -358,7 +378,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       depositDateControllers.add(TextEditingController());
     }
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         sectionHeader(
           title: "Add Deposits",
@@ -375,8 +396,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
           },
         ),
 
-       //
-
+        //
         if (showDeposits) ...[
           ...List.generate(retail.suppliers.length, (index) {
             final supplier = retail.suppliers[index];
@@ -573,7 +593,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
         sectionHeader(
           title: "History",
           expanded: showHistory,
-          onTap: () {
+          onTap: () async {
             setState(() {
               showHistory = !showHistory;
 
@@ -582,6 +602,17 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               //   showDeposits = false;
               // }
             });
+            if (showHistory) {
+              await Future.delayed(const Duration(milliseconds: 100));
+
+              if (_scrollController.hasClients) {
+                _scrollController.animateTo(
+                  _scrollController.position.maxScrollExtent,
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeInOut,
+                );
+              }
+            }
           },
         ),
 
@@ -634,7 +665,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   }) {
     final bool expanded = expandedSupplierIndex == index;
 
-    return Card(color:Colors.white,
+    return Card(
+      color: Colors.white,
       // margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shadowColor: Colors.black12,
@@ -788,10 +820,24 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                   ),
 
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
                       setState(() {
                         expandedSupplierIndex = expanded ? null : index;
                       });
+                      if (!expanded) {
+                        await Future.delayed(const Duration(milliseconds: 100));
+
+                        if (!_scrollController.hasClients) return;
+
+                        _scrollController.animateTo(
+                          (_scrollController.offset + 120).clamp(
+                            0.0,
+                            _scrollController.position.maxScrollExtent,
+                          ),
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(top: 3),
@@ -806,10 +852,17 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 ],
               ),
             ),
-            if (expanded) ...[
-              SizedBox(height: 3),
-              Row(
+
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 300),
+              crossFadeState: expanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              firstChild: const SizedBox.shrink(),
+              secondChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 8),
                   Text(
                     "Deposits (${history.deposits.length})",
                     style: const TextStyle(
@@ -817,83 +870,82 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                       fontSize: 13,
                     ),
                   ),
-                ],
-              ),
-
-              if (history.deposits.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Center(
-                    child: Text(
-                      "No Deposit History",
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ),
-                ),
-              if (history.deposits.isNotEmpty)
-                ...List.generate(history.deposits.length, (i) {
-                  final deposit = history.deposits[i];
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_month_outlined,
-                              size: 16,
-                              color: AppColors.primaryPurple,
-                            ),
-
-                            const SizedBox(width: 8),
-
-                            SizedBox(
-                              width: 130,
-                              child: Text(
-                                deposit.date.isEmpty ? "-" : deposit.date,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ),
-
-                            Text(
-                              "₹${deposit.amount}",
-                              style: const TextStyle(
-                                color: Colors.indigo,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(width: 25),
-
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xffE8F7EE),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                "Deposited",
-                                style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ),
-                          ],
+                  if (history.deposits.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Center(
+                        child: Text(
+                          "No Deposit History",
+                          style: TextStyle(color: Colors.grey.shade600),
                         ),
                       ),
-                      SizedBox(height: 3),
-                      if (i < history.deposits.length - 1)
-                        const DashedDivider(),
-                      SizedBox(height: 2),
-                    ],
-                  );
-                }).toList(),
-            ],
+                    ),
+                  if (history.deposits.isNotEmpty)
+                    ...List.generate(history.deposits.length, (i) {
+                      final deposit = history.deposits[i];
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_month_outlined,
+                                  size: 16,
+                                  color: AppColors.primaryPurple,
+                                ),
+
+                                const SizedBox(width: 8),
+
+                                SizedBox(
+                                  width: 130,
+                                  child: Text(
+                                    deposit.date.isEmpty ? "-" : deposit.date,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ),
+
+                                Text(
+                                  "₹${deposit.amount}",
+                                  style: const TextStyle(
+                                    color: Colors.indigo,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                const SizedBox(width: 25),
+
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xffE8F7EE),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Text(
+                                    "Deposited",
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          if (i < history.deposits.length - 1)
+                            const DashedDivider(),
+                          SizedBox(height: 2),
+                        ],
+                      );
+                    }).toList(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -1004,6 +1056,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
         body: SafeArea(
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(15),
 
             child: Column(

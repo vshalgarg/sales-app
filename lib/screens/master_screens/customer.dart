@@ -107,6 +107,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
                       icon: const Icon(Icons.close),
                       onPressed: () {
                         searchController.clear();
+                        FocusScope.of(context).unfocus();
+                        context.read<SearchCustomerProvider>().clearSearch();
                         setState(() {});
                       },
                     ),
@@ -341,7 +343,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                   final id = isSearching
                                       ? customer.id
                                       : customer['id'];
-                                  Navigator.pushReplacement(
+                                  Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => AddNewCustomer(
@@ -364,7 +366,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         onPressed: () {
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddNewCustomer()),
           );

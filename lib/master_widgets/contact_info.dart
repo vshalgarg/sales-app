@@ -11,15 +11,14 @@ class ContactInfo extends StatefulWidget {
   final VoidCallback onAdd;
   final Function(int) onDelete;
   final FormMode? mode;
-  final ScrollController? scrollController;
-
+  final ScrollController scrollController;
   const ContactInfo({
     super.key,
     this.mode,
     required this.contacts,
     required this.onAdd,
     required this.onDelete,
-    this.scrollController,
+    required this.scrollController,
   });
 
   @override
@@ -30,46 +29,49 @@ class _ContactInfoState extends State<ContactInfo> {
   final GlobalKey _contactKey = GlobalKey();
   final GlobalKey _expandedKey = GlobalKey();
   bool isExpanded = false;
-
+  final ScrollController _scrollController = ScrollController();
   @override
   Widget build(BuildContext context) {
     final contacts = widget.contacts;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              isExpanded = !isExpanded;
-            });
-            if (isExpanded) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Scrollable.ensureVisible(
-                  _contactKey.currentContext!,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                  alignment: 0.0,
-                );
+        Container(
+          key: _contactKey,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                isExpanded = !isExpanded;
               });
-            }
-          },
-          child: TextFormField(
-            enabled: false,
-            decoration: InputDecoration(
-              suffixIcon: Icon(
-                isExpanded
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                color: Colors.white,
-              ),
-              iconColor: Colors.white,
-              filled: true,
-              fillColor: AppColors.primaryPurple,
-              hintText: "Contact Information",
-              hintStyle: TextStyle(color: Colors.white),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide.none,
+              if (isExpanded) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Scrollable.ensureVisible(
+                    _contactKey.currentContext!,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    alignment: 0.05,
+                  );
+                });
+              }
+            },
+            child: TextFormField(
+              enabled: false,
+              decoration: InputDecoration(
+                suffixIcon: Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: Colors.white,
+                ),
+                iconColor: Colors.white,
+                filled: true,
+                fillColor: AppColors.primaryPurple,
+                hintText: "Contact Information",
+                hintStyle: TextStyle(color: Colors.white),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ),
@@ -191,14 +193,13 @@ class _ContactInfoState extends State<ContactInfo> {
                         widget.onAdd();
 
                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (widget.scrollController != null) {
-                            widget.scrollController!.animateTo(
-                              widget.scrollController!.position.maxScrollExtent,
-                              duration: const Duration(milliseconds: 350),
-                              curve: Curves.easeInOut,
+                          widget.scrollController.animateTo(
+                            widget.scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.easeInOut,
                             );
                           }
-                        });
+        );
                       },
                       child: const Text(
                         "+ ADD CONTACT",

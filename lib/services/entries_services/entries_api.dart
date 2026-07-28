@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:hisabio/model_classes/entries_customer_model.dart';
 import 'package:hisabio/model_classes/entries_supplier.dart';
 import 'package:hisabio/model_classes/get_transportname_id_model.dart';
@@ -174,7 +175,8 @@ class EntriesApi {
 
   Future<String?> addPurchaseEntry({
     required Map<String, dynamic> payload,
-    required List<File> images,
+    required List<List<PlatformFile>> uploadedFiles,
+    required List<EntriesModel?>selectedSuppliers,
   }) async {
     final url = Uri.parse(
       "http://192.168.1.100:8087/csm/api/v1/purchase/entry/add",
@@ -194,11 +196,16 @@ class EntriesApi {
       ),
     );
 
-    for (final image in images) {
+    for (int i =0;i<uploadedFiles.length;i++ ){
+      final supplierId = selectedSuppliers[i]?.id;
+      if(supplierId==null) continue;
+      for(final file in uploadedFiles[i]){
+        if (file.path ==null)continue;
+
       request.files.add(
-        await http.MultipartFile.fromPath('images', image.path),
+        await http.MultipartFile.fromPath('supplier_${supplierId}_images', file.path!),
       );
-    }
+    }}
 
     final response = await request.send();
     final body = await response.stream.bytesToString();

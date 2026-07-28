@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/enums/customer_mode.dart';
+import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/search_bill_provider.dart';
-import '../../reporting_widgets/bill_details_screen.dart';
-import '../../reporting_widgets/edit_bill_screen.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../customs/app_bar.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
-import '../../services/bills_detail_api.dart';
 import '../entry_screen/entries_bill_entry.dart';
 import '../home_screen.dart';
 
@@ -25,18 +23,70 @@ class Bills extends StatefulWidget {
 
 class _BillsState extends State<Bills> {
   final ScrollController _scrollController = ScrollController();
+  List<String> supplierItems = [];
+  List<String> customerItems = [];
   bool _showGoToTop = false;
   bool isFilterApplied = false;
   final TextEditingController fromDateController = TextEditingController();
 
   final TextEditingController toDateController = TextEditingController();
+  int? selectedCustomerId;
+  int? selectedStaffId;
   int page = 0;
   bool isLoadingMore = false;
   bool hasMore = true;
   String? selectedSupplier;
   String? selectedCustomer;
   bool isOpening = false;
+  void _showBottomSheetSnackBar(
+      BuildContext context,
+      String message,
+      ) {
+    final overlay = Overlay.of(context);
 
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: 16,
+        right: 16,
+        bottom: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.containerFillColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      //color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      entry.remove();
+    });
+  }
   @override
   void initState() {
     super.initState();
@@ -50,7 +100,7 @@ class _BillsState extends State<Bills> {
     toDateController.text = formatter.format(now);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-
+     // final entriesProvider = context.read<EntriesProvider>();
       await billsProvider.fetchBills(
         page: page,
         fromDate: fromDateController.text,
@@ -118,7 +168,9 @@ class _BillsState extends State<Bills> {
     //if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => EntriesBillEntry(mode:FormMode.view,id:billNumber)),
+      MaterialPageRoute(
+        builder: (_) => EntriesBillEntry(mode: FormMode.view, id: billNumber),
+      ),
     );
   }
 
@@ -132,7 +184,7 @@ class _BillsState extends State<Bills> {
 
     if (selectedSupplier != null) {
       final supplier = provider.entries.firstWhere(
-            (e) => e.supplierName == selectedSupplier,
+        (e) => e.supplierName == selectedSupplier,
       );
 
       supplierId = supplier.id?.toInt();
@@ -140,7 +192,7 @@ class _BillsState extends State<Bills> {
 
     if (selectedCustomer != null) {
       final customer = provider.customerEntries.firstWhere(
-            (e) => e.customerName == selectedCustomer,
+        (e) => e.customerName == selectedCustomer,
       );
       customerId = customer.id?.toInt();
     }
@@ -166,13 +218,13 @@ class _BillsState extends State<Bills> {
   }
 
   void _clearFilters() {
-    final now = DateTime.now();
-    final tenDaysAgo = now.subtract(const Duration(days: 10));
-    final formatter = DateFormat('yyyy-MM-dd');
+    // final now = DateTime.now();
+    // final tenDaysAgo = now.subtract(const Duration(days: 10));
+    // final formatter = DateFormat('yyyy-MM-dd');
 
     setState(() {
-      fromDateController.text = formatter.format(tenDaysAgo);
-      toDateController.text = formatter.format(now);
+      // fromDateController.text = formatter.format(tenDaysAgo);
+      // toDateController.text = formatter.format(now);
       isFilterApplied = false;
       selectedSupplier = null;
       selectedCustomer = null;
@@ -195,7 +247,7 @@ class _BillsState extends State<Bills> {
           builder: (context, bottomSheetSetState) {
             return Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFF7F6FF),
+                color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),
@@ -209,6 +261,7 @@ class _BillsState extends State<Bills> {
                   FilterDropdown(
                     label: "Supplier",
                     value: selectedSupplier,
+                   // items: supplierItems,
                     items: provider.entries
                         .map((e) => e.supplierName ?? '')
                         .where((e) => e.isNotEmpty)
@@ -243,7 +296,22 @@ class _BillsState extends State<Bills> {
                   ),
                 ],
 
-                onApply: () {
+                onApply: () async {
+                  final hasFilter =
+                      fromDateController.text.isNotEmpty ||
+                          toDateController.text.isNotEmpty ||
+                          selectedSupplier != null ||
+                          selectedCustomerId != null ||
+                          selectedStaffId != null;
+
+                  if (!hasFilter) {
+                    _showBottomSheetSnackBar(
+                      context,
+                      "Please select at least one filter.",
+                    );
+                    return;
+                  }
+
                   Navigator.pop(context);
                   _applyFilters();
                 },
@@ -279,7 +347,7 @@ class _BillsState extends State<Bills> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => HomeScreen()),
             );
@@ -380,22 +448,24 @@ class _BillsState extends State<Bills> {
           horizontal: width * 0.04,
           vertical: height * 0.015,
         ),
-        child: Consumer<EntriesProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (provider.error != null) {
-              return Center(
-                child: Text(
-                  provider.error!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            }
-
-            return Column(
+        child:
+            // Consumer<EntriesProvider>(
+            //   builder: (context, provider, child) {
+            //     if (provider.isLoading) {
+            //       return const Center(child: CircularProgressIndicator());
+            //     }
+            //
+            //     if (provider.error != null) {
+            //       return Center(
+            //         child: Text(
+            //           provider.error!,
+            //           style: const TextStyle(color: Colors.red),
+            //         ),
+            //       );
+            //     }
+            //
+            //     return
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
@@ -455,71 +525,45 @@ class _BillsState extends State<Bills> {
                                     ReportField(
                                       icon: Iconsax.shop,
                                       label: "Supplier",
-                                      value: bill.supplierName ,
+                                      value: bill.supplierName,
                                     ),
                                     ReportField(
                                       icon: Iconsax.user,
                                       label: "Customer",
-                                      value: bill.customerName ,
+                                      value: bill.customerName,
                                     ),
                                   ],
 
-                                  amount: (bill.billAmount ).toString(),
+                                  amount: (bill.billAmount).toString(),
 
                                   onTap: () async {
-                                    await _showBillDetails(bill.billNumber );
+                                    await _showBillDetails(bill.billNumber);
                                   },
 
                                   onEdit: () async {
-                                    Navigator.push(
+                                    final bool? refresh = await Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (_) => EntriesBillEntry(mode:FormMode.edit,id:bill.billNumber)),
+                                      MaterialPageRoute(
+                                        builder: (_) => EntriesBillEntry(
+                                          mode: FormMode.edit,
+                                          id: bill.billNumber,
+                                        ),
+                                      ),
                                     );
+                                    if (!context.mounted) return;
 
-                                    // try {
-                                       //final billDetails = await getBillDetails(
-                                    //     bill.billNumber,
-                                    //   );
-                                    //
-                                    //   if (!context.mounted) return;
-                                    //
-                                    //   final billsProvider = context
-                                    //       .read<BillsProvider>();
-                                    //   final messenger = ScaffoldMessenger.of(
-                                    //     context,
-                                    //   );
-                                    //
-                                    //   final updated = await Navigator.push(
-                                    //     context,
-                                    //     MaterialPageRoute(
-                                             // builder: (_) => EditBillScreen(
-                                    //         billData: billDetails,
-                                    //       ),
-                                    //     ),
-                                    //   );
-                                    //
-                                    //   if (updated == true) {
-                                    //     await billsProvider.fetchBills(
-                                    //       page: 0,
-                                    //       fromDate: fromDateController.text,
-                                    //       toDate: toDateController.text,
-                                    //     );
-                                    //
-                                    //     if (!mounted) return;
-                                    //
-                                    //     setState(() {});
-                                    //
-                                    //     messenger.showSnackBar(
-                                    //       const SnackBar(
-                                    //         content: Text(
-                                    //           "Bill Updated Successfully",
-                                    //         ),
-                                    //       ),
-                                    //     );
-                                    //   }
-                                    // } catch (e) {
-                                    //   debugPrint("REFRESH ERROR => $e");
-                                    // }
+                                    if (refresh == true) {
+                                      page = 0;
+                                      hasMore = true;
+
+                                      await context
+                                          .read<BillsProvider>()
+                                          .fetchBills(
+                                            page: 0,
+                                            fromDate: fromDateController.text,
+                                            toDate: toDateController.text,
+                                          );
+                                    }
                                   },
                                   onDelete: () async {
                                     ExitConfirmationDialog.show(
@@ -541,18 +585,10 @@ class _BillsState extends State<Bills> {
                                             .deleteBill(bill.billNumber);
 
                                         if (!context.mounted) return;
+                                        ScaffoldSnackBar.show(context,success
+                                            ?"Bills deleted Successfully "
+                                            :"Failed to delete retail");
 
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              success
-                                                  ? "Bills deleted successfully"
-                                                  : "Failed to delete retail",
-                                            ),
-                                          ),
-                                        );
                                       },
                                     );
                                   },
@@ -560,16 +596,14 @@ class _BillsState extends State<Bills> {
                                 );
                               },
                             ),
-                      );
+                          );
                         },
                       );
                     },
                   ),
                 ),
               ],
-            );
-          },
-        ),
+            ),
       ),
     );
   }

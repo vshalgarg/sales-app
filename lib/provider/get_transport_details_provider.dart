@@ -41,7 +41,9 @@ class GetTransportProvider extends ChangeNotifier {
         page: _page,
         size: _size,
       );
-
+      for (var t in response.content ?? []) {
+        print("ID: ${t.id}  Name: ${t.name}");
+      }
       transports.addAll(response.content ?? []);
 
       hasMore = !(response.last ?? true);
@@ -59,7 +61,22 @@ class GetTransportProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  void updateTransportLocally(Map updated) {
+    final index = transports.indexWhere((e) => e.id == updated["id"]);
 
+    if (index == -1) return;
+
+    final updatedTransport = transports[index].copyWith(
+      name: updated["name"],
+      gstNo: updated["gstNo"],
+      city: updated["city"],
+    );
+
+    transports.removeAt(index);
+    transports.insert(0, updatedTransport);
+
+    notifyListeners();
+  }
   Future<void> refreshTransport() async {
     await getTransportDetails(refresh: true);
   }

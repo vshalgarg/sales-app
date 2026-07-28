@@ -43,6 +43,10 @@ class AddNewTransportApi {
         },
         body: jsonEncode(body),
       );
+      print("URL: $url");
+      print("Status Code: ${response.statusCode}");
+      print("Response: ${response.body}");
+      print("Request Body: ${jsonEncode(body)}");
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return UpdateCustomerModel.fromJson(data);

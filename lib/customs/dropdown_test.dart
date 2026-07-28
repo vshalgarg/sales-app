@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../constants/colors_used.dart';
+
 class CustomDropdown extends StatefulWidget {
   final String? label;
   final List<String> items;
@@ -8,6 +10,9 @@ class CustomDropdown extends StatefulWidget {
   final bool isDisabled;
   final bool isRequired;
   final String hintText;
+  final bool isEmbedded;
+  final Color? color;
+  final String? Function(String?)? validator;
 
   const CustomDropdown({
     super.key,
@@ -15,9 +20,12 @@ class CustomDropdown extends StatefulWidget {
     required this.items,
     this.initialValue,
     required this.onChanged,
+    this.color,
     this.isDisabled = false,
     this.isRequired = false,
     this.hintText = "Select",
+    this.isEmbedded = false,
+    this.validator,
   });
 
   @override
@@ -25,6 +33,8 @@ class CustomDropdown extends StatefulWidget {
 }
 
 class _CustomDropdownState extends State<CustomDropdown> {
+  final GlobalKey<FormFieldState<String>> _formFieldKey =
+  GlobalKey<FormFieldState<String>>();
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
@@ -34,17 +44,28 @@ class _CustomDropdownState extends State<CustomDropdown> {
   @override
   void initState() {
     super.initState();
-    selectedValue = widget.initialValue;
+    selectedValue = widget.items.contains(widget.initialValue)
+        ? widget.initialValue
+        : null;
   }
-
   @override
   void didUpdateWidget(covariant CustomDropdown oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (widget.initialValue != oldWidget.initialValue) {
       selectedValue = widget.initialValue;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        _formFieldKey.currentState?.didChange(selectedValue);
+
+        if (_overlayEntry != null) {
+          _removeOverlay();
+        }
+      });
     }
   }
-
   @override
   void dispose() {
     _removeOverlay();
@@ -61,8 +82,12 @@ class _CustomDropdownState extends State<CustomDropdown> {
   }
 
   void _removeOverlay() {
-    _overlayEntry?.remove();
+    final entry = _overlayEntry;
     _overlayEntry = null;
+
+    if (entry != null && entry.mounted) {
+      entry.remove();
+    }
   }
 
   void _showOverlay() {
@@ -71,114 +96,167 @@ class _CustomDropdownState extends State<CustomDropdown> {
     final size = renderBox.size;
 
     _overlayEntry = OverlayEntry(
-      builder: (_) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _removeOverlay,
-              behavior: HitTestBehavior.translucent,
-            ),
-          ),
-          CompositedTransformFollower(
-            link: _layerLink,
-            showWhenUnlinked: false,
-            offset: Offset(0, size.height),
-            child: Material(
-              elevation: 6,
-              borderRadius: BorderRadius.circular(8),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 220),
-                child: Container(
-                  width: size.width,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: widget.items.length,
-                    itemBuilder: (_, index) {
-                      final item = widget.items[index];
-                      return InkWell(
-                        onTap: () {
-                          setState(() => selectedValue = item);
-                          widget.onChanged(item);
-                          _removeOverlay();
+      builder: (_) =>
+          Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _removeOverlay,
+                  behavior: HitTestBehavior.translucent,
+                ),
+              ),
+              CompositedTransformFollower(
+                link: _layerLink,
+
+                showWhenUnlinked: false,
+                offset: Offset(0, size.height),
+                child: Material(
+                  elevation: 6,
+                  borderRadius: BorderRadius.circular(5),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 400),
+                    child: Container(
+                      width: size.width,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                      //  border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: widget.items.length,
+                        itemBuilder: (_, index) {
+                          final item = widget.items[index];
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                selectedValue = item;
+                              });
+
+                              _formFieldKey.currentState?.didChange(item); // <-- Important
+                              _formFieldKey.currentState?.validate();      // <-- Removes error immediately
+
+                              widget.onChanged(item);
+                              _removeOverlay();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 14),
+                              child: Text(item),
+                            ),
+                          );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 14),
-                          child: Text(item),
-                        ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
     );
 
-    Overlay.of(context).insert(_overlayEntry!);
+    final overlay = Overlay.maybeOf(context);
+
+    if (overlay != null && mounted) {
+      overlay.insert(_overlayEntry!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.label != null) ...[
-          RichText(
-            text: TextSpan(
-              style: const TextStyle(color: Colors.black, fontSize: 16),
-              children: [
-                TextSpan(text: widget.label),
-                if (widget.isRequired)
-                  const TextSpan(
-                      text: " *", style: TextStyle(color: Colors.red)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-        ],
-        CompositedTransformTarget(
-          link: _layerLink,
-          child: GestureDetector(
-            key: _fieldKey,
-            onTap: _toggle,
-            child: Container(
-             height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: widget.isDisabled
-                    ? Colors.grey.shade200
-                    : Colors.white,
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.label != null) ...[
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                    color: AppColors.primaryBlue,
+                    fontSize: 16),
                 children: [
-                  Expanded(
-                    child: Text(
-                      selectedValue ?? widget.hintText,
-                      style: TextStyle(
-                        color: selectedValue == null
-                            ? Colors.grey
-                            : Colors.black,
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.keyboard_arrow_down),
+                  TextSpan(text: widget.label),
+                  if (widget.isRequired)
+                    const TextSpan(
+                        text: " *", style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
-          ),
-        ),
-      ],
+            //const SizedBox(height: 6),
+          ],
+          FormField<String>(
+              key: _formFieldKey,
+              initialValue: selectedValue,
+              validator: widget.validator,
+              builder: (field) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CompositedTransformTarget(
+                      link: _layerLink,
+                      child: GestureDetector(
+                        key: _fieldKey,
+                        onTap: _toggle,
+                        child: Container(
+                          padding: widget.isEmbedded
+                              ? EdgeInsets.zero
+                              : const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: widget.isEmbedded
+                              ? null
+                              : BoxDecoration(
+                            color: widget.isDisabled
+                                ? Colors.white
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(
+                              color: field.hasError ? Colors.red : Colors.grey,
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 18.0, bottom: 18),
+                                  child: Text(
+                                    (selectedValue == null || selectedValue!.trim().isEmpty)
+                                        ? widget.hintText
+                                        : selectedValue!,
+                                    style: TextStyle(fontSize: 16,
+                                      color: widget.isDisabled == true
+                                          ? Colors.grey
+                                          : Colors.black54
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Icon(Icons.keyboard_arrow_down,
+                                  color: widget.isDisabled == true
+                                      ? Colors.grey
+                                      : Colors.black54
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (field.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, top: 5),
+                        child: Text(
+                          field.errorText!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              }
+          )
+        ]
     );
   }
 }

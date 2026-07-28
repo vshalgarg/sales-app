@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
+import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/customs/elevated_button.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:provider/provider.dart';
@@ -130,42 +131,42 @@ class _AddNewUserState extends State<AddNewUser> {
                                 ),
                               ),
                               SizedBox(height: 10),
-                              DropdownButtonFormField<String>(
+                             CustomDropdown(
                                 initialValue: selectedRole,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.white,
+                                // decoration: InputDecoration(
+                                //   filled: true,
+                                //   fillColor: Colors.white,
                                   hintText: "Role",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                ),
-                                items: ["ADMIN", "AGENT"]
-                                    .map(
-                                      (role) => DropdownMenuItem(
-                                        value: role,
-                                        child: Text(role),
-                                      ),
-                                    )
-                                    .toList(),
+                                  // border: OutlineInputBorder(
+                                  //   borderRadius: BorderRadius.circular(5),
+                                  //   borderSide: BorderSide(
+                                  //     color: Colors.grey,
+                                  //     width: 0.5,
+                                  //   ),
+                                  // ),
+                                  // focusedBorder: OutlineInputBorder(
+                                  //   borderRadius: BorderRadius.circular(5),
+                                  //   borderSide: BorderSide(
+                                  //     color: Colors.grey,
+                                  //     width: 0.5,
+                                  //   ),
+                                  // ),
+                                  // enabledBorder: OutlineInputBorder(
+                                  //   borderRadius: BorderRadius.circular(5),
+                                  //   borderSide: BorderSide(
+                                  //     color: Colors.grey,
+                                  //     width: 0.5,
+                                  //   ),
+                                  // ),
+                                items: ["ADMIN", "AGENT"],
+
+                                    // .map(
+                                    //   (role) => DropdownMenuItem(
+                                    //     value: role,
+                                    //     child: Text(role),
+                                    //   ),
+                                    // )
+                                    //.toList(),
                                 onChanged: (value) {
                                   setState(() {
                                     selectedRole = value;
@@ -193,6 +194,8 @@ class _AddNewUserState extends State<AddNewUser> {
                                             color: Colors.white,
                                           ),
                                           onPressed: () async {
+                                            if(userController.text.isEmpty||passwordController.text.isEmpty||selectedRole==null){
+                                              return ScaffoldSnackBar.show(context,"Please fill UserName,Password & Roles");}
                                             final body = {
                                               "username": userController.text,
                                               "password": passwordController.text,

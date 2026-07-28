@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../constants/colors_used.dart';
+import '../customs/dropdown_test.dart';
 
 class FilterDropdown {
   final String label;
@@ -32,7 +33,18 @@ class ReportingFilterSection extends StatelessWidget {
     required this.onApply,
     required this.onClear,
   });
-
+  // bool _hasSelectedFilter() {
+  //   if (fromDateController.text.isNotEmpty ||
+  //       toDateController.text.isNotEmpty) {
+  //     return true;
+  //   }
+  //
+  //   return dropdowns.any(
+  //         (dropdown) =>
+  //     dropdown.value != null &&
+  //         dropdown.value!.trim().isNotEmpty,
+  //   );
+  // }
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -44,7 +56,7 @@ class ReportingFilterSection extends StatelessWidget {
             width: 55,
             height: 6,
             decoration: BoxDecoration(
-              color: const Color(0xFFC7CAF9),
+              color: AppColors.primaryBlue,
               borderRadius: BorderRadius.circular(5),
             ),
           ),
@@ -56,10 +68,7 @@ class ReportingFilterSection extends StatelessWidget {
             width: 70,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white,
-                width: 3,
-              ),
+              border: Border.all(color: AppColors.bodyFillColor, width: 2),
             ),
             child: const Icon(
               Icons.filter_alt_outlined,
@@ -98,9 +107,15 @@ class ReportingFilterSection extends StatelessWidget {
           const SizedBox(height: 10),
 
           ...dropdowns.map(
-                (dropdown) => Padding(
+            (dropdown) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _buildDropdownCard(dropdown),
+              child: CustomDropdown(
+                 label: dropdown.label,
+                items: dropdown.items,
+                initialValue: dropdown.value,
+                hintText: "Select ${dropdown.label.toLowerCase()}",
+                onChanged: dropdown.onChanged,
+              ),
             ),
           ),
 
@@ -117,9 +132,7 @@ class ReportingFilterSection extends StatelessWidget {
                     label: const Text("Clear Filters"),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primaryBlue,
-                      side: const BorderSide(
-                        color: AppColors.primaryBlue,
-                      ),
+                      side: const BorderSide(color: AppColors.primaryBlue),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
@@ -134,7 +147,18 @@ class ReportingFilterSection extends StatelessWidget {
                 child: SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: onApply,
+                    onPressed: () {
+                      // if (!_hasSelectedFilter()) {
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //     const SnackBar(
+                      //       content: Text("Please select at least one filter."),
+                      //     ),
+                      //   );
+                      //   return;
+                      // }
+
+                      onApply();
+                    },
                     icon: const Icon(Icons.filter_alt_outlined),
                     label: const Text("Apply Filters"),
                     style: ElevatedButton.styleFrom(
@@ -149,18 +173,31 @@ class ReportingFilterSection extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height:30),
+          SizedBox(height: 30),
         ],
       ),
     );
   }
 
   Widget _buildDateCard(
-      BuildContext context, {
-        required TextEditingController controller,
-        required String label,
-      }) {
-    return InkWell(
+    BuildContext context, {
+    required TextEditingController controller,
+    required String label,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+      Text(
+      label,
+      style: const TextStyle(
+        color: AppColors.primaryBlue,
+        fontSize: 16,
+       // fontWeight: FontWeight.w500,
+      ),
+    ),
+
+    //const SizedBox(height: 6),
+    InkWell(
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
@@ -174,29 +211,16 @@ class ReportingFilterSection extends StatelessWidget {
         }
       },
       child: Container(
-        height: 58,
+       // height: 58,
         padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(.04),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          border: Border.all(color: Colors.grey,
+          width: 0.5)
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.calendar_month_outlined,
-              color: AppColors.primaryBlue,
-              size: 18,
-            ),
-
-            const SizedBox(width: 12),
-
             Expanded(
               child: ValueListenableBuilder<TextEditingValue>(
                 valueListenable: controller,
@@ -205,23 +229,24 @@ class ReportingFilterSection extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        label,
-                        style: const TextStyle(
-                          color: AppColors.primaryBlue,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        value.text.isEmpty
-                            ? "Select date"
-                            : value.text,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: value.text.isEmpty
-                              ? Colors.grey
-                              : Colors.black87,
+                     //  Text(
+                     //    label,
+                     //    style: const TextStyle(
+                     //      color: AppColors.primaryBlue,
+                     //      fontSize: 14,
+                     //      fontWeight: FontWeight.w500,
+                     //    ),
+                     //  ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 18.0),
+                        child: Text(
+                          value.text.isEmpty ? "Select date" : value.text,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: value.text.isEmpty
+                                ? Colors.grey
+                                : Colors.black87,
+                          ),
                         ),
                       ),
                     ],
@@ -246,94 +271,8 @@ class ReportingFilterSection extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDropdownCard(FilterDropdown dropdown) {
-    IconData icon = dropdown.label == "Supplier"
-        ? Icons.storefront_outlined
-        : Icons.person_outline;
-
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: AppColors.primaryBlue,
-            size: 18,
-          ),
-
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  dropdown.label,
-                  style: const TextStyle(
-                    color: AppColors.primaryBlue,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    height: 1
-                  ),
-                ),
-                const SizedBox(height: 2),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isDense: true,
-                    itemHeight: 48,
-                    isExpanded: true,
-                    value: dropdown.items.contains(dropdown.value)
-                        ? dropdown.value
-                        : null,
-                    icon: const SizedBox.shrink(),
-                    hint: Text(
-                      "Select ${dropdown.label.toLowerCase()}",
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
-                    ),
-                    items: dropdown.items.map((item) {
-                      return DropdownMenuItem<String>(
-                        value: item,
-                        child: Text(
-                          item,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: dropdown.onChanged,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: AppColors.primaryBlue,
-              size: 18,
-            ),
-        ],
-      ),
+    )
+    ]
     );
   }
 }

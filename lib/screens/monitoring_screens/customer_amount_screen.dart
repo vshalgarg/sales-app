@@ -87,7 +87,13 @@ class _CustomerAmountScreenState extends State<CustomerAmountScreen> {
                 builder: (_) {
                   return CustomBottomSheet(
                     onApply: () {
+                      final body = {
+                        "customerIds": selectedCustomers.map((e) => e.id).toList(),
+                        "fromDate": fromDateController.text,
+                        "toDate": toDateController.text,
+                      };
 
+                      print(body);
                       context.read<GraphProvider>().getCustomerAmount(
                         body: {
 

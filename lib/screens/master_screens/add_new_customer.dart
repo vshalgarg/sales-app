@@ -281,10 +281,8 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                   saveButtonText: "Stay",
                   onDiscard: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => CustomerScreen()),
-                    );
+                    Navigator.pop(context,true);
+
                   },
                 );
               },
@@ -501,8 +499,9 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                       updateProvider.updateCustomerResponse?.message ??
                           "Customer Updated Successfully",
                     );
-
-                    Navigator.pop(context);
+                   Navigator.pop(context);
+                   // Navigator.pop(context,true);
+                    // Navigator.push(context, MaterialPageRoute(builder: (_)=>CustomerScreen()));
                   } else {
                     ScaffoldSnackBar.show(
                       context,
@@ -534,7 +533,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                             provider.message ?? "Customer Added Successfully",
                           );
 
-                          Navigator.pop(context);
+                          Navigator.pop(context,true);
                         } else {
                           ScaffoldSnackBar.show(context, provider.error ?? "");
                         }

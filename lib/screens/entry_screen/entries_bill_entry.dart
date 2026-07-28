@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
+import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/customs/elevated_button.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_date_textfield.dart';
@@ -18,7 +19,6 @@ import '../../constants/custom_icons.dart';
 import '../../constants/view_image_method.dart';
 import '../../dialog_boxes/entry_dialogboxes/add_new_bill_item.dart';
 import '../../dialog_boxes/entry_dialogboxes/bill_section_upload_documents_dialog.dart';
-import '../../entry_widgets/custom_api_textfield.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/bill_item_model.dart';
 import '../../model_classes/entries_supplier.dart';
@@ -27,7 +27,6 @@ import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/search_bill_provider.dart';
-import '../reporting_screen/bills.dart';
 
 class EntriesBillEntry extends StatefulWidget {
   final FormMode mode;
@@ -41,7 +40,7 @@ class EntriesBillEntry extends StatefulWidget {
 
 class _EntriesBillEntryState extends State<EntriesBillEntry> {
   final _formKey = GlobalKey<FormState>();
-
+  final ScrollController _scrollController = ScrollController();
   bool get isViewMode => widget.mode == FormMode.view;
   bool isExpanded = true;
   List<String> existingFileNames = [];
@@ -52,8 +51,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   List<PlatformFile> uploadedFiles = [];
   List<BillItem> billItems = [];
   EntriesModel? selectedSupplier;
+  String? selectedSupplierName;
   EntriesCustomerModel? selectedCustomer;
+  String? selectedCustomerName;
   GetTransportnameIdModel? selectedTransport;
+  String? selectedTransportName;
   List<String> existingUrls = [];
   List<String> existingObjectKeys = [];
   List<String> removedObjectKeys = [];
@@ -78,6 +80,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     dateController.dispose();
     receivedDateController.dispose();
     invoiceController.dispose();
@@ -91,28 +94,58 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     super.dispose();
   }
-
   @override
   void initState() {
     super.initState();
-    dateController.text = DateFormat('yyyy/MM/dd').format(DateTime.now());
+
+    dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
     Future.microtask(() async {
-      final provider = context.read<EntriesProvider>();
-      await Future.wait([
-        provider.fetchSuppliers(),
-        provider.fetchCustomer(),
-        provider.fetchTransport(),
-      ]);
-      if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-        await context.read<BillsProvider>().fetchBillById(widget.id!);
-        final bill = context.read<BillsProvider>().bill;
+      final entriesProvider = context.read<EntriesProvider>();
+      final billsProvider = context.read<BillsProvider>();
+      await entriesProvider.loadInitialData();
+
+      if (!mounted) return;
+
+      setState(() {});
+
+      if (widget.mode == FormMode.view ||
+          widget.mode == FormMode.edit) {
+        await billsProvider.fetchBillById(widget.id!);
+
+        if (!mounted) return;
+
+        final bill = billsProvider.bill;
+
         if (bill != null) {
           fillBillData(bill);
         }
       }
     });
-    dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
   }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   dateController.text = DateFormat('yyyy/MM/dd').format(DateTime.now());
+  //   Future.microtask(() async {
+  //     final provider = context.read<EntriesProvider>();
+  //     await Future.wait([
+  //       provider.fetchSuppliers(),
+  //       provider.fetchCustomer(),
+  //       provider.fetchTransport(),
+  //     ]);
+  //     if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
+  //       await context.read<BillsProvider>().fetchBillById(widget.id!);
+  //       final bill = context.read<BillsProvider>().bill;
+  //       if (bill != null) {
+  //         fillBillData(bill);
+  //       }
+  //     }
+  //   });
+  //   dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  // }
+
   void fillBillData(BillResponse bill) {
     dateController.text = bill.date ?? "";
     receivedDateController.text = bill.receivedDate ?? "";
@@ -130,26 +163,41 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     billItems = bill.items!.cast<BillItem>();
 
     final provider = context.read<EntriesProvider>();
+    final supplier = provider.entries.where((e) => e.id == bill.supplierId);
 
-    selectedSupplier = provider.entries.firstWhere(
-      (e) => e.id == bill.supplierId,
+    if (supplier.isNotEmpty) {
+      selectedSupplier = supplier.first;
+      selectedSupplierName = supplier.first.supplierName;
+    }
+
+    // selectedSupplier = provider.entries.firstWhere(
+    //   (e) => e.id == bill.supplierId,
+    // );
+    selectedSupplierName = selectedSupplier?.supplierName;
+    final customer = provider.customerEntries.where(
+          (e) => e.id == bill.customerId,
     );
 
-    selectedCustomer = provider.customerEntries.firstWhere(
-      (e) => e.id == bill.customerId,
-    );
-
-    selectedTransport = provider.transportDetails.where(
-          (e) => e.name == bill.transport,
-    ).isNotEmpty
-        ? provider.transportDetails.firstWhere(
-          (e) => e.name == bill.transport,
-    )
+    if (customer.isNotEmpty) {
+      selectedCustomer = customer.first;
+      selectedCustomerName = customer.first.customerName;
+    }
+    // selectedCustomer = provider.customerEntries.firstWhere(
+    //   (e) => e.id == bill.customerId,
+    // );
+    selectedCustomerName = selectedCustomer?.customerName;
+    selectedTransport =
+        provider.transportDetails
+            .where((e) => e.name == bill.transport)
+            .isNotEmpty
+        ? provider.transportDetails.firstWhere((e) => e.name == bill.transport)
         : null;
+    selectedTransportName = selectedTransport?.name;
     existingObjectKeys = List<String>.from(bill.objectKeys ?? []);
 
     existingUrls = List<String>.from(bill.publicUrls ?? []);
     existingFileNames = List<String>.from(bill.originalFileNames ?? []);
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -168,14 +216,17 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       uploadedFiles = [];
       billItems = [];
       selectedSupplier = null;
+      selectedSupplierName = null;
       selectedCustomer = null;
+      selectedCustomerName = null;
       selectedTransport = null;
+      selectedTransportName = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<EntriesProvider>();
+    final provider = context.read<EntriesProvider>();
     final bill = context.watch<BillsProvider>().bill;
     // final customerProvider=context.watch<EntriesProvider>();
     return Scaffold(
@@ -191,35 +242,33 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
           fontWeight: FontWeight.w600,
           fontSize: 25,
         ),
-        leading:widget.mode == FormMode.view? IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context
-            );
-          },
-        ):null,
+        leading: widget.mode == FormMode.view
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
+            : null,
         actions: [
-          if(widget.mode!=FormMode.view)
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              ExitConfirmationDialog.show(
-                context,
-                onSave: () async {
-                  Navigator.pop(context);
-                },
-                saveButtonText: "Stay",
-                discardButtonText: "Leave",
-                onDiscard: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Bills()),
-                  );
-                },
-              );
-            },
-          ),
+          if (widget.mode != FormMode.view)
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                ExitConfirmationDialog.show(
+                  context,
+                  onSave: () async {
+                    Navigator.pop(context);
+                  },
+                  saveButtonText: "Stay",
+                  discardButtonText: "Leave",
+                  onDiscard: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context,true);
+                  },
+                );
+              },
+            ),
         ],
       ),
       body: Stack(
@@ -229,6 +278,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -342,12 +392,14 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                            CustomApiTextField<EntriesModel>(
-                              enabled: !isViewMode,
+
+                            CustomDropdown(
+                              isDisabled: isViewMode,
                               hintText: "Supplier",
-                              value: selectedSupplier,
-                              items: provider.entries,
-                              itemLabel: (e) => e.supplierName ?? '',
+                              items: provider.entries
+                                  .map((e) => e.supplierName ?? '')
+                                  .toList(),
+                              initialValue: selectedSupplierName,
                               validator: (value) {
                                 if (value == null) {
                                   return "Supplier is required";
@@ -356,14 +408,18 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               },
                               onChanged: (value) {
                                 setState(() {
-                                  selectedSupplier = value;
+                                  selectedSupplierName = value;
+                                  selectedSupplier = provider.entries
+                                      .firstWhere(
+                                        (e) => e.supplierName == value,
+                                      );
                                 });
 
                                 supplierGroupController.text =
-                                    value?.supplierGroup ?? '';
+                                    selectedSupplier?.supplierGroup ?? '';
 
                                 supplierGstController.text =
-                                    value?.supplierGstNo ?? '';
+                                    selectedSupplier?.supplierGstNo ?? '';
                               },
                             ),
                             SizedBox(height: 10),
@@ -438,12 +494,13 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                            CustomApiTextField<EntriesCustomerModel>(
-                              enabled: !isViewMode,
+                            CustomDropdown(
+                              isDisabled: isViewMode,
                               hintText: "Customer",
-                              value: selectedCustomer,
-                              items: provider.customerEntries,
-                              itemLabel: (e) => e.customerName ?? '',
+                              items: provider.customerEntries
+                                  .map((e) => e.customerName ?? '')
+                                  .toList(),
+                              initialValue: selectedCustomerName,
                               validator: (value) {
                                 if (value == null) {
                                   return "Customer is required";
@@ -452,14 +509,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               },
                               onChanged: (value) {
                                 setState(() {
-                                  selectedCustomer = value;
+                                  selectedCustomerName = value;
+
+                                  selectedCustomer = provider.customerEntries
+                                      .firstWhere(
+                                        (e) => e.customerName == value,
+                                      );
                                 });
 
                                 customerGroupController.text =
-                                    value?.customerGroup ?? '';
+                                    selectedCustomer?.customerGroup ?? '';
 
                                 customerGstController.text =
-                                    value?.customerGstNo ?? '';
+                                    selectedCustomer?.customerGstNo ?? '';
                               },
                             ),
                             SizedBox(height: 10),
@@ -533,15 +595,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                            CustomApiTextField<GetTransportnameIdModel>(
-                              enabled: !isViewMode,
+                            CustomDropdown(
+                              isDisabled: isViewMode,
                               hintText: "Transport",
-                              value: selectedTransport,
-                              items: provider.transportDetails,
-                              itemLabel: (e) => e.name ?? '',
+                              items: provider.transportDetails
+                                  .map((e) => e.name ?? '')
+                                  .toList(),
+                              initialValue: selectedTransportName,
                               onChanged: (value) {
                                 setState(() {
-                                  selectedTransport = value;
+                                  selectedTransportName = value;
+
+                                  selectedTransport = provider.transportDetails
+                                      .firstWhere((e) => e.name == value);
                                 });
                               },
                             ),
@@ -722,7 +788,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               final total = taxable + (item.gstAmount ?? 0);
                               return Padding(
                                 padding: const EdgeInsets.only(
-                                 // left: 3.0,
+                                  // left: 3.0,
                                   //right: 3,
                                 ),
                                 child: Card(
@@ -828,36 +894,44 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             },
                           ),
                           SizedBox(height: 20),
-
                         ],
                       ),
-                    if(widget.mode!=FormMode.add)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isAttachmentExpanded = !isAttachmentExpanded;
-                        });
-                      },
-                      child: TextField(
-                        decoration: InputDecoration(
-                          suffixIcon: Icon(
-                            isAttachmentExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.white,
-                          ),
-                          enabled: false,
-                          filled: true,
-                          fillColor: AppColors.primaryPurple,
-                          hintText: "Attachments",
-                          hintStyle: TextStyle(color: Colors.white),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide.none,
+                    if (widget.mode != FormMode.add)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isAttachmentExpanded = !isAttachmentExpanded;
+                          });
+                          if (isAttachmentExpanded) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollController.animateTo(
+                                _scrollController.position.maxScrollExtent,
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOut,
+                              );
+                            });
+                          }
+                        },
+                        child: TextField(
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(
+                              isAttachmentExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                            ),
+                            enabled: false,
+                            filled: true,
+                            fillColor: AppColors.primaryPurple,
+                            hintText: "Attachments",
+                            hintStyle: TextStyle(color: Colors.white),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                     if (isAttachmentExpanded) ...[
                       SizedBox(height: 15),
                       Container(
@@ -901,7 +975,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: totalCount,
                               separatorBuilder: (context, index) {
-                                return SizedBox(height:5);
+                                return SizedBox(height: 5);
                                 //  const Divider(
                                 //   color: Colors.grey,
                                 //   thickness: 0.5,
@@ -949,15 +1023,21 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                         ),
                                       ),
                                       Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                          ),
-                                          child: IconButton(onPressed: ()async {await viewAttachment(imageUrl!, fileName);},
-                                           icon: Icon(Icons.remove_red_eye),
-                                            color: Colors.blue,
-                                            //size: 22,
-                                          ),
-                                    ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                        ),
+                                        child: IconButton(
+                                          onPressed: () async {
+                                            await viewAttachment(
+                                              imageUrl!,
+                                              fileName,
+                                            );
+                                          },
+                                          icon: Icon(Icons.remove_red_eye),
+                                          color: Colors.blue,
+                                          //size: 22,
+                                        ),
+                                      ),
                                       InkWell(
                                         onTap: () async {
                                           await launchUrl(
@@ -973,7 +1053,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                           child: Icon(
                                             Icons.download,
                                             color: Colors.green,
-                                           // size: 22,
+                                            // size: 22,
                                           ),
                                         ),
                                       ),
@@ -1092,7 +1172,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                         (item) => {
                                           "pieces": item.pieces,
                                           "grossAmount": item.grossAmount,
-                                          "discountPercent": item.discountPercent,
+                                          "discountPercent":
+                                              item.discountPercent,
                                           "discountAmount": item.discountAmount,
                                           "addOnAmount": item.addOnAmount,
                                           "ecrAmount": item.ecrAmount,
@@ -1170,22 +1251,28 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 ? null
                                 : remarksController.text,
 
-                            "taxableValue": billItems.fold<double>(0, (sum, item) {
+                            "taxableValue": billItems.fold<double>(0, (
+                              sum,
+                              item,
+                            ) {
                               final taxable =
                                   (item.grossAmount ?? 0) -
-                                      (item.discountAmount ?? 0) +
-                                      (item.addOnAmount ?? 0) +
-                                      (item.ecrAmount ?? 0);
+                                  (item.discountAmount ?? 0) +
+                                  (item.addOnAmount ?? 0) +
+                                  (item.ecrAmount ?? 0);
 
                               return sum + taxable;
                             }),
 
-                            "billAmount": billItems.fold<double>(0, (sum, item) {
+                            "billAmount": billItems.fold<double>(0, (
+                              sum,
+                              item,
+                            ) {
                               final taxable =
                                   (item.grossAmount ?? 0) -
-                                      (item.discountAmount ?? 0) +
-                                      (item.addOnAmount ?? 0) +
-                                      (item.ecrAmount ?? 0);
+                                  (item.discountAmount ?? 0) +
+                                  (item.addOnAmount ?? 0) +
+                                  (item.ecrAmount ?? 0);
 
                               final total = taxable + (item.gstAmount ?? 0);
 
@@ -1239,18 +1326,20 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
               ),
             ),
           ),
-          Consumer<EntriesProvider>(
-            builder: (context, provider, child) {
-              if (!provider.isLoading) {
-                return const SizedBox.shrink();
-              }
+          // Consumer<EntriesProvider>(
+          //   builder: (context, provider, child) {
+          //     if (!provider.isLoading) {
+          //       return const SizedBox.shrink();
+          //     }
 
-              return Container(
+           //   return
+          if (context.select<EntriesProvider, bool>((p) => p.isLoading))
+        Container(
                 color: Colors.black45,
                 child: const Center(child: CircularProgressIndicator()),
-              );
-            },
-          ),
+              ),
+            //},
+          //),
         ],
       ),
     );

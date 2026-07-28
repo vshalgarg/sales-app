@@ -204,8 +204,8 @@ class _TransportScreenState extends State<TransportScreen> {
                                 false)
                             ? firstContact!.contactNumber!
                             : "-",
-                        editIconTap: () {
-                          Navigator.pushReplacement(
+                        editIconTap: () async {
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => AddNewTransport(
@@ -214,6 +214,10 @@ class _TransportScreenState extends State<TransportScreen> {
                               ),
                             ),
                           );
+
+                          if (result is Map) {
+                            context.read<GetTransportProvider>().updateTransportLocally(result);
+                          }
                         },
                         trashIconTap: () {
                           final parentContext = context;
@@ -295,9 +299,11 @@ class _TransportScreenState extends State<TransportScreen> {
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         onPressed: () async {
-          final result = await Navigator.pushReplacement(
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const AddNewTransport()),
+            MaterialPageRoute(
+              builder: (_) => const AddNewTransport(),
+            ),
           );
 
           if (result == true) {
