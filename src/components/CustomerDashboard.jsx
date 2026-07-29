@@ -184,12 +184,6 @@ export default function CustomerDashboard() {
   }, [fetchCustomers]);
 
   useEffect(() => {
-    if (!query.trim() && isSearchActive) {
-      handleClearSearch();
-    }
-  }, [query, isSearchActive, handleClearSearch]);
-
-  useEffect(() => {
     fetchCustomers(1);
   }, [fetchCustomers]);
 

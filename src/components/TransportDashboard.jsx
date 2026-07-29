@@ -91,15 +91,13 @@ export default function TransportDashboard() {
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
     if (!searchQuery.trim()) {
-      setIsSearchActive(false);
-      fetchTransports(1);
       return;
     }
     const results = response.content || [];
     setTransports(results);
     setTotalPages(response.totalPages || 0);
     setTotalItems(response.totalElements || 0);
-    setIsSearchActive(searchQuery.trim() !== "");
+    setIsSearchActive(true);
     setCurrentPage(page);
   };
 
@@ -150,12 +148,6 @@ export default function TransportDashboard() {
     setIsSearchActive(false);
     fetchTransports(1);
   }, [fetchTransports]);
-
-  useEffect(() => {
-    if (query.trim() === "" && isSearchActive) {
-      handleClearSearch();
-    }
-  }, [query, isSearchActive, handleClearSearch]);
 
   useEffect(() => {
     fetchTransports(1);

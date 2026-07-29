@@ -70,7 +70,6 @@ const Users = () => {
 
   const handleSearchResult = (response, searchQuery) => {
     if (!searchQuery.trim()) {
-      fetchUsers();
       return;
     }
 

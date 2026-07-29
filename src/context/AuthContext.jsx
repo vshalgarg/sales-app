@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     const role = JSON.parse(localStorage.getItem('role') || '[]');
     const userId = localStorage.getItem('userId');
-    const username = localStorage.getItem('username') === 'true';
+    const username = localStorage.getItem('username');
 
     return token && role.length > 0
       ? {
