@@ -14,8 +14,8 @@ export default function UniversalSearch({
   setQuery,
   searchFn,
   onResult,
-  searchOnType = true,
-  minChars = 2,
+  searchOnType = false,
+  minChars = 1,
   pageSize = 8,
   suggestionKey = "name",
   onClear,
@@ -27,6 +27,8 @@ export default function UniversalSearch({
   const searchRef = useRef(null);
   const timeoutRef = useRef(null);
   const inputRef = useRef(null);
+  // True after Enter search; used so emptying restores default only when needed
+  const hasActiveSearchRef = useRef(false);
 
   useEffect(() => {
     const handler = (e) => {
@@ -38,93 +40,124 @@ export default function UniversalSearch({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Debounced search function
-  const debouncedSearch = async (searchTerm) => {
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const restoreDefaultView = () => {
+    if (!hasActiveSearchRef.current) return;
+    hasActiveSearchRef.current = false;
+    if (onClear) {
+      onClear();
+    } else if (onResult) {
+      onResult({ content: [], totalPages: 0 }, "");
+    }
+  };
+
+  const runSearch = async (searchTerm) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    return new Promise((resolve) => {
-      timeoutRef.current = setTimeout(async () => {
-        try {
-          setIsLoading(true);
-          const results = await searchFn(searchTerm, 0, pageSize);
-          resolve(results);
-        } catch (err) {
-          console.error(err);
-          resolve({ content: [], totalPages: 0 });
-        } finally {
-          setIsLoading(false);
-        }
-      }, 300);
-    });
+    if (searchOnType) {
+      return new Promise((resolve) => {
+        timeoutRef.current = setTimeout(async () => {
+          try {
+            setIsLoading(true);
+            const results = await searchFn(searchTerm, 0, pageSize);
+            resolve(results);
+          } catch (err) {
+            console.error(err);
+            resolve({ content: [], totalPages: 0 });
+          } finally {
+            setIsLoading(false);
+          }
+        }, 300);
+      });
+    }
+
+    try {
+      setIsLoading(true);
+      return await searchFn(searchTerm, 0, pageSize);
+    } catch (err) {
+      console.error(err);
+      return { content: [], totalPages: 0 };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const applySuggestions = (response) => {
+    if (!showSuggestions) return;
+
+    const results = response.content || response || [];
+    const suggestionValues = results
+      .map(
+        (item) =>
+          item[suggestionKey] ||
+          item.name ||
+          item.supplierName ||
+          item.customerName ||
+          "",
+      )
+      .filter(Boolean);
+    setSuggestions(suggestionValues);
+    setIsDropdownOpen(suggestionValues.length > 0);
   };
 
   const handleChange = async (e) => {
     const value = e.target.value;
-    console.log(value);
     setQuery(value);
+    setSuggestions([]);
+    setIsDropdownOpen(false);
 
+    // Backspace/clear text until empty → restore default list
     if (!value.trim()) {
-      setSuggestions([]);
-      setIsDropdownOpen(false);
-
-      if (onClear) {
-        onClear();
-      }
-
-      if (onResult) {
-        onResult({ content: [], totalPages: 0 }, "");
-      }
-
+      restoreDefaultView();
       return;
     }
 
-    if (searchOnType && value.length >= minChars) {
-      const response = await debouncedSearch(value);
-      const results = response.content || response || [];
+    // Typing (non-empty) never triggers API unless searchOnType
+    if (!searchOnType) return;
 
-      if (showSuggestions) {
-        const suggestionValues = results
-          .map(
-            (item) =>
-              item[suggestionKey] ||
-              item.name ||
-              item.supplierName ||
-              item.customerName ||
-              "",
-          )
-          .filter(Boolean);
-        setSuggestions(suggestionValues);
-        setIsDropdownOpen(true);
-      }
+    if (value.length < minChars) return;
 
-      if (onResult) onResult(response, value);
-    } else {
-      setSuggestions([]);
-    }
+    const response = await runSearch(value);
+    applySuggestions(response);
+    if (onResult) onResult(response, value);
+  };
+
+  const handleClearInput = () => {
+    setQuery("");
+    setSuggestions([]);
+    setIsDropdownOpen(false);
+    inputRef.current?.focus();
+    restoreDefaultView();
   };
 
   const handleKeyDown = async (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (!query.trim()) {
-        if (onResult) onResult({ content: [], totalPages: 0 }, "");
-        setIsDropdownOpen(false);
-        return;
-      }
+    if (e.key !== "Enter") return;
 
-      try {
-        setIsLoading(true);
-        const response = await searchFn(query.trim(), 0, pageSize);
-        if (onResult) onResult(response, query.trim());
-        setIsDropdownOpen(false);
-        setSuggestions([]);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+    e.preventDefault();
+    const trimmed = query.trim();
+
+    // Empty Enter → no API
+    if (!trimmed || trimmed.length < minChars) {
+      setIsDropdownOpen(false);
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await runSearch(trimmed);
+      hasActiveSearchRef.current = true;
+      if (onResult) onResult(response, trimmed);
+      setIsDropdownOpen(false);
+      setSuggestions([]);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -143,6 +176,7 @@ export default function UniversalSearch({
           item.customerName === selectedName,
       );
 
+      hasActiveSearchRef.current = true;
       if (onResult)
         onResult(
           { content: selected ? [selected] : [], totalPages: 1 },
@@ -168,7 +202,7 @@ export default function UniversalSearch({
             value={query}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            onFocus={() => setIsDropdownOpen(true)}
+            onFocus={() => showSuggestions && setIsDropdownOpen(true)}
             onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
             className={SEARCH_INPUT_CLASS}
             autoComplete="off"
@@ -183,10 +217,7 @@ export default function UniversalSearch({
             {query.length > 0 && (
               <button
                 type="button"
-                onClick={() => {
-                  handleChange({ target: { value: "" } });
-                  inputRef.current?.focus();
-                }}
+                onClick={handleClearInput}
                 className={SEARCH_CLEAR_CLASS}
                 aria-label="Clear search"
               >
@@ -226,7 +257,8 @@ export default function UniversalSearch({
               </ul>
             ) : (
               query.trim().length > 1 &&
-              !isLoading && (
+              !isLoading &&
+              searchOnType && (
                 <div
                   className={`absolute z-50 mt-2 w-full rounded-xl border ${SURFACE_BORDER} bg-white px-4 py-3 text-sm text-brand-search-muted shadow-lg dark:bg-zinc-900`}
                 >
