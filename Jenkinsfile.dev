@@ -1,17 +1,15 @@
 pipeline {
   agent any
 
-  options {
-    skipDefaultCheckout true
+  parameters {
+    string(name: 'BRANCH_NAME', defaultValue: 'frontend_sales_dev', description: 'Branch to build')
   }
 
-  parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'frontend_sales_dev', description: 'Branch to build')
-    }
   environment {
     IMAGE_NAME = "sales-app-ui"
     CONTAINER_NAME = "sales-app-ui"
     PORT = "8088"
+    BUILD_MODE = 'development'
   }
 
   stages {
@@ -19,35 +17,15 @@ pipeline {
     stage('Checkout') {
       steps {
         echo "checking out branch from git ${params.BRANCH_NAME}"
-        script {
-          def branch = params.BRANCH_NAME?.trim() ?: 'frontend_sales_dev'
-          branch = branch.replaceFirst(/^origin\//, '')
-          env.DEPLOY_BRANCH = branch
-        }
-        echo "Checking out Sales App UI branch: ${env.DEPLOY_BRANCH}"
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: "*/${env.DEPLOY_BRANCH}"]],
-          extensions: [],
-          userRemoteConfigs: scm.userRemoteConfigs,
-        ])
-      }
-    }
-
-    stage('Install & Build Vite App') {
-      steps {
-        echo "Installing dependencies and building the Vite project..."
-        sh '''
-          npm install
-          npm run build
-        '''
+        git branch: "${params.BRANCH_NAME}",
+                url: 'git@github.com:vshalgarg/sales-app.git'
       }
     }
 
     stage('Build Docker Image') {
       steps {
         echo "Building Docker image for Sales App UI..."
-        sh 'docker build -t $IMAGE_NAME .'
+        sh 'docker build --build-arg BUILD_MODE=$BUILD_MODE -t $IMAGE_NAME .'
       }
     }
 
@@ -63,7 +41,7 @@ pipeline {
 
     stage('Run New Container') {
       steps {
-        echo "Running new Nukkad Admin UI container at port $PORT..."
+        echo "Running new Sales App UI container at port $PORT..."
         sh '''
           docker run -d \
             --name $CONTAINER_NAME \
@@ -73,11 +51,12 @@ pipeline {
         '''
       }
     }
+    
   }
 
   post {
     success {
-      echo "Deployment successful! Sales App UI (${env.DEPLOY_BRANCH}) running on port $PORT"
+      echo "Deployment successful! Sales App UI running on port $PORT"
     }
     failure {
       echo "Deployment failed! Check build logs."

@@ -2,17 +2,14 @@ pipeline {
   agent any
 
   environment {
-    APP_NAME    = 'sales-app-ui-prod'
-    IMAGE_NAME  = 'sales-app-ui-prod'
-    TAG         = 'latest'
-
-    PORT        = '8088'
-
+    APP_NAME = 'sales-app-ui-prod'
+    IMAGE_NAME = 'sales-app-ui-prod'
+    TAG = 'latest'
+    PORT = '8088'
     REMOTE_PATH = "${E2E_REMOTE_PATH_BASE}/${APP_NAME}"
-    SSH_USER    = "${E2E_SSH_USER}"
-    SSH_HOST    = "${E2E_SSH_HOST}"
-
-    ENV_FILE      = 'prod' // or pull from Jenkins parameter if you want
+    SSH_USER = "${E2E_SSH_USER}"
+    SSH_HOST = "${E2E_SSH_HOST}"
+    BUILD_MODE = 'production' 
   }
 
   stages {
@@ -23,20 +20,10 @@ pipeline {
       }
     }
 
-    stage('Install & Build React App') {
-      steps {
-        sh '''
-          npm install
-          cp .env.${ENV_FILE} .env
-          npm run build
-        '''
-      }
-    }
-
     stage('Build Docker Image') {
       steps {
         sh '''
-          docker build -t ${IMAGE_NAME}:${TAG} .
+          docker build --build-arg BUILD_MODE=$BUILD_MODE -t ${IMAGE_NAME}:${TAG} .
         '''
       }
     }
