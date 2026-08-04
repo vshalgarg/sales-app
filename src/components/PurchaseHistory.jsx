@@ -12,6 +12,7 @@ import DataTable from "./DataTable";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { useSnackbar } from "../context/SnackbarContext";
+import NameWithTooltip from "./common/NameWithTooltip";
 
 const PurchaseHistory = ({
   data,
@@ -86,12 +87,7 @@ const PurchaseHistory = ({
         label: "Supplier",
         width: "22%",
         render: (r) => (
-          <div className="flex flex-col">
-            <span>{r.supplierName || "-"}</span>
-            {r.supplierCity && (
-              <span className="text-xs text-gray-500">{r.supplierCity}</span>
-            )}
-          </div>
+          <NameWithTooltip name={r.supplierName} city={r.supplierCity} />
         ),
       },
 
@@ -100,16 +96,9 @@ const PurchaseHistory = ({
         label: "Customer",
         width: "18%",
         render: (r) => (
-          <div className="flex items-center gap-1">
-            {/* Left side: name + city */}
-            <div className="flex flex-col min-w-0">
-              <span className="truncate">{r.customerName || "-"}</span>
-              {r.customerCity && (
-                <span className="text-xs text-gray-500">{r.customerCity}</span>
-              )}
-            </div>
+          <div className="flex items-center gap-1 min-w-0">
+            <NameWithTooltip name={r.customerName} city={r.customerCity} />
 
-            {/* Right side: copy button */}
             {r.customerId && (
               <Tooltip title="Copy supplier data">
                 <span>
@@ -152,12 +141,7 @@ const PurchaseHistory = ({
         key: "supplierName",
         label: "Supplier",
         render: (r) => (
-          <div className="flex flex-col">
-            <span>{r.supplierName || "-"}</span>
-            <span className="text-xs text-gray-500">
-              {r.supplierCity || "-"}
-            </span>
-          </div>
+          <NameWithTooltip name={r.supplierName} city={r.supplierCity} />
         ),
       },
     ],

@@ -2,6 +2,7 @@ import useResponsive from "../customHooks/useResponsive";
 import { formatIndianCurrency } from "../utils/currencyUtils";
 import { roundUp } from "../utils/numberUtils";
 import DataTable from "./DataTable";
+import NameWithTooltip from "./common/NameWithTooltip";
 import dayjs from "dayjs";
 
 const CreditHistory = ({
@@ -44,30 +45,14 @@ const CreditHistory = ({
         key: "supplierName",
         label: "Supplier",
         render: (row) => (
-          <div className="flex flex-col">
-            <span>{row.supplierName || "-"}</span>
-
-            {row.supplierCity && (
-              <span className="text-xs text-gray-500">
-                {row.supplierCity}
-              </span>
-            )}
-          </div>
+          <NameWithTooltip name={row.supplierName} city={row.supplierCity} />
         ),
       },
       {
         key: "customerName",
         label: "Customer",
         render: (row) => (
-          <div className="flex flex-col">
-            <span>{row.customerName || "-"}</span>
-
-            {row.customerCity && (
-              <span className="text-xs text-gray-500">
-                {row.customerCity}
-              </span>
-            )}
-          </div>
+          <NameWithTooltip name={row.customerName} city={row.customerCity} />
         ),
       },
       { key: "referenceNumber", width: "16%", label: "Reference No" },

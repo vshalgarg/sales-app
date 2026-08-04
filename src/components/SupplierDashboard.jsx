@@ -180,13 +180,6 @@ export default function SupplierDashboard() {
     fetchSuppliers(1);
   }, [fetchSuppliers]);
 
-  useEffect(() => {
-    if (query.trim() === "" && isSearchActive) {
-      setIsSearchActive(false);
-      fetchSuppliers(1);
-    }
-  }, [query, isSearchActive, fetchSuppliers]);
-
   const handleDelete = async () => {
     if (!supplierToDelete) return;
     try {

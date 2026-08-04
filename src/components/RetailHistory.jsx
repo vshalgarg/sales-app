@@ -5,8 +5,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import RetailerViewEdit from "../modals/RetailerViewEdit";
 import {formatIndianCurrency} from "../utils/currencyUtils"
+import NameWithTooltip from "./common/NameWithTooltip";
 
 const RetailHistory = ({
   data,
@@ -40,14 +40,10 @@ const RetailHistory = ({
       label: "Referred By",
       width: "30%",
       render: (r) => (
-        <div className="flex flex-col">
-          <span>{r.referredByCustomerName || "-"}</span>
-          {r.customerCity && (
-            <span className="text-xs text-gray-500">
-              {r.referredByCustomerCity}
-            </span>
-          )}
-        </div>
+        <NameWithTooltip
+          name={r.referredByCustomerName}
+          city={r.referredByCustomerCity || r.customerCity}
+        />
       ),
     },
     {
@@ -63,12 +59,7 @@ const RetailHistory = ({
       label: "Supplier",
       width: "25%",
       render: (s) => (
-        <div className="flex flex-col">
-          <span>{s.supplierName || "-"}</span>
-          {s.supplierCity && (
-            <span className="text-xs text-gray-500">{s.supplierCity}</span>
-          )}
-        </div>
+        <NameWithTooltip name={s.supplierName} city={s.supplierCity} />
       ),
     },
     {

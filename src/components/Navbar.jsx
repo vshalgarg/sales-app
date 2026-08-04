@@ -1,6 +1,7 @@
 import { Settings, User, LogOut, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   BRAND_TITLE_CLASS,
   GRID_NAVBAR_CLASS,
@@ -19,18 +20,12 @@ export default function Navbar({
   showMenuButton = true,
   className = "",
 }) {
-  const [name, setName] = useState("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const mainActiveSection = activeSection;
-
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const storedName = localStorage.getItem("username");
-    if (storedName) setName(storedName);
-  }, []);
+  const { auth } = useAuth();
 
   const handleLogout = () => {
     localStorage.clear();
@@ -155,7 +150,13 @@ export default function Navbar({
 
             <div className="space-y-2 text-brand-navy dark:text-gray-100">
               <p>
-                <strong>Username:</strong> {name || "Not available"}
+                <strong>Username:</strong> {auth?.username || "Not available"}
+              </p>
+              <p>
+                <strong>Role:</strong>{" "}
+                {Array.isArray(auth?.role) && auth.role.length > 0
+                  ? auth.role.map((r) => String(r).toLowerCase()).join(", ")
+                  : "Not available"}
               </p>
             </div>
 
@@ -180,7 +181,10 @@ export default function Navbar({
             </h2>
 
             <div className="flex justify-end gap-3">
-              <AppButton type="cancel" onClick={() => setShowLogoutModal(false)}>
+              <AppButton
+                type="cancel"
+                onClick={() => setShowLogoutModal(false)}
+              >
                 Cancel
               </AppButton>
 
