@@ -137,11 +137,8 @@ export default function UniversalSearch({
     restoreDefaultView();
   };
 
-  const handleKeyDown = async (e) => {
-    if (e.key !== "Enter") return;
-
-    e.preventDefault();
-    const trimmed = query.trim();
+  const executeSearch = async (rawTerm = query) => {
+    const trimmed = rawTerm.trim();
 
     // Empty Enter → no API
     if (!trimmed || trimmed.length < minChars) {
@@ -156,9 +153,15 @@ export default function UniversalSearch({
       if (onResult) onResult(response, trimmed);
       setIsDropdownOpen(false);
       setSuggestions([]);
+      inputRef.current?.blur();
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await executeSearch();
   };
 
   const handleSuggestionClick = async (selectedName) => {
@@ -189,7 +192,12 @@ export default function UniversalSearch({
 
   return (
     <div className="flex items-center">
-      <div className={SEARCH_WRAPPER_CLASS} ref={searchRef}>
+      <form
+        className={SEARCH_WRAPPER_CLASS}
+        ref={searchRef}
+        onSubmit={handleSubmit}
+        role="search"
+      >
         <div className="relative">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
             <Search className={SEARCH_ICON_CLASS} strokeWidth={1.75} />
@@ -197,11 +205,12 @@ export default function UniversalSearch({
 
           <input
             ref={inputRef}
-            type="text"
+            type="search"
+            enterKeyHint="search"
+            inputMode="search"
             placeholder={placeholder || "Search..."}
             value={query}
             onChange={handleChange}
-            onKeyDown={handleKeyDown}
             onFocus={() => showSuggestions && setIsDropdownOpen(true)}
             onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
             className={SEARCH_INPUT_CLASS}
@@ -271,7 +280,7 @@ export default function UniversalSearch({
             )}
           </>
         )}
-      </div>
+      </form>
     </div>
   );
 }

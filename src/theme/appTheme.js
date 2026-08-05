@@ -54,7 +54,7 @@ export const PAGE_TITLE_CLASS =
 export const SEARCH_WRAPPER_CLASS = "relative w-full max-w-md lg:max-w-lg";
 
 export const SEARCH_INPUT_CLASS =
-  "w-full pl-11 pr-10 py-3 bg-white dark:bg-zinc-900 border border-brand-surface-border dark:border-zinc-700/40 rounded-xl text-sm text-brand-navy dark:text-gray-100 placeholder:text-brand-search-muted dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/10 focus:border-brand-sidebar-divider transition-colors";
+  "w-full pl-11 pr-10 py-3 bg-white dark:bg-zinc-900 border border-brand-surface-border dark:border-zinc-700/40 rounded-xl text-sm text-brand-navy dark:text-gray-100 placeholder:text-brand-search-muted dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/10 focus:border-brand-sidebar-divider transition-colors [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden";
 
 export const SEARCH_ICON_CLASS =
   "h-[18px] w-[18px] text-brand-search-muted dark:text-gray-500";
