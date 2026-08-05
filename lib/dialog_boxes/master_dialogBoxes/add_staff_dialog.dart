@@ -3,75 +3,64 @@ import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../constants/colors_used.dart';
 import '../../enums/staff_mode.dart';
+import '../../model_classes/staff/add_staff_request.dart';
 import '../../pop_ups/scafold_type.dart';
-import '../../provider/add_new_staff_provider.dart';
-import '../../provider/get_staff_by_id_provider.dart';
-import '../../provider/get_staff_provider.dart';
-import '../../provider/update_staff_provider.dart';
+import '../../provider/staff_provider.dart';
 
 class AddStaffDialog extends StatefulWidget {
   final int? id;
   final StaffMode? mode;
 
-  const AddStaffDialog({super.key, this.mode, this.id});
+  const AddStaffDialog({super.key, this.id, this.mode});
 
   @override
   State<AddStaffDialog> createState() => _AddStaffDialogState();
 }
 
 class _AddStaffDialogState extends State<AddStaffDialog> {
-  bool isSaveAndNewLoading = false;
-  final TextEditingController dateController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController dateController = TextEditingController();
 
   Future<void> selectDate() async {
-    DateTime? pickedDate = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
 
-    if (pickedDate != null) {
-      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
-
-      setState(() {
-        dateController.text = formattedDate;
-      });
+    if (picked != null) {
+      dateController.text = DateFormat('yyyy-MM-dd').format(picked);
     }
   }
 
-  late final addStaffProvider = context.watch<AddNewStaffProvider>();
-  late final updateProvider = context.watch<UpdateStaffProvider>();
-
-  Map<String, dynamic> getStaffBody() {
-    return {
-      "staffName": nameController.text.trim(),
-      "phone": phoneController.text.trim(),
-      "joiningDate": dateController.text.trim(),
-    };
-  }
+  AddStaffRequest get request => AddStaffRequest(
+    staffName: nameController.text.trim(),
+    phone: phoneController.text.trim(),
+    joiningDate: dateController.text.trim(),
+  );
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.mode == StaffMode.edit && widget.id != null) {
+    if (widget.mode != StaffMode.add && widget.id != null) {
       Future.microtask(() async {
-        final provider = context.read<GetStaffByIdProvider>();
+        final provider = context.read<StaffProvider>();
 
-        await provider.getStaffById(widget.id!);
+        final success = await provider.fetchStaffDetails(widget.id!);
 
-        final staff = provider.staffData;
+        if (!mounted || !success) return;
+
+        final staff = provider.staffDetails;
 
         if (staff != null) {
           nameController.text = staff.staffName ?? "";
-
           phoneController.text = staff.phone ?? "";
-
           dateController.text = staff.joiningDate ?? "";
         }
       });
@@ -80,24 +69,18 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
 
   @override
   void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
     dateController.dispose();
-    nameController.dispose;
-    phoneController.dispose;
     super.dispose();
-  }
-
-  void clearFields() {
-    nameController.clear();
-
-    phoneController.clear();
-
-    dateController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<StaffProvider>();
+
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Dialog(
         backgroundColor: Colors.transparent,
         child: Stack(
@@ -121,317 +104,189 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      widget.mode == StaffMode.add
-                          ? Center(
-                              child: Text(
-                                "Add New Staff",
-                                style: TextStyle(
-                                  color: AppColors.primaryPurple,
-                                  fontWeight:FontWeight.w200,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Text(
-                                "Update Details",
-                                style: TextStyle(
-                                  color: AppColors.primaryPurple,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ),
-                      SizedBox(height:5),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
+                      Text(
+                        widget.mode == StaffMode.add
+                            ? "Add New Staff"
+                            : "Update Staff",
+                        style: const TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: nameController,
+                        readOnly: false,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Iconsax.user,
+                            color: AppColors.primaryPurple,
+                          ),
+                          hintText: "Name",
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      TextFormField(
+                        controller: phoneController,
+                        readOnly: false,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Iconsax.mobile,
+                            color: AppColors.primaryPurple,
+                          ),
+                          hintText: "Phone",
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      TextFormField(
+                        controller: dateController,
+                        readOnly: true,
+                        onTap:
+                        selectDate,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Iconsax.calendar,
+                            color: AppColors.primaryPurple,
+                          ),
+                          hintText: "Date of Joining",
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius:
+                            BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      Row(
                         children: [
-                          TextFormField(
-                            controller: nameController,
-                            decoration: InputDecoration(
-                              prefixIcon: Icon(
-                                Iconsax.user,
-                                color: AppColors.primaryPurple,
-                              ),
-                              fillColor: Colors.white,
-                              filled: true,
-                              hintText: "Name",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0.5,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 15),
-                          TextFormField(
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            controller: phoneController,
-                            decoration: InputDecoration(
-                              prefixIcon: Icon(
-                                Iconsax.mobile,
-                                color: AppColors.primaryPurple,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              hintText: "phone",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0.5,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 15),
-                          TextFormField(
-                            controller: dateController,
-                            readOnly: true,
-                            onTap: selectDate,
-                            decoration: InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              prefixIcon: Icon(
-                                Iconsax.calendar,
-                                color: AppColors.primaryPurple,
-                              ),
-                              hintText: "Date Of Joining",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0.5,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0.5,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                  width: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          if (widget.mode == StaffMode.add) ...[
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: addStaffProvider.isLoading
-                                    ? null
-                                    : () async {
-                                        if (nameController.text.isEmpty ||
-                                            dateController.text.isEmpty ||
-                                            phoneController.text.isEmpty) {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            "All the fields are required",
-                                          );
-                                          return;
-                                        }
-                                        final addProvider = context
-                                            .read<AddNewStaffProvider>();
-                                        final getStaffProvider = context
-                                            .read<GetStaffProvider>();
-                                        await addProvider.addNewStaff({
-                                          "staffName": nameController.text
-                                              .trim()
-                                              .toString(),
-                  
-                                          "phone": phoneController.text
-                                              .trim()
-                                              .toString(),
-                  
-                                          "joiningDate": dateController.text
-                                              .trim()
-                                              .toString(),
-                                        });
-                  
-                                        if (!context.mounted) return;
-                                        if (addProvider.errorMessage != null) {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            addProvider.errorMessage!,
-                                          );
-                  
-                                          return;
-                                        }
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: provider.actionLoading
+                                  ? null
+                                  : () async {
+                                      if (nameController.text.trim().isEmpty ||
+                                          phoneController.text.trim().isEmpty ||
+                                          dateController.text.trim().isEmpty) {
                                         ScaffoldSnackBar.show(
                                           context,
-                                          addProvider
-                                                  .addNewStaffResponse
-                                                  ?.message ??
-                                              "Staff Added Successfully",
+                                          "All the fields are required",
                                         );
-                  
-                                        Navigator.pop(context,true);
-                  
-                                        await getStaffProvider.getStaff();
-                                      },
-                  
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryPurple,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                ),
-                  
-                                child: addStaffProvider.isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text(
-                                        "Save Staff",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                              ),
-                            ),
-                          ],
-                          if (widget.mode == StaffMode.edit) ...[
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: updateProvider.isLoading
-                                    ? null
-                                    : () async {
-                                        if (nameController.text.isEmpty ||
-                                            dateController.text.isEmpty ||
-                                            phoneController.text.isEmpty) {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            "All the fields are required",
-                                            backgroundColor: Colors.red,
-                                          );
-                  
-                                          return;
-                                        }
-                  
-                                        final updateProvider = context
-                                            .read<UpdateStaffProvider>();
-                  
-                                        final getStaffProvider = context
-                                            .read<GetStaffProvider>();
-                  
-                                        await updateProvider.updateStaff(
-                                          body: getStaffBody(),
+                                        return;
+                                      }
+
+                                      bool success;
+
+                                      if (widget.mode == StaffMode.add) {
+                                        success = await provider.addStaff(
+                                          request,
+                                        );
+                                      } else {
+                                        success = await provider.updateStaff(
                                           id: widget.id!,
+                                          request: request,
                                         );
-                  
-                                        if (!context.mounted) return;
-                  
-                                        if (updateProvider.errorMessage != null) {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            updateProvider.errorMessage!,
-                                          );
-                  
-                                          return;
-                                        }
-                  
+                                      }
+
+                                      if (!mounted) return;
+
+                                      if (success) {
                                         ScaffoldSnackBar.show(
                                           context,
-                                          updateProvider
-                                                  .updateStaffResponse
-                                                  ?.message ??
-                                              "Staff Updated Successfully",
+                                          widget.mode == StaffMode.add
+                                              ? "Staff Added Successfully"
+                                              : "Staff Updated Successfully",
                                         );
 
-                                        Navigator.pop(context,true);
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryPurple,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                ),
-                                child: updateProvider.isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : Text(
-                                        "Update Staff",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                              ),
-                            ),
-                          ],
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
+                                        Navigator.pop(context, true);
+                                      } else {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          widget.mode == StaffMode.add
+                                              ? "Failed to add staff"
+                                              : "Failed to update staff",
+                                        );
+                                      }
+                                    },
                               style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryPurple,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5),
                                 ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                               ),
-                              child: Text("Cancel"),
+                              child: provider.actionLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Text(
+                                      widget.mode == StaffMode.add
+                                          ? "Save Staff"
+                                          : "Update Staff",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: AppColors.primaryPurple,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                              ),
+                              child: const Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  color: AppColors.primaryPurple,
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 0,
-              child: Container(
-                height: 70,
-                width: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFF3F0FF),
-                  border: Border.all(color: Colors.white, width: 4),
-                ),
-                child: const Icon(
-                  Icons.person_outline_outlined,
-                  color: AppColors.primaryPurple,
-                  size: 35,
                 ),
               ),
             ),

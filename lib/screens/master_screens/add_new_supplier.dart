@@ -6,19 +6,16 @@ import 'package:hisabio/master_widgets/basic_info.dart';
 import 'package:hisabio/master_widgets/bottomnavigation_button.dart';
 import 'package:hisabio/master_widgets/contact_info.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/model_classes/get_suppliers_byid.dart';
-import 'package:hisabio/provider/add_newsupplier.dart';
-import 'package:hisabio/provider/get_suppliers_byid_provider.dart';
-import 'package:hisabio/provider/get_transport_provider.dart';
-import 'package:hisabio/provider/update_supplier_provider.dart';
-import 'package:hisabio/screens/master_screens/supplier.dart';
+import 'package:hisabio/model_classes/supplier/supplier_details.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../customs/dropdown_test.dart';
 import '../../enums/customer_mode.dart';
+import '../../model_classes/supplier/add_supplier_request.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/get_supplier_provider.dart';
+import '../../provider/supplier_provider.dart';
+import '../../provider/transport_provider.dart';
 
 class ContactControllers {
   final name = TextEditingController();
@@ -88,7 +85,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
   String? selectedTransportId;
 
-  Map<String, dynamic> submitSupplier() {
+  AddSupplierRequest submitSupplier() {
     List<Map<String, dynamic>> contactList = contacts.map((c) {
       return {
         "contactPerson": c.name.text,
@@ -96,36 +93,34 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         "type": c.type.text,
       };
     }).toList();
-    Map<String, dynamic> body = {
-      "supplierName": nameController.text,
-      "email": emailController.text,
-      "SupplierGroup": groupController.text,
-      "supplierGstNo": gstController.text,
-      "supplierMsme": msmeController.text,
-      "commissionScheme": commissionSchemeController.text,
-      "commissionRate": commissionRateController.text,
-      "referenceBy": referenceController.text,
-      "bankName": bankNameController.text,
-      "ifscCode": ifscController.text,
-      "branchName": branchNameController.text,
-      "accountName": accountholderNameController.text,
-      "accountNumber": accountNumberController.text,
-      "addressLine1": addressLine1Controller.text,
-      "addressLine2": addressLine2Controller.text,
-      "state": stateController.text,
-      "city": cityController.text,
-      "pinCode": pinCodeController.text,
-      "preferredTransportIds": selectedTransportId != null
+
+    return AddSupplierRequest(
+      supplierName: nameController.text.trim(),
+      email: emailController.text.trim(),
+      supplierGroup: groupController.text.trim(),
+      gstNo: gstController.text.trim(),
+      msme: msmeController.text.trim(),
+      commissionScheme: commissionSchemeController.text.trim(),
+      commissionRate: num.tryParse(commissionRateController.text),
+      referenceBy: referenceController.text.trim(),
+      bankName: bankNameController.text.trim(),
+      ifscCode: ifscController.text.trim(),
+      branchName: branchNameController.text.trim(),
+      accountName: accountholderNameController.text.trim(),
+      accountNumber: accountNumberController.text.trim(),
+      addressLine1: addressLine1Controller.text.trim(),
+      addressLine2: addressLine2Controller.text.trim(),
+      state: stateController.text.trim(),
+      city: cityController.text.trim(),
+      pinCode: pinCodeController.text.trim(),
+      remark: remarksController.text.trim(),
+      contacts: contactList,
+      preferredTransportIds: selectedTransportId != null
           ? [int.parse(selectedTransportId!)]
           : [],
-      "remark": remarksController.text,
-
-      "contacts": contactList,
-    };
-    return body;
+    );
   }
-
-  Map<String, dynamic> updateSupplier() {
+  AddSupplierRequest updateSupplier() {
     List<Map<String, dynamic>> contactList = contacts.map((c) {
       return {
         "contactPerson": c.name.text,
@@ -133,39 +128,34 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         "type": c.type.text,
       };
     }).toList();
-    Map<String, dynamic> body = {
-      "supplierName": nameController.text,
-      "email": emailController.text,
-      "groupName": groupController.text,
-      "gstNo": gstController.text,
-      "msme": msmeController.text,
-      "commissionScheme": commissionSchemeController.text,
-      "commissionRate": commissionRateController.text,
-      "referenceBy": referenceController.text,
 
-      "bankName": bankNameController.text,
-      "ifscCode": ifscController.text,
-      "branchName": branchNameController.text,
-      "accountName": accountholderNameController.text,
-      "accountNumber": accountNumberController.text,
-
-      "addressLine1": addressLine1Controller.text,
-      "addressLine2": addressLine2Controller.text,
-      "state": stateController.text,
-      "city": cityController.text,
-      "pinCode": pinCodeController.text,
-
-      "preferredTransportIds": selectedTransportId != null
+    return AddSupplierRequest(
+      supplierName: nameController.text.trim(),
+      email: emailController.text.trim(),
+      supplierGroup: groupController.text.trim(),
+      gstNo: gstController.text.trim(),
+      msme: msmeController.text.trim(),
+      commissionScheme: commissionSchemeController.text.trim(),
+      commissionRate: num.tryParse(commissionRateController.text),
+      referenceBy: referenceController.text.trim(),
+      bankName: bankNameController.text.trim(),
+      ifscCode: ifscController.text.trim(),
+      branchName: branchNameController.text.trim(),
+      accountName: accountholderNameController.text.trim(),
+      accountNumber: accountNumberController.text.trim(),
+      addressLine1: addressLine1Controller.text.trim(),
+      addressLine2: addressLine2Controller.text.trim(),
+      state: stateController.text.trim(),
+      city: cityController.text.trim(),
+      pinCode: pinCodeController.text.trim(),
+      remark: remarksController.text.trim(),
+      contacts: contactList,
+      preferredTransportIds: selectedTransportId != null
           ? [int.parse(selectedTransportId!)]
           : [],
-      "remark": remarksController.text,
-
-      "contacts": contactList,
-    };
-    return body;
+    );
   }
-
-  void _populateFormFromSupplier(GetSupplierByIdModel s) {
+  void _populateFormFromSupplier(SupplierDetails s) {
     nameController.text = s.supplierName ?? "";
     emailController.text = s.email ?? "";
     groupController.text = s.groupName ?? "";
@@ -187,8 +177,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     pinCodeController.text = s.pinCode ?? "";
     remarksController.text = s.remark ?? "";
 
-    if (s.preferredTransports != null && s.preferredTransports!.isNotEmpty) {
-      final first = s.preferredTransports!.first;
+    if (s.preferredTransports.isNotEmpty) {
+      final first = s.preferredTransports.first;
       if (first is Map) {
         selectedTransportId = first['id']?.toString();
       } else {
@@ -198,8 +188,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
     contacts = [];
 
-    if ((s.contacts ?? []).isNotEmpty) {
-      for (var c in s.contacts!) {
+    if ((s.contacts).isNotEmpty) {
+      for (var c in s.contacts) {
         final contact = ContactControllers();
 
         if (c is Map) {
@@ -229,13 +219,16 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
     if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
       Future.microtask(() async {
-        final provider = context.read<GetSupplierByIdProvider>();
-        await provider.fetchSupplierById(widget.id!.toInt());
+        final provider = context.read<SupplierProvider>();
 
-        final s = provider.supplier;
+        await provider.fetchSupplierDetails(widget.id!.toInt());
+
+        final s = provider.supplierDetails;
         if (s == null || !mounted) return;
 
         _populateFormFromSupplier(s);
+        print("API pinCode: ${s.pinCode}");
+        print("Controller pinCode: ${pinCodeController.text}");
         setState(() {});
       });
     }
@@ -245,7 +238,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     }
 
     Future.microtask(() {
-      Provider.of<TransportProvider>(context, listen: false).fetchTransports();
+      Provider.of<TransportProvider>(context, listen: false).fetchInitial();
     });
   }
 
@@ -470,19 +463,19 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     return CustomDropdown(
                       isDisabled: widget.mode == FormMode.view,
                       hintText: "Preferred Transport",
-                      items: provider.transports
+                      items: provider.data.items
                           .map((e) => e.name ?? "")
                           .toList(),
-                      initialValue: provider.transports
+                      initialValue: provider.data.items
                           .any((e) => e.id.toString() == selectedTransportId)
-                          ? provider.transports
+                          ? provider.data.items
                           .firstWhere(
                             (e) => e.id.toString() == selectedTransportId,
                       )
                           .name
                           : null,
                       onChanged: (value) {
-                        final transport = provider.transports.firstWhere(
+                        final transport =provider.data.items.firstWhere(
                               (e) => e.name == value,
                         );
 
@@ -505,6 +498,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: "Remarks (optional)",
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
                       borderSide: BorderSide.none,
@@ -518,81 +513,85 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         ),
       ),
 
-      bottomNavigationBar: Consumer<AddSupplierProvider>(
-        builder: (context, provider, child) {
-          return BottomNavigationButton(
-            mode: widget.mode,
-            update: () async {
-              try {
-                final body = updateSupplier();
+        bottomNavigationBar: Consumer<SupplierProvider>(
+          builder: (context, provider, child) {
+            return BottomNavigationButton(
+              mode: widget.mode,
 
-                final updateProvider = context.read<UpdateSupplierProvider>();
+              update: () async {
+                try {
+                  final request = updateSupplier();
 
-                await updateProvider.updateSupplier(
-                  id: widget.id!.toInt(),
-                  body: body,
-                );
-                if (!context.mounted) return;
+                  print("Update Request: ${request.toJson()}");
+                  final success = await provider.updateSupplier(
+                    id: widget.id!.toInt(),
+                    request: request,
+                  );
 
-                if (updateProvider.error != null) {
+                  if (!context.mounted) return;
+
+                  if (success) {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Supplier Updated Successfully",
+                    );
+
+                    Navigator.pop(context, true);
+                  } else {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Failed to update supplier",
+                    );
+                  }
+                } catch (e) {
                   ScaffoldSnackBar.show(
                     context,
-                    updateProvider.error!,
-                    backgroundColor: Colors.red,
+                    "Something went wrong: $e",
                   );
-                } else {
-                  ScaffoldSnackBar.show(
-                    context,
-                    updateProvider.response?.message ??
-                        "Supplier Updated Successfully",
-                  );
-                  Navigator.pop(context,true);
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(builder: (_) => Supplier()),
-                  // );
                 }
-              } catch (e) {
-                ScaffoldSnackBar.show(context, "Something Went wrong $e");
-              }
-            },
-            saveSupplier: provider.isLoading
-                ? () {}
-                : () async {
-                    try {
-                      if (nameController.text.isEmpty) {
-                        ScaffoldSnackBar.show(
-                          context,
-                          "Supplier name is required",
-                        );
-                        return;
-                      }
+              },
 
-                      final body = submitSupplier();
-                      await provider.addSupplier(body);
-                      if (!context.mounted) return;
-                      if (provider.error != null) {
-                        ScaffoldSnackBar.show(
-                          context,
-                          provider.error!,
-                          backgroundColor: Colors.red,
-                        );
-                      } else {
-                        ScaffoldSnackBar.show(
-                          context,
-                          provider.response!.message ??
-                              "Supplier Added Successfully",
-                        );
-                        Navigator.pop(context,true);
-                        await context.read<SupplierProvider>().refreshSuppliers();
-                      }
-                    } catch (e) {
-                      ScaffoldSnackBar.show(context, "Something went wrong$e");
-                    }
-                  },
-          );
-        },
-      ),
+              saveSupplier: provider.actionLoading
+                  ? () {}
+                  : () async {
+                try {
+                  if (nameController.text.trim().isEmpty) {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Supplier name is required",
+                    );
+                    return;
+                  }
+
+                  final request = submitSupplier();
+                  print("Supplier Request: ${request.toJson()}");
+                  final success = await provider.addSupplier(request);
+
+                  if (!context.mounted) return;
+
+                  if (success) {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Supplier Added Successfully",
+                    );
+
+                    Navigator.pop(context, true);
+                  } else {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Failed to add supplier",
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldSnackBar.show(
+                    context,
+                    "Something went wrong: $e",
+                  );
+                }
+              },
+            );
+          },
+        ),
     );
   }
 }

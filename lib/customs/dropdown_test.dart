@@ -91,9 +91,16 @@ class _CustomDropdownState extends State<CustomDropdown> {
   }
 
   void _showOverlay() {
+
     final renderBox =
     _fieldKey.currentContext!.findRenderObject() as RenderBox;
     final size = renderBox.size;
+
+    const double itemHeight = 49.0;
+    const double maxHeight = 400.0;
+
+    final double dropdownHeight =
+    (widget.items.length * itemHeight).clamp(0.0, maxHeight);
 
     _overlayEntry = OverlayEntry(
       builder: (_) =>
@@ -113,9 +120,11 @@ class _CustomDropdownState extends State<CustomDropdown> {
                 child: Material(
                   elevation: 6,
                   borderRadius: BorderRadius.circular(5),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 400),
-                    child: Container(
+
+                    child: SizedBox(
+                      height: dropdownHeight,
+                        width: size.width,
+                   child: Container(
                       width: size.width,
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -140,11 +149,25 @@ class _CustomDropdownState extends State<CustomDropdown> {
                               widget.onChanged(item);
                               _removeOverlay();
                             },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 14),
-                              child: Text(item),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 14),
+                                  child: Text(item),
+                                ),
+                                // Light divider
+                                if (index != widget.items.length - 1)
+                                  Divider(
+                                    height: 1,
+                                    thickness: 0.5,
+                                    color: Colors.grey.shade300,
+                                  ),
+                              ],
                             ),
+
                           );
                         },
                       ),
@@ -223,10 +246,13 @@ class _CustomDropdownState extends State<CustomDropdown> {
                                     (selectedValue == null || selectedValue!.trim().isEmpty)
                                         ? widget.hintText
                                         : selectedValue!,
-                                    style: TextStyle(fontSize: 16,
-                                      color: widget.isDisabled == true
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: widget.isDisabled
                                           ? Colors.grey
-                                          : Colors.black54
+                                          : (selectedValue == null || selectedValue!.trim().isEmpty
+                                          ? Colors.grey
+                                          : Colors.black),
                                     ),
                                   ),
                                 ),

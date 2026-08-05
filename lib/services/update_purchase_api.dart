@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-import '../model_classes/update_purchase_model.dart';
+import '../model_classes/purchases/update_purchase_model.dart';
 import '../shared_preferences/login_token.dart';
 
 Future<UpdatePurchaseResponse> updatePurchase({

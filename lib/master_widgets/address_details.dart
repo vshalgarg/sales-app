@@ -13,7 +13,8 @@ class AddressDetails extends StatefulWidget {
   final TextEditingController state;
   final TextEditingController city;
   final TextEditingController pinCode;
-
+  final ValueChanged<int?>? onStateSelected;
+  final ValueChanged<int?>? onCitySelected;
   const AddressDetails({
     super.key,
     this.mode,
@@ -22,6 +23,8 @@ class AddressDetails extends StatefulWidget {
     required this.state,
     required this.city,
     required this.pinCode,
+    this.onStateSelected,
+    this.onCitySelected,
   });
 
   @override
@@ -97,6 +100,8 @@ class _AddressDetailsState extends State<AddressDetails> {
               filled: true,
               fillColor: Colors.white,
               hintText: "Address Line1",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
@@ -118,6 +123,8 @@ class _AddressDetailsState extends State<AddressDetails> {
               filled: true,
               fillColor: Colors.white,
               hintText: "Address Line2",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
@@ -132,12 +139,12 @@ class _AddressDetailsState extends State<AddressDetails> {
             isDisabled: widget.mode == FormMode.view,
             items: ListItems.indianStates,
             initialValue: selectedState,
-            onChanged: (value) {
-              setState(() {
-                selectedState = value;
-                widget.state.text = value ?? "";
-              });
-            },
+              onChanged: (value) {
+                setState(() {
+                  selectedState = value;
+                  widget.state.text = value ?? "";
+                });
+              }
           ),
 
           SizedBox(height: 15),
@@ -149,6 +156,8 @@ class _AddressDetailsState extends State<AddressDetails> {
               filled: true,
               fillColor: Colors.white,
               hintText: "city",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
@@ -170,6 +179,8 @@ class _AddressDetailsState extends State<AddressDetails> {
               fillColor: Colors.white,
 
               hintText: "Pin Code",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,

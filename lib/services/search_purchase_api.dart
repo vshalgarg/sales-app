@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../model_classes/search_purchase.dart';
+import '../model_classes/purchases/search_purchase.dart';
 import '../shared_preferences/login_token.dart';
 
 Future<PurchaseSearchResponse> searchPurchaseEntries({

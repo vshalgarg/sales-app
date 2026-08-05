@@ -118,6 +118,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               filled: true,
               fillColor: Colors.white,
               hintText: "Name",
+              hintStyle: const TextStyle(
+                color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
@@ -134,6 +136,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               filled: true,
               fillColor: Colors.white,
               hintText: "Email",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
@@ -153,6 +157,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               filled: true,
               fillColor: Colors.white,
               hintText: "Group Name",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
@@ -172,6 +178,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               filled: true,
               fillColor: Colors.white,
               hintText: "GST Number",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
@@ -203,6 +211,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
             CustomDropdown(
               isDisabled: widget.mode == FormMode.view,
               hintText: "Commission Scheme",
+
               items: ListItems.commissionScheme,
               initialValue: selectedCommissionScheme,
               onChanged: (value) {
@@ -227,6 +236,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
                 filled: true,
                 fillColor: Colors.white,
                 hintText: "Commission % (Rate)",
+                hintStyle: const TextStyle(
+                    color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(5),
                   borderSide: BorderSide.none,
@@ -246,6 +257,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               filled: true,
               fillColor: Colors.white,
               hintText: "Reference By",
+              hintStyle: const TextStyle(
+                  color: Colors.grey),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,

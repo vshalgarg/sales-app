@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/colors_used.dart';
-import '../model_classes/entries_supplier.dart';
+import '../model_classes/entries/entries_supplier.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
 
 class AddSupplier extends StatefulWidget {
@@ -256,7 +256,7 @@ class _AddSupplierState extends State<AddSupplier> {
 
                                             Navigator.pop(context, true);
 
-                                            ScaffoldSnackBar.show(context,message,
+                                            ScaffoldSnackBar.show(context, "Supplier added successfully",
                                             );
                                           } catch (e) {
                                             ScaffoldSnackBar.show(context, e.toString());

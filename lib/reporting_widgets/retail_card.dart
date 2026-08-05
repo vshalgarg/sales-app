@@ -21,7 +21,7 @@ class RetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xff4A4CCB);
+    const primary = AppColors.primaryPurple;
 
     final date = fields.firstWhere(
       (e) => e.key.toLowerCase() == "date",
@@ -36,6 +36,7 @@ class RetailCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Card(
+        color: Colors.white,
         elevation: 1.8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(

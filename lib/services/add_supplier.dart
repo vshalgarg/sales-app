@@ -1,27 +1,23 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
-import '../shared_preferences/login_token.dart';
+import '../network/api_service.dart';
+import '../network/response_result.dart';
 
 class AddSupplierApi {
+  final ApiService _api;
+  AddSupplierApi(this._api);
   Future<String> addSupplier(Map<String, dynamic> body) async {
-    final token = await AppStorage.getToken();
-
-    final response = await http.post(
-      Uri.parse("http://192.168.1.100:8087/csm/api/v1/retail-suppliers"),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: jsonEncode(body),
+    final ResponseResult<dynamic> result = await _api.post(
+      path: '/csm/api/v1/retail-suppliers',
+      data: body,
     );
-
-    final data = jsonDecode(response.body);
-
-    if (response.statusCode == 200 && data["success"] == true) {
-      return data["message"];
-    } else {
-      throw Exception(data["message"] ?? "Failed to add supplier");
+    if (result.isFailure) {
+      throw Exception(result.errorMessage ?? "Failed to add supplier");
     }
+
+    final data = result.data;
+    if (data["success"] == true) {
+      return data["message"];
+    }
+
+    throw Exception(data["message"] ?? "Failed to add supplier");
   }
 }

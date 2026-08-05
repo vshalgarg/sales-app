@@ -48,6 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Image.asset("assets/images/sanjivagency.jpeg"),
+                    SizedBox(height: 12),
                     Text(
                       "Username",
                       style: TextStyle(color: Colors.black, fontSize: 15),
@@ -65,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 25),
+                    SizedBox(height: 12),
                     Text(
                       "Password",
                       style: TextStyle(color: Colors.black, fontSize: 15),
@@ -110,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 passwordController.text.isEmpty) {
                               ScaffoldSnackBar.show(
                                 context,
-                                "UserName & Password is Required",
+                                "Username & Password is Required",
                               );
                               return;
                             }

@@ -1,59 +1,70 @@
-import 'dart:convert';
 import 'dart:typed_data';
-import 'package:hisabio/shared_preferences/login_token.dart';
-import 'package:http/http.dart' as http;
+
+import '../../model_classes/common/api_response.dart';
+import '../../network/api_service.dart';
+import '../../network/response_result.dart';
 import '../model_classes/get_ledger_details.dart';
 
-class GetLedgerDetailsServices {
-  Future<GetLedgerDetails> getLedgerDetails(
-    int supplierId,
-    int customerId,
-    String viewType,
-  ) async {
-    try {
-      final url = Uri.parse(
-        "http://192.168.1.100:8087/csm/api/v1/ledger?supplierId=$supplierId&customerId=$customerId&viewType=$viewType",
-      );
-      final token = await AppStorage.getToken();
-      final response = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      );
-      final data = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        return GetLedgerDetails.fromJson(data);
-      } else {
-        throw Exception(data['message'] ?? "Failed to fetch Ledger Details");
-      }
-    } catch (e) {
-      throw Exception("Error $e");
-    }
-  }
-  Future<Uint8List> downloadLedger(
-      int supplierId,
-      int customerId,
-      String viewType,
-      ) async {
-    final token = await AppStorage.getToken();
+class LedgerService {
+  final ApiService _api;
 
-    final url = Uri.parse(
-      "http://192.168.1.100:8087/csm/api/v1/ledger/download?supplierId=$supplierId&customerId=$customerId&viewType=$viewType",
-    );
+  LedgerService(this._api);
 
-    final response = await http.get(
-      url,
-      headers: {
-        "Authorization": "Bearer $token",
+  static const String _ledger = "/ledger";
+
+  // GET LEDGER
+
+  Future<ResponseResult<ApiResponse>> getLedger({
+    required num supplierId,
+    required num customerId,
+    required String viewType,
+  }) async {
+    final result = await _api.get<Map<String, dynamic>>(
+      path: _ledger,
+      queryParameters: {
+        "supplierId": supplierId,
+        "customerId": customerId,
+        "viewType": viewType,
       },
     );
 
-    if (response.statusCode == 200) {
-      return response.bodyBytes;
+    if (result.isFailure) {
+      return ResponseResult.error(
+        errorMessage: result.errorMessage ?? "Failed to fetch ledger",
+        statusCode: result.statusCode,
+      );
     }
 
-    throw Exception("Download failed");
+    final response = ApiResponse.fromJson(result.data!);
+
+    return ResponseResult.success(
+      ApiResponse(
+        success: response.success,
+        message: response.message,
+        data: response.data != null
+            ? LedgerData.fromJson(
+          response.data as Map<String, dynamic>,
+        )
+            : null,
+      ),
+      result.statusCode,
+    );
+  }
+
+  // DOWNLOAD LEDGER
+
+  Future<ResponseResult<Uint8List>> downloadLedger({
+    required num supplierId,
+    required num customerId,
+    required String viewType,
+  }) {
+    return _api.downloadBytes(
+      path: "$_ledger/download",
+      queryParameters: {
+        "supplierId": supplierId,
+        "customerId": customerId,
+        "viewType": viewType,
+      },
+    );
   }
 }

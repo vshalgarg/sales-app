@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../model_classes/update_purchase_model.dart';
+import '../model_classes/purchases/update_purchase_model.dart';
 import '../services/update_purchase_api.dart';
 
 class UpdatePurchaseProvider extends ChangeNotifier {

@@ -1,17 +1,18 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
+import 'package:hisabio/customs/containers/master_containers/staff_container.dart';
+import 'package:hisabio/dialog_boxes/master_dialogBoxes/add_staff_dialog.dart';
+import 'package:hisabio/enums/staff_mode.dart';
+import 'package:hisabio/model_classes/staff/staff.dart';
+import 'package:hisabio/pagination/pagination_widget.dart';
+import 'package:hisabio/pop_ups/general_closing_popup.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
+import 'package:hisabio/provider/staff_provider.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import '../../constants/colors_used.dart';
-import '../../customs/containers/master_containers/staff_container.dart';
-import '../../dialog_boxes/master_dialogBoxes/add_staff_dialog.dart';
-import '../../enums/staff_mode.dart';
-import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/delete_staff_provider.dart';
-import '../../provider/get_staff_provider.dart';
-import '../../provider/search_staff_provider.dart';
 
 class StaffScreen extends StatefulWidget {
   const StaffScreen({super.key});
@@ -21,8 +22,8 @@ class StaffScreen extends StatefulWidget {
 }
 
 class _StaffScreenState extends State<StaffScreen> {
-  final ScrollController _scrollController = ScrollController();
-  final searchStaffController = TextEditingController();
+  final searchController = TextEditingController();
+
   Timer? _debounce;
 
   @override
@@ -30,36 +31,23 @@ class _StaffScreenState extends State<StaffScreen> {
     super.initState();
 
     Future.microtask(() {
-      context.read<GetStaffProvider>().getStaff(refresh: true);
-    });
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        context.read<GetStaffProvider>().getStaff();
-      }
+      context.read<StaffProvider>().fetchInitial();
     });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
-    searchStaffController.dispose();
+    searchController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // final searchProvider = context.watch<SearchStaffProvider>();
-    final deleteProvider = context.watch<DeleteStaffProvider>();
-    final staffProvider = context.watch<GetStaffProvider>();
-    if (staffProvider.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (staffProvider.errorMessage != null) {
-      return Scaffold(body: Center(child: Text(staffProvider.errorMessage!)));
-    }
+    final provider = context.watch<StaffProvider>();
+
+    final staffs = provider.data.items;
+
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -68,183 +56,143 @@ class _StaffScreenState extends State<StaffScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: "Staff Overview",
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
           fontSize: 25,
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             Container(
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(5)),
               height: 40,
               width: double.infinity,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(5)),
               child: SearchBar(
+                controller: searchController,
+                elevation: const WidgetStatePropertyAll(2),
+                backgroundColor: const WidgetStatePropertyAll(Colors.white),
                 shape: WidgetStatePropertyAll(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
-                controller: searchStaffController,
-                elevation: WidgetStatePropertyAll(2),
                 hintText: "Search Staff...",
-                leading: Icon(Icons.search_outlined, size: 30),
-                backgroundColor: WidgetStatePropertyAll(Colors.white),
+                leading: const Icon(Icons.search_outlined, size: 30),
                 trailing: [
-                  if (searchStaffController.text.isNotEmpty)
+                  if (searchController.text.isNotEmpty)
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () {
-                        searchStaffController.clear();
-                        setState(() {});
+                      onPressed: () async {
+                        searchController.clear();
+
+                        await context.read<StaffProvider>().clearSearch();
+
+                        if (mounted) {
+                          setState(() {});
+                        }
                       },
                     ),
                 ],
                 onChanged: (value) {
-                  setState(() {});
                   if (_debounce?.isActive ?? false) {
                     _debounce!.cancel();
                   }
-                  // if (value.trim().isEmpty) {
-                  //   context.read<SearchStaffProvider>().clearSearch();
-                  //   return;
-                  // }
+
                   _debounce = Timer(const Duration(milliseconds: 500), () {
                     if (value.trim().isEmpty) {
-                      setState(() {});
-                      return;
-                    }
-                    context.read<SearchStaffProvider>().searchStaff(value);
-                  });
-                },
-                // elevation: WidgetStatePropertyAll(2),
-                // hintText: "Search Staff...",
-                // leading: Icon(Icons.search_outlined, size: 30),
-                // backgroundColor: WidgetStatePropertyAll(Colors.white),
-              ),
-            ),
-            SizedBox(height: 25),
-            Expanded(
-              child: Consumer<SearchStaffProvider>(
-                builder: (context, searchProvider, child) {
-                  final bool isSearching = searchStaffController.text
-                      .trim()
-                      .isNotEmpty;
-                  final List<dynamic> staffs = isSearching
-                      ? searchProvider.searchStaffModel?.content ?? []
-                      : staffProvider.staffs;
-                  if (searchProvider.isLoading && isSearching) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (searchProvider.errorMessage != null && isSearching) {
-                    return Center(child: Text(searchProvider.errorMessage!));
-                  }
-                  if (staffs.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        "No Staff Found",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                    );
-                  }
-                  return ListView.separated(
-                    controller: _scrollController,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 10),
-                    itemCount:
-                        staffs.length +
-                        ((!isSearching && staffProvider.isLoadingMore) ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (!isSearching &&
-                          index == staffs.length &&
-                          staffProvider.isLoadingMore) {
-                        return const Padding(
-                          padding: EdgeInsets.all(15),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
+                      context.read<StaffProvider>().clearSearch();
+
+                      if (mounted) {
+                        setState(() {});
                       }
 
-                      final staff = staffs[index];
+                      return;
+                    }
 
-                      return StaffContainer(
-                        elevation: 1,
-                        name: staff.staffName ?? "",
-                        number: staff.phone ?? "",
-                        joiningDate: staff.joiningDate ?? "",
-                        editIconTap: () async {
-                          final result = await showDialog<bool>(
-                            context: context,
-                            builder: (_) => AddStaffDialog(
-                              mode: StaffMode.edit,
-                              id: staff.staffId,
+                    context.read<StaffProvider>().search(value);
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Expanded(
+              child: PaginationWidget<Staff>(
+                pagination: provider.data.pagination,
+                items: staffs,
+                loading: provider.data.isLoading,
+                fetchPage: provider.fetchPage,
+                refresh: provider.refreshStaffs,
+                itemBuilder: (context, item) {
+                  return StaffContainer(
+                    elevation: 1,
+                    name: item.staffName,
+                    number: item.phone ?? "-",
+                    joiningDate: item.joiningDate ?? "-",
+
+                    editIconTap: () async {
+                      final refresh = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AddStaffDialog(
+                          id: item.id,
+                          mode: StaffMode.edit,
+                        ),
+                      );
+                    },
+
+                    trashIconTap: () {
+                      ExitConfirmationDialog.show(
+                        context,
+                        saveButtonText: "Yes",
+                        discardButtonText: "No",
+                        body: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
                             ),
-                          );
+                            children: [
+                              const TextSpan(
+                                text:
+                                    "Are you sure you want to permanently delete ",
+                              ),
+                              TextSpan(
+                                text: item.staffName,
+                                style: const TextStyle(
+                                  color: AppColors.orangeColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const TextSpan(
+                                text: "? This action cannot be undone.",
+                              ),
+                            ],
+                          ),
+                        ),
 
-                          if (result == true) {
-                            if(!context.mounted) return;
-                            if (searchStaffController.text.trim().isNotEmpty) {
-                              context.read<SearchStaffProvider>().searchStaff(
-                                searchStaffController.text.trim(),
-                              );
-                            } else {
-                              await context.read<GetStaffProvider>().refreshStaff();
-                            }
-                          }
-                        },
-                        trashIconTap: () {
-                          ExitConfirmationDialog.show(
+                        onSave: () async {
+                          Navigator.pop(context);
+
+                          final success = await provider.deleteStaff(item.id);
+
+                          if (!context.mounted) return;
+
+                          ScaffoldSnackBar.show(
                             context,
-                            saveButtonText: "Yes",
-                            discardButtonText: "No",
-                            onDiscard: () => Navigator.pop(context),
-                            bodyText:
-                                "Are you sure you want to permanently delete ${staff.staffName ?? ""}? This action cannot be undo.",
-                            onSave: () async {
-                              await context
-                                  .read<DeleteStaffProvider>()
-                                  .deleteStaff({"staffId": staff.staffId});
-
-                              if (!context.mounted) return;
-
-                              Navigator.pop(context);
-
-                              if (deleteProvider.errorMessage != null) {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  deleteProvider.errorMessage!,
-                                );
-                                return;
-                              }
-                              if (searchStaffController.text
-                                  .trim()
-                                  .isNotEmpty) {
-                                context.read<SearchStaffProvider>().searchStaff(
-                                  searchStaffController.text.trim(),
-                                );
-                              } else {
-                                await context
-                                    .read<GetStaffProvider>()
-                                    .refreshStaff();
-                              }
-                              if (!context.mounted) return;
-                              ScaffoldSnackBar.show(
-                                context,
-                                deleteProvider.deleteStaffResponse?.message ??
-                                    "Deleted Successfully",
-                              );
-
-                              await context
-                                  .read<GetStaffProvider>()
-                                  .refreshStaff();
-                            },
+                            success
+                                ? "Staff deleted successfully"
+                                : "Failed to delete staff",
                           );
+                        },
+
+                        onDiscard: () {
+                          Navigator.pop(context);
                         },
                       );
                     },
@@ -257,24 +205,20 @@ class _StaffScreenState extends State<StaffScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        backgroundColor: AppColors.primaryPurple,
+        child: const Icon(Iconsax.add, color: Colors.white, size: 40),
         onPressed: () async {
-          final result = await showDialog<bool>(
+          final refresh = await showDialog<bool>(
             context: context,
             builder: (_) => const AddStaffDialog(mode: StaffMode.add),
           );
-          if (!context.mounted) return;
-          if (result == true) {
-            if (searchStaffController.text.trim().isNotEmpty) {
-              context.read<SearchStaffProvider>().searchStaff(
-                searchStaffController.text.trim(),
-              );
-            } else {
-              await context.read<GetStaffProvider>().refreshStaff();
-            }
+
+          if (!mounted) return;
+
+          if (refresh == true) {
+            await provider.refreshStaffs();
           }
         },
-        backgroundColor: AppColors.primaryPurple,
-        child: Icon(Iconsax.add, color: Colors.white, size: 40),
       ),
     );
   }

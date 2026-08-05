@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
@@ -8,9 +9,17 @@ import '../../entry_document_upload/entry_upload_files.dart';
 
 class BillEntryUploadDocuments extends StatefulWidget {
   final List<PlatformFile> files;
+  final List<String> existingFileNames;
+  final List<String> existingUrls;
+  final bool isViewMode;
+  final bool isEditMode;
   const BillEntryUploadDocuments({
     super.key,
     required this.files,
+    required this.existingFileNames,
+    required this.existingUrls,
+    this.isViewMode = false,
+    this.isEditMode = false,
   });
 
   @override
@@ -26,11 +35,21 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
   }
   Future<void> selectFiles() async {
     final files = await pickFiles();
-    setState(() {
-      selectedFiles.addAll(files);
-    });
-  }
 
+    if (files.isEmpty) return;
+
+    for (final file in files) {
+      if (!selectedFiles.any((e) => e.path == file.path)) {
+        selectedFiles.add(file);
+      }
+    }
+
+    if (selectedFiles.length > 3) {
+      selectedFiles = selectedFiles.take(3).toList();
+    }
+
+    setState(() {});
+  }
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -41,6 +60,94 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
               children: [
                 Text("Bill Upload Documents",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                if (widget.existingFileNames.isNotEmpty)
+                  Column(
+                    children: List.generate(
+                      widget.existingFileNames.length,
+                          (index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: InkWell(
+                            onTap: () async {
+                              final uri = Uri.parse(widget.existingUrls[index]);
+
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.existingFileNames[index],
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+
+                                  if (widget.isViewMode)
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.remove_red_eye,
+                                        color: Colors.blue,
+                                      ),
+                                      onPressed: () async {
+                                        final uri = Uri.parse(widget.existingUrls[index]);
+
+                                        await launchUrl(
+                                          uri,
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      },
+                                    ),
+
+                                  if (widget.isViewMode)
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.download,
+                                        color: Colors.green,
+                                      ),
+                                      onPressed: () async {
+                                        final uri = Uri.parse(widget.existingUrls[index]);
+
+                                        await launchUrl(
+                                          uri,
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      },
+                                    ),
+
+                                  if (widget.isEditMode)
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          widget.existingFileNames.removeAt(index);
+                                          widget.existingUrls.removeAt(index);
+                                        });
+                                      },
+                                    ),
+                                ],
+                              )
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 if (selectedFiles.isNotEmpty)
                   Column(
                     children: selectedFiles.map((file) {
@@ -105,7 +212,10 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                     }).toList(),
                   ),
                 SizedBox(height:10),
-                if (selectedFiles.length < 3)
+                if (!widget.isViewMode &&
+                    selectedFiles.length +
+                        widget.existingFileNames.length <
+                        3)
                 GestureDetector(onTap:selectFiles,
                   child: Container(
                     decoration:BoxDecoration(

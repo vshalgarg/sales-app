@@ -6,19 +6,15 @@ import 'package:hisabio/master_widgets/basic_info.dart';
 import 'package:hisabio/master_widgets/bottomnavigation_button.dart';
 import 'package:hisabio/master_widgets/contact_info.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/screens/master_screens/customer.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/dropdown_test.dart';
-import '../../customs/new_test.dart';
 import '../../enums/customer_mode.dart';
-import '../../model_classes/get_customer_byid_model.dart';
+import '../../model_classes/customer/add_customer_request.dart';
+import '../../model_classes/customer/customer_details.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/add_customer.dart';
-import '../../provider/get_customer_byid_provider.dart';
-import '../../provider/get_customers_provider.dart';
-import '../../provider/get_transport_provider.dart';
-import '../../provider/update_customer_provider.dart';
+import '../../provider/customer_provider.dart';
+import '../../provider/transport_provider.dart';
 import 'add_new_supplier.dart';
 
 class AddNewCustomer extends StatefulWidget {
@@ -36,6 +32,8 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
   final GlobalKey _contactKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
   bool isExpanded = false;
+  int? selectedState;
+  int? selectedCity;
   final nameController = TextEditingController();
 
   final emailController = TextEditingController();
@@ -73,74 +71,56 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
   final remarksController = TextEditingController();
   List<ContactControllers> contacts = [];
 
-  Map<String, dynamic> _buildCustomerBody() {
-    return {
-      "customerName": nameController.text,
-      "email": emailController.text,
-      "customerGroup": groupController.text,
-      "customerGstNo": gstController.text,
-      "customerMsme": msmeController.text,
-      "referencedBy": referenceController.text,
-      "addressLine1": addressLine1Controller.text,
-      "addressLine2": addressLine2Controller.text,
-      "city": cityController.text,
-      "state": stateController.text,
-      "pinCode": pinCodeController.text,
-      "bankName": bankNameController.text,
-      "ifsc": ifscController.text,
-      "branch": branchNameController.text,
-      "accountName": accountholderNameController.text,
-      "accountNumber": accountNumberController.text,
-      "preferredTransportIds": selectedTransportId == null
+  AddCustomerRequest _buildCustomerRequest() {
+    return AddCustomerRequest(
+      customerName: nameController.text,
+      email: emailController.text.isEmpty ? null : emailController.text,
+      groupId: null, // Replace with selected group id if available
+      gstNo: gstController.text.isEmpty ? null : gstController.text,
+      referencedBy: referenceController.text.isEmpty
+          ? null
+          : referenceController.text,
+      msme: msmeController.text.isEmpty ? null : msmeController.text,
+      remark: remarksController.text.isEmpty ? null : remarksController.text,
+      addressLine1: addressLine1Controller.text.isEmpty
+          ? null
+          : addressLine1Controller.text,
+      addressLine2: addressLine2Controller.text.isEmpty
+          ? null
+          : addressLine2Controller.text,
+      state: stateController.text,
+      city: cityController.text,
+      pinCode: pinCodeController.text.isEmpty
+          ? null
+          : pinCodeController.text,
+      bankName: bankNameController.text.isEmpty
+          ? null
+          : bankNameController.text,
+      accountName: accountholderNameController.text.isEmpty
+          ? null
+          : accountholderNameController.text,
+      accountNumber: accountNumberController.text.isEmpty
+          ? null
+          : accountNumberController.text,
+      ifsc: ifscController.text.isEmpty ? null : ifscController.text,
+      branch: branchNameController.text.isEmpty
+          ? null
+          : branchNameController.text,
+      preferredTransportIds: selectedTransportId == null
           ? []
           : [int.parse(selectedTransportId!)],
-
-      "contacts": contacts.map((c) {
-        return {
-          "contactPerson": c.name.text,
-          "mobileNumber": c.mobile.text,
-          "type": c.type.text,
-        };
-      }).toList(),
-
-      "remark": remarksController.text,
-    };
+      contacts: contacts
+          .map(
+            (c) => CustomerContactRequest(
+          contactPerson: c.name.text,
+          mobileNumber: c.mobile.text,
+          type: c.type.text.isEmpty ? null : c.type.text,
+        ),
+      )
+          .toList(),
+    );
   }
-
-  Map<String, dynamic> updateCustomerBody() {
-    return {
-      "customerName": nameController.text,
-      "email": emailController.text,
-      "groupName": groupController.text,
-      "gstNo": gstController.text,
-      "msme": msmeController.text,
-      "referencedBy": referenceController.text,
-      "addressLine1": addressLine1Controller.text,
-      "addressLine2": addressLine2Controller.text,
-      "city": cityController.text,
-      "state": stateController.text,
-      "pinCode": pinCodeController.text,
-      "bankName": bankNameController.text,
-      "ifsc": ifscController.text,
-      "branch": branchNameController.text,
-      "accountName": accountholderNameController.text,
-      "accountNumber": accountNumberController.text,
-      "preferredTransportIds": selectedTransportId == null
-          ? []
-          : [int.parse(selectedTransportId!)],
-      "contacts": contacts.map((c) {
-        return {
-          "contactPerson": c.name.text,
-          "mobileNumber": c.mobile.text,
-          "type": c.type.text,
-        };
-      }).toList(),
-
-      "remark": remarksController.text,
-    };
-  }
-
-  void _populateFormFromCustomer(Data s) {
+  void _populateFormFromCustomer(CustomerDetails s){
     nameController.text = s.customerName ?? "";
     emailController.text = s.email ?? "";
     groupController.text = s.groupName ?? "";
@@ -165,37 +145,22 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     pinCodeController.text = s.pinCode ?? "";
     remarksController.text = s.remark ?? "";
 
-    if (s.preferredTransports != null && s.preferredTransports!.isNotEmpty) {
-      final first = s.preferredTransports!.first;
-      if (first is Map) {
-        selectedTransportId = first.id?.toString();
-        selectedType = first.name?.toString();
-      } else if (first is PreferredTransports) {
-        selectedTransportId = first.id?.toString();
-        selectedType = first.name;
-      } else {
-        selectedTransportId = first.toString();
-        selectedType = null;
-      }
-      preferredTransportController.text = selectedType ?? "";
+    if (s.preferredTransports.isNotEmpty) {
+      final transport = s.preferredTransports.first;
+
+      selectedTransportId = transport.id.toString();
+      selectedType = transport.name;
+      preferredTransportController.text = transport.name!;
     }
     contacts = [];
 
-    if ((s.contacts ?? []).isNotEmpty) {
-      for (var c in s.contacts!) {
+    if (s.contacts.isNotEmpty) {
+      for (final c in s.contacts) {
         final contact = ContactControllers();
 
-        if (c is Map) {
-          contact.name.text = c.contactPerson?.toString() ?? "";
-
-          contact.mobile.text = c.mobileNumber?.toString() ?? "";
-
-          contact.type.text = c.type?.toString() ?? "";
-        } else {
-          contact.name.text = c.contactPerson ?? "";
-          contact.mobile.text = c.mobileNumber ?? "";
-          contact.type.text = c.type?.toString() ?? "";
-        }
+        contact.name.text = c.contactPerson ?? "";
+        contact.mobile.text = c.mobileNumber ?? "";
+        contact.type.text = c.type ?? "";
 
         contacts.add(contact);
       }
@@ -206,18 +171,17 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   Future<void> loadData() async {
     final transportProvider = context.read<TransportProvider>();
+    final customerProvider = context.read<CustomerProvider>();
 
-    final customerProvider = context.read<GetCustomerByIdProvider>();
-
-    await transportProvider.fetchTransports();
+    await transportProvider.fetchInitial();
 
     if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-      await customerProvider.getCustomerById(widget.id!.toInt());
+      final success = await customerProvider.fetchCustomerDetails(
+        widget.id!.toInt(),
+      );
 
-      final customerData = customerProvider.customer;
-
-      if (customerData != null && customerData.data != null) {
-        _populateFormFromCustomer(customerData.data!);
+      if (success && customerProvider.customerDetails != null) {
+        _populateFormFromCustomer(customerProvider.customerDetails!);
       }
     } else {
       contacts.add(ContactControllers());
@@ -255,7 +219,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    final getCustomerProvider = context.watch<GetCustomerByIdProvider>();
+    final customerProvider = context.watch<CustomerProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -300,7 +264,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
         ),
       ),
       body:
-          getCustomerProvider.isLoading &&
+      customerProvider.detailsLoading &&
               (widget.mode == FormMode.view || widget.mode == FormMode.edit)
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -338,6 +302,13 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                       state: stateController,
                       city: cityController,
                       pinCode: pinCodeController,
+                      onStateSelected: (id) {
+                        selectedState = id;
+                      },
+
+                      onCitySelected: (id) {
+                        selectedCity = id;
+                      },
                     ),
                     SizedBox(height: 15),
 
@@ -410,11 +381,11 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
                           Consumer<TransportProvider>(
                             builder: (context, transportProvider, child) {
-                              if (transportProvider.isLoading) {
+                              if (transportProvider.data.isLoading) {
                                 return const CircularProgressIndicator();
                               }
 
-                              final transports = transportProvider.transports;
+                              final transports = transportProvider.data.items;
 
                               return CustomDropdown(
                                 hintText: "Preferred Transport",
@@ -469,76 +440,82 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                 ),
               ),
             ),
-      bottomNavigationBar:
-          Consumer2<AddCustomerProvider, UpdateCustomerProvider>(
-            builder: (context, provider, updateProvider, child) {
-              return BottomNavigationButton(
-                mode: widget.mode,
-                update: () async {
-                  if (nameController.text.isEmpty) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      "Please enter customer name",
-                    );
-                    return;
-                  }
+      bottomNavigationBar: Consumer<CustomerProvider>(
+        builder: (context, provider, child) {
+          return BottomNavigationButton(
+            mode: widget.mode,
 
-                  final body = updateCustomerBody();
+            update: () async {
+              if (nameController.text.trim().isEmpty) {
+                ScaffoldSnackBar.show(
+                  context,
+                  "Please enter customer name",
+                );
+                return;
+              }
 
-                  await updateProvider.updateCustomer(
-                    body: body,
-                    id: widget.id!.toInt(),
-                  );
-                  if (!context.mounted) return;
-
-                  if (updateProvider.errorMessage == null) {
-                    await context.read<CustomersProvider>().refreshCustomers();
-                    if (!context.mounted) return;
-                    ScaffoldSnackBar.show(
-                      context,
-                      updateProvider.updateCustomerResponse?.message ??
-                          "Customer Updated Successfully",
-                    );
-                   Navigator.pop(context);
-                   // Navigator.pop(context,true);
-                    // Navigator.push(context, MaterialPageRoute(builder: (_)=>CustomerScreen()));
-                  } else {
-                    ScaffoldSnackBar.show(
-                      context,
-                      updateProvider.errorMessage ?? "",
-                    );
-                  }
-                },
-                saveSupplier: provider.isLoading
-                    ? () {}
-                    : () async {
-                        if (nameController.text.isEmpty) {
-                          ScaffoldSnackBar.show(
-                            context,
-                            "Please enter customer name",
-                          );
-                          return;
-                        }
-                        final body = _buildCustomerBody();
-
-                        await provider.addCustomer(body);
-                        if (!context.mounted) return;
-                        if (provider.error == null) {
-                          await context
-                              .read<CustomersProvider>()
-                              .refreshCustomers();
-                          if (!context.mounted) return;
-                          ScaffoldSnackBar.show(
-                            context,
-                            provider.message ?? "Customer Added Successfully",
-                          );
-
-                          Navigator.pop(context,true);
-                        } else {
-                          ScaffoldSnackBar.show(context, provider.error ?? "");
-                        }
-                      },
+              final success = await provider.updateCustomer(
+                id: widget.id!.toInt(),
+                request: _buildCustomerRequest(),
               );
+
+              if (!context.mounted) return;
+
+              if (success) {
+                await provider.refreshCustomers();
+
+                if (!context.mounted) return;
+
+                ScaffoldSnackBar.show(
+                  context,
+                  "Customer updated successfully",
+                );
+
+                Navigator.pop(context, true);
+              } else {
+                ScaffoldSnackBar.show(
+                  context,
+                 "Unable to update customer",
+                );
+              }
+            },
+
+            saveSupplier: provider.actionLoading
+                ? () {}
+                : () async {
+              if (nameController.text.trim().isEmpty) {
+                ScaffoldSnackBar.show(
+                  context,
+                  "Please enter customer name",
+                );
+                return;
+              }
+
+              final success = await provider.addCustomer(
+                _buildCustomerRequest(),
+              );
+
+              if (!context.mounted) return;
+
+              if (success) {
+                await provider.refreshCustomers();
+
+                if (!context.mounted) return;
+
+                ScaffoldSnackBar.show(
+                  context,
+                  "Customer added successfully",
+                );
+
+                Navigator.pop(context, true);
+              } else {
+                ScaffoldSnackBar.show(
+                  context,
+                  "Unable to add customer",
+                );
+              }
+            },
+          );
             },
           ),
     );

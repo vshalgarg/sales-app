@@ -1,9 +1,9 @@
+
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
-import 'package:hisabio/screens/reporting_screen/credit.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
@@ -11,22 +11,26 @@ import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
 import '../../enums/customer_mode.dart';
-import '../../model_classes/entries_customer_model.dart';
-import '../../model_classes/entries_supplier.dart';
+import '../../model_classes/credits/credit.dart';
+import '../../model_classes/entries/entries_customer_model.dart';
+import '../../model_classes/entries/entries_supplier.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 
 class CreditEntry extends StatefulWidget {
   final FormMode mode;
-  final int? id;
+  final Credit? credit;
 
-  const CreditEntry({super.key, this.mode = FormMode.add, this.id});
+  const CreditEntry({
+    super.key,
+    this.mode = FormMode.add,
+    this.credit,
+  });
 
   @override
   State<CreditEntry> createState() => _CreditEntryState();
 }
-
 class _CreditEntryState extends State<CreditEntry> {
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
@@ -50,7 +54,22 @@ class _CreditEntryState extends State<CreditEntry> {
   final List<String> paymentModeList = ["NEFT_RTGS", "UPI", "CASH", "CHEQUE"];
 
   bool get isViewMode => widget.mode == FormMode.view;
-
+  // AddCreditRequest _buildRequest() {
+  //   return AddCreditRequest(
+  //     billNumber: invoiceController.text.trim(),
+  //     supplierId: selectedSupplier!.id!.toInt(),
+  //     customerId: selectedCustomer!.id!.toInt(),
+  //     paymentType: paymentMode!,
+  //     referenceNumber: referenceController.text.trim(),
+  //     referenceDate: referenceDateController.text.trim(),
+  //     date: transactionDateController.text.trim(),
+  //     slipNumber: slipController.text.trim(),
+  //     drawType: drawType,
+  //     receivedAmount:
+  //     double.tryParse(receivedAmountController.text) ?? 0,
+  //     remark: remarksController.text.trim(),
+  //   );
+  // }
   Map<String, dynamic> _creditBody() {
     return {
       "billNumber": invoiceController.text.trim(),
@@ -90,44 +109,57 @@ class _CreditEntryState extends State<CreditEntry> {
     Future.microtask(() async {
       final provider = context.read<EntriesProvider>();
       await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
-      if ((widget.mode == FormMode.view || widget.mode == FormMode.edit) &&
-          widget.id != null) {
-        await provider.getCreditDetailsById(widget.id!);
-
+      if (widget.credit != null) {
         _fillData(provider);
       }
     });
   }
 
   void _fillData(EntriesProvider provider) {
-    final credit = provider.creditDetails?.data;
+    final credit = widget.credit;
 
     if (credit == null) return;
 
-    invoiceController.text = credit.billNumber;
-    receivedAmountController.text = credit.receivedAmount.toString();
-    referenceController.text = credit.referenceNumber;
-    referenceDateController.text = credit.referenceDate;
-    transactionDateController.text = credit.date;
-    slipController.text = credit.slipNumber ?? "";
-    remarksController.text = credit.remark ?? "";
+    invoiceController.text = credit.billNumber ?? "";
+    receivedAmountController.text =
+        credit.receivedAmount?.toString() ?? "";
+
+    referenceController.text =
+        credit.referenceNumber ?? "";
+
+    referenceDateController.text =
+        credit.referenceDate ?? "";
+
+    transactionDateController.text =
+        credit.date ?? "";
+
+    slipController.text =
+        credit.slipNumber ?? "";
+
+    remarksController.text =
+        credit.remark ?? "";
 
     paymentMode = credit.paymentType;
     drawType = credit.drawType;
 
-    selectedSupplier = provider.entries.firstWhere(
-      (e) => e.id == credit.supplierId,
-      orElse: () => provider.entries.first,
-    );
-    selectedSupplierName = selectedSupplier?.supplierName;
-    selectedCustomer = provider.customerEntries.firstWhere(
-      (e) => e.id == credit.customerId,
-      orElse: () => provider.customerEntries.first,
-    );
-    selectedCustomerName = selectedCustomer?.customerName;
+    if (credit.supplierId != null) {
+      selectedSupplier = provider.entries.firstWhere(
+            (e) => e.id == credit.supplierId,
+        orElse: () => provider.entries.first,
+      );
+      selectedSupplierName = selectedSupplier?.supplierName;
+    }
+
+    if (credit.customerId != null) {
+      selectedCustomer = provider.customerEntries.firstWhere(
+            (e) => e.id == credit.customerId,
+        orElse: () => provider.customerEntries.first,
+      );
+      selectedCustomerName = selectedCustomer?.customerName;
+    }
+
     setState(() {});
   }
-
   void clearFields() {
     _formKey.currentState?.reset();
 
@@ -607,7 +639,7 @@ class _CreditEntryState extends State<CreditEntry> {
                             final response = await context
                                 .read<EntriesProvider>()
                                 .updateCreditDetails(
-                                  id: widget.id!,
+                                  id: widget.credit!.id!.toInt(),
                                   body: body,
                                 );
 

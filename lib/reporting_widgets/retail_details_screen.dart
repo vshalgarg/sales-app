@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/model_classes/retailers/retail_details.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
-import '../model_classes/retail_deposit_history_model.dart';
+import '../model_classes/retailers/add_retail_request.dart';
+import '../model_classes/retailers/retail_deposit_history_model.dart';
 import '../provider/retail_provider.dart';
 
 class RetailDetailsScreen extends StatefulWidget {
@@ -25,19 +27,19 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<RetailDetailsProvider>();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = context.read<RetailProvider>();
 
-      provider.fetchRetailDetails(widget.retailId);
-      provider.fetchDepositHistory(widget.retailId);
+      await provider.fetchRetailDetails(widget.retailId);
+      await provider.fetchDepositHistory(widget.retailId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<RetailDetailsProvider>(
+    return Consumer<RetailProvider>(
       builder: (context, provider, child) {
-        if (provider.isLoading) {
+        if (provider.detailsLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -71,10 +73,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +97,14 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
                     const SizedBox(height: 15),
 
-                    _infoItem("Date", retail.date),
+                    _infoItem(
+                      "Date",
+                      retail.date == null
+                          ? "-"
+                          : "${retail.date.day.toString().padLeft(2, "0")}-"
+                                "${retail.date.month.toString().padLeft(2, "0")}-"
+                                "${retail.date.year}",
+                    ),
 
                     const SizedBox(height: 15),
 
@@ -106,7 +112,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
                     const SizedBox(height: 15),
 
-                    _infoItem("Staff", retail.staffName),
+                    _infoItem("Staff", retail.staffName ?? "-"),
                   ],
 
                   const SizedBox(height: 24),
@@ -132,31 +138,17 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                       itemCount: retail.suppliers.length,
 
                       itemBuilder: (context, index) {
-                        final supplier = retail.suppliers[index];
+                        final RetailSupplier supplier = retail.suppliers[index];
 
-                        final history = provider.depositHistory.firstWhere(
-                          (e) =>
-                              e.retailSupplierId == supplier.retailSupplierId,
-
-                          orElse: () => RetailDepositHistoryModel(
-                            retailSupplierId: supplier.retailSupplierId,
-
-                            supplierId: supplier.supplierId,
-
-                            supplierName: supplier.supplierName,
-
-                            supplierCity: "",
-
-                            totalAmount: supplier.totalAmount,
-
-                            depositAmount: supplier.depositAmount,
-
-                            balanceAmount: supplier.balanceAmount,
-
-                            deposits: [],
-                          ),
-                        );
-
+                        RetailDepositHistoryModel? history;
+                        try {
+                          history = provider.depositHistory.firstWhere(
+                            (e) =>
+                                e.retailSupplierId == supplier.retailSupplierId,
+                          );
+                        } catch (_) {
+                          history = null;
+                        }
                         return _buildHistoryCard(
                           supplier: supplier,
                           history: history,
@@ -178,17 +170,17 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
   }
 
   Widget _buildHistoryCard({
-    required dynamic supplier,
-    required RetailDepositHistoryModel history,
-    required String retailDate,
-    required String staffName,
+    required RetailSupplier supplier,
+    required dynamic history,
+    required DateTime retailDate,
+    required String? staffName,
     required String customerName,
     required int index,
   }) {
     final bool expanded = expandedSupplierIndex == index;
 
     return Card(
-     // margin: const EdgeInsets.only(bottom: 16),
+      // margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -238,8 +230,9 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                           ),
                           children: [
                             TextSpan(
-                                text: "Referred By : ",
-                                style: TextStyle(fontWeight: FontWeight.w600)),
+                              text: "Referred By : ",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
                             TextSpan(text: customerName),
                           ],
                         ),
@@ -253,9 +246,10 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                           ),
                           children: [
                             TextSpan(
-                                text: "Staff :              ",
-                                style: TextStyle(fontWeight: FontWeight.w600)),
-                            TextSpan(text: staffName),
+                              text: "Staff :              ",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            TextSpan(text: staffName ?? "-"),
                           ],
                         ),
                       ),
@@ -269,14 +263,16 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 5 ,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xffFFF2E8),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        retailDate,
+                        "${retailDate.day.toString().padLeft(2, "0")}-"
+                        "${retailDate.month.toString().padLeft(2, "0")}-"
+                        "${retailDate.year}",
                         style: const TextStyle(
                           color: Colors.deepOrange,
                           fontSize: 11,
@@ -295,73 +291,73 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
             // Amount Cards
             Padding(
-                padding: const EdgeInsets.only(bottom: 1),
-                child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _summaryCard(
-                    icon: Icons.account_balance_wallet_outlined,
-                    title: "Total",
-                    value: "₹${supplier.totalAmount}",
-                    color: Color(0xff3B5BDB),
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 30,
-                  color: const Color(0xffE5E7EB),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: _summaryCard(
-                    icon: Icons.arrow_downward,
-                    title: "Deposited",
-                    value: "₹${supplier.depositAmount}",
-                    color: const Color(0xff3B5BDB),
-                  ),
-                ),
-
-                Container(
-                  width: 1,
-                  height: 30,
-                  color: const Color(0xffE5E7EB),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: _summaryCard(
-                    icon: Icons.arrow_upward,
-                    title: "Remaining",
-                    value: "₹${supplier.balanceAmount}",
-                    color: const Color(0xff2E9E57),
-                  ),
-                ),
-
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      expandedSupplierIndex = expanded ? null : index;
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: Icon(
-                      expanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: AppColors.primaryPurple,
+              padding: const EdgeInsets.only(bottom: 1),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _summaryCard(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: "Total",
+                      value: "₹${supplier.totalAmount}",
+                      color: Color(0xff3B5BDB),
                     ),
                   ),
-                ),
-              ],
-            ),
+                  Container(
+                    width: 1,
+                    height: 30,
+                    color: const Color(0xffE5E7EB),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: _summaryCard(
+                      icon: Icons.arrow_downward,
+                      title: "Deposited",
+                      value: "₹${supplier.depositAmount}",
+                      color: const Color(0xff3B5BDB),
+                    ),
+                  ),
+
+                  Container(
+                    width: 1,
+                    height: 30,
+                    color: const Color(0xffE5E7EB),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: _summaryCard(
+                      icon: Icons.arrow_upward,
+                      title: "Remaining",
+                      value: "₹${supplier.balanceAmount}",
+                      color: const Color(0xff2E9E57),
+                    ),
+                  ),
+
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        expandedSupplierIndex = expanded ? null : index;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Icon(
+                        expanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: AppColors.primaryPurple,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (expanded) ...[
               SizedBox(height: 3),
               Row(
                 children: [
                   Text(
-                    "Deposits (${history.deposits.length})",
+                    "Deposits (${history?.deposits.length ?? 0})",
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
@@ -370,7 +366,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                 ],
               ),
 
-              if (history.deposits.isEmpty)
+              if (history == null || history.deposits.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Center(
@@ -380,7 +376,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                     ),
                   ),
                 ),
-              if (history.deposits.isNotEmpty)
+              if (history != null && history.deposits.isNotEmpty)
                 ...List.generate(history.deposits.length, (i) {
                   final deposit = history.deposits[i];
                   return Column(
@@ -389,60 +385,84 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 5),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.calendar_month_outlined,
-                              size: 16,
-                              color: AppColors.primaryPurple,
-                            ),
-
-                            const SizedBox(width: 8),
-
+                            // Date
                             SizedBox(
-                              width: 130,
+                              width: 120,
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_month_outlined,
+                                    size: 16,
+                                    color: AppColors.primaryPurple,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    deposit.date,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Amount
+                            SizedBox(
+                              width: 110,
                               child: Text(
-                                deposit.date.isEmpty ? "-" : deposit.date,
-                                style: const TextStyle(fontSize: 12),
+                                "₹${deposit.amount}",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.indigo,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                    fontFeatures: [
+                                    FontFeature.tabularFigures(),
+                                ]
+                                ),
                               ),
                             ),
 
-                            Text(
-                              "₹${deposit.amount}",
-                              style: const TextStyle(
-                                color: Colors.indigo,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(width: 25),
-
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xffE8F7EE),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                "Deposited",
-                                style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 10,
+                            // Status
+                            SizedBox(
+                              width: 110,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xffE8F7EE),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Text(
+                                    "Deposited",
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 3),
-                      if (i < history.deposits.length - 1)
-                        const DashedDivider(),
-                      SizedBox(height: 2),
+                      //           SizedBox(height: 3),
+                      //           if (i < history.deposits.length - 1)
+                      //             const DashedDivider(),
+                      //           SizedBox(height: 2),
+                      //         ],
+                      //       )
+                      //       )
+                      //         ]
+                      //       );
+                      //     }).toList(),
+                      // ],
                     ],
                   );
-                }).toList(),
+                }),
             ],
           ],
         ),
@@ -457,49 +477,51 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
     required Color color,
   }) {
     return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-    Container(
-      width: 25,
-      height: 25,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: color, width: 0.8),
-      ),
-      child: Icon(icon, color: color, size: 16),
-    ),
-
-    const SizedBox(width: 8),
-
-    Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: Color(0xff6B7280),
-              height: 1,
-            ),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 25,
+          height: 25,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 0.8),
           ),
-          const SizedBox(height: 3),
+          child: Icon(icon, color: color, size: 16),
+        ),
 
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
+        const SizedBox(width: 8),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff6B7280),
+                  height: 1,
+                ),
+              ),
+              const SizedBox(height: 3),
+
+              Text(
+                value,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-          ],
-        );
+        ),
+      ],
+    );
   }
 
   Widget _sectionHeader({
@@ -524,7 +546,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                 title,
                 style: const TextStyle(
                   color: Colors.white,
-                 // fontWeight: FontWeight.w600,
+                  // fontWeight: FontWeight.w600,
                   fontSize: 18,
                 ),
               ),
@@ -545,10 +567,11 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title,
+        Text(
+          title,
           style: const TextStyle(
             color: Colors.white,
-           // fontWeight: FontWeight.w600,
+            // fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
@@ -564,15 +587,14 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
           ),
           child: Text(
             value.trim().isEmpty ? "-" : value,
-            style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black87),
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
           ),
         ),
       ],
     );
   }
 }
+
 class DashedDivider extends StatelessWidget {
   final double height; // Thickness of the line
   final double dashWidth; // Length of each individual dash

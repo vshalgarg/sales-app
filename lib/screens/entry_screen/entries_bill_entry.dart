@@ -9,8 +9,7 @@ import 'package:hisabio/customs/elevated_button.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_date_textfield.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
-import 'package:hisabio/model_classes/entries_customer_model.dart';
-import 'package:hisabio/model_classes/get_transportname_id_model.dart';
+import 'package:hisabio/model_classes/entries/entries_customer_model.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -20,13 +19,14 @@ import '../../constants/view_image_method.dart';
 import '../../dialog_boxes/entry_dialogboxes/add_new_bill_item.dart';
 import '../../dialog_boxes/entry_dialogboxes/bill_section_upload_documents_dialog.dart';
 import '../../enums/customer_mode.dart';
-import '../../model_classes/bill_item_model.dart';
-import '../../model_classes/entries_supplier.dart';
-import '../../model_classes/reporting_get_bill.dart';
+import '../../model_classes/Transport/transport.dart';
+import '../../model_classes/bills/bill_item_model.dart';
+import '../../model_classes/entries/entries_supplier.dart';
+import '../../model_classes/bills/bill_details.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../provider/search_bill_provider.dart';
+import '../../provider/bill_provider.dart';
 
 class EntriesBillEntry extends StatefulWidget {
   final FormMode mode;
@@ -41,9 +41,12 @@ class EntriesBillEntry extends StatefulWidget {
 class _EntriesBillEntryState extends State<EntriesBillEntry> {
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
+  List<bool> billItemExpanded = [];
+
   bool get isViewMode => widget.mode == FormMode.view;
   bool isExpanded = true;
   List<String> existingFileNames = [];
+  bool isBillItemsExpanded = false;
   bool isAttachmentExpanded = false;
   bool isSupplierExpanded = false;
   bool isCustomerExpanded = false;
@@ -54,7 +57,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   String? selectedSupplierName;
   EntriesCustomerModel? selectedCustomer;
   String? selectedCustomerName;
-  GetTransportnameIdModel? selectedTransport;
+  Transport? selectedTransport;
   String? selectedTransportName;
   List<String> existingUrls = [];
   List<String> existingObjectKeys = [];
@@ -94,6 +97,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     super.dispose();
   }
+
   @override
   void initState() {
     super.initState();
@@ -102,20 +106,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     Future.microtask(() async {
       final entriesProvider = context.read<EntriesProvider>();
-      final billsProvider = context.read<BillsProvider>();
+      final billsProvider = context.read<BillProvider>();
       await entriesProvider.loadInitialData();
 
       if (!mounted) return;
 
       setState(() {});
 
-      if (widget.mode == FormMode.view ||
-          widget.mode == FormMode.edit) {
-        await billsProvider.fetchBillById(widget.id!);
+      if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
+        final success = await billsProvider.fetchBillDetails(widget.id!);
 
-        if (!mounted) return;
+        if (!mounted || !success) return;
 
-        final bill = billsProvider.bill;
+        final bill = billsProvider.billDetails;
 
         if (bill != null) {
           fillBillData(bill);
@@ -124,29 +127,217 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     });
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   dateController.text = DateFormat('yyyy/MM/dd').format(DateTime.now());
-  //   Future.microtask(() async {
-  //     final provider = context.read<EntriesProvider>();
-  //     await Future.wait([
-  //       provider.fetchSuppliers(),
-  //       provider.fetchCustomer(),
-  //       provider.fetchTransport(),
-  //     ]);
-  //     if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-  //       await context.read<BillsProvider>().fetchBillById(widget.id!);
-  //       final bill = context.read<BillsProvider>().bill;
-  //       if (bill != null) {
-  //         fillBillData(bill);
-  //       }
-  //     }
-  //   });
-  //   dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-  // }
+  Widget _buildBillItemCard(BillItem item, int index) {
+    final taxable =
+        (item.taxableValue ??
+                ((item.grossAmount ?? 0) -
+                    (item.discountAmount ?? 0) +
+                    (item.addOnAmount ?? 0) +
+                    (item.ecrAmount ?? 0)))
+            .toDouble();
 
-  void fillBillData(BillResponse bill) {
+    final total = (item.totalAmount ?? (taxable + (item.gstAmount ?? 0)))
+        .toDouble();
+    return Container(
+      // margin: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      // margin: const EdgeInsets.only(
+      //   left: 10,
+      //   right: 10,
+      //   top: 10,
+      //   bottom: 4,
+      // ),
+      decoration: BoxDecoration(
+        //  color:  AppColors.primaryPurpleLight, // Very light purple
+        // borderRadius: BorderRadius.circular(5),
+        //  boxShadow: [
+        //    BoxShadow(
+        // color: Colors.white,
+        // blurRadius: 6,
+        // offset: const Offset(0, 2),
+        // ),
+        // ],
+        border: Border.all(color: AppColors.containerFillColor),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+            decoration: const BoxDecoration(
+              color: AppColors.primaryPurple,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(5),
+                topRight: Radius.circular(5),
+              ),
+            ),
+
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        billItemExpanded[index] = !billItemExpanded[index];
+                      });
+                    },
+                    child: Text(
+                      "Bill Item ${index + 1}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                if (!isViewMode) ...[
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        billItems.removeAt(index);
+                        billItemExpanded.removeAt(index);
+                      });
+                    },
+                    child: customIcon(
+                      icon: Iconsax.trash,
+                      iconColor: Colors.red,
+                      bgColor: Colors.transparent,
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  GestureDetector(
+                    onTap: () async {
+                      final BillItem? updated = await showDialog<BillItem>(
+                        context: context,
+                        builder: (_) => AddNewBillItem(billItem: item),
+                      );
+
+                      if (updated != null) {
+                        setState(() {
+                          billItems[index] = updated;
+                        });
+                      }
+                    },
+                    child: customIcon(
+                      icon: Iconsax.edit,
+                      iconColor: Colors.green,
+                      bgColor: Colors.transparent,
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+                ],
+
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      billItemExpanded[index] = !billItemExpanded[index];
+                    });
+                  },
+                  child: Icon(
+                    billItemExpanded[index]
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Body
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.bodyFillColor,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(5),
+                bottomRight: Radius.circular(5),
+              ),
+            ),
+            child: AnimatedCrossFade(
+              duration: const Duration(milliseconds: 250),
+
+              crossFadeState: billItemExpanded[index]
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+
+              firstChild: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+                child: Column(
+                  children: [
+                    _billField("Pieces", item.pieces),
+
+                    _billField("Gross Amount", item.grossAmount),
+
+                    _billField("Discount %", item.discountPercent),
+
+                    _billField("Discount Amount", item.discountAmount),
+
+                    _billField("Add-On Amount", item.addOnAmount),
+
+                    _billField("ECR Amount", item.ecrAmount),
+
+                    _billField("GST %", item.gstPercent),
+
+                    _billField("GST Amount", item.gstAmount),
+
+                    // const Divider(height: 20),
+                    //
+                    // _billField("Taxable Value", taxable),
+                    //
+                    // _billField("Bill Amount", total, isLast: true),
+                  ],
+                ),
+              ),
+              secondChild: const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _billField(String title, dynamic value, {bool isLast = false}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Text(
+              value?.toString() ?? "-",
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void fillBillData(BillDetails bill) {
     dateController.text = bill.date ?? "";
     receivedDateController.text = bill.receivedDate ?? "";
     invoiceController.text = bill.invoiceNo ?? "";
@@ -161,7 +352,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     remarksController.text = bill.remarks ?? "";
 
     billItems = bill.items!.cast<BillItem>();
-
+    billItemExpanded = List.generate(billItems.length, (_) => true);
     final provider = context.read<EntriesProvider>();
     final supplier = provider.entries.where((e) => e.id == bill.supplierId);
 
@@ -175,7 +366,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     // );
     selectedSupplierName = selectedSupplier?.supplierName;
     final customer = provider.customerEntries.where(
-          (e) => e.id == bill.customerId,
+      (e) => e.id == bill.customerId,
     );
 
     if (customer.isNotEmpty) {
@@ -186,13 +377,16 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     //   (e) => e.id == bill.customerId,
     // );
     selectedCustomerName = selectedCustomer?.customerName;
-    selectedTransport =
-        provider.transportDetails
-            .where((e) => e.name == bill.transport)
-            .isNotEmpty
-        ? provider.transportDetails.firstWhere((e) => e.name == bill.transport)
-        : null;
-    selectedTransportName = selectedTransport?.name;
+    if (bill.transport != null) {
+      final transport = provider.transportDetails.where(
+        (e) => e.name == bill.transport,
+      );
+
+      if (transport.isNotEmpty) {
+        selectedTransport = transport.first;
+        selectedTransportName = selectedTransport?.name;
+      }
+    }
     existingObjectKeys = List<String>.from(bill.objectKeys ?? []);
 
     existingUrls = List<String>.from(bill.publicUrls ?? []);
@@ -227,8 +421,33 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<EntriesProvider>();
-    final bill = context.watch<BillsProvider>().bill;
-    // final customerProvider=context.watch<EntriesProvider>();
+    final bill = context.watch<BillProvider>().billDetails;
+    final totalTaxableValue = billItems.fold<double>(
+      0,
+      (sum, item) =>
+          sum +
+          ((item.taxableValue ??
+                  ((item.grossAmount ?? 0) -
+                      (item.discountAmount ?? 0) +
+                      (item.addOnAmount ?? 0) +
+                      (item.ecrAmount ?? 0)))
+              .toDouble()),
+    );
+
+    final totalBillAmount = billItems.fold<double>(0, (sum, item) {
+      final taxable =
+          (item.taxableValue ??
+                  ((item.grossAmount ?? 0) -
+                      (item.discountAmount ?? 0) +
+                      (item.addOnAmount ?? 0) +
+                      (item.ecrAmount ?? 0)))
+              .toDouble();
+
+      final total = (item.totalAmount ?? (taxable + (item.gstAmount ?? 0)))
+          .toDouble();
+
+      return sum + total;
+    });
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -264,7 +483,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                   discardButtonText: "Leave",
                   onDiscard: () {
                     Navigator.pop(context);
-                    Navigator.pop(context,true);
+                    Navigator.pop(context, true);
                   },
                 );
               },
@@ -278,7 +497,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: SingleChildScrollView(
-                controller: _scrollController,
+                //  controller: _scrollController,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -643,81 +862,116 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       ),
                     ),
                     if (!isViewMode) ...[
-                      SizedBox(height: 15),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              final remainingSlots =
-                                  3 -
-                                  existingUrls.length -
-                                  newUploadedFiles.length;
+                      const SizedBox(height: 15),
 
-                              if (remainingSlots <= 0) {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  "Maximum 3 files can be uploaded",
-                                );
-                                return;
-                              }
+                      GestureDetector(
+                        onTap: () async {
+                          final remainingSlots =
+                              3 - existingUrls.length - newUploadedFiles.length;
 
-                              final files =
-                                  await showDialog<List<PlatformFile>>(
-                                    context: context,
-                                    builder: (context) =>
-                                        BillEntryUploadDocuments(
-                                          files: newUploadedFiles,
-                                        ),
-                                  );
+                          if (remainingSlots <= 0) {
+                            ScaffoldSnackBar.show(
+                              context,
+                              "Maximum 3 files can be uploaded",
+                            );
+                            return;
+                          }
 
-                              if (files != null) {
-                                if (files.length > remainingSlots) {
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    "You can upload only $remainingSlots more file(s)",
-                                  );
+                          final files = await showDialog<List<PlatformFile>>(
+                            context: context,
+                            builder: (_) => BillEntryUploadDocuments(
+                              existingFileNames: existingFileNames,
+                              existingUrls: existingUrls,
+                              files: newUploadedFiles,
+                            ),
+                          );
 
-                                  return;
-                                }
+                          if (files != null) {
+                            setState(() {
+                              newUploadedFiles = files;
+                            });
+                          }
+                        },
 
-                                setState(() {
-                                  newUploadedFiles = files;
-                                });
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryPurpleLight,
-                                borderRadius: BorderRadius.circular(5),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: const Color(0xFFE4D9FF),
+                            ),
+                          ),
+
+                          child: Row(
+                            children: [
+
+                              Container(
+                                height: 46,
+                                width: 46,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF4F0FF),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.cloud_upload_outlined,
+                                  color: AppColors.primaryPurple,
+                                ),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.max,
+
+                              const SizedBox(width: 14),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Iconsax.document_upload,
-                                      color: AppColors.primaryPurple,
-                                    ),
-                                    Text(
+
+                                    const Text(
                                       "Upload Documents",
                                       style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
                                         color: AppColors.primaryPurple,
-                                        fontSize: 15,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 3),
+
+                                    Text(
+                                      "JPG, PNG, PDF • Max 3 files",
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 12,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
+
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF4F0FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  "${allAttachments.length}/3",
+                                  style: const TextStyle(
+                                    color: AppColors.primaryPurple,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(width: 10),
-                          Text(
-                            "${allAttachments.length} files",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                     if (!isViewMode) ...[
@@ -734,6 +988,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           if (item != null) {
                             setState(() {
                               billItems.add(item);
+                              billItemExpanded.add(true);
                             });
                           }
                         },
@@ -759,143 +1014,102 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     if (billItems.isNotEmpty)
                       EntryContainer(
                         children: [
-                          Text(
-                            "Bill Details",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isBillItemsExpanded = !isBillItemsExpanded;
+                              });
+                            },
+                            child: TextField(
+                              enabled: false,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: AppColors.primaryPurple,
+                                hintText: "Bill Items",
+                                hintStyle: const TextStyle(color: Colors.white),
+                                suffixIcon: Icon(
+                                  isBillItemsExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.white,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
                             ),
                           ),
-                          Text(
-                            "${billItems.length} Items",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          ListView.separated(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: billItems.length,
-                            separatorBuilder: (context, index) =>
-                                SizedBox(height: 10),
-                            itemBuilder: (context, index) {
-                              final item = billItems[index];
-                              final taxable =
-                                  (item.grossAmount ?? 0) -
-                                  (item.discountAmount ?? 0) +
-                                  (item.addOnAmount ?? 0) +
-                                  (item.ecrAmount ?? 0);
 
-                              final total = taxable + (item.gstAmount ?? 0);
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  // left: 3.0,
-                                  //right: 3,
-                                ),
-                                child: Card(
-                                  elevation: 1,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
+                          if (isBillItemsExpanded) ...[
+                            const SizedBox(height: 12),
+
+                            Column(
+                              children: List.generate(
+                                billItems.length,
+                                (index) =>
+                                    _buildBillItemCard(billItems[index], index),
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.bodyFillColor,
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(
+                                  color: AppColors.containerFillColor
+                                )
+                              ),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 15,
+                                      vertical: 12,
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(5),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text("Pieces = ${item.pieces}"),
-                                              Text(
-                                                "Gross Amount = ${item.grossAmount}",
-                                              ),
-                                              Text("GST% = ${item.gstPercent}"),
-                                              Text(
-                                                "GST Amount = ${item.gstAmount}",
-                                              ),
-                                              Text(
-                                                "Disc % = ${item.discountPercent}",
-                                              ),
-                                              Text(
-                                                "Disc Amount = ${item.discountAmount}",
-                                              ),
-                                              Text(
-                                                "Add-On = ${item.addOnAmount}",
-                                              ),
-                                              Text("ECR = ${item.ecrAmount}"),
-
-                                              Text(
-                                                "Taxable Value = ${item.taxableValue ?? taxable}",
-                                              ),
-                                              Text(
-                                                "Bill Amount = ${item.totalAmount ?? total}",
-                                              ),
-                                            ],
-                                          ),
-                                          if (!isViewMode) ...[
-                                            Row(
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    setState(() {
-                                                      billItems.removeAt(index);
-                                                    });
-                                                  },
-
-                                                  child: customIcon(
-                                                    iconColor: AppColors.binRed,
-                                                    bgColor:
-                                                        AppColors.binRedLight,
-                                                    icon: Iconsax.trash,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 10),
-                                                GestureDetector(
-                                                  onTap: () async {
-                                                    final BillItem?
-                                                    updatedItem =
-                                                        await showDialog<
-                                                          BillItem
-                                                        >(
-                                                          context: context,
-                                                          builder: (context) =>
-                                                              AddNewBillItem(
-                                                                billItem: item,
-                                                              ),
-                                                        );
-
-                                                    if (updatedItem != null) {
-                                                      setState(() {
-                                                        billItems[index] =
-                                                            updatedItem;
-                                                      });
-                                                    }
-                                                  },
-                                                  child: customIcon(
-                                                    iconColor:
-                                                        AppColors.editGreen,
-                                                    bgColor: AppColors
-                                                        .editGreenLight,
-                                                    icon: Iconsax.edit,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ],
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primaryPurple,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(5),
+                                        topRight: Radius.circular(5),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      "Summary",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 17,
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 20),
+
+                                  Padding(
+                                    padding: const EdgeInsets.all(14),
+                                    child: Column(
+                                      children: [
+                                        _billField(
+                                          "Taxable Value",
+                                          totalTaxableValue.toStringAsFixed(2),
+                                        ),
+
+                                        _billField(
+                                          "Bill Amount",
+                                          totalBillAmount.toStringAsFixed(2),
+                                          isLast: true,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
+                    SizedBox(height: 20),
                     if (widget.mode != FormMode.add)
                       GestureDetector(
                         onTap: () {
@@ -1073,6 +1287,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                                   index,
                                                 );
                                                 existingUrls.removeAt(index);
+                                                existingFileNames.removeAt(
+                                                  index,
+                                                );
                                               } else {
                                                 final newIndex =
                                                     index - existingUrls.length;
@@ -1152,9 +1369,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                   "order": invoiceController.text,
                                   "supplierId": selectedSupplier?.id,
                                   "customerId": selectedCustomer?.id,
-                                  "transportId": selectedTransport?.id,
-                                  "transportName": selectedTransport?.name,
-                                  // "transportCity": null,
+                                  "transport": selectedTransport?.name,
                                   "lrNumber": lrNumberController.text,
                                   "remarks": remarksController.text,
                                   "taxableValue": billItems.fold(
@@ -1195,7 +1410,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                   if (!context.mounted) return;
                                   ScaffoldSnackBar.show(
                                     context,
-                                    message ?? "Bill Saved Successfully",
+                                    "Bill Saved Successfully",
                                   );
                                   Navigator.pop(context, true);
                                 } catch (e) {
@@ -1242,8 +1457,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             "order": invoiceController.text,
                             "supplierId": selectedSupplier?.id,
                             "customerId": selectedCustomer?.id,
-                            "transportId": selectedTransport?.id,
-                            "transportName": selectedTransport?.name,
+                            //  "transportId": selectedTransport?.id,
+                            "transport": selectedTransport?.name,
                             "lrNumber": lrNumberController.text.isEmpty
                                 ? null
                                 : lrNumberController.text,
@@ -1301,14 +1516,14 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
                           try {
                             final message = await provider.updateBillEntry(
-                              id: bill!.id ?? 0,
+                              id: bill?.id?.toInt() ?? 0,
                               payload: payload,
                               images: images,
                             );
                             if (!context.mounted) return;
                             ScaffoldSnackBar.show(
                               context,
-                              message ?? "Bill updated successfully",
+                              "Bill updated successfully",
                             );
                             Navigator.pop(context, true);
                           } catch (e) {
@@ -1323,22 +1538,15 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     SizedBox(height: 40),
                   ],
                 ),
-              ),
+              )
             ),
           ),
-          // Consumer<EntriesProvider>(
-          //   builder: (context, provider, child) {
-          //     if (!provider.isLoading) {
-          //       return const SizedBox.shrink();
-          //     }
-
-           //   return
-          if (context.select<EntriesProvider, bool>((p) => p.isLoading))
-        Container(
-                color: Colors.black45,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-            //},
+          // if (context.select<EntriesProvider, bool>((p) => p.isLoading))
+          //   Container(
+          //     color: Colors.black45,
+          //     child: const Center(child: CircularProgressIndicator()),
+          //   ),
+          //},
           //),
         ],
       ),

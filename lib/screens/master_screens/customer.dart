@@ -10,9 +10,7 @@ import 'package:provider/provider.dart';
 import '../../dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/delete_customer_provider.dart';
-import '../../provider/get_customers_provider.dart';
-import '../../provider/search_customer_provider.dart';
+import '../../provider/customer_provider.dart';
 import '../home_screen.dart';
 
 class CustomerScreen extends StatefulWidget {
@@ -29,7 +27,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
     return text.isEmpty ? "-" : text;
   }
 
-  final ScrollController _scrollController = ScrollController();
+  final PageController _pageController = PageController();
   final searchController = TextEditingController();
   Timer? _debounce;
 
@@ -37,22 +35,18 @@ class _CustomerScreenState extends State<CustomerScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
-      context.read<CustomersProvider>().fetchCustomers(refresh: true);
-    });
+    Future.microtask(() async{
+      //context.read<CustomerProvider>().fetchInitial();
+      final provider = context.read<CustomerProvider>();
 
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        context.read<CustomersProvider>().fetchCustomers();
-      }
+      searchController.clear();
+      await provider.clearSearch();
     });
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-    _scrollController.dispose();
     searchController.dispose();
 
     super.dispose();
@@ -60,13 +54,11 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final customerProvider = context.watch<CustomersProvider>();
-    final deleteProvider = context.watch<DeleteCustomerProvider>();
-    final searchProvider = context.watch<SearchCustomerProvider>();
+    final customerProvider = context.watch<CustomerProvider>();
+
     final isSearching = searchController.text.trim().isNotEmpty;
-    final customers = isSearching
-        ? (searchProvider.searchResult?.content ?? [])
-        : customerProvider.customers;
+
+    final customers = customerProvider.data.items;
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -108,7 +100,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                       onPressed: () {
                         searchController.clear();
                         FocusScope.of(context).unfocus();
-                        context.read<SearchCustomerProvider>().clearSearch();
+                        context.read<CustomerProvider>().clearSearch();
                         setState(() {});
                       },
                     ),
@@ -116,240 +108,258 @@ class _CustomerScreenState extends State<CustomerScreen> {
                 elevation: WidgetStatePropertyAll(2),
                 hintText: "Search customers...",
                 onChanged: (value) {
-                  if (_debounce?.isActive ?? false) {
-                    _debounce!.cancel();
-                  }
+                  _debounce?.cancel();
 
-                  _debounce = Timer(const Duration(milliseconds: 500), () {
-                    if (value.trim().isEmpty) {
-                      setState(() {});
-                      return;
-                    }
-
-                    context.read<SearchCustomerProvider>().searchCustomer(
-                      value,
-                    );
-                  });
+                  _debounce = Timer(
+                    const Duration(milliseconds: 500),
+                        () {
+                      if (value.trim().isEmpty) {
+                        context.read<CustomerProvider>().clearSearch();
+                      } else {
+                        context.read<CustomerProvider>().search(value.trim());
+                      }
+                    },
+                  );
                 },
                 leading: Icon(Icons.search_outlined, size: 30),
                 backgroundColor: WidgetStatePropertyAll(Colors.white),
               ),
             ),
-            SizedBox(height: 12),
-            Expanded(
-              child: Consumer<SearchCustomerProvider>(
-                builder: (context, searchProvider, child) {
-                  if (searchProvider.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (searchProvider.error != null) {
-                    return Center(child: Text(searchProvider.error!));
-                  }
-                  final searchData = searchProvider.searchResult;
-                  if (searchData != null) {
-                    final customers = searchData.content ?? [];
+            SizedBox(height: 5),
+            Consumer<CustomerProvider>(
+              builder: (context, provider, child) {
+                final pagination = provider.data.pagination;
 
-                    if (customers.isEmpty) {
-                      return const Center(
+                final currentCount =
+                ((pagination.currentPage + 1) * pagination.pageSize >
+                    pagination.totalElements)
+                    ? pagination.totalElements
+                    : (pagination.currentPage + 1) * pagination.pageSize;
+
+                return Row(
+                  children: [
+                    const Text(
+                      "Showing results for :",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.keyboard_double_arrow_left),
+                      onPressed: pagination.currentPage > 0
+                          ? () => provider.fetchPage(0)
+                          : null,
+                    ),
+                    SizedBox(
+                      width: 120,
+                      child: Center(
                         child: Text(
-                          "No Customers Found",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
+                          "$currentCount of ${pagination.totalElements}",
+                          style: const TextStyle(
                             color: Colors.white,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      );
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.keyboard_double_arrow_right),
+                      onPressed:
+                      pagination.currentPage < pagination.totalPages - 1
+                          ? () => provider.fetchPage(
+                        pagination.totalPages - 1,
+                      )
+                          : null,
+                    ),
+                  ],
+                );
+              },
+            ),
+            SizedBox(height: 5),
+            Expanded(
+              child: Consumer<CustomerProvider>(
+                builder: (context, provider, child) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    final currentPage = provider.data.pagination.currentPage;
+
+                    if (_pageController.hasClients &&
+                        (_pageController.page?.round() ?? 0) != currentPage) {
+                      _pageController.jumpToPage(currentPage);
                     }
+                  });
+
+                  if (provider.data.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
                   }
-                  return customerProvider.isLoading
-                      ? Center(child: const CircularProgressIndicator())
-                      : ListView.separated(
-                          controller: _scrollController,
-                          separatorBuilder: (context, index) {
-                            return SizedBox(height: 8);
-                          },
-                          itemCount:
-                              customers.length +
-                              ((!isSearching && customerProvider.isLoadingMore)
-                                  ? 1
-                                  : 0),
+
+                  if (provider.data.error != null) {
+                    return Center(
+                      child: Text(provider.data.error!),
+                    );
+                  }
+
+                  final customers = provider.data.items;
+
+                  if (customers.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "No Customers Found",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return PageView.builder(
+                    controller: _pageController,
+                    itemCount: provider.data.pagination.totalPages,
+                    onPageChanged: (page) async {
+                      if (page != provider.data.pagination.currentPage) {
+                        await provider.fetchPage(page);
+                      }
+                    },
+                    itemBuilder: (context, pageIndex) {
+                      return RefreshIndicator(
+                        onRefresh: provider.refreshCustomers,
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          separatorBuilder: (_, __) =>
+                          const SizedBox(height: 8),
+                          itemCount: customers.length,
                           itemBuilder: (context, index) {
-                            if (!isSearching &&
-                                index == customers.length &&
-                                customerProvider.isLoadingMore) {
-                              return const Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
                             final customer = customers[index];
+
                             return GestureDetector(
                               onTap: () {
-                                final id = isSearching
-                                    ? customer.id
-                                    : customer['id'];
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => AddNewCustomer(
+                                    builder: (_) => AddNewCustomer(
                                       mode: FormMode.view,
-                                      id: id,
+                                      id: customer.id,
                                     ),
                                   ),
                                 );
                               },
                               child: MasterContainer(
-                                elevation: 1,
-                                name: displayValue(
-                                  isSearching
-                                      ? customer.customerName
-                                      : customer['customerName'],
-                                ),
-                                mobile: displayValue(
-                                  isSearching
-                                      ? ((customer.contacts != null &&
-                                                customer.contacts!.isNotEmpty)
-                                            ? (customer
-                                                      .contacts!
-                                                      .first
-                                                      .mobileNumber ??
-                                                  "")
-                                            : "")
-                                      : (((customer['contacts'] as List?)
-                                                    ?.isNotEmpty ??
-                                                false)
-                                            ? (customer['contacts'][0]['mobileNumber'] ??
-                                                  "")
-                                            : ""),
-                                ),
-                                code: displayValue(
-                                  isSearching
-                                      ? customer.code
-                                      : customer['code'],
-                                ),
-                                city: displayValue(
-                                  isSearching
-                                      ? customer.city
-                                      : customer['city'],
-                                ),
-                                eyeIconTap: () {
-                                  final id = isSearching
-                                      ? customer.id
-                                      : customer['id'];
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddNewCustomer(
-                                        mode: FormMode.view,
-                                        id: id,
+                                  elevation: 1,
+
+                                  name: displayValue(customer.customerName),
+
+                                  mobile: displayValue(
+                                    customer.contacts.isNotEmpty
+                                        ? (customer.contacts.first.mobileNumber ?? "")
+                                        : "",
+                                  ),
+
+                                  code: displayValue(customer.code),
+
+                                  city: displayValue(customer.city),
+
+                                  eyeIconTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AddNewCustomer(
+                                          mode: FormMode.view,
+                                          id: customer.id,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                                trashIconTap: () {
-                                  ExitConfirmationDialog.show(
-                                    context,
-                                    discardButtonText: "No",
-                                    saveButtonText: "Yes",
-                                    onDiscard: () {
-                                      Navigator.pop(context);
-                                    },
-                                    bodyText:
-                                        "Are you sure you want to permanently delete ${isSearching ? customer.customerName : customer['customerName']}? This action cannot be undo.",
-                                    onSave: () async {
-                                      await context
-                                          .read<DeleteCustomerProvider>()
-                                          .deleteCustomer({
-                                            "customerCode": isSearching
-                                                ? customer.code
-                                                : customer['code'],
-                                          });
-                                      if (!context.mounted) {
-                                        return;
-                                      }
+                                    );
+                                  },
 
-                                      if (deleteProvider.errorMessage == null) {
-                                        Navigator.pop(context);
+                                  editIconTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AddNewCustomer(
+                                          mode: FormMode.edit,
+                                          id: customer.id,
+                                        ),
+                                      ),
+                                    );
+                                  },
 
-                                        if (isSearching) {
-                                          await context
-                                              .read<SearchCustomerProvider>()
-                                              .searchCustomer(
-                                                searchController.text.trim(),
-                                              );
-                                        } else {
-                                          await context
-                                              .read<CustomersProvider>()
-                                              .refreshCustomers();
-                                        }
+                                  copyIconTap: () async {
+                                    final details = provider.customerDetails!;
 
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          "Customer Deleted successfully",
-                                        );
-                                      } else {
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          deleteProvider.errorMessage!,
-                                        );
-                                      }
-                                    },
-                                  );
-                                },
-
-                                copyIconTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return CustomCopyDetailsDialog(
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => CustomCopyDetailsDialog(
                                         heading: "Customer Details",
-                                        firmName: isSearching
-                                            ? customer.customerName
-                                            : customer['customerName'] ?? "",
-                                        gstNo: isSearching
-                                            ? customer.customerGstNo
-                                            : customer['customerGstNo'],
-                                        address: isSearching
-                                            ? customer.address
-                                            : customer['address'],
-                                        contact: isSearching
-                                            ? ((customer.contacts != null &&
-                                                      customer
-                                                          .contacts!
-                                                          .isNotEmpty)
-                                                  ? (customer
-                                                            .contacts!
-                                                            .first
-                                                            .mobileNumber ??
-                                                        "")
-                                                  : "")
-                                            : (((customer['contacts'] as List?)
-                                                          ?.isNotEmpty ??
-                                                      false)
-                                                  ? (customer['contacts'][0]['mobileNumber'] ??
-                                                        "")
-                                                  : ""),
-                                        emails: isSearching
-                                            ? (customer.email ?? "")
-                                            : (customer['email'] ?? ""),
-                                      );
-                                    },
-                                  );
-                                },
-                                editIconTap: () {
-                                  final id = isSearching
-                                      ? customer.id
-                                      : customer['id'];
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddNewCustomer(
-                                        mode: FormMode.edit,
-                                        id: id,
+                                        firmName: details.customerName,
+                                        gstNo: details.gstNo,
+                                        address: details.addressLine1,
+                                        contact: details.contacts.isNotEmpty
+                                            ? details.contacts.first.mobileNumber
+                                            : "",
+                                        emails: details.email,
+                                        bankName: details.bankName,
+                                        accountHolder: details.accountName,
+                                        accountNumber: details.accountNumber,
+                                        ifscCode: details.ifsc,
                                       ),
+                                    );
+                                      },
+                                  trashIconTap: () {
+                                    ExitConfirmationDialog.show(
+                                      context,
+                                        body: RichText(
+                                            textAlign: TextAlign.center,
+                                            text: TextSpan(
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.black,
+                                              ),
+                                              children: [
+                                            const TextSpan(
+                                            text:
+                                      "Are you sure you want to permanently delete ",
+                                            ),
+                                          TextSpan(
+                                              text: customer.customerName,
+                                            style: const TextStyle(
+                                              color: AppColors.orangeColor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                                const TextSpan(
+                                                  text: "? This action cannot be undone.",
+                                                ),
+                                              ],
+                                            ),
+                                        ),
+                                      saveButtonText: "Yes",
+                                      discardButtonText: "No",
+                                      onSave: () async {
+                                        Navigator.of(context).pop();
+                                        final provider = context.read<CustomerProvider>();
+
+                                        final success = await provider.deleteCustomer(
+                                         customer.code,
+                                        );
+
+                                        if (!context.mounted) return;
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          success
+                                              ? "Customer deleted successfully"
+                                              : "Failed to delete Customer",
+                                        );
+                                      },
+                                      onDiscard: () {
+                                        Navigator.pop(context);
+                                      },
+                                    );
+                                  },
                                     ),
                                   );
                                 },

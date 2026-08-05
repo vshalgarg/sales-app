@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../model_classes/delete_purchase_model.dart';
+import '../model_classes/purchases/delete_purchase_model.dart';
 
 Future<DeletePurchaseResponse> deletePurchase(
     int id,

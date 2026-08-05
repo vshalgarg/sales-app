@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../screens/entry_screen/entries_bill_entry.dart';
 import '../screens/master_screens/supplier.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
@@ -19,15 +18,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
           case 0:
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const Supplier()),
+              MaterialPageRoute(builder: (_) => const SupplierScreen()),
             );
             break;
 
           case 1:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const EntriesBillEntry()),
-            );
+            // Navigator.pushReplacement(
+            //   context,
+            //   MaterialPageRoute(builder: (_) => const EntriesBillEntry()),
+            // );
             break;
 
           //case 2:

@@ -127,6 +127,8 @@ class _ContactInfoState extends State<ContactInfo> {
                             borderSide: BorderSide.none,
                           ),
                           hintText: "Contact Person",
+                          hintStyle: const TextStyle(
+                              color: Colors.grey),
                         ),
                       ),
                       SizedBox(height: 15),
@@ -150,6 +152,8 @@ class _ContactInfoState extends State<ContactInfo> {
                             borderSide: BorderSide.none,
                           ),
                           hintText: "Mobile No.",
+                          hintStyle: const TextStyle(
+                              color: Colors.grey),
                         ),
                       ),
                       SizedBox(height: 15),
@@ -168,6 +172,8 @@ class _ContactInfoState extends State<ContactInfo> {
                             borderSide: BorderSide.none,
                           ),
                           hintText: "Type",
+                          hintStyle: const TextStyle(
+                              color: Colors.grey),
                         ),
                       ),
                       // SizedBox(height: 5),

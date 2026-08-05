@@ -42,7 +42,8 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
               iconColor: Colors.white,
               filled:true,
               fillColor: AppColors.primaryPurple,
-              hintText: "Bank Details",hintStyle: TextStyle(color:Colors.white),
+              hintText: "Bank Details",
+              hintStyle: TextStyle(color:Colors.white),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
             ),
           ),
@@ -63,6 +64,8 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
             filled:true,
             fillColor: Colors.white,
             hintText: "Account Number",
+            hintStyle: const TextStyle(
+                color: Colors.grey),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
@@ -75,6 +78,8 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
             filled:true,
             fillColor: Colors.white,
             hintText: "IFSC Code",
+            hintStyle: const TextStyle(
+                color: Colors.grey),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ), SizedBox(height: 15),
@@ -86,6 +91,8 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
             filled:true,
             fillColor: Colors.white,
             hintText: "Bank Name",
+            hintStyle: const TextStyle(
+                color: Colors.grey),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
@@ -98,11 +105,16 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
             filled:true,
             fillColor: Colors.white,
             hintText: "Branch Name",
+            hintStyle: const TextStyle(
+                color: Colors.grey),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         SizedBox(height: 15),
-        Text("Account Holder Name",style:TextStyle(color:Colors.white,fontSize: 18)),
+        Text("Account Holder Name",
+            style:TextStyle(
+                color:Colors.white,
+                fontSize: 18)),
         TextFormField(
           enabled: widget.mode != FormMode.view,
           controller: widget.accountHolderName,
@@ -110,7 +122,10 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
             filled:true,
             fillColor: Colors.white,
             hintText: "Account Holder Name",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
+            hintStyle: const TextStyle(
+                color: Colors.grey),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
           ),
         ),
         ],

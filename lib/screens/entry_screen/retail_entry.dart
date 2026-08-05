@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/screens/reporting_screen/retail.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -12,8 +11,8 @@ import '../../customs/elevated_button.dart';
 import '../../entry_widgets/custom_container_entry.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
 import '../../entry_widgets/custom_textfield.dart';
-import '../../model_classes/entries_customer_model.dart';
-import '../../model_classes/get_staff_entry.dart';
+import '../../model_classes/entries/entries_customer_model.dart';
+import '../../model_classes/entries/get_staff_entry.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 
@@ -459,7 +458,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                                 if (!context.mounted) return;
                                 ScaffoldSnackBar.show(
                                   context,
-                                  message ?? "Retail Entry Saved",
+                                    "Retail Entry Saved",
                                 );
                                 Navigator.pop(context,true);
                                 // Navigator.pushReplacement(

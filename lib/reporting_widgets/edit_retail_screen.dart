@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/model_classes/retailers/retail_details.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
@@ -7,9 +8,7 @@ import 'package:provider/provider.dart';
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
 import '../customs/dropdown_test.dart';
-import '../model_classes/add_deposit_model.dart';
-import '../model_classes/retail_deposit_history_model.dart';
-import '../model_classes/retail_model.dart';
+import '../model_classes/retailers/add_deposit_model.dart';
 import '../pop_ups/general_closing_popup.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
 import '../provider/retail_provider.dart';
@@ -59,14 +58,14 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final retailProvider = context.read<RetailDetailsProvider>();
+      final retailProvider =
+      context.read<RetailProvider>();
 
-      final entriesProvider = context.read<EntriesProvider>();
+      final entriesProvider =
+      context.read<EntriesProvider>();
 
-      final staffProvider = context.read<StaffProvider>();
-      for (var controller in depositDateControllers) {
-        controller.text = DateFormat("yyyy-MM-dd").format(DateTime.now());
-      }
+      final staffProvider =
+      context.read<StaffProvider>();
 
       await Future.wait([
         retailProvider.fetchRetailDetails(widget.retailId),
@@ -77,8 +76,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
         await entriesProvider.fetchCustomer();
       }
 
-      if (staffProvider.staffs.isEmpty) {
-        await staffProvider.fetchStaffs();
+      if (staffProvider.data.items.isEmpty) {
+        await staffProvider.refreshStaffs();
       }
 
       final retail = retailProvider.retailDetails;
@@ -89,11 +88,15 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       if (retail != null) {
         retailerController.text = retail.name;
 
-        dateController.text = retail.date;
+        dateController.text =
+            DateFormat("yyyy-MM-dd")
+                .format(retail.date);
 
-        selectedCustomerId = retail.customerId;
+        selectedCustomerId =
+            retail.referredByCustomerId;
 
-        selectedStaffId = retail.staffId;
+        selectedStaffId =
+            retail.staffId;
 
         for (int i = 0; i < retail.suppliers.length; i++) {
           depositAmountControllers.add(TextEditingController());
@@ -206,8 +209,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   }
 
   Widget buildRetailInformation(
-    RetailModel retail,
-    RetailDetailsProvider retailProvider,
+    RetailDetails retail,
+    RetailProvider retailProvider,
     EntriesProvider entriesProvider,
     StaffProvider staffProvider,
   ) {
@@ -215,7 +218,10 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
         .map((e) => e.id?.toInt())
         .toList();
 
-    final staffIds = staffProvider.staffs.map((e) => e.staffId).toList();
+    final staffIds =
+    staffProvider.data.items
+        .map((e) => e.id)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -275,7 +281,10 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             child: CustomDropdown(
               hintText: "Referred By",
               items: entriesProvider.customerEntries
-                  .map((e) => e.customerName ?? '')
+                  .map((e) => (e.customerName ?? '')
+                  .replaceAll('\n', '')
+                  .replaceAll('\r', '')
+                  .trim())
                   .toList(),
               initialValue:
                   entriesProvider.customerEntries
@@ -302,22 +311,33 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             //  addPadding: false,
             child: CustomDropdown(
               hintText: "Staff",
-              items: staffProvider.staffs.map((e) => e.staffName).toList(),
+              items: staffProvider.data.items
+                  .map((e) => e.staffName ?? "")
+                  .toList(),
               initialValue:
-                  staffProvider.staffs
-                      .where((e) => e.staffId == selectedStaffId)
-                      .isNotEmpty
-                  ? staffProvider.staffs
-                        .firstWhere((e) => e.staffId == selectedStaffId)
-                        .staffName
+              staffProvider.data.items
+                  .where(
+                    (e) =>
+                e.id ==
+                    selectedStaffId,
+              )
+                  .isNotEmpty
+                  ? staffProvider.data.items
+                  .firstWhere(
+                    (e) =>
+                e.id ==
+                    selectedStaffId,
+              )
+                  .staffName
                   : null,
               onChanged: (value) {
-                final staff = staffProvider.staffs.firstWhere(
-                  (e) => e.staffName == value,
+                final staff =
+                staffProvider.data.items.firstWhere(
+                      (e) => e.staffName == value,
                 );
 
                 setState(() {
-                  selectedStaffId = staff.staffId;
+                  selectedStaffId = staff.id;
                 });
               },
             ),
@@ -333,23 +353,28 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               ),
             ),
             onPressed: () async {
-              final success = await retailProvider.updateRetail(
-                retailId: retail.retailId,
-                name: retailerController.text,
-                date: dateController.text,
-                referredByCustomerId: selectedCustomerId!,
-                staffId: selectedStaffId,
+              final success =
+              await retailProvider.updateRetail(
+                retailId: retail.id,
+                body: {
+                  "name": retailerController.text,
+                  "date": dateController.text,
+                  "referredByCustomerId":
+                  selectedCustomerId,
+                  "staffId": selectedStaffId,
+                },
               );
 
               if (success && mounted) {
-                context.read<RetailProvider>().fetchRetails();
+                context.read<RetailProvider>().refresh();
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Retail Updated Successfully")),
+                ScaffoldSnackBar.show(
+                  context,
+                 "Retail Updated Successfully"
                 );
               }
             },
-            child: retailProvider.isUpdating
+            child: retailProvider.actionLoading
                 ? const SizedBox(
                     width: 22,
                     height: 22,
@@ -372,7 +397,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     );
   }
 
-  Widget buildDepositSection(RetailModel retail) {
+  Widget buildDepositSection(RetailDetails retail) {
     while (depositAmountControllers.length < retail.suppliers.length) {
       depositAmountControllers.add(TextEditingController());
       depositDateControllers.add(TextEditingController());
@@ -504,7 +529,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             );
           }),
           SizedBox(height: 0),
-          Consumer<RetailDetailsProvider>(
+          Consumer<RetailProvider>(
             builder: (context, provider, child) {
               return ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -513,7 +538,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
-                onPressed: provider.isSavingDeposits
+                onPressed: provider.depositLoading
                     ? null
                     : () async {
                         final List<DepositItem> items = [];
@@ -547,8 +572,11 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                           return;
                         }
 
-                        final result = await provider.addDeposits(
-                          AddDepositModel(deposits: items),
+                        final result =
+                        await provider.addDeposit(
+                          AddDepositModel(
+                            deposits: items,
+                          ),
                         );
 
                         if (result["success"]) {
@@ -566,7 +594,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                           Navigator.pop(context);
                         }
                       },
-                child: provider.isSavingDeposits
+                child: provider.depositLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
                         "SAVE DEPOSITS",
@@ -585,8 +613,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   }
 
   Widget buildHistorySection(
-    RetailDetailsProvider provider,
-    RetailModel retail,
+    RetailProvider provider,
+    RetailDetails retail,
   ) {
     return Column(
       children: [
@@ -626,19 +654,17 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             itemBuilder: (context, index) {
               final supplier = retail.suppliers[index];
 
-              final history = provider.depositHistory.firstWhere(
-                (e) => e.retailSupplierId == supplier.retailSupplierId,
-                orElse: () => RetailDepositHistoryModel(
-                  retailSupplierId: supplier.retailSupplierId,
-                  supplierId: supplier.supplierId,
-                  supplierName: supplier.supplierName,
-                  supplierCity: "",
-                  totalAmount: supplier.totalAmount,
-                  depositAmount: supplier.depositAmount,
-                  balanceAmount: supplier.balanceAmount,
-                  deposits: [],
-                ),
-              );
+              dynamic history;
+
+              try {
+                history = provider.depositHistory.firstWhere(
+                      (e) =>
+                  e.retailSupplierId ==
+                      supplier.retailSupplierId,
+                );
+              } catch (_) {
+                history = null;
+              }
 
               return buildHistoryCard(
                 supplier: supplier,
@@ -656,10 +682,10 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   }
 
   Widget buildHistoryCard({
-    required dynamic supplier,
-    required RetailDepositHistoryModel history,
-    required String retailDate,
-    required String staffName,
+    required RetailSupplier supplier,
+    required dynamic history,
+    required DateTime retailDate,
+    required String? staffName,
     required String customerName,
     required int index,
   }) {
@@ -737,7 +763,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                               text: "Staff :              ",
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
-                            TextSpan(text: staffName),
+                            TextSpan(
+                              text: staffName ?? "-",
+                            ),
                           ],
                         ),
                       ),
@@ -757,8 +785,10 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                         color: const Color(0xffFFF2E8),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        retailDate,
+                      child:Text(
+                        DateFormat(
+                          "yyyy-MM-dd",
+                        ).format(retailDate),
                         style: const TextStyle(
                           color: Colors.deepOrange,
                           fontSize: 11,
@@ -864,13 +894,14 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    "Deposits (${history.deposits.length})",
+                    "Deposits (${history.deposits.length??0})",
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
                   ),
-                  if (history.deposits.isEmpty)
+                  if (history == null ||
+                      history.deposits.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Center(
@@ -880,7 +911,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                         ),
                       ),
                     ),
-                  if (history.deposits.isNotEmpty)
+                  if (history != null &&
+                      history.deposits.isNotEmpty)
                     ...List.generate(history.deposits.length, (i) {
                       final deposit = history.deposits[i];
                       return Column(
@@ -1007,13 +1039,13 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final retailProvider = context.read<RetailDetailsProvider>();
+    final retailProvider = context.read<RetailProvider>();
 
     final entriesProvider = context.read<EntriesProvider>();
 
     final staffProvider = context.read<StaffProvider>();
 
-    if (retailProvider.isLoading || !initialized) {
+    if (retailProvider.detailsLoading || !initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -1062,16 +1094,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             child: Column(
               children: [
                 buildRetailInformation(
-                  retail,
+                  retail as RetailDetails,
                   retailProvider,
                   entriesProvider,
                   staffProvider,
                 ),
 
                 const SizedBox(height: 5),
-                buildDepositSection(retail),
+                buildDepositSection(retail as RetailDetails),
                 const SizedBox(height: 5),
-                buildHistorySection(retailProvider, retail),
+                buildHistorySection(retailProvider, retail as RetailDetails),
               ],
             ),
           ),

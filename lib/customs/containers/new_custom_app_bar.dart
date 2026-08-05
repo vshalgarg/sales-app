@@ -69,6 +69,7 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
             ExitConfirmationDialog.show(
               context,
               bodyText: "Are you sure you want to logout?",
+              icon: Icons.logout,
               saveButtonText: "Logout",
               discardButtonText: "Cancel",
 

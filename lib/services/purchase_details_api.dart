@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../model_classes/get_purchase_model.dart';
+import '../model_classes/purchases/get_purchase_model.dart';
 import '../shared_preferences/login_token.dart';
 
 Future<PurchaseDetailsResponse> getPurchaseDetails(int id) async {

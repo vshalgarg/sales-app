@@ -8,6 +8,9 @@ import 'package:hisabio/screens/reporting_screen/purchase.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors_used.dart';
+import '../model_classes/bills/bill.dart';
+import '../model_classes/credits/credit.dart';
+import '../model_classes/purchases/purchase.dart';
 import '../provider/config_provider.dart';
 import '../shared_preferences/login_token.dart';
 import 'master_screens/configurations.dart';
@@ -16,16 +19,18 @@ import 'master_screens/staff.dart';
 import 'master_screens/supplier.dart';
 import 'master_screens/transport.dart';
 import 'master_screens/users.dart';
-import 'monitoring_screens/charts_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
+
 class _HomeScreenState extends State<HomeScreen> {
- // bool showRetailFeature = false;
+  // bool showRetailFeature = false;
   String email = "";
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<ConfigProvider>().fetchConfiguration();
     });
   }
+
   Future<void> _loadEmail() async {
     final value = await AppStorage.getEmail();
 
@@ -45,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ConfigProvider>();
@@ -82,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisCount: 3,
                     shrinkWrap: true,
                     //crossAxisSpacing: 16,
-                     mainAxisSpacing: 16,
+                    mainAxisSpacing: 16,
                     physics: NeverScrollableScrollPhysics(),
                     children: [
                       menuItemCard(
@@ -91,7 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Supplier()),
+                            MaterialPageRoute(
+                              builder: (context) => SupplierScreen(),
+                            ),
                           );
                         },
                       ),
@@ -143,73 +152,86 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
-                        menuItemCard(
-                          imagePath: "assets/images/config.png",
-                          title: "Configurations",
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ConfigurationScreen()),
-                            );
-                          },
-                        ),
+                      menuItemCard(
+                        imagePath: "assets/images/config.png",
+                        title: "Configurations",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ConfigurationScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       menuItemCard(
                         imagePath: "assets/images/bill.png",
                         title: "Bills",
-                        onTap: () {Navigator.push(
+                        onTap: () {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => Bills()));
+                                builder: (context) =>  Bills()));
                         },
                       ),
                       menuItemCard(
                         imagePath: "assets/images/credits.png",
                         title: "Credits",
-                        onTap: () { Navigator.push(
+                        onTap: () {
+                          Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => Credit()));
+                            MaterialPageRoute(builder: (context) => CreditScreen()),
+                          );
                         },
                       ),
+
                       menuItemCard(
                         imagePath: "assets/images/purchase.png",
                         title: "Purchases",
-                        onTap: () {Navigator.push(
+                        onTap: () {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => Purchase()));
+                                builder: (context) => Purchases()));
                         },
                       ),
-
-
-                      if(provider.retailEnabled)
-                      menuItemCard(
-                        imagePath: "assets/images/retailors.png",
-                        title: "Retailors",
-                        onTap: () {Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Retail()));}
-                      ),
+                      if (provider.retailEnabled)
+                        menuItemCard(
+                          imagePath: "assets/images/retailors.png",
+                          title: "Retailors",
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => Retail()));
+                          },
+                        ),
                       menuItemCard(
                         imagePath: "assets/images/ledger.png",
                         title: "Ledger",
-                        onTap: () {Navigator.push(
+                        onTap: () {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => LedgerReporting()));},
+                                builder: (context) => LedgerReporting()));
+                        },
                       ),
-                      menuItemCard(
-                        imagePath: "assets/images/charts.png",
-                        title: "Charts",
-                        onTap: () {Navigator.push(context, MaterialPageRoute(builder:(context)=>ChartsScreen()));},
-                      ),
+                      // menuItemCard(
+                      //   imagePath: "assets/images/charts.png",
+                      //   title: "Charts",
+                        // onTap: () {
+                          //Navigator.push(context, MaterialPageRoute(builder:(context)=>ChartsScreen()));
+                       // },
+                        //},
+                     // ),
                     ],
                   ),
                 ],
               ),
             ),
           ],
-        )));
+        ),
+      ),
+    );
   }
 }

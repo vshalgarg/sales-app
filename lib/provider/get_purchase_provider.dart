@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model_classes/get_purchase_model.dart';
+import '../model_classes/purchases/get_purchase_model.dart';
 import '../services/purchase_details_api.dart';
 
 class GetPurchaseProvider extends ChangeNotifier {

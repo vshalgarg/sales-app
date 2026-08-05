@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hisabio/screens/monitoring_screens/supplier_amount_screen.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
-import 'amount_count_month_screen.dart';
 import 'count_staff_screen.dart';
-import 'customer_amount_screen.dart';
 
 class ChartsScreen extends StatelessWidget {
   const ChartsScreen({super.key});
@@ -32,12 +29,12 @@ class ChartsScreen extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AmountCountMonthScreen(),
-                    ),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => AmountCountMonthScreen(),
+                  //   ),
+                  // );
                 },
                 child: Container(
                   width: double.infinity,
@@ -101,10 +98,12 @@ class ChartsScreen extends StatelessWidget {
             SizedBox(height: 15),
             Expanded(
               child: GestureDetector(
-                onTap: () {Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SupplierAmountScreen()),
-                );},
+                onTap: () {
+                //   Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => SupplierAmountScreen()),
+                // );
+                  },
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -132,10 +131,12 @@ class ChartsScreen extends StatelessWidget {
             ),
             SizedBox(height: 15),
             Expanded(
-              child: GestureDetector(onTap: (){Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) =>CustomerAmountScreen()),
-              );},
+              child: GestureDetector(onTap: (){
+                // Navigator.push(
+                // context,
+                //MaterialPageRoute(builder: (context) =>CustomerAmountScreen()),
+             // );
+                },
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(

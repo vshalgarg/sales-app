@@ -1,50 +1,87 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../model_classes/get_ledger_details.dart';
 import '../services/get_ledger_details_services.dart';
 
-class GetLedgerDetailsProvider extends ChangeNotifier {
-  final GetLedgerDetailsServices _service = GetLedgerDetailsServices();
+class LedgerProvider extends ChangeNotifier {
+  final LedgerService _service;
 
-  GetLedgerDetails? _ledgerDetails;
-  bool _isLoading = false;
-  String? _errorMessage;
+  LedgerProvider(this._service);
   bool _hasSearched = false;
 
   bool get hasSearched => _hasSearched;
+  LedgerData? _ledger;
 
-  GetLedgerDetails? get ledgerDetails => _ledgerDetails;
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  bool _loading = false;
+  bool _downloading = false;
 
-  Future<void> getLedgerDetails(
-      int supplierId,
-      int customerId,
-      String viewType,
-      ) async {
-    _hasSearched = true;
-    _isLoading = true;
-    _errorMessage = null;
+  LedgerData? get ledger => _ledger;
+
+  bool get loading => _loading;
+
+  bool get downloading => _downloading;
+
+  Future<bool> fetchLedger({
+    required num supplierId,
+    required num customerId,
+    required String viewType,
+
+  }) async {
+    _loading = true;
     notifyListeners();
 
     try {
-      _ledgerDetails = await _service.getLedgerDetails(
-        supplierId,
-        customerId,
-        viewType,
+      final result = await _service.getLedger(
+        supplierId: supplierId,
+        customerId: customerId,
+        viewType: viewType,
       );
-    } catch (e) {
-      _errorMessage = e.toString();
+
+      if (result.isSuccess && result.data != null) {
+        _ledger = result.data!.data as LedgerData?;
+        return true;
+      }
+
+      return false;
     } finally {
-      _isLoading = false;
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<Uint8List?> downloadLedger({
+    required num supplierId,
+    required num customerId,
+    required String viewType,
+  }) async {
+    _downloading = true;
+    notifyListeners();
+
+    try {
+      final result = await _service.downloadLedger(
+        supplierId: supplierId,
+        customerId: customerId,
+        viewType: viewType,
+      );
+
+      if (result.isSuccess) {
+        return result.data;
+      }
+
+      return null;
+    } finally {
+      _downloading = false;
       notifyListeners();
     }
   }
 
   void clearLedger() {
-    _ledgerDetails = null;
-    _errorMessage = null;
+    _ledger = null;
     _hasSearched = false;
+    _loading = false;
+    _downloading = false;
     notifyListeners();
   }
 }

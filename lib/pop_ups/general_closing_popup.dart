@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
+
+import '../constants/colors_used.dart';
 
 class ExitConfirmationDialog {
   static Future<void> show(
@@ -6,9 +9,12 @@ class ExitConfirmationDialog {
         Future<void> Function()? onSave,
         VoidCallback? onDiscard,
        // VoidCallback? onClose,
+        final Widget? body,
         String? bodyText,
         String? saveButtonText,
         String?discardButtonText,
+        IconData? icon,
+        Color? iconColor,
       }) {
     return showGeneralDialog(
       context: context,
@@ -33,13 +39,14 @@ class ExitConfirmationDialog {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    child: Text(
-                      bodyText ?? "Do you want to save your progress before exiting?",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    child: body ??
+                        Text(
+                          bodyText ?? "Do you want to save your progress before exiting?",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                     ),
                   ),
                 ),
@@ -128,6 +135,26 @@ class ExitConfirmationDialog {
                       ),
                     ],
                   )
+                ),
+                Positioned(
+                  top:-25,
+                  child: Container(
+                    height: 70,
+                    width: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFF3F0FF),
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 4,
+                      ),
+                    ),
+                    child: Icon(
+                      icon ?? Iconsax.trash,
+                      color: iconColor ?? AppColors.binRed,
+                      size: 35,
+                    ),
+                  ),
                 ),
               ],
             ),
