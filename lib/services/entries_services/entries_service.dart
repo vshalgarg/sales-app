@@ -32,10 +32,11 @@ class EntriesService {
   ///---------------------------------------------------------------
 
   Future<ResponseResult<List<EntriesModel>>> fetchSuppliers() async {
+    final sw = Stopwatch()..start();
     final result = await _api.get<List<dynamic>>(
       path: "$_suppliers/get/all",
     );
-
+    print("Supplier API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch suppliers",
@@ -58,10 +59,11 @@ class EntriesService {
   ///---------------------------------------------------------------
 
   Future<ResponseResult<List<EntriesCustomerModel>>> fetchCustomers() async {
+    final sw = Stopwatch()..start();
     final result = await _api.get<List<dynamic>>(
       path: "$_customers/get/all",
     );
-
+    print("Customer API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch customers",
@@ -169,7 +171,7 @@ class EntriesService {
   /// ADD CREDIT ENTRY
   ///---------------------------------------------------------------
 
-  Future<ResponseResult<AddNewsupplier>> addCreditEntry({
+  Future<ResponseResult<AddNewSupplier>> addCreditEntry({
     required Map<String, dynamic> body,
   }) async {
     final result = await _api.post<Map<String, dynamic>>(
@@ -186,7 +188,7 @@ class EntriesService {
     }
 
     return ResponseResult.success(
-      AddNewsupplier.fromJson(result.data!),
+      AddNewSupplier.fromJson(result.data!),
       result.statusCode,
     );
   }
@@ -431,7 +433,7 @@ class EntriesService {
   /// UPDATE CREDIT DETAILS
   ///---------------------------------------------------------------
 
-  Future<ResponseResult<AddNewsupplier>> updateCreditDetails({
+  Future<ResponseResult<AddNewSupplier>> updateCreditDetails({
     required int id,
     required Map<String, dynamic> body,
   }) async {
@@ -449,7 +451,7 @@ class EntriesService {
     }
 
     return ResponseResult.success(
-      AddNewsupplier.fromJson(result.data!),
+      AddNewSupplier.fromJson(result.data!),
       result.statusCode,
     );
   }

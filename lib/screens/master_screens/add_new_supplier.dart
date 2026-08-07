@@ -14,8 +14,8 @@ import '../../customs/dropdown_test.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/supplier/add_supplier_request.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/supplier_provider.dart';
-import '../../provider/transport_provider.dart';
+import '../../provider/master_provider/supplier_provider.dart';
+import '../../provider/master_provider/transport_provider.dart';
 
 class ContactControllers {
   final name = TextEditingController();

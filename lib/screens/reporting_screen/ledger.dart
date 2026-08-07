@@ -10,8 +10,8 @@ import '../../customs/app_bar.dart';
 import '../../model_classes/entries/entries_customer_model.dart';
 import '../../model_classes/entries/entries_supplier.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../provider/ledger_provider.dart';
-import '../../services/get_ledger_details_services.dart';
+import '../../provider/reporting_provider/ledger_provider.dart';
+import '../../services/ledger/ledger_service.dart';
 import '../home_screen.dart';
 
 class LedgerReporting extends StatefulWidget {

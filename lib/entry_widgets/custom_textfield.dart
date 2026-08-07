@@ -40,6 +40,7 @@ class EntryTextField extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5),
           ),

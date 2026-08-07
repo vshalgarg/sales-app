@@ -54,22 +54,6 @@ class _CreditEntryState extends State<CreditEntry> {
   final List<String> paymentModeList = ["NEFT_RTGS", "UPI", "CASH", "CHEQUE"];
 
   bool get isViewMode => widget.mode == FormMode.view;
-  // AddCreditRequest _buildRequest() {
-  //   return AddCreditRequest(
-  //     billNumber: invoiceController.text.trim(),
-  //     supplierId: selectedSupplier!.id!.toInt(),
-  //     customerId: selectedCustomer!.id!.toInt(),
-  //     paymentType: paymentMode!,
-  //     referenceNumber: referenceController.text.trim(),
-  //     referenceDate: referenceDateController.text.trim(),
-  //     date: transactionDateController.text.trim(),
-  //     slipNumber: slipController.text.trim(),
-  //     drawType: drawType,
-  //     receivedAmount:
-  //     double.tryParse(receivedAmountController.text) ?? 0,
-  //     remark: remarksController.text.trim(),
-  //   );
-  // }
   Map<String, dynamic> _creditBody() {
     return {
       "billNumber": invoiceController.text.trim(),
@@ -102,18 +86,40 @@ class _CreditEntryState extends State<CreditEntry> {
   @override
   void initState() {
     super.initState();
-    transactionDateController.text = DateFormat(
-      'yyyy-MM-dd',
-    ).format(DateTime.now());
+    print("1. Credit screen opened: ${DateTime.now()}");
 
     Future.microtask(() async {
+      print("2. Before fetch: ${DateTime.now()}");
+
       final provider = context.read<EntriesProvider>();
-      await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
+
+      await Future.wait([
+        provider.fetchSuppliers(),
+        provider.fetchCustomer(),
+      ]);
+
+      print("3. After fetch: ${DateTime.now()}");
+
       if (widget.credit != null) {
         _fillData(provider);
       }
+
+      print("4. After fillData: ${DateTime.now()}");
     });
   }
+  //   if (widget.mode == FormMode.add) {
+  //     transactionDateController.text = DateFormat(
+  //       'yyyy-MM-dd',
+  //     ).format(DateTime.now());
+  //   }
+  //   Future.microtask(() async {
+  //     final provider = context.read<EntriesProvider>();
+  //     await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
+  //     if (widget.credit != null) {
+  //       _fillData(provider);
+  //     }
+  //   });
+  // }
 
   void _fillData(EntriesProvider provider) {
     final credit = widget.credit;
@@ -182,7 +188,7 @@ class _CreditEntryState extends State<CreditEntry> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<EntriesProvider>();
+    final provider = context.read<EntriesProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(

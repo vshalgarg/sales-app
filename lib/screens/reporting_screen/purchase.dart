@@ -12,7 +12,7 @@ import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../provider/purchase_provider.dart';
+import '../../provider/reporting_provider/purchase_provider.dart';
 
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
@@ -223,23 +223,10 @@ class _PurchasesState extends State<Purchases> {
   }
 
   Future<void> _clearFilters() async {
-    final now = DateTime.now();
-
-    final tenDaysAgo =
-    now.subtract(
-      const Duration(days: 10),
-    );
-
-    final formatter =
-    DateFormat("yyyy-MM-dd");
-
-    fromDateController.text =
-        formatter.format(tenDaysAgo);
-
-    toDateController.text =
-        formatter.format(now);
 
     setState(() {
+      fromDateController.clear();
+      toDateController.clear();
       selectedSupplier = null;
       selectedCustomer = null;
       selectedSupplierId = null;
@@ -344,9 +331,9 @@ class _PurchasesState extends State<Purchases> {
                   await _applyFilters();
                 },
                 onClear: () async {
-                  Navigator.pop(context);
-
                   await _clearFilters();
+
+                  setBottomState(() {});
                 },
               ),
             );

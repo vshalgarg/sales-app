@@ -11,7 +11,7 @@ import '../constants/colors_used.dart';
 import '../model_classes/bills/bill.dart';
 import '../model_classes/credits/credit.dart';
 import '../model_classes/purchases/purchase.dart';
-import '../provider/config_provider.dart';
+import '../provider/master_provider/config_provider.dart';
 import '../shared_preferences/login_token.dart';
 import 'master_screens/configurations.dart';
 import 'master_screens/customer.dart';

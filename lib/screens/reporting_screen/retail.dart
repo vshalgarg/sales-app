@@ -10,13 +10,13 @@ import '../../pagination/pagination_widget.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../provider/retail_provider.dart';
-import '../../provider/staff_provider.dart';
+import '../../provider/reporting_provider/retail_provider.dart';
+import '../../provider/master_provider/staff_provider.dart';
 import '../../reporting_widgets/edit_retail_screen.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
 import '../../reporting_widgets/retail_card.dart';
 import '../../reporting_widgets/retail_details_screen.dart';
-import '../add_supplier.dart';
+import 'add_supplier.dart';
 import '../entry_screen/retail_entry.dart';
 
 class Retail extends StatefulWidget {
@@ -174,21 +174,9 @@ class _RetailState extends State<Retail> {
   }
 
   Future<void> _clearFilters() async {
-    final now = DateTime.now();
-
-    final tenDaysAgo =
-    now.subtract(const Duration(days: 10));
-
-    final formatter =
-    DateFormat("yyyy-MM-dd");
-
-    fromDateController.text =
-        formatter.format(tenDaysAgo);
-
-    toDateController.text =
-        formatter.format(now);
-
     setState(() {
+      fromDateController.clear();
+      toDateController.clear();
       selectedSupplier = null;
       selectedCustomerId = null;
       selectedStaffId = null;
@@ -375,9 +363,9 @@ class _RetailState extends State<Retail> {
                   await _applyFilters();
                 },
                 onClear: () async {
-                  Navigator.pop(context);
-
                   await _clearFilters();
+
+                  setBottomState(() {});
                 },
               ),
             );

@@ -15,7 +15,7 @@ import '../../enums/customer_mode.dart';
 import '../../model_classes/transport/transport.dart';
 import '../../pagination/pagination_widget.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/transport_provider.dart';
+import '../../provider/master_provider/transport_provider.dart';
 
 class TransportScreen extends StatefulWidget {
   const TransportScreen({super.key});

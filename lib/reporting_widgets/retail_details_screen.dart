@@ -6,7 +6,7 @@ import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
 import '../model_classes/retailers/add_retail_request.dart';
 import '../model_classes/retailers/retail_deposit_history_model.dart';
-import '../provider/retail_provider.dart';
+import '../provider/reporting_provider/retail_provider.dart';
 
 class RetailDetailsScreen extends StatefulWidget {
   final int retailId;

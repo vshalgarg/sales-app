@@ -11,11 +11,13 @@ class BillEntryUploadDocuments extends StatefulWidget {
   final List<PlatformFile> files;
   final List<String> existingFileNames;
   final List<String> existingUrls;
+  final List<String> existingImageKeys;
   final bool isViewMode;
   final bool isEditMode;
   const BillEntryUploadDocuments({
     super.key,
     required this.files,
+    required this.existingImageKeys,
     required this.existingFileNames,
     required this.existingUrls,
     this.isViewMode = false,
@@ -38,18 +40,50 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
 
     if (files.isEmpty) return;
 
-    for (final file in files) {
-      if (!selectedFiles.any((e) => e.path == file.path)) {
-        selectedFiles.add(file);
-      }
+    final totalFiles =
+        widget.existingFileNames.length + selectedFiles.length;
+
+    final remainingSlots = 3 - totalFiles;
+
+    if (remainingSlots <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Maximum 3 files can be uploaded"),
+        ),
+      );
+      return;
     }
 
-    if (selectedFiles.length > 3) {
-      selectedFiles = selectedFiles.take(3).toList();
+    int added = 0;
+
+    for (final file in files) {
+      if (added >= remainingSlots) break;
+
+      if (!selectedFiles.any((e) => e.path == file.path)) {
+        selectedFiles.add(file);
+        added++;
+      }
     }
 
     setState(() {});
   }
+  // Future<void> selectFiles() async {
+  //   final files = await pickFiles();
+  //
+  //   if (files.isEmpty) return;
+  //
+  //   for (final file in files) {
+  //     if (!selectedFiles.any((e) => e.path == file.path)) {
+  //       selectedFiles.add(file);
+  //     }
+  //   }
+  //
+  //   if (selectedFiles.length > 3) {
+  //     selectedFiles = selectedFiles.take(3).toList();
+  //   }
+  //
+  //   setState(() {});
+  // }
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -137,6 +171,7 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                                         setState(() {
                                           widget.existingFileNames.removeAt(index);
                                           widget.existingUrls.removeAt(index);
+                                          widget.existingImageKeys.removeAt(index);
                                         });
                                       },
                                     ),
@@ -258,15 +293,27 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
                     CustomElevatedButton(
                       text: "Cancel",
                       textStyle: TextStyle(color: Colors.black, fontSize: 20),
-                      onPressed: ()async{Navigator.pop(context);},
+                      onPressed: () async {
+                        Navigator.pop(context, {
+                          "files": selectedFiles,
+                          "existingImageKeys": widget.existingImageKeys,
+                          "existingFileNames": widget.existingFileNames,
+                          "existingUrls": widget.existingUrls,
+                        });
+                      },
                       borderRadius: 10,
                     ),
                     SizedBox(width: 20),
                     CustomElevatedButton(
                       text: "Save",
                       textStyle: TextStyle(color: Colors.white, fontSize: 20),
-                      onPressed: ()async {
-                        Navigator.pop(context, selectedFiles);
+                      onPressed: () async{
+                        Navigator.pop(context, {
+                          "files": selectedFiles,
+                          "existingImageKeys": widget.existingImageKeys,
+                          "existingFileNames": widget.existingFileNames,
+                          "existingUrls": widget.existingUrls,
+                        });
                       },
                       borderRadius: 10,
                       color: AppColors.primaryPurple,

@@ -26,7 +26,7 @@ import '../../model_classes/bills/bill_details.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../provider/bill_provider.dart';
+import '../../provider/reporting_provider/bill_provider.dart';
 
 class EntriesBillEntry extends StatefulWidget {
   final FormMode mode;
@@ -102,27 +102,40 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   void initState() {
     super.initState();
 
-    dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    if (widget.mode == FormMode.add) {
+      dateController.text =
+          DateFormat('yyyy-MM-dd').format(DateTime.now());
+    }
 
     Future.microtask(() async {
       final entriesProvider = context.read<EntriesProvider>();
       final billsProvider = context.read<BillProvider>();
-      await entriesProvider.loadInitialData();
-
-      if (!mounted) return;
-
-      setState(() {});
 
       if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
+        // Fetch bill details immediately
         final success = await billsProvider.fetchBillDetails(widget.id!);
 
         if (!mounted || !success) return;
 
         final bill = billsProvider.billDetails;
-
         if (bill != null) {
           fillBillData(bill);
         }
+
+        // Load dropdown data in the background
+        entriesProvider.loadInitialData().then((_) {
+          if (!mounted) return;
+
+          final updatedBill = billsProvider.billDetails;
+          if (updatedBill != null) {
+            fillBillData(updatedBill);
+          }
+        });
+      } else {
+        // Add mode only
+        await entriesProvider.loadInitialData();
+        if (!mounted) return;
+        setState(() {});
       }
     });
   }
@@ -880,6 +893,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           final files = await showDialog<List<PlatformFile>>(
                             context: context,
                             builder: (_) => BillEntryUploadDocuments(
+                              existingImageKeys: existingObjectKeys,
                               existingFileNames: existingFileNames,
                               existingUrls: existingUrls,
                               files: newUploadedFiles,

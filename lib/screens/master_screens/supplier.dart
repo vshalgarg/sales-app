@@ -15,7 +15,7 @@ import '../../enums/customer_mode.dart';
 import '../../model_classes/supplier/supplier.dart';
 import '../../pagination/pagination_widget.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/supplier_provider.dart';
+import '../../provider/master_provider/supplier_provider.dart';
 
 class SupplierScreen extends StatefulWidget {
   const SupplierScreen({super.key});

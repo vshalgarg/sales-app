@@ -1,8 +1,3 @@
-/// staffId : 30
-/// staffName : "traun"
-/// phone : "76543219"
-/// joiningDate : "2026-05-05"
-
 class GetStaffEntry {
   GetStaffEntry({
       num? staffId, 

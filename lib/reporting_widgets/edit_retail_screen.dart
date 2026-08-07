@@ -11,8 +11,8 @@ import '../customs/dropdown_test.dart';
 import '../model_classes/retailers/add_deposit_model.dart';
 import '../pop_ups/general_closing_popup.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
-import '../provider/retail_provider.dart';
-import '../provider/staff_provider.dart';
+import '../provider/reporting_provider/retail_provider.dart';
+import '../provider/master_provider/staff_provider.dart';
 
 class EditRetailScreen extends StatefulWidget {
   final int retailId;

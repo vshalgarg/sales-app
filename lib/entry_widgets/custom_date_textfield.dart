@@ -86,6 +86,7 @@ class EntryDateTextField extends StatelessWidget {
             ),
           ),
         hintText: label,
+        hintStyle: TextStyle(color: Colors.grey),
         suffixIcon: const Icon(Iconsax.calendar_tick),
       ),
     );

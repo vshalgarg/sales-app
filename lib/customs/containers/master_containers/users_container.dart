@@ -37,15 +37,18 @@ class UserContainer extends StatelessWidget {
                   child: Column(mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name ?? "",
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: true,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: AppColors.primaryPurple,
-                          fontWeight: FontWeight.w200,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          name ?? "",
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: AppColors.primaryPurple,
+                            fontWeight: FontWeight.w200,
+                          ),
                         ),
                       ),
 

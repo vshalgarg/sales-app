@@ -10,7 +10,7 @@ import 'package:hisabio/model_classes/staff/staff.dart';
 import 'package:hisabio/pagination/pagination_widget.dart';
 import 'package:hisabio/pop_ups/general_closing_popup.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/provider/staff_provider.dart';
+import 'package:hisabio/provider/master_provider/staff_provider.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
@@ -30,7 +30,9 @@ class _StaffScreenState extends State<StaffScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
+    Future.microtask(() async {
+      searchController.clear();
+      await context.read<StaffProvider>().clearSearch();
       context.read<StaffProvider>().fetchInitial();
     });
   }
@@ -41,7 +43,9 @@ class _StaffScreenState extends State<StaffScreen> {
     _debounce?.cancel();
     super.dispose();
   }
-
+  void clear() {
+    searchController.clear();
+  }
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<StaffProvider>();
@@ -53,8 +57,12 @@ class _StaffScreenState extends State<StaffScreen> {
       appBar: CustomAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+            onPressed: ()  {
+              searchController.clear();
+               context.read<StaffProvider>().resetSearch();
+                Navigator.pop(context);
+            }
+              ),
         title: "Staff Overview",
         textStyle: const TextStyle(
           color: Colors.white,

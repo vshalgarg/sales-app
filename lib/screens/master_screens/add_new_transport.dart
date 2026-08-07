@@ -11,7 +11,7 @@ import '../../model_classes/Transport/add_transport_request.dart';
 import '../../model_classes/Transport/transport.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
-import '../../provider/transport_provider.dart';
+import '../../provider/master_provider/transport_provider.dart';
 import 'add_new_supplier.dart';
 
 class AddNewTransport extends StatefulWidget {
@@ -316,7 +316,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: "Transport Name",
-
+                    hintStyle:TextStyle(color:Colors.grey) ,
                     border: OutlineInputBorder(
                       borderRadius:
                       BorderRadius.circular(5),
@@ -346,7 +346,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: "GST Number",
-
+                    hintStyle:TextStyle(color:Colors.grey) ,
                     border: OutlineInputBorder(
                       borderRadius:
                       BorderRadius.circular(5),
@@ -376,7 +376,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: "Email",
-
+                    hintStyle:TextStyle(color:Colors.grey) ,
                     border: OutlineInputBorder(
                       borderRadius:
                       BorderRadius.circular(5),

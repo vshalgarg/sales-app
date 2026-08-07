@@ -34,7 +34,7 @@ class CustomDropdown extends StatefulWidget {
 
 class _CustomDropdownState extends State<CustomDropdown> {
   final GlobalKey<FormFieldState<String>> _formFieldKey =
-  GlobalKey<FormFieldState<String>>();
+      GlobalKey<FormFieldState<String>>();
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
@@ -48,6 +48,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
         ? widget.initialValue
         : null;
   }
+
   @override
   void didUpdateWidget(covariant CustomDropdown oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -66,6 +67,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
       });
     }
   }
+
   @override
   void dispose() {
     _removeOverlay();
@@ -91,92 +93,95 @@ class _CustomDropdownState extends State<CustomDropdown> {
   }
 
   void _showOverlay() {
-
-    final renderBox =
-    _fieldKey.currentContext!.findRenderObject() as RenderBox;
+    final renderBox = _fieldKey.currentContext!.findRenderObject() as RenderBox;
     final size = renderBox.size;
 
     const double itemHeight = 49.0;
     const double maxHeight = 400.0;
 
-    final double dropdownHeight =
-    (widget.items.length * itemHeight).clamp(0.0, maxHeight);
+    final double dropdownHeight = (widget.items.length * itemHeight).clamp(
+      0.0,
+      maxHeight,
+    );
 
     _overlayEntry = OverlayEntry(
-      builder: (_) =>
-          Stack(
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: _removeOverlay,
-                  behavior: HitTestBehavior.translucent,
-                ),
-              ),
-              CompositedTransformFollower(
-                link: _layerLink,
+      builder: (_) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _removeOverlay,
+              behavior: HitTestBehavior.translucent,
+            ),
+          ),
+          CompositedTransformFollower(
+            link: _layerLink,
 
-                showWhenUnlinked: false,
-                offset: Offset(0, size.height),
-                child: Material(
-                  elevation: 6,
-                  borderRadius: BorderRadius.circular(5),
+            showWhenUnlinked: false,
+            offset: Offset(0, size.height),
+            child: Material(
+              elevation: 6,
+              borderRadius: BorderRadius.circular(5),
 
-                    child: SizedBox(
-                      height: dropdownHeight,
-                        width: size.width,
-                   child: Container(
-                      width: size.width,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                      //  border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: ListView.builder(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        itemCount: widget.items.length,
-                        itemBuilder: (_, index) {
-                          final item = widget.items[index];
-                          return InkWell(
-                            onTap: () {
-                              setState(() {
-                                selectedValue = item;
-                              });
+              child: SizedBox(
+                height: dropdownHeight,
+                width: size.width,
+                child: Container(
+                  width: size.width,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(5),
+                    //  border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: widget.items.length,
+                    itemBuilder: (_, index) {
+                      final item = widget.items[index];
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            selectedValue = item;
+                          });
 
-                              _formFieldKey.currentState?.didChange(item); // <-- Important
-                              _formFieldKey.currentState?.validate();      // <-- Removes error immediately
+                          _formFieldKey.currentState?.didChange(
+                            item,
+                          ); // <-- Important
+                          _formFieldKey.currentState
+                              ?.validate(); // <-- Removes error immediately
 
-                              widget.onChanged(item);
-                              _removeOverlay();
-                            },
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 14),
-                                  child: Text(item),
-                                ),
-                                // Light divider
-                                if (index != widget.items.length - 1)
-                                  Divider(
-                                    height: 1,
-                                    thickness: 0.5,
-                                    color: Colors.grey.shade300,
-                                  ),
-                              ],
-                            ),
-
-                          );
+                          widget.onChanged(item);
+                          _removeOverlay();
                         },
-                      ),
-                    ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 14,
+                              ),
+                              child: Text(item),
+                            ),
+                            // Light divider
+                            if (index != widget.items.length - 1)
+                              Divider(
+                                height: 1,
+                                thickness: 0.5,
+                                color: Colors.grey.shade300,
+                              ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
-            ],
+            ),
           ),
+        ],
+      ),
     );
 
     final overlay = Overlay.maybeOf(context);
@@ -189,100 +194,107 @@ class _CustomDropdownState extends State<CustomDropdown> {
   @override
   Widget build(BuildContext context) {
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (widget.label != null) ...[
-            RichText(
-              text: TextSpan(
-                style: const TextStyle(
-                    color: AppColors.primaryBlue,
-                    fontSize: 16),
-                children: [
-                  TextSpan(text: widget.label),
-                  if (widget.isRequired)
-                    const TextSpan(
-                        text: " *", style: TextStyle(color: Colors.red)),
-                ],
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.label != null) ...[
+          RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                color: AppColors.primaryBlue,
+                fontSize: 16,
               ),
+              children: [
+                TextSpan(text: widget.label),
+                if (widget.isRequired)
+                  const TextSpan(
+                    text: " *",
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
             ),
-            //const SizedBox(height: 6),
-          ],
-          FormField<String>(
-              key: _formFieldKey,
-              initialValue: selectedValue,
-              validator: widget.validator,
-              builder: (field) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CompositedTransformTarget(
-                      link: _layerLink,
-                      child: GestureDetector(
-                        key: _fieldKey,
-                        onTap: _toggle,
-                        child: Container(
-                          padding: widget.isEmbedded
-                              ? EdgeInsets.zero
-                              : const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: widget.isEmbedded
-                              ? null
-                              : BoxDecoration(
-                            color: widget.isDisabled
-                                ? Colors.white
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(
-                              color: field.hasError ? Colors.red : Colors.grey,
-                              width: 0.5,
+          ),
+          //const SizedBox(height: 6),
+        ],
+        FormField<String>(
+          key: _formFieldKey,
+          initialValue: selectedValue,
+          validator: widget.validator,
+          builder: (field) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CompositedTransformTarget(
+                  link: _layerLink,
+                  child: GestureDetector(
+                    key: _fieldKey,
+                    onTap: _toggle,
+                    child: Container(
+                      padding: widget.isEmbedded
+                          ? EdgeInsets.zero
+                          : const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: widget.isEmbedded
+                          ? null
+                          : BoxDecoration(
+                              color: widget.isDisabled
+                                  ? Colors.white
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: field.hasError
+                                    ? Colors.red
+                                    : Colors.grey,
+                                width: 0.5,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 18.0, bottom: 18),
-                                  child: Text(
-                                    (selectedValue == null || selectedValue!.trim().isEmpty)
-                                        ? widget.hintText
-                                        : selectedValue!,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: widget.isDisabled
-                                          ? Colors.grey
-                                          : (selectedValue == null || selectedValue!.trim().isEmpty
-                                          ? Colors.grey
-                                          : Colors.black),
-                                    ),
-                                  ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 18.0,
+                                bottom: 18,
+                              ),
+                              child: Text(
+                                (selectedValue == null ||
+                                        selectedValue!.trim().isEmpty)
+                                    ? widget.hintText
+                                    : selectedValue!,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: widget.isDisabled
+                                      ? Colors.grey
+                                      : (selectedValue == null ||
+                                                selectedValue!.trim().isEmpty
+                                            ? Colors.grey
+                                            : Colors.black),
                                 ),
                               ),
-                              Icon(Icons.keyboard_arrow_down,
-                                  color: widget.isDisabled == true
-                                      ? Colors.grey
-                                      : Colors.black54
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: widget.isDisabled == true
+                                ? Colors.grey
+                                : Colors.black54,
+                          ),
+                        ],
                       ),
                     ),
-                    if (field.hasError)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 12, top: 5),
-                        child: Text(
-                          field.errorText!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              }
-          )
-        ]
+                  ),
+                ),
+                if (field.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, top: 5),
+                    child: Text(
+                      field.errorText!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../pop_ups/scafold_type.dart';
-import '../../provider/config_provider.dart';
+import '../../provider/master_provider/config_provider.dart';
 
 class ConfigurationScreen extends StatefulWidget {
   const ConfigurationScreen({super.key});

@@ -4,7 +4,7 @@ import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/enums/customer_mode.dart';
 import 'package:hisabio/pop_ups/general_closing_popup.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/provider/bill_provider.dart';
+import 'package:hisabio/provider/reporting_provider/bill_provider.dart';
 import 'package:hisabio/provider/entries_provider/entries_section_provider.dart';
 import 'package:hisabio/reporting_widgets/reporting_card.dart';
 import 'package:hisabio/reporting_widgets/reporting_filter_section.dart';
@@ -201,42 +201,24 @@ class _BillsState extends State<Bills> {
   }
 
   Future<void> _clearFilters() async {
-    final now = DateTime.now();
-
-    final tenDaysAgo =
-    now.subtract(const Duration(days: 10));
-
-    final formatter =
-    DateFormat("yyyy-MM-dd");
-
-    fromDateController.text =
-        formatter.format(tenDaysAgo);
-
-    toDateController.text =
-        formatter.format(now);
-
     setState(() {
+      fromDateController.clear();
+      toDateController.clear();
+
       selectedSupplier = null;
       selectedCustomer = null;
       isFilterApplied = false;
     });
 
-    final provider =
-    context.read<BillProvider>();
+    final provider = context.read<BillProvider>();
 
-    provider.setFromDate(
-        fromDateController.text);
-
-    provider.setToDate(
-        toDateController.text);
-
+    provider.setFromDate(null);
+    provider.setToDate(null);
     provider.setSupplierId(null);
-
     provider.setCustomerId(null);
 
     await provider.refresh();
   }
-
   void _showFilterBottomSheet() {
     final provider =
     context.read<EntriesProvider>();
@@ -314,8 +296,9 @@ class _BillsState extends State<Bills> {
                   await _applyFilters();
                 },
                 onClear: () async {
-                  Navigator.pop(context);
                   await _clearFilters();
+
+                  setBottomState(() {});
                 },
               ),
             );
@@ -437,7 +420,7 @@ class _BillsState extends State<Bills> {
 
                     title: "Invoice :",
 
-                    value: bill.billNumber ?? "",
+                    value: bill.invoiceNo ?? "",
 
                     chips: [
                       ReportChip(
@@ -471,7 +454,7 @@ class _BillsState extends State<Bills> {
                     },
 
                     onEdit: () async {
-                      // final refresh =
+                       final refresh =
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -485,9 +468,9 @@ class _BillsState extends State<Bills> {
 
                       if (!mounted) return;
 
-                      // if (refresh == true) {
-                      //   await provider.refresh();
-                      // }
+                      if (refresh == true) {
+                        await provider.refresh();
+                      }
                     },
 
                     onDelete: () async {

@@ -75,12 +75,7 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   @override
   void initState() {
     super.initState();
-    // selectedSuppliers.add(null);
-    // selectedSupplierIds.add(null);
-    // selectedSuppliers.add(null);
-    // totalAmount.add(TextEditingController());
-    // depositAmount.add(TextEditingController());
-    // balancedAmount.add(TextEditingController());
+
     dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     Future.microtask(() async {
       final provider = context.read<EntriesProvider>();

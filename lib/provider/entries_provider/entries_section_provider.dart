@@ -2,10 +2,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-
 import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/common/api_response.dart';
-import '../../model_classes/credits/creditdetails_byid.dart';
 import '../../model_classes/entries/add_newsupplier.dart';
 import '../../model_classes/entries/entries_customer_model.dart';
 import '../../model_classes/entries/entries_supplier.dart';
@@ -61,11 +59,13 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// FETCH SUPPLIERS
-  ///---------------------------------------------------------------
 
-  Future<void> fetchSuppliers() async {
+  Future<void> fetchSuppliers({bool forceRefresh = false}) async {
+    if (!forceRefresh && _entries.isNotEmpty) {
+      return; // Already loaded
+    }
+
     final result = await _service.fetchSuppliers();
 
     if (result.isSuccess && result.data != null) {
@@ -77,14 +77,27 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
+  // Future<void> fetchSuppliers() async {
+  //   final result = await _service.fetchSuppliers();
+  //
+  //   if (result.isSuccess && result.data != null) {
+  //     _entries = result.data!;
+  //     _error = null;
+  //   } else {
+  //     _error = result.errorMessage;
+  //   }
+  //
+  //   safeNotify();
+  // }
 
-  ///---------------------------------------------------------------
   /// FETCH CUSTOMERS
-  ///---------------------------------------------------------------
 
-  Future<void> fetchCustomer() async {
-    final result =
-    await _service.fetchCustomers();
+  Future<void> fetchCustomer({bool forceRefresh = false}) async {
+    if (!forceRefresh && _customerEntries.isNotEmpty) {
+      return; // Already loaded
+    }
+
+    final result = await _service.fetchCustomers();
 
     if (result.isSuccess && result.data != null) {
       _customerEntries = result.data!;
@@ -95,10 +108,21 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
+  // Future<void> fetchCustomer() async {
+  //   final result =
+  //   await _service.fetchCustomers();
+  //
+  //   if (result.isSuccess && result.data != null) {
+  //     _customerEntries = result.data!;
+  //     _error = null;
+  //   } else {
+  //     _error = result.errorMessage;
+  //   }
+  //
+  //   safeNotify();
+  // }
 
-  ///---------------------------------------------------------------
   /// FETCH TRANSPORT
-  ///---------------------------------------------------------------
 
   Future<void> fetchTransport() async {
     final result =
@@ -114,9 +138,7 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
   }
 
-  ///---------------------------------------------------------------
   /// FETCH STAFF
-  ///---------------------------------------------------------------
 
   Future<void> fetchStaff() async {
     final result =
@@ -131,9 +153,7 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
-  ///---------------------------------------------------------------
   /// ADD SUPPLIER
-  ///---------------------------------------------------------------
 
   Future<bool> addSupplier(
       Map<String, dynamic> body,
@@ -160,11 +180,9 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// ADD CREDIT ENTRY
-  ///---------------------------------------------------------------
 
-  Future<AddNewsupplier?> addCreditEntry(
+  Future<AddNewSupplier?> addCreditEntry(
       Map<String, dynamic> body,
       ) async {
     _loading = true;
@@ -188,9 +206,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// ADD RETAIL ENTRY
-  ///---------------------------------------------------------------
 
   Future<bool> addRetailEntry(
       Map<String, dynamic> body,
@@ -216,17 +232,13 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// CLEAR
-  ///---------------------------------------------------------------
 
   void clear() {
     _error = null;
     safeNotify();
   }
-  ///---------------------------------------------------------------
   /// SAVE BILL
-  ///---------------------------------------------------------------
 
   Future<bool> saveBill({
     required Map<String, dynamic> payload,
@@ -254,9 +266,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// UPDATE BILL
-  ///---------------------------------------------------------------
 
   Future<bool> updateBillEntry({
     required int id,
@@ -286,9 +296,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// SAVE PURCHASE
-  ///---------------------------------------------------------------
 
   Future<bool> savePurchase({
     required Map<String, dynamic> payload,
@@ -317,9 +325,7 @@ class EntriesProvider extends ChangeNotifier {
       safeNotify();
     }
   }
-  ///---------------------------------------------------------------
   /// GET CREDIT DETAILS
-  ///---------------------------------------------------------------
 
   Future<bool> getCreditDetailsById(int id) async {
     _loading = true;
@@ -343,11 +349,9 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// UPDATE CREDIT DETAILS
-  ///---------------------------------------------------------------
 
-  Future<AddNewsupplier?> updateCreditDetails({
+  Future<AddNewSupplier?> updateCreditDetails({
     required Map<String, dynamic> body,
     required int id,
   }) async {
@@ -374,9 +378,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  ///---------------------------------------------------------------
   /// LOAD INITIAL DATA
-  ///---------------------------------------------------------------
 
   Future<void> loadInitialData() async {
     _loading = true;

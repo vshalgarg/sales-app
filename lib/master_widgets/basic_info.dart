@@ -108,7 +108,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
         if (isExpanded) ...[
           SizedBox(height: 15),
-          Text("Name", style: TextStyle(color: Colors.white, fontSize: 18)),
+          Text("Name * ", style: TextStyle(color: Colors.white, fontSize: 18)),
           TextFormField(
             maxLines: 5,
             minLines: 1,

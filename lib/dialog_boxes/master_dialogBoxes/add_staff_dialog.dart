@@ -8,7 +8,7 @@ import '../../constants/colors_used.dart';
 import '../../enums/staff_mode.dart';
 import '../../model_classes/staff/add_staff_request.dart';
 import '../../pop_ups/scafold_type.dart';
-import '../../provider/staff_provider.dart';
+import '../../provider/master_provider/staff_provider.dart';
 
 class AddStaffDialog extends StatefulWidget {
   final int? id;
@@ -287,6 +287,26 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                       ),
                     ],
                   ),
+                ),
+              ),
+            ),
+            Positioned(
+              top:0,
+              child: Container(
+                height: 70,
+                width: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFF3F0FF),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 4,
+                  ),
+                ),
+                child: Icon(
+                 Iconsax.add,
+                  color: AppColors.primaryPurple,
+                  size: 35,
                 ),
               ),
             ),

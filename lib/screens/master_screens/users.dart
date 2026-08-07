@@ -9,7 +9,7 @@ import '../../dialog_boxes/master_dialogBoxes/add_new_user.dart';
 import '../../dialog_boxes/master_dialogBoxes/update_user_password.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
-import '../../provider/user_provider.dart';
+import '../../provider/master_provider/user_provider.dart';
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -19,6 +19,8 @@ class UsersScreen extends StatefulWidget {
 }
 
 class _UsersScreenState extends State<UsersScreen> {
+  int currentPage = 1;
+   int pageSize = 10;
   final TextEditingController userSearchController =
   TextEditingController();
 
@@ -67,6 +69,15 @@ class _UsersScreenState extends State<UsersScreen> {
     }
 
     final users = provider.users;
+
+    final totalPages = (users.length / pageSize).ceil();
+
+    final startIndex = (currentPage - 1) * pageSize;
+    final endIndex = (startIndex + pageSize > users.length)
+        ? users.length
+        : startIndex + pageSize;
+
+    final paginatedUsers = users.sublist(startIndex, endIndex);
 
     return Scaffold(
         backgroundColor: AppColors.bodyFillColor,
@@ -166,7 +177,63 @@ class _UsersScreenState extends State<UsersScreen> {
               ),
             ),
 
-            const SizedBox(height: 15),
+                const SizedBox(height: 15),
+
+                Row(
+                  children: [
+                    const Text(
+                      "Showing Results",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    IconButton(
+                      onPressed: currentPage == 1
+                          ? null
+                          : () {
+                        setState(() {
+                          currentPage = 1;
+                        });
+                      },
+                      icon: Icon(
+                        Icons.keyboard_double_arrow_left,
+                        color: currentPage == 1
+                            ? Colors.white38
+                            : Colors.white,
+                      ),
+                    ),
+
+                    Text(
+                      "$endIndex of ${users.length}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    IconButton(
+                      onPressed: currentPage == totalPages
+                          ? null
+                          : () {
+                        setState(() {
+                          currentPage = totalPages;
+                        });
+                      },
+                      icon: Icon(
+                        Icons.keyboard_double_arrow_right,
+                        color: currentPage == totalPages
+                            ? Colors.white38
+                            : Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 5),
 
             Expanded(
               child: RefreshIndicator(
@@ -185,15 +252,31 @@ class _UsersScreenState extends State<UsersScreen> {
                       FontWeight.w500,
                     ),
                   ),
-                )
-                    : ListView.separated(
+                ):
+                GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    final velocity = details.primaryVelocity ?? 0;
+
+                    if (velocity < -250 && currentPage < totalPages) {
+                      setState(() {
+                        currentPage++;
+                      });
+                    }
+
+                    if (velocity > 250 && currentPage > 1) {
+                      setState(() {
+                        currentPage--;
+                      });
+                    }
+                  },
+                  child: ListView.separated(
                   separatorBuilder:
                       (_, __) =>
                   const SizedBox(height: 8),
 
-                  itemCount: users.length,
+                  itemCount: paginatedUsers.length,
                   itemBuilder: (context, index) {
-                    final user = users[index];
+                    final user = paginatedUsers[index];
 
                     return UserContainer(
                       name: user.username ?? "",
@@ -201,11 +284,34 @@ class _UsersScreenState extends State<UsersScreen> {
                       trashIconTap: () {
                         ExitConfirmationDialog.show(
                           context,
+                          body: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                              children: [
+                                const TextSpan(
+                                  text:
+                                  "Are you sure you want to permanently delete ",
+                                ),
+                                TextSpan(
+                                  text: user.username,
+                                  style: const TextStyle(
+                                    color: AppColors.orangeColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const TextSpan(
+                                  text: "? This action cannot be undone.",
+                                ),
+                              ],
+                            ),
+                          ),
                           saveButtonText: "Yes",
                           discardButtonText: "No",
-
-                          bodyText:
-                          "Are you sure you want to permanently delete ${user.username}? This action cannot be undone.",
 
                           onDiscard: () {
                             Navigator.pop(context);
@@ -308,9 +414,48 @@ class _UsersScreenState extends State<UsersScreen> {
                   },
                 ),
             ),
-            )
-              ],
             ),
+            ),
+                // if (users.isNotEmpty)
+                //   Padding(
+                //     padding: const EdgeInsets.symmetric(vertical: 10),
+                //     child: Row(
+                //       mainAxisAlignment: MainAxisAlignment.center,
+                //       children: [
+                //         IconButton(
+                //           onPressed: currentPage > 1
+                //               ? () {
+                //             setState(() {
+                //               currentPage--;
+                //             });
+                //           }
+                //               : null,
+                //           icon: const Icon(Icons.chevron_left),
+                //         ),
+                //
+                //         Text(
+                //           "Page $currentPage of $totalPages",
+                //           style: const TextStyle(
+                //             color: Colors.white,
+                //             fontWeight: FontWeight.w600,
+                //           ),
+                //         ),
+                //
+                //         IconButton(
+                //           onPressed: currentPage < totalPages
+                //               ? () {
+                //             setState(() {
+                //               currentPage++;
+                //             });
+                //           }
+                //               : null,
+                //           icon: const Icon(Icons.chevron_right),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+              ],
+            )
         ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primaryPurple,

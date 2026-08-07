@@ -13,8 +13,8 @@ import '../../enums/customer_mode.dart';
 import '../../model_classes/customer/add_customer_request.dart';
 import '../../model_classes/customer/customer_details.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/customer_provider.dart';
-import '../../provider/transport_provider.dart';
+import '../../provider/master_provider/customer_provider.dart';
+import '../../provider/master_provider/transport_provider.dart';
 import 'add_new_supplier.dart';
 
 class AddNewCustomer extends StatefulWidget {
@@ -195,7 +195,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
   @override
   void initState() {
     super.initState();
-
+    context.read<CustomerProvider>().setDetailsLoading(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadData();
     });
@@ -264,10 +264,10 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
         ),
       ),
       body:
-      customerProvider.detailsLoading &&
-              (widget.mode == FormMode.view || widget.mode == FormMode.edit)
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      // customerProvider.detailsLoading &&
+      //         (widget.mode == FormMode.view || widget.mode == FormMode.edit)
+      //     ? const Center(child: CircularProgressIndicator())
+           SingleChildScrollView(
               controller: _scrollController,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),

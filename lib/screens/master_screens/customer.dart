@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import '../../dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
 import '../../enums/customer_mode.dart';
 import '../../pop_ups/general_closing_popup.dart';
-import '../../provider/customer_provider.dart';
+import '../../provider/master_provider/customer_provider.dart';
 import '../home_screen.dart';
 
 class CustomerScreen extends StatefulWidget {

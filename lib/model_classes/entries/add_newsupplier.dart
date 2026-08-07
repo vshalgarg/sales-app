@@ -1,27 +1,5 @@
-/// supplierName : "ABCDE Traders"
-/// email : "abctraders@gmail.com"
-/// referenceBy : "Ramesh Kumar"
-/// supplierGroup : "Electronics"
-/// supplierGstNo : "06ABCDE1234F1Z5"
-/// supplierMsme : "Yes"
-/// commissionScheme : "Percentage"
-/// commissionRate : 5.0
-/// addressLine1 : "Sector 15"
-/// addressLine2 : "Near Metro Station"
-/// state : "Haryana"
-/// city : "Gurgaon"
-/// pinCode : "122001"
-/// bankName : "HDFC Bank"
-/// ifscCode : "HDFC0001234"
-/// branchName : "Gurgaon Branch"
-/// accountName : "ABC Traders"
-/// accountNumber : "1234567890"
-/// preferredTransportIds : [5,6]
-/// remark : "Preferred supplier"
-/// contacts : [{"name":"Rahul","mobile":"9876543210","designation":"Manager"}]
-
-class AddNewsupplier {
-  AddNewsupplier({  String? message,
+class AddNewSupplier {
+  AddNewSupplier({  String? message,
       String? supplierName, 
       String? email, 
       String? referenceBy, 
@@ -67,7 +45,7 @@ class AddNewsupplier {
     _contacts = contacts;
 }
 
-  AddNewsupplier.fromJson(dynamic json) {
+  AddNewSupplier.fromJson(dynamic json) {
     _supplierName = json['supplierName'];
     _email = json['email'];
     _message = json['message'];
@@ -118,7 +96,7 @@ class AddNewsupplier {
   List<num>? _preferredTransportIds;
   String? _remark;
   List<Contacts>? _contacts;
-AddNewsupplier copyWith({  String? supplierName,
+AddNewSupplier copyWith({  String? supplierName,
   String? email,
   String?message,
   String? referenceBy,
@@ -140,7 +118,7 @@ AddNewsupplier copyWith({  String? supplierName,
   List<num>? preferredTransportIds,
   String? remark,
   List<Contacts>? contacts,
-}) => AddNewsupplier(  supplierName: supplierName ?? _supplierName,
+}) => AddNewSupplier(  supplierName: supplierName ?? _supplierName,
   email: email ?? _email,
   referenceBy: referenceBy ?? _referenceBy,
   supplierGroup: supplierGroup ?? _supplierGroup,

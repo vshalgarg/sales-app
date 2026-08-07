@@ -1,10 +1,3 @@
-/// id : 1585
-/// supplierName : "(AMRITAS) ATEX TEXTILE (P) LTD."
-/// supplierGroup : "(AMRITAS) ATEX TEXTILE (P) LTD."
-/// supplierGstNo : "07AAJCA1036A1ZD"
-/// supplierMsme : "SMALL"
-/// city : "DELHI"
-
 class EntriesModel {
   EntriesModel({
       num? id, 

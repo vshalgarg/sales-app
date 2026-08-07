@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/model_classes/login_model.dart';
-import 'package:hisabio/services/login.dart';
+import 'package:hisabio/services/retail/login.dart';
 import 'package:hisabio/shared_preferences/login_token.dart';
 class LoginProvider extends ChangeNotifier {
 

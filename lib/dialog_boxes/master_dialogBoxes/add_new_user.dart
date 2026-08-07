@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
@@ -6,7 +7,7 @@ import '../../customs/dropdown_test.dart';
 import '../../customs/elevated_button.dart';
 import '../../model_classes/user/add_user_request.dart';
 import '../../pop_ups/scafold_type.dart';
-import '../../provider/user_provider.dart';
+import '../../provider/master_provider/user_provider.dart';
 
 class AddUserDialog extends StatefulWidget {
   const AddUserDialog({super.key});
@@ -268,6 +269,26 @@ class _AddUserDialogState extends State<AddUserDialog> {
               ),
               child: const Icon(
                 Icons.person_outline_outlined,
+                color: AppColors.primaryPurple,
+                size: 35,
+              ),
+            ),
+          ),
+          Positioned(
+            top:0,
+            child: Container(
+              height: 70,
+              width: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFF3F0FF),
+                border: Border.all(
+                  color: Colors.white,
+                  width: 4,
+                ),
+              ),
+              child: Icon(
+                Iconsax.add,
                 color: AppColors.primaryPurple,
                 size: 35,
               ),

@@ -13,9 +13,8 @@ import '../../../../reporting_widgets/reporting_filter_section.dart';
 import '../../../../screens/home_screen.dart';
 import '../../model_classes/credits/credit.dart';
 import '../../pagination/pagination_widget.dart';
-import '../../provider/credit_provider.dart';
+import '../../provider/reporting_provider/credit_provider.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
-import '../../services/delete_credit_api.dart';
 import '../entry_screen/credit_entry.dart';
 
 class CreditScreen extends StatefulWidget {
@@ -237,7 +236,7 @@ class _CreditScreenState extends State<CreditScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, bottomSheetSetState) {
+          builder: (context,  setBottomState) {
             return Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -256,7 +255,7 @@ class _CreditScreenState extends State<CreditScreen> {
                     value: selectedSupplier,
                     items: supplierItems,
                     onChanged: (value) {
-                      bottomSheetSetState(() {
+                      setBottomState(() {
                         selectedSupplier = value;
                       });
                     },
@@ -267,7 +266,7 @@ class _CreditScreenState extends State<CreditScreen> {
                     value: selectedCustomer,
                     items: customerItems,
                     onChanged: (value) {
-                      bottomSheetSetState(() {
+                      setBottomState(() {
                         selectedCustomer = value;
                       });
                     },
@@ -295,9 +294,9 @@ class _CreditScreenState extends State<CreditScreen> {
                 },
 
                 onClear: () async {
-                  Navigator.pop(context);
-
                   await _clearFilters();
+
+                  setBottomState(() {});
                 },
               ),
             );

@@ -1,10 +1,3 @@
-/// id : 2033
-/// customerName : "ABCD Traders Update checking"
-/// customerGroup : "ABCD Traders Update"
-/// customerGstNo : null
-/// customerMsme : "Small"
-/// city : null
-
 class EntriesCustomerModel {
   EntriesCustomerModel({
       num? id, 
