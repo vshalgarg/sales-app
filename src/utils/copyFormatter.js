@@ -49,6 +49,7 @@ const toFieldList = (data) =>
 
 const buildBankFields = ({
   bankName,
+  accountName,
   accountNumber,
   ifscCode,
   ifsc,
@@ -56,6 +57,7 @@ const buildBankFields = ({
   branch,
 }) =>
   [
+    { label: "Account Holder Name", value: accountName },
     { label: "Bank Name", value: bankName },
     { label: "A/c No", value: accountNumber },
     { label: "IFSC", value: ifscCode || ifsc },
