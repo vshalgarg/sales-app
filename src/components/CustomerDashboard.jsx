@@ -60,11 +60,15 @@ export default function CustomerDashboard() {
     contacts: [{ contactPerson: "", mobileNumber: "", type: "" }],
     preferredTransportIds: [],
     remark: "",
-    bankName: "",
-    ifsc: "",
-    branch: "",
-    accountName: "",
-    accountNumber: "",
+    bankDetails: [
+      {
+        bankName: "",
+        ifsc: "",
+        branch: "",
+        accountName: "",
+        accountNumber: "",
+      },
+    ],
   });
 
   const handleCopyDetails = async (customer) => {
