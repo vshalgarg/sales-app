@@ -47,6 +47,8 @@ const toFieldList = (data) =>
     .filter(([_, value]) => value !== undefined && value !== null && value !== "")
     .map(([label, value]) => ({ label, value }));
 
+const MAX_BANK_DETAILS = 4;
+
 const buildBankFields = ({
   bankName,
   accountName,
@@ -64,6 +66,46 @@ const buildBankFields = ({
     { label: "Branch", value: branchName || branch },
   ].filter((field) => field.value);
 
+const resolveBankAccounts = (entity) => {
+  const accounts = entity?.bankDetails || entity?.bankAccounts;
+  let list = [];
+
+  if (Array.isArray(accounts) && accounts.length > 0) {
+    list = accounts;
+  } else {
+    const legacyFields = buildBankFields(entity || {});
+    if (legacyFields.length) list = [entity];
+  }
+
+  return list
+    .slice(0, MAX_BANK_DETAILS)
+    .filter((account) => buildBankFields(account || {}).length > 0);
+};
+
+const buildBankCopyData = (entity) => {
+  const resolved = resolveBankAccounts(entity);
+  if (!resolved.length) return null;
+
+  const accounts = resolved.map((account, index) => ({
+    label:
+      resolved.length === 1
+        ? "Bank Account 1"
+        : `Bank Account ${index + 1}`,
+    fields: buildBankFields(account),
+  }));
+
+  const fields = accounts.flatMap((account) => {
+    if (accounts.length === 1) return account.fields;
+
+    return [
+      { label: account.label, value: account.label, isSection: true },
+      ...account.fields,
+    ];
+  });
+
+  return { accounts, fields };
+};
+
 export const buildStructuredCopyText = (
   mandatory = [],
   includeBank = false,
@@ -73,9 +115,23 @@ export const buildStructuredCopyText = (
     .map(({ label, value }) => `<b>${label}:</b> ${value}<br/>`)
     .join("");
 
-  if (includeBank && bank?.fields?.length) {
+  if (includeBank && bank?.accounts?.length) {
+    html += `<b>Bank Details:</b><br/>`;
+    bank.accounts.forEach((account) => {
+      if (bank.accounts.length > 1) {
+        html += `<b>${account.label}:</b><br/>`;
+      }
+      html += account.fields
+        .map(({ label, value }) => `${label}: ${value}<br/>`)
+        .join("");
+      if (bank.accounts.length > 1) {
+        html += `<br/>`;
+      }
+    });
+  } else if (includeBank && bank?.fields?.length) {
     html += `<b>Bank Details:</b><br/>`;
     html += bank.fields
+      .filter((field) => !field.isSection)
       .map(({ label, value }) => `${label}: ${value}<br/>`)
       .join("");
   }
@@ -114,8 +170,7 @@ export const getSupplierFormattedText = (supplier) => {
     "GST No": supplier?.supplierGstNo || supplier?.gstNo,
   });
 
-  const bankFields = buildBankFields(supplier);
-  const bank = bankFields.length ? { fields: bankFields } : null;
+  const bank = buildBankCopyData(supplier);
   const base = buildStructuredCopyText(mandatory, Boolean(bank), bank);
 
   return {
@@ -133,15 +188,17 @@ export const getSuppliersFormattedText = (data) => {
 
   const html = suppliers
     .map((supplier) => {
-      const bankParts = [
-        supplier.accountName,
-        supplier.accountNumber,
-        supplier.ifscCode,
-        supplier.branchName,
-        supplier.bankName,
-      ]
-        .filter(Boolean)
-        .join(", ");
+      const bank = buildBankCopyData(supplier);
+      const bankParts = bank?.accounts
+        ?.map((account) => {
+          const details = account.fields
+            .map(({ label, value }) => `${label}: ${value}`)
+            .join(", ");
+          return bank.accounts.length > 1
+            ? `${account.label} (${details})`
+            : details;
+        })
+        .join(" | ");
 
       const entry = {
         Name: supplier.supplierName,
@@ -187,8 +244,7 @@ export const getCustomerFormattedText = (customer) => {
     "GST No": customer?.gstNo,
   });
 
-  const bankFields = buildBankFields(customer);
-  const bank = bankFields.length ? { fields: bankFields } : null;
+  const bank = buildBankCopyData(customer);
   const base = buildStructuredCopyText(mandatory, Boolean(bank), bank);
 
   return {
