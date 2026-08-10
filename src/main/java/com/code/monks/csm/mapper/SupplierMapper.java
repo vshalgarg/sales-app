@@ -1,19 +1,17 @@
 package com.code.monks.csm.mapper;
 
 import com.code.monks.csm.dto.request.AddSupplierRequestDto;
+import com.code.monks.csm.dto.request.BankDetailRequestDto;
 import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
-import com.code.monks.csm.dto.response.GetSupplierByIdResponseDto;
-import com.code.monks.csm.dto.response.SupplierListResponseDto;
-import com.code.monks.csm.dto.response.SupplierSummaryDto;
-import com.code.monks.csm.dto.response.TransportDto;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.SupplierEntity;
+import com.code.monks.csm.entity.BankDetailEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.utils.ContactUtil;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -58,11 +56,22 @@ public class SupplierMapper {
 
         entity.setRemark(dto.getRemark());
 
-        entity.setBankName(dto.getBankName());
-        entity.setIfscCode(dto.getIfscCode());
-        entity.setBranchName(dto.getBranchName());
-        entity.setAccountName(dto.getAccountName());
-        entity.setAccountNumber(dto.getAccountNumber());
+        if (dto.getBankDetails() != null) {
+            List<BankDetailEntity> bankDetails = dto.getBankDetails()
+                    .stream()
+                    .map(bankDto -> {
+                        BankDetailEntity bank = new BankDetailEntity();
+                        bank.setBankName(bankDto.getBankName());
+                        bank.setIfscCode(bankDto.getIfscCode());
+                        bank.setBranchName(bankDto.getBranchName());
+                        bank.setAccountName(bankDto.getAccountName());
+                        bank.setAccountNumber(bankDto.getAccountNumber());
+                        bank.setSupplier(entity);
+                        return bank;
+                    })
+                    .toList();
+            entity.setBankDetails(bankDetails);
+        }
         entity.setStatus(StatusEnum.ACTIVE);
 
         if (dto.getContacts() != null) {
@@ -114,12 +123,27 @@ public class SupplierMapper {
 
         entity.setRemark(dto.getRemark());
 
-        entity.setBankName(dto.getBankName());
-        entity.setIfscCode(dto.getIfscCode());
-        entity.setBranchName(dto.getBranchName());
-        entity.setAccountName(dto.getAccountName());
-        entity.setAccountNumber(dto.getAccountNumber());
+        if (dto.getBankDetails() != null) {
+            entity.getBankDetails().clear();
 
+            List<BankDetailEntity> bankDetails = dto.getBankDetails()
+                    .stream()
+                    .map(bankDto -> {
+
+                        BankDetailEntity bank = new BankDetailEntity();
+
+                        bank.setBankName(bankDto.getBankName());
+                        bank.setIfscCode(bankDto.getIfscCode());
+                        bank.setBranchName(bankDto.getBranchName());
+                        bank.setAccountName(bankDto.getAccountName());
+                        bank.setAccountNumber(bankDto.getAccountNumber());
+                        bank.setSupplier(entity);
+                        return bank;
+                    })
+                    .toList();
+
+            entity.getBankDetails().addAll(bankDetails);
+        }
         if (dto.getContacts() != null) {
             entity.getContactList().clear();
 
@@ -155,6 +179,18 @@ public class SupplierMapper {
                         .name(t.getName())
                         .build())
                 .toList();
+        List<BankDetailResponseDto> bankDetails =
+                Optional.ofNullable(entity.getBankDetails())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .map(bank -> new BankDetailResponseDto(
+                                bank.getBankName(),
+                                bank.getIfscCode(),
+                                bank.getBranchName(),
+                                bank.getAccountName(),
+                                bank.getAccountNumber()
+                        ))
+                        .toList();
 
         return GetSupplierByIdResponseDto.builder()
                 .id(entity.getId())
@@ -173,12 +209,7 @@ public class SupplierMapper {
                 .pinCode(entity.getPinCode())
                 .msme(entity.getMsme())
 
-                // bank details
-                .bankName(entity.getBankName())
-                .ifscCode(entity.getIfscCode())
-                .branchName(entity.getBranchName())
-                .accountName(entity.getAccountName())
-                .accountNumber(entity.getAccountNumber())
+                .bankDetails(bankDetails)
 
                 .remark(entity.getRemark())
                 .status(entity.getStatus())

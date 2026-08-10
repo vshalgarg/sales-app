@@ -4,15 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(
-        name = "contact",
-        indexes = {
-                @Index(name = "idx_contact_mobile", columnList = "mobile_number"),
-                @Index(name = "idx_contact_phone", columnList = "phone"),
-                @Index(name = "idx_contact_supplier", columnList = "supplier_id"),
-                @Index(name = "idx_contact_customer", columnList = "customer_id")
-        }
-)
+@Table(name = "contact")
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
