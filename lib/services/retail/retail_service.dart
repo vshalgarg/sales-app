@@ -1,11 +1,11 @@
-import '../../../../model_classes/common/paginated_response.dart';
-import '../../../../network/api_service.dart';
-import '../../../../network/response_result.dart';
-import '../model_classes/common/api_response.dart';
-import '../model_classes/retailers/add_deposit_model.dart';
-import '../model_classes/retailers/retail_deposit_history_model.dart';
-import '../model_classes/retailers/retail_details.dart';
-import '../model_classes/retailers/retail_model.dart';
+import '../../../../../model_classes/common/paginated_response.dart';
+import '../../../../../network/api_service.dart';
+import '../../../../../network/response_result.dart';
+import '../../model_classes/common/api_response.dart';
+import '../../model_classes/retailers/add_deposit_model.dart';
+import '../../model_classes/retailers/retail_deposit_history_model.dart';
+import '../../model_classes/retailers/retail_details.dart';
+import '../../model_classes/retailers/retail_model.dart';
 
 class RetailService {
   final ApiService _api;

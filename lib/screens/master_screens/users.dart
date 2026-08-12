@@ -279,36 +279,48 @@ class _UsersScreenState extends State<UsersScreen> {
                     final user = paginatedUsers[index];
 
                     return UserContainer(
+                      role:user.role ?? "",
                       name: user.username ?? "",
-
+                      // role:user.role ?? "",
                       trashIconTap: () {
                         ExitConfirmationDialog.show(
                           context,
-                          body: RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                              children: [
-                                const TextSpan(
-                                  text:
-                                  "Are you sure you want to permanently delete ",
-                                ),
-                                TextSpan(
-                                  text: user.username,
+                          body: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
                                   style: const TextStyle(
-                                    color: AppColors.orangeColor,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black,
                                   ),
+                                  children: [
+                                    const TextSpan(
+                                      text:
+                                      "Are you sure you want to permanently delete ",
+                                    ),
+                                    TextSpan(
+                                      text: user.username,
+                                      style: const TextStyle(
+                                        color: AppColors.orangeColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    TextSpan(text: "?"),
+                                  ],
                                 ),
-                                const TextSpan(
-                                  text: "? This action cannot be undone.",
+                              ),
+                              const SizedBox(height: 3),
+                              const Text(
+                                "This action cannot be undone.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                           saveButtonText: "Yes",
                           discardButtonText: "No",
@@ -326,7 +338,7 @@ class _UsersScreenState extends State<UsersScreen> {
                             if (!context.mounted) return;
 
                             if (success) {
-                           //   Navigator.pop(context,true);
+
 
                               ScaffoldSnackBar.show(
                                 context,
@@ -416,44 +428,6 @@ class _UsersScreenState extends State<UsersScreen> {
             ),
             ),
             ),
-                // if (users.isNotEmpty)
-                //   Padding(
-                //     padding: const EdgeInsets.symmetric(vertical: 10),
-                //     child: Row(
-                //       mainAxisAlignment: MainAxisAlignment.center,
-                //       children: [
-                //         IconButton(
-                //           onPressed: currentPage > 1
-                //               ? () {
-                //             setState(() {
-                //               currentPage--;
-                //             });
-                //           }
-                //               : null,
-                //           icon: const Icon(Icons.chevron_left),
-                //         ),
-                //
-                //         Text(
-                //           "Page $currentPage of $totalPages",
-                //           style: const TextStyle(
-                //             color: Colors.white,
-                //             fontWeight: FontWeight.w600,
-                //           ),
-                //         ),
-                //
-                //         IconButton(
-                //           onPressed: currentPage < totalPages
-                //               ? () {
-                //             setState(() {
-                //               currentPage++;
-                //             });
-                //           }
-                //               : null,
-                //           icon: const Icon(Icons.chevron_right),
-                //         ),
-                //       ],
-                //     ),
-                //   ),
               ],
             )
         ),

@@ -1,36 +1,33 @@
-
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 
 import '../../customs/elevated_button.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
 import '../../enums/customer_mode.dart';
+import '../../model_classes/credits/add_credit_request.dart';
 import '../../model_classes/credits/credit.dart';
 import '../../model_classes/entries/entries_customer_model.dart';
 import '../../model_classes/entries/entries_supplier.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
+import '../../provider/reporting_provider/credit_provider.dart';
 
 class CreditEntry extends StatefulWidget {
   final FormMode mode;
   final Credit? credit;
 
-  const CreditEntry({
-    super.key,
-    this.mode = FormMode.add,
-    this.credit,
-  });
+  const CreditEntry({super.key, this.mode = FormMode.add, this.credit});
 
   @override
   State<CreditEntry> createState() => _CreditEntryState();
 }
+
 class _CreditEntryState extends State<CreditEntry> {
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
@@ -54,13 +51,16 @@ class _CreditEntryState extends State<CreditEntry> {
   final List<String> paymentModeList = ["NEFT_RTGS", "UPI", "CASH", "CHEQUE"];
 
   bool get isViewMode => widget.mode == FormMode.view;
+
   Map<String, dynamic> _creditBody() {
     return {
       "billNumber": invoiceController.text.trim(),
       "customerId": selectedCustomer?.id,
       "supplierId": selectedSupplier?.id,
       "paymentType": paymentMode,
-      "receivedAmount": receivedAmountController.text.trim(),
+      "receivedAmount": receivedAmountController.text.trim().isEmpty
+          ? null
+          : num.parse(receivedAmountController.text.trim()),
       "referenceNumber": referenceController.text.trim(),
       "referenceDate": referenceDateController.text.trim(),
       "date": transactionDateController.text.trim(),
@@ -93,10 +93,7 @@ class _CreditEntryState extends State<CreditEntry> {
 
       final provider = context.read<EntriesProvider>();
 
-      await Future.wait([
-        provider.fetchSuppliers(),
-        provider.fetchCustomer(),
-      ]);
+      await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
 
       print("3. After fetch: ${DateTime.now()}");
 
@@ -107,19 +104,6 @@ class _CreditEntryState extends State<CreditEntry> {
       print("4. After fillData: ${DateTime.now()}");
     });
   }
-  //   if (widget.mode == FormMode.add) {
-  //     transactionDateController.text = DateFormat(
-  //       'yyyy-MM-dd',
-  //     ).format(DateTime.now());
-  //   }
-  //   Future.microtask(() async {
-  //     final provider = context.read<EntriesProvider>();
-  //     await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
-  //     if (widget.credit != null) {
-  //       _fillData(provider);
-  //     }
-  //   });
-  // }
 
   void _fillData(EntriesProvider provider) {
     final credit = widget.credit;
@@ -127,30 +111,24 @@ class _CreditEntryState extends State<CreditEntry> {
     if (credit == null) return;
 
     invoiceController.text = credit.billNumber ?? "";
-    receivedAmountController.text =
-        credit.receivedAmount?.toString() ?? "";
+    receivedAmountController.text = credit.receivedAmount?.toString() ?? "";
 
-    referenceController.text =
-        credit.referenceNumber ?? "";
+    referenceController.text = credit.referenceNumber ?? "";
 
-    referenceDateController.text =
-        credit.referenceDate ?? "";
+    referenceDateController.text = credit.referenceDate ?? "";
 
-    transactionDateController.text =
-        credit.date ?? "";
+    transactionDateController.text = credit.date ?? "";
 
-    slipController.text =
-        credit.slipNumber ?? "";
+    slipController.text = credit.slipNumber ?? "";
 
-    remarksController.text =
-        credit.remark ?? "";
+    remarksController.text = credit.remark ?? "";
 
     paymentMode = credit.paymentType;
     drawType = credit.drawType;
 
     if (credit.supplierId != null) {
       selectedSupplier = provider.entries.firstWhere(
-            (e) => e.id == credit.supplierId,
+        (e) => e.id == credit.supplierId,
         orElse: () => provider.entries.first,
       );
       selectedSupplierName = selectedSupplier?.supplierName;
@@ -158,7 +136,7 @@ class _CreditEntryState extends State<CreditEntry> {
 
     if (credit.customerId != null) {
       selectedCustomer = provider.customerEntries.firstWhere(
-            (e) => e.id == credit.customerId,
+        (e) => e.id == credit.customerId,
         orElse: () => provider.customerEntries.first,
       );
       selectedCustomerName = selectedCustomer?.customerName;
@@ -166,6 +144,7 @@ class _CreditEntryState extends State<CreditEntry> {
 
     setState(() {});
   }
+
   void clearFields() {
     _formKey.currentState?.reset();
 
@@ -224,7 +203,7 @@ class _CreditEntryState extends State<CreditEntry> {
                   saveButtonText: "Stay",
                   onDiscard: () {
                     Navigator.pop(context);
-                    Navigator.pop(context,true);
+                    Navigator.pop(context, true);
                   },
                 );
               },
@@ -294,9 +273,10 @@ class _CreditEntryState extends State<CreditEntry> {
                                 setState(() {
                                   selectedSupplierName = value;
 
-                                  selectedSupplier = provider.entries.firstWhere(
+                                  selectedSupplier = provider.entries
+                                      .firstWhere(
                                         (e) => e.supplierName == value,
-                                  );
+                                      );
                                 });
                               },
                             ),
@@ -325,9 +305,10 @@ class _CreditEntryState extends State<CreditEntry> {
                                 setState(() {
                                   selectedCustomerName = value;
 
-                                  selectedCustomer = provider.customerEntries.firstWhere(
+                                  selectedCustomer = provider.customerEntries
+                                      .firstWhere(
                                         (e) => e.customerName == value,
-                                  );
+                                      );
                                 });
                               },
                             ),
@@ -374,7 +355,7 @@ class _CreditEntryState extends State<CreditEntry> {
                                 fontSize: 18,
                               ),
                             ),
-                           CustomDropdown(
+                            CustomDropdown(
                               isDisabled: isViewMode,
                               hintText: "Payment Mode*",
                               initialValue: paymentMode,
@@ -597,23 +578,24 @@ class _CreditEntryState extends State<CreditEntry> {
                                   return;
                                 }
                                 try {
-                                  final body = _creditBody();
-                                  final response = await context
-                                      .read<EntriesProvider>()
-                                      .addCreditEntry(body);
+                                  final request = AddCreditRequest.fromJson(
+                                    _creditBody(),
+                                  );
 
-                                  if (!context.mounted) return;
+                                  final success = await context
+                                      .read<CreditProvider>()
+                                      .addCredit(request: request);
+
+                                  if (!mounted) return;
+
                                   ScaffoldSnackBar.show(
                                     context,
-                                    response?.message ?? "Success",
+                                    "Please fill all the required fields",
                                   );
-                                  Navigator.pop(context, true);
-                                  // Navigator.pushReplacement(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => Credit(),
-                                  //   ),
-                                  // );
+
+                                  if (success) {
+                                    Navigator.pop(context, true);
+                                  }
                                 } catch (e) {
                                   if (!mounted) return;
                                   ScaffoldSnackBar.show(context, e.toString());
@@ -631,15 +613,19 @@ class _CreditEntryState extends State<CreditEntry> {
                         color: AppColors.primaryPurple,
                         textStyle: TextStyle(color: Colors.white, fontSize: 20),
                         onPressed: () async {
+                          print("SAVE BUTTON CLICKED");
                           if (!_formKey.currentState!.validate()) {
+                            print("FORM INVALID");
                             ScaffoldSnackBar.show(
                               context,
-                              "Please fill all the required fields",
+                              "Credit entry successfully added."
+                              "Failed to add credit entry",
                             );
                             return;
                           }
 
                           try {
+                            print("FORM VALID");
                             final body = _creditBody();
 
                             final response = await context
@@ -656,13 +642,6 @@ class _CreditEntryState extends State<CreditEntry> {
                               response?.message ?? "Updated Successfully",
                             );
                             Navigator.pop(context, true);
-                            //
-                            // Navigator.pushReplacement(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => const Credit(),
-                            //   ),
-                            // );
                           } catch (e) {
                             if (!mounted) return;
                             ScaffoldSnackBar.show(context, e.toString());

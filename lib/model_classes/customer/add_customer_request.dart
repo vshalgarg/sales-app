@@ -1,3 +1,5 @@
+import '../supplier/bank_details_request.dart';
+
 class AddCustomerRequest {
   final String customerName;
   final String? email;
@@ -14,11 +16,7 @@ class AddCustomerRequest {
   final String? city;
   final String? pinCode;
 
-  final String? bankName;
-  final String? accountName;
-  final String? accountNumber;
-  final String? ifsc;
-  final String? branch;
+  final List<BankDetailRequest> bankDetails;
 
   final List<CustomerContactRequest> contacts;
   final List<int> preferredTransportIds;
@@ -37,11 +35,7 @@ class AddCustomerRequest {
     this.state,
     this.city,
     this.pinCode,
-    this.bankName,
-    this.accountName,
-    this.accountNumber,
-    this.ifsc,
-    this.branch,
+    this.bankDetails = const [],
     this.contacts = const [],
     this.preferredTransportIds = const [],
   });
@@ -61,11 +55,14 @@ class AddCustomerRequest {
       state: json['state'],
       city: json['city'],
       pinCode: json['pinCode']?.toString(),
-      bankName: json['bankName'],
-      accountName: json['accountName'],
-      accountNumber: json['accountNumber'],
-      ifsc: json['ifsc'],
-      branch: json['branch'],
+      bankDetails: (json['bankDetails'] as List?)
+          ?.map(
+            (e) => BankDetailRequest.fromJson(
+          Map<String, dynamic>.from(e),
+        ),
+      )
+          .toList() ??
+          const [],
       contacts: (json['contacts'] as List?)
           ?.map((e) => CustomerContactRequest.fromJson(e))
           .toList() ??
@@ -93,11 +90,9 @@ class AddCustomerRequest {
       'state': state,
       'city': city,
       'pinCode': pinCode,
-      'bankName': bankName,
-      'accountName': accountName,
-      'accountNumber': accountNumber,
-      'ifsc': ifsc,
-      'branch': branch,
+      'bankDetails': bankDetails
+          .map((bank) => bank.toJson())
+          .toList(),
       'contacts': contacts.map((e) => e.toJson()).toList(),
       'preferredTransportIds': preferredTransportIds,
     };
@@ -117,11 +112,7 @@ class AddCustomerRequest {
     int? stateId,
     int? cityId,
     String? pinCode,
-    String? bankName,
-    String? accountName,
-    String? accountNumber,
-    String? ifsc,
-    String? branch,
+    List<BankDetailRequest>? bankDetails,
     List<CustomerContactRequest>? contacts,
     List<int>? preferredTransportIds,
   }) {
@@ -139,11 +130,7 @@ class AddCustomerRequest {
       state: state ?? this.state,
       city: city ?? this.city,
       pinCode: pinCode ?? this.pinCode,
-      bankName: bankName ?? this.bankName,
-      accountName: accountName ?? this.accountName,
-      accountNumber: accountNumber ?? this.accountNumber,
-      ifsc: ifsc ?? this.ifsc,
-      branch: branch ?? this.branch,
+      bankDetails: bankDetails ?? this.bankDetails,
       contacts: contacts ?? this.contacts,
       preferredTransportIds:
       preferredTransportIds ?? this.preferredTransportIds,

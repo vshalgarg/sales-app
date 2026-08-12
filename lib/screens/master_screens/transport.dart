@@ -33,7 +33,9 @@ class _TransportScreenState extends State<TransportScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
+    Future.microtask(() async {
+      searchController.clear();
+      await context.read<TransportProvider>().clearSearch();
       context.read<TransportProvider>().fetchInitial();
     });
   }
@@ -214,31 +216,42 @@ class _TransportScreenState extends State<TransportScreen> {
                             trashIconTap: () {
                               ExitConfirmationDialog.show(
                                 context,
-                                body: RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black,
-                                    ),
-                                    children: [
-                                      const TextSpan(
-                                        text:
-                                        "Are you sure you want to permanently delete ",
-                                      ),
-                                      TextSpan(
-                                        text: item.name ?? "",
+                                body: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    RichText(
+                                      textAlign: TextAlign.center,
+                                      text: TextSpan(
                                         style: const TextStyle(
-                                          color: AppColors.orangeColor,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black,
                                         ),
+                                        children: [
+                                          const TextSpan(
+                                            text:
+                                            "Are you sure you want to permanently delete ",
+                                          ),
+                                          TextSpan(
+                                            text: item.name ?? "",
+                                            style: const TextStyle(
+                                              color: AppColors.orangeColor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(text: "?"),
+                                        ],
                                       ),
-                                      const TextSpan(
-                                        text: "? This action cannot be undone.",
+                                    ),
+                                    const SizedBox(height: 3),
+                                    const Text(
+                                      "This action cannot be undone.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                                 saveButtonText: "Yes",
                                 discardButtonText: "No",
@@ -274,10 +287,27 @@ class _TransportScreenState extends State<TransportScreen> {
 
                               if (data == null) return;
 
-                              final contact =
-                              data.contacts.isNotEmpty
-                                  ? data.contacts.first.contactNumber
-                                  : "";
+                              String fullAddress = [
+                                data.addressLine1,
+                                data.addressLine2,
+                                data.city,
+                                data.state,
+                                data.pinCode,
+                              ]
+                                  .where((e) => (e ?? "").trim().isNotEmpty)
+                                  .join(", ");
+
+                              String contactsText = "";
+
+                              if (data.contacts.isNotEmpty) {
+                                contactsText = data.contacts.map((c) {
+                                  if (c is Map) {
+                                    return "${['contactPerson'] ?? ""} - ${['mobileNumber'] ?? ""}";
+                                  }
+
+                                  return "${c.contactPerson ?? ""} - ${c.contactNumber ?? ""}";
+                                }).join("\n");
+                              }
 
                               showDialog(
                                 context: context,
@@ -287,8 +317,8 @@ class _TransportScreenState extends State<TransportScreen> {
                                     showCloseIcon: false,
                                     heading: "Transport Details",
                                     firmName: data.name ?? "",
-                                    contact: contact,
-                                    address: data.addressLine1 ?? "",
+                                    contact: contactsText,
+                                    address: fullAddress ,
                                     gstNo: data.gstNo ?? "",
                                     emails: data.email ?? "",
                                   );

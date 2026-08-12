@@ -5,6 +5,8 @@ class ScaffoldSnackBar {
     final lower = message.toLowerCase();
 
     final isError =
+        lower.contains("do not match") ||
+        lower.contains("enter") ||
         lower.contains("invalid") ||
         lower.contains("error") ||
         lower.contains("failed") ||

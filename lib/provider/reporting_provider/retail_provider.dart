@@ -1,11 +1,10 @@
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/retailers/add_deposit_model.dart';
-import '../../model_classes/retailers/add_retail_request.dart';
 import '../../model_classes/retailers/retail_deposit_history_model.dart';
 import '../../model_classes/retailers/retail_details.dart';
 import '../../model_classes/retailers/retail_model.dart';
-import '../../services/retail_service.dart';
+import '../../services/retail/retail_service.dart';
 
 class RetailProvider extends PaginationProvider<Retail> {
   final RetailService _service;

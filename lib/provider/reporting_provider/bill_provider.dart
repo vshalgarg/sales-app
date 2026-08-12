@@ -13,7 +13,7 @@ class BillProvider extends PaginationProvider<Bill> {
   BillProvider(this._service);
 
   BillDetails? _billDetails;
-
+  bool hasLoadedBills = false;
   bool _detailsLoading = false;
   bool _actionLoading = false;
 
@@ -74,6 +74,16 @@ class BillProvider extends PaginationProvider<Bill> {
     }
 
     return result.data!;
+  }
+
+  Future<void> fetchInitialBills() async {
+    hasLoadedBills = false;
+    notifyListeners();
+
+    await fetchInitial();
+
+    hasLoadedBills = true;
+    notifyListeners();
   }
 
   Future<void> search(String keyword) async {
@@ -188,125 +198,3 @@ class BillProvider extends PaginationProvider<Bill> {
     notifyListeners();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-// import 'package:flutter/material.dart';
-// import '../model_classes/bills/bill_details.dart';
-// import '../model_classes/bills/add_bill_request.dart';
-//
-// class BillsProvider extends ChangeNotifier {
-//   List<AddBillRequest> bills = [];
-//   BillDetails? bill;
-//   bool isBillsLoading = false;
-//   bool isLoadingMore = false;
-//   bool hasMore = true;
-//   bool isLoading = false;
-//   String?error;
-//
-//   Future<bool> deleteBill(String billNumber) async {
-//     try {
-//       final success = await deleteBill(billNumber);
-//
-//       if (success) {
-//         bills.removeWhere((bill) => bill.billNumber == billNumber);
-//         notifyListeners();
-//       }
-//
-//       return success;
-//     } catch (e) {
-//       debugPrint("Delete Bill Error: $e");
-//       return false;
-//     }
-//   }
-//   Future<void> fetchBillById(String billNumber) async {
-//     isLoading = true;
-//     error = null;
-//     bill = null;
-//     notifyListeners();
-//
-//     try {
-//       print("Fetching bill: $billNumber");
-//      // final result= await getBillDetails(billNumber);
-//      // bill=result;
-//      // print("API returned: $result");
-//       print("Provider bill assigned: $bill");
-//     } catch (e, stack) {
-//       print("🔥 fetchBillById error: $e");
-//       print(stack);
-//
-//       error = e.toString().replaceFirst("Exception: ", "");
-//     } finally {
-//       isLoading = false;
-//       notifyListeners();
-//     }
-//   }
-//   // Future<bool> fetchBills({
-//   //   int page = 0,
-//   //   bool isLoadMore = false,
-//   //   String? fromDate,
-//   //   String? toDate,
-//   //   int? supplierId,
-//   //   int? customerId,
-//   // }) async {
-//   //   if (isLoadMore) {
-//   //     if (isLoadingMore || !hasMore) return false;
-//   //     isLoadingMore = true;
-//   //   } else {
-//   //     isBillsLoading = true;
-//   //     hasMore = true;
-//   //   }
-//   //
-//   //   notifyListeners();
-//
-//     // try {
-//     //   final newBills = await billService.searchBills(
-//     //     page: page,
-//     //     fromDate: fromDate,
-//     //     toDate: toDate,
-//     //     supplierId: supplierId,
-//     //     customerId: customerId,
-//     //   );
-//     //   debugPrint("Fetched ${newBills.length} bills");
-//     //
-//     //   for (final bill in newBills) {
-//     //     debugPrint(
-//     //       "${bill.billNumber} | ${bill.date} | ${bill.supplierName}",
-//     //     );
-//     //   }
-//     //
-//     //   if (isLoadMore) {
-//     //     bills.addAll(newBills);
-//     //   } else {
-//     //     bills = newBills;
-//     //   }
-//
-//       // bills.sort((a, b) {
-//       //   final aNum = int.tryParse(a.billNumber.split('-').last) ?? 0;
-//       //   final bNum = int.tryParse(b.billNumber.split('-').last) ?? 0;
-//       //   return bNum.compareTo(aNum);
-//       // });
-//
-//     //   hasMore = newBills.isNotEmpty;
-//     //
-//     //   return newBills.isNotEmpty;
-//     // } finally {
-//     //   if (isLoadMore) {
-//     //     isLoadingMore = false;
-//     //   } else {
-//     //     isBillsLoading = false;
-//     //   }
-//     //
-//     //   notifyListeners();
-//     // }
-//
-//   }
-// //}

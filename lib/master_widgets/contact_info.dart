@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:iconsax/iconsax.dart';
-
 import '../enums/customer_mode.dart';
 import '../screens/master_screens/add_new_supplier.dart';
 

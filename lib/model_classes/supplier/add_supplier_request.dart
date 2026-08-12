@@ -1,3 +1,5 @@
+import 'bank_details_request.dart';
+
 class AddSupplierRequest {
   final String supplierName;
   final String? email;
@@ -15,15 +17,12 @@ class AddSupplierRequest {
 
   final String? msme;
 
-  final String? bankName;
-  final String? ifscCode;
-  final String? branchName;
-  final String? accountName;
-  final String? accountNumber;
+  final List<BankDetailRequest>? bankDetails;
 
   final String? remark;
   final List<Map<String, dynamic>>? contacts;
   final List<int>? preferredTransportIds;
+
   const AddSupplierRequest({
     required this.supplierName,
     this.email,
@@ -38,11 +37,7 @@ class AddSupplierRequest {
     this.city,
     this.pinCode,
     this.msme,
-    this.bankName,
-    this.ifscCode,
-    this.branchName,
-    this.accountName,
-    this.accountNumber,
+    this.bankDetails,
     this.remark,
     this.contacts,
     this.preferredTransportIds,
@@ -61,13 +56,15 @@ class AddSupplierRequest {
       addressLine2: json['addressLine2'],
       state: json['state'],
       city: json['city'],
-      pinCode: json['pincode'],
+      pinCode: json['pinCode'],
       msme: json['msme'],
-      bankName: json['bankName'],
-      ifscCode: json['ifscCode'],
-      branchName: json['branchName'],
-      accountName: json['accountName'],
-      accountNumber: json['accountNumber'],
+      bankDetails: (json['bankDetails'] as List?)
+          ?.map(
+            (e) => BankDetailRequest.fromJson(
+          Map<String, dynamic>.from(e),
+        ),
+      )
+          .toList(),
       remark: json['remark'],
       contacts: (json['contacts'] as List?)
           ?.map((e) => Map<String, dynamic>.from(e))
@@ -94,11 +91,8 @@ class AddSupplierRequest {
       'city': city,
       'pinCode': pinCode,
       'msme': msme,
-      'bankName': bankName,
-      'ifscCode': ifscCode,
-      'branchName': branchName,
-      'accountName': accountName,
-      'accountNumber': accountNumber,
+      'bankDetails':
+      bankDetails?.map((bank) => bank.toJson()).toList(),
       'remark': remark,
       'contacts': contacts,
       'preferredTransportIds': preferredTransportIds,
@@ -117,13 +111,9 @@ class AddSupplierRequest {
     String? addressLine2,
     String? state,
     String? city,
-    String? pincode,
+    String? pinCode,
     String? msme,
-    String? bankName,
-    String? ifscCode,
-    String? branchName,
-    String? accountName,
-    String? accountNumber,
+    List<BankDetailRequest>? bankDetails,
     String? remark,
     List<Map<String, dynamic>>? contacts,
     List<int>? preferredTransportIds,
@@ -140,13 +130,9 @@ class AddSupplierRequest {
       addressLine2: addressLine2 ?? this.addressLine2,
       state: state ?? this.state,
       city: city ?? this.city,
-      pinCode: pincode ?? this.pinCode,
+      pinCode: pinCode ?? this.pinCode,
       msme: msme ?? this.msme,
-      bankName: bankName ?? this.bankName,
-      ifscCode: ifscCode ?? this.ifscCode,
-      branchName: branchName ?? this.branchName,
-      accountName: accountName ?? this.accountName,
-      accountNumber: accountNumber ?? this.accountNumber,
+      bankDetails: bankDetails ?? this.bankDetails,
       remark: remark ?? this.remark,
       contacts: contacts ?? this.contacts,
       preferredTransportIds:

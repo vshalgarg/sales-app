@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 class UserContainer extends StatelessWidget {
   final double? elevation;
   final String? name;
+  final String? role;
   final VoidCallback? trashIconTap;
   final VoidCallback? editIconTap;
 
@@ -13,6 +14,7 @@ class UserContainer extends StatelessWidget {
     super.key,
     this.elevation,
     this.name,
+    this.role,
     this.trashIconTap,
     this.editIconTap,
   });
@@ -25,61 +27,76 @@ class UserContainer extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: IntrinsicHeight(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: AppColors.orangeColor,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 5.0,
+                          right: 5,
+                          bottom: 3,
+                          top: 3,
+                        ),
                         child: Text(
-                          name ?? "",
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: true,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.w200,
-                          ),
+                          role ?? "",
+                          maxLines: 1,
+                          style: TextStyle(fontSize: 12, color: Colors.white),
                         ),
                       ),
-
-                    ],
-                  ),
-                ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: trashIconTap,
-                      child: customIcon(
-                        icon: Iconsax.trash,
-                        iconColor: AppColors.binRed,
-                        bgColor: AppColors.binRedLight,
-                      ),
                     ),
-                    SizedBox(width: 15),
-                    GestureDetector(
-                      onTap: editIconTap,
-                      child: customIcon(
-                        icon: Iconsax.edit,
-                        iconColor: AppColors.editGreen,
-                        bgColor: AppColors.editGreenLight,
+                    SizedBox(height: 5),
+                    Text(
+                      name ?? "",
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: AppColors.primaryPurple,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: trashIconTap,
+                    child: customIcon(
+                      icon: Iconsax.trash,
+                      iconColor: AppColors.binRed,
+                      bgColor: AppColors.binRedLight,
+                    ),
+                  ),
+                  SizedBox(width: 15),
+                  GestureDetector(
+                    onTap: editIconTap,
+                    child: customIcon(
+                      icon: Iconsax.edit,
+                      iconColor: AppColors.editGreen,
+                      bgColor: AppColors.editGreenLight,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

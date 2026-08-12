@@ -59,7 +59,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// FETCH SUPPLIERS
+  // FETCH SUPPLIERS
 
   Future<void> fetchSuppliers({bool forceRefresh = false}) async {
     if (!forceRefresh && _entries.isNotEmpty) {
@@ -77,20 +77,8 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
-  // Future<void> fetchSuppliers() async {
-  //   final result = await _service.fetchSuppliers();
-  //
-  //   if (result.isSuccess && result.data != null) {
-  //     _entries = result.data!;
-  //     _error = null;
-  //   } else {
-  //     _error = result.errorMessage;
-  //   }
-  //
-  //   safeNotify();
-  // }
 
-  /// FETCH CUSTOMERS
+  // FETCH CUSTOMERS
 
   Future<void> fetchCustomer({bool forceRefresh = false}) async {
     if (!forceRefresh && _customerEntries.isNotEmpty) {
@@ -108,21 +96,8 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
-  // Future<void> fetchCustomer() async {
-  //   final result =
-  //   await _service.fetchCustomers();
-  //
-  //   if (result.isSuccess && result.data != null) {
-  //     _customerEntries = result.data!;
-  //     _error = null;
-  //   } else {
-  //     _error = result.errorMessage;
-  //   }
-  //
-  //   safeNotify();
-  // }
 
-  /// FETCH TRANSPORT
+  // FETCH TRANSPORT
 
   Future<void> fetchTransport() async {
     final result =
@@ -138,7 +113,7 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
   }
 
-  /// FETCH STAFF
+  // FETCH STAFF
 
   Future<void> fetchStaff() async {
     final result =
@@ -153,7 +128,7 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
-  /// ADD SUPPLIER
+  // ADD SUPPLIER
 
   Future<bool> addSupplier(
       Map<String, dynamic> body,
@@ -180,7 +155,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// ADD CREDIT ENTRY
+  // ADD CREDIT ENTRY
 
   Future<AddNewSupplier?> addCreditEntry(
       Map<String, dynamic> body,
@@ -206,7 +181,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// ADD RETAIL ENTRY
+  // ADD RETAIL ENTRY
 
   Future<bool> addRetailEntry(
       Map<String, dynamic> body,
@@ -232,13 +207,13 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// CLEAR
+  // CLEAR
 
   void clear() {
     _error = null;
     safeNotify();
   }
-  /// SAVE BILL
+  // SAVE BILL
 
   Future<bool> saveBill({
     required Map<String, dynamic> payload,
@@ -266,7 +241,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// UPDATE BILL
+  // UPDATE BILL
 
   Future<bool> updateBillEntry({
     required int id,
@@ -296,7 +271,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// SAVE PURCHASE
+  // SAVE PURCHASE
 
   Future<bool> savePurchase({
     required Map<String, dynamic> payload,
@@ -325,7 +300,7 @@ class EntriesProvider extends ChangeNotifier {
       safeNotify();
     }
   }
-  /// GET CREDIT DETAILS
+  // GET CREDIT DETAILS
 
   Future<bool> getCreditDetailsById(int id) async {
     _loading = true;
@@ -349,7 +324,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// UPDATE CREDIT DETAILS
+  // UPDATE CREDIT DETAILS
 
   Future<AddNewSupplier?> updateCreditDetails({
     required Map<String, dynamic> body,
@@ -378,7 +353,7 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  /// LOAD INITIAL DATA
+  // LOAD INITIAL DATA
 
   Future<void> loadInitialData() async {
     _loading = true;
@@ -398,292 +373,3 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-// import 'dart:io';
-//
-// import 'package:file_picker/file_picker.dart';
-// import 'package:flutter/material.dart';
-// import 'package:hisabio/model_classes/Transport/transport.dart';
-// import 'package:hisabio/model_classes/Transport/transport_details.dart';
-// import 'package:hisabio/model_classes/entries/entries_customer_model.dart';
-// import 'package:hisabio/model_classes/entries/entries_supplier.dart';
-// import 'package:hisabio/model_classes/Transport/get_transportname_id_model.dart';
-//
-// import '../../model_classes/entries/add_newsupplier.dart';
-// import '../../model_classes/credits/creditdetails_byid.dart';
-// import '../../model_classes/entries/get_staff_entry.dart';
-// import '../../services/add_supplier.dart';
-// import '../../services/entries_services/entries_service.dart';
-//
-// class EntriesProvider extends ChangeNotifier {
-//   final EntriesService _api = EntriesApi();
-//   final AddSupplierApi _addSupplierApi;
-//   List<EntriesModel> _entries = [];
-//   CreditDetailsResponse? _creditDetails;
-//   CreditDetailsResponse? get creditDetails => _creditDetails;
-//   List<EntriesModel> get entries => _entries;
-//   List<EntriesCustomerModel>_customerEntries=[];
-//   List<Transport> _transport=[];
-//   List<Transport> get transportDetails=>_transport;
-//   List<EntriesCustomerModel> get customerEntries=>_customerEntries;
-//   bool _isLoading = false;
-//   String? _error;
-//   bool get isLoading => _isLoading;
-//   String? get error => _error;
-//   List<GetStaffEntry> staffEntries = [];
-//  // final AddSupplierApi _addSupplierApi = AddSupplierApi();
-//   List<GetStaffEntry> get staffList => staffEntries;
-//   bool _disposed = false;
-//   EntriesProvider({
-//     required AddSupplierApi addSupplierApi,
-//   }) : _addSupplierApi = addSupplierApi;
-//   @override
-//   void dispose() {
-//     _disposed = true;
-//     super.dispose();
-//   }
-//
-//   void safeNotify() {
-//     if (!_disposed) {
-//       notifyListeners();
-//     }
-//   }
-//   Future<void> fetchSuppliers() async {
-//     try {
-//       _entries = await _api.getEntrySupplier();
-//       safeNotify();
-//     } catch (e) {
-//       _error = e.toString();
-//       safeNotify();
-//     }
-//   }
-//   // Future<void> fetchSuppliers() async {
-//   //   _isLoading = true;
-//   //   _error = null;
-//   //   notifyListeners();
-//   //   try {
-//   //     _entries = await _api.getEntrySupplier();
-//   //   } catch (e) {
-//   //     _error = e.toString();
-//   //   }
-//   //
-//   //   _isLoading = false;
-//   //   notifyListeners();
-//   // }
-//   Future<void> fetchCustomer() async {
-//     try {
-//       _customerEntries = await _api.getEntryCustomer();
-//       safeNotify();
-//     } catch (e) {
-//       _error = e.toString();
-//       safeNotify();
-//     }
-//   }
-//   // Future<void> fetchCustomer() async {
-//   //   _isLoading = true;
-//   //   _error = null;
-//   //   notifyListeners();
-//   //
-//   //   try {
-//   //     _customerEntries=await _api.getEntryCustomer();
-//   //   } catch (e) {
-//   //     _error = e.toString();
-//   //   }
-//   //
-//   //   _isLoading = false;
-//   //   notifyListeners();
-//   // }
-//   Future<void> fetchTransport() async {
-//     try {
-//       _transport =
-//       await _api.getTransporters();
-//     } catch (e) {
-//       _error = e.toString();
-//     }
-//   }
-//   // Future<void> fetchTransport() async {
-//   //   _isLoading = true;
-//   //   _error = null;
-//   //   notifyListeners();
-//   //
-//   //   try {
-//   //     _transport=await _api.getTransporters();
-//   //   } catch (e) {
-//   //     _error = e.toString();
-//   //   }
-//   //
-//   //   _isLoading = false;
-//   //   notifyListeners();
-//   // }
-//   Future<String> addSupplier(Map<String, dynamic> body) async {
-//     try {
-//       _isLoading = true;
-//       safeNotify();
-//
-//       return await _addSupplierApi.addSupplier(body);
-//     } catch (e) {
-//       rethrow;
-//     } finally {
-//       _isLoading = false;
-//       safeNotify();
-//     }
-//   }
-//   void clear() {
-//     //_entries = null;
-//     _error = null;
-//     safeNotify();
-//   }
-//   Future<AddNewsupplier?> addCreditEntry(
-//       Map<String, dynamic> body) async {
-//     try {
-//       _isLoading = true;
-//       _error = null;
-//       safeNotify();
-//
-//       final response = await _api.addNewCreditEntry(body);
-//
-//       return response;
-//     } catch (e) {
-//       _error = e.toString();
-//       rethrow;
-//     } finally {
-//       _isLoading = false;
-//       safeNotify();
-//     }
-//   }
-//   Future<String?> saveBill({
-//     required Map<String, dynamic> payload,
-//     required List<File> images,
-//   }) async {
-//     return await _api.addBillEntry(
-//       payload: payload,
-//       images: images,
-//     );
-//   }
-//   Future<String?> savePurchase({
-//     required Map<String, dynamic> payload,
-//     required List<List<PlatformFile>> uploadedFiles,
-//     required List<EntriesModel?>selectedSuppliers
-//   }) async {
-//     return await _api.addPurchaseEntry(
-//       payload: payload,
-//       uploadedFiles:uploadedFiles,
-//       selectedSuppliers:selectedSuppliers,
-//     );
-//   }
-//   Future<void> fetchStaff() async {
-//     try {
-//       staffEntries = await EntriesApi().getStaffEntry();
-//       safeNotify();
-//
-//     } catch (e) {
-//       rethrow;
-//     }
-//   }
-//   Future<String?> addRetailEntry(
-//       Map<String, dynamic> body) async {
-//     try {
-//       _isLoading = true;
-//       _error = null;
-//       safeNotify();
-//
-//       final response = await _api.addNewRetailEntry(body);
-//
-//       return response;
-//     } catch (e) {
-//       _error = e.toString();
-//       rethrow;
-//     } finally {
-//       _isLoading = false;
-//       safeNotify();
-//     }
-//   }
-//   Future<String?> updateBillEntry({
-//     required int id,
-//     required Map<String, dynamic> payload,
-//     required List<File> images,
-//   }) async {
-//     _isLoading = true;
-//     _error = null;
-//     safeNotify();
-//
-//     try {
-//       final message = await _api.updateBillEntry(
-//         id: id,
-//         payload: payload,
-//         images: images,
-//       );
-//
-//       _isLoading = false;
-//       safeNotify();
-//
-//       return message;
-//     } catch (e) {
-//       _error = e.toString().replaceFirst("Exception: ", "");
-//       _isLoading = false;
-//       safeNotify();
-//       rethrow;
-//     }
-//   }
-//   Future<void> getCreditDetailsById(int id) async {
-//     _isLoading = true;
-//     _error = null;
-//     safeNotify();
-//
-//     try {
-//       _creditDetails = await _api.getCreditDetailsById(id);
-//     } catch (e) {
-//       _error = e.toString();
-//     } finally {
-//       _isLoading = false;
-//       safeNotify();
-//     }
-//   }
-//   Future<void> loadInitialData() async {
-//     _isLoading = true;
-//     _error = null;
-//     safeNotify();
-//
-//     try {
-//       _entries = await _api.getEntrySupplier();
-//       _customerEntries = await _api.getEntryCustomer();
-//       _transport = await _api.getTransporters();
-//     } catch (e) {
-//       _error = e.toString();
-//     } finally {
-//       _isLoading = false;
-//       safeNotify();
-//     }
-//   }
-//   Future<AddNewsupplier?> updateCreditDetails({
-//     required Map<String, dynamic> body,
-//     required int id,
-//   }) async {
-//     _isLoading = true;
-//     //_error = null;
-//     safeNotify();
-//     try {
-//       final response = await _api.updateCreditDetails(
-//         body: body,
-//         id: id,
-//       );
-//       safeNotify();
-//       return response;
-//     } catch (e) {
-//       throw Exception(e.toString());
-//     } finally{
-//       _isLoading = false;
-//       safeNotify();
-//     }
-//   }
-// }

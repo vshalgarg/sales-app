@@ -36,8 +36,10 @@ class AddCreditRequest {
       referenceDate: json['referenceDate'] ?? '',
       slipNumber: json['slipNumber'],
       drawType: json['drawType'],
-      receivedAmount:
-      (json['receivedAmount'] as num?)?.toDouble() ?? 0.0,
+      receivedAmount: json['receivedAmount'] == null ||
+          json['receivedAmount'].toString().isEmpty
+          ? 0.0
+          : double.parse(json['receivedAmount'].toString()),
       remark: json['remark'],
     );
   }

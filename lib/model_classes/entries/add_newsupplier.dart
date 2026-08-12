@@ -194,10 +194,6 @@ AddNewSupplier copyWith({  String? supplierName,
 
 }
 
-/// name : "Rahul"
-/// mobile : "9876543210"
-/// designation : "Manager"
-
 class Contacts {
   Contacts({
       String? name, 

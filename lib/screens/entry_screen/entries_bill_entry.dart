@@ -42,6 +42,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
   List<bool> billItemExpanded = [];
+  List<GlobalKey> billItemKeys = [];
 
   bool get isViewMode => widget.mode == FormMode.view;
   bool isExpanded = true;
@@ -65,7 +66,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
   List<PlatformFile> newUploadedFiles = [];
 
-  // List<File> uploadedFiles = [];
   final dateController = TextEditingController();
   final receivedDateController = TextEditingController();
   final invoiceController = TextEditingController();
@@ -79,6 +79,43 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
   List<dynamic> get allAttachments {
     return [...existingUrls, ...newUploadedFiles];
+  }
+
+  String _formatAmount(dynamic value) {
+    if (value == null) return "-";
+
+    final number = double.tryParse(value.toString());
+
+    if (number == null) {
+      return value.toString();
+    }
+
+    return NumberFormat('#,##0.00').format(number);
+  }
+
+  void _toggleBillItem(int index) {
+    if (index < 0 || index >= billItemExpanded.length) return;
+
+    final opening = !billItemExpanded[index];
+
+    setState(() {
+      billItemExpanded[index] = opening;
+    });
+
+    if (opening && index < billItemKeys.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final targetContext = billItemKeys[index].currentContext;
+        if (targetContext == null) return;
+
+        Scrollable.ensureVisible(
+          targetContext,
+          duration: const Duration(milliseconds: 350),
+          // curve: Curves.easeInOut,
+          // alignment: 0.05,
+        );
+      });
+    }
   }
 
   @override
@@ -103,8 +140,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     super.initState();
 
     if (widget.mode == FormMode.add) {
-      dateController.text =
-          DateFormat('yyyy-MM-dd').format(DateTime.now());
+      dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     }
 
     Future.microtask(() async {
@@ -141,42 +177,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   }
 
   Widget _buildBillItemCard(BillItem item, int index) {
-    final taxable =
-        (item.taxableValue ??
-                ((item.grossAmount ?? 0) -
-                    (item.discountAmount ?? 0) +
-                    (item.addOnAmount ?? 0) +
-                    (item.ecrAmount ?? 0)))
-            .toDouble();
-
-    final total = (item.totalAmount ?? (taxable + (item.gstAmount ?? 0)))
-        .toDouble();
     return Container(
-      // margin: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      // margin: const EdgeInsets.only(
-      //   left: 10,
-      //   right: 10,
-      //   top: 10,
-      //   bottom: 4,
-      // ),
+      key: billItemKeys[index],
       decoration: BoxDecoration(
-        //  color:  AppColors.primaryPurpleLight, // Very light purple
-        // borderRadius: BorderRadius.circular(5),
-        //  boxShadow: [
-        //    BoxShadow(
-        // color: Colors.white,
-        // blurRadius: 6,
-        // offset: const Offset(0, 2),
-        // ),
-        // ],
-        border: Border.all(color: AppColors.containerFillColor),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(5),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           // Header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+            padding: const EdgeInsets.all(10),
             decoration: const BoxDecoration(
               color: AppColors.primaryPurple,
               borderRadius: BorderRadius.only(
@@ -184,169 +197,258 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                 topRight: Radius.circular(5),
               ),
             ),
-
             child: Row(
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        billItemExpanded[index] = !billItemExpanded[index];
-                      });
-                    },
-                    child: Text(
-                      "Bill Item ${index + 1}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _toggleBillItem(index),
+                    child: Padding(
+                      padding: EdgeInsets.all(5),
+                      child: Text(
+                        "Bill Item ${index + 1}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
-
+                //  Edit
                 if (!isViewMode) ...[
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () async {
+                      final updated = await Navigator.push<BillItem>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddNewBillItem(billItem: item),
+                        ),
+                      );
+                      if (updated != null && mounted) {
+                        setState(() => billItems[index] = updated);
+                      }
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(
+                        Iconsax.edit_2,
+                        color: Colors.green,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
                       setState(() {
                         billItems.removeAt(index);
                         billItemExpanded.removeAt(index);
+                        billItemKeys.removeAt(index);
                       });
                     },
-                    child: customIcon(
-                      icon: Iconsax.trash,
-                      iconColor: Colors.red,
-                      bgColor: Colors.transparent,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(Iconsax.trash, color: Colors.red, size: 25),
                     ),
                   ),
-
-                  const SizedBox(width: 8),
-
-                  GestureDetector(
-                    onTap: () async {
-                      final BillItem? updated = await showDialog<BillItem>(
-                        context: context,
-                        builder: (_) => AddNewBillItem(billItem: item),
-                      );
-
-                      if (updated != null) {
-                        setState(() {
-                          billItems[index] = updated;
-                        });
-                      }
-                    },
-                    child: customIcon(
-                      icon: Iconsax.edit,
-                      iconColor: Colors.green,
-                      bgColor: Colors.transparent,
-                    ),
-                  ),
-
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 18),
                 ],
-
                 GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      billItemExpanded[index] = !billItemExpanded[index];
-                    });
-                  },
-                  child: Icon(
-                    billItemExpanded[index]
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: Colors.white,
-                    size: 26,
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _toggleBillItem(index),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(
+                      billItemExpanded[index]
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          // Body
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.bodyFillColor,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(5),
-                bottomRight: Radius.circular(5),
-              ),
-            ),
-            child: AnimatedCrossFade(
-              duration: const Duration(milliseconds: 250),
-
-              crossFadeState: billItemExpanded[index]
-                  ? CrossFadeState.showFirst
-                  : CrossFadeState.showSecond,
-
-              firstChild: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
-                child: Column(
-                  children: [
-                    _billField("Pieces", item.pieces),
-
-                    _billField("Gross Amount", item.grossAmount),
-
-                    _billField("Discount %", item.discountPercent),
-
-                    _billField("Discount Amount", item.discountAmount),
-
-                    _billField("Add-On Amount", item.addOnAmount),
-
-                    _billField("ECR Amount", item.ecrAmount),
-
-                    _billField("GST %", item.gstPercent),
-
-                    _billField("GST Amount", item.gstAmount),
-
-                    // const Divider(height: 20),
-                    //
-                    // _billField("Taxable Value", taxable),
-                    //
-                    // _billField("Bill Amount", total, isLast: true),
-                  ],
-                ),
-              ),
-              secondChild: const SizedBox.shrink(),
-            ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            // curve: Curves.easeInOut,
+            // alignment: Alignment.topCenter,
+            child: billItemExpanded[index]
+                ? Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        _billItemField(
+                          icon: Iconsax.box_1,
+                          title: "Pieces",
+                          subtitle: "Enter number of pieces",
+                          value: item.pieces?.toString() ?? "-",
+                        ),
+                        _billItemField(
+                          icon: Iconsax.money_2,
+                          title: "Gross Amount",
+                          subtitle: "Enter gross amount",
+                          value: _formatAmount(item.grossAmount),
+                        ),
+                        _billItemField(
+                          icon: Iconsax.percentage_circle,
+                          title: "Discount %",
+                          subtitle: "Enter discount percentage",
+                          value: _formatAmount(item.discountPercent),
+                        ),
+                        _billItemField(
+                          icon: Iconsax.discount_shape,
+                          title: "Discount Amount",
+                          subtitle: "Auto calculated",
+                          value: _formatAmount(item.discountAmount),
+                        ),
+                        _billItemField(
+                          icon: Iconsax.add_square,
+                          title: "Add-On Amount",
+                          subtitle: "Enter add-on amount",
+                          value: _formatAmount(item.addOnAmount),
+                        ),
+                        _billItemField(
+                          icon: Iconsax.card,
+                          title: "ECR Amount",
+                          subtitle: "Enter ECR amount",
+                          value: _formatAmount(item.ecrAmount),
+                        ),
+                        _billItemField(
+                          icon: Iconsax.percentage_circle,
+                          title: "GST %",
+                          subtitle: "Enter GST percentage",
+                          value: _formatAmount(item.gstPercent),
+                        ),
+                        _billItemField(
+                          icon: Iconsax.calculator,
+                          title: "GST Amount",
+                          subtitle: "Auto calculated",
+                          value: _formatAmount(item.gstAmount),
+                          isLast: true,
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),
     );
   }
 
-  Widget _billField(String title, dynamic value, {bool isLast = false}) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+  Widget _billItemField({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String value,
+    bool isLast = false,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const iconSize = 42.0;
 
-          const SizedBox(height: 6),
+        // Screenshot is a wide phone, so give the value box enough space.
+        final valueWidth = constraints.maxWidth * 0.38;
 
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Text(
-              value?.toString() ?? "-",
-              style: const TextStyle(fontSize: 16),
-            ),
+        return Container(
+          constraints: const BoxConstraints(minHeight: 65),
+          padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 1),
+          decoration: BoxDecoration(
+            border: isLast
+                ? null
+                : const Border(
+                    bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
+                  ),
           ),
-        ],
-      ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // ICON
+              Container(
+                height: iconSize,
+                width: iconSize,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryPurple.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, color: AppColors.primaryPurple, size: 32),
+              ),
+
+              const SizedBox(width: 18),
+
+              // TITLE + SUBTITLE
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF11132A),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 3),
+
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF505077),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 14),
+
+              // VALUE BOX
+              Container(
+                width: valueWidth,
+                //height: 86,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: const Color(0xFFDCD9E8),
+                    width: 0.5,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      color: Color(0xFF111111),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -365,7 +467,10 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     remarksController.text = bill.remarks ?? "";
 
     billItems = bill.items!.cast<BillItem>();
-    billItemExpanded = List.generate(billItems.length, (_) => true);
+
+    billItemExpanded = List.generate(billItems.length, (_) => false);
+
+    billItemKeys = List.generate(billItems.length, (_) => GlobalKey());
     final provider = context.read<EntriesProvider>();
     final supplier = provider.entries.where((e) => e.id == bill.supplierId);
 
@@ -374,9 +479,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       selectedSupplierName = supplier.first.supplierName;
     }
 
-    // selectedSupplier = provider.entries.firstWhere(
-    //   (e) => e.id == bill.supplierId,
-    // );
     selectedSupplierName = selectedSupplier?.supplierName;
     final customer = provider.customerEntries.where(
       (e) => e.id == bill.customerId,
@@ -386,9 +488,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       selectedCustomer = customer.first;
       selectedCustomerName = customer.first.customerName;
     }
-    // selectedCustomer = provider.customerEntries.firstWhere(
-    //   (e) => e.id == bill.customerId,
-    // );
     selectedCustomerName = selectedCustomer?.customerName;
     if (bill.transport != null) {
       final transport = provider.transportDetails.where(
@@ -422,6 +521,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     setState(() {
       uploadedFiles = [];
       billItems = [];
+      billItemExpanded = [];
+      billItemKeys = [];
       selectedSupplier = null;
       selectedSupplierName = null;
       selectedCustomer = null;
@@ -510,7 +611,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: SingleChildScrollView(
-                //  controller: _scrollController,
+                controller: _scrollController,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -890,19 +991,43 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             return;
                           }
 
-                          final files = await showDialog<List<PlatformFile>>(
+                          final result = await showDialog<Map<String, dynamic>>(
                             context: context,
                             builder: (_) => BillEntryUploadDocuments(
                               existingImageKeys: existingObjectKeys,
                               existingFileNames: existingFileNames,
                               existingUrls: existingUrls,
                               files: newUploadedFiles,
+                              isEditMode: widget.mode == FormMode.edit,
                             ),
                           );
 
-                          if (files != null) {
+                          if (result != null) {
                             setState(() {
-                              newUploadedFiles = files;
+                              newUploadedFiles = List<PlatformFile>.from(
+                                result["files"] ?? [],
+                              );
+
+                              existingObjectKeys = List<String>.from(
+                                result["existingImageKeys"] ?? [],
+                              );
+
+                              existingFileNames = List<String>.from(
+                                result["existingFileNames"] ?? [],
+                              );
+
+                              existingUrls = List<String>.from(
+                                result["existingUrls"] ?? [],
+                              );
+                            });
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!_scrollController.hasClients) return;
+
+                              _scrollController.animateTo(
+                                _scrollController.position.maxScrollExtent,
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOut,
+                              );
                             });
                           }
                         },
@@ -916,14 +1041,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: const Color(0xFFE4D9FF),
-                            ),
+                            border: Border.all(color: const Color(0xFFE4D9FF)),
                           ),
 
                           child: Row(
                             children: [
-
                               Container(
                                 height: 46,
                                 width: 46,
@@ -943,7 +1065,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-
                                     const Text(
                                       "Upload Documents",
                                       style: TextStyle(
@@ -1003,6 +1124,20 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             setState(() {
                               billItems.add(item);
                               billItemExpanded.add(true);
+                              billItemKeys.add(GlobalKey());
+                              isBillItemsExpanded = true;
+                            });
+
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!mounted || billItemKeys.isEmpty) return;
+                              final target = billItemKeys.last.currentContext;
+                              if (target == null) return;
+                              Scrollable.ensureVisible(
+                                target,
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOut,
+                                alignment: 0.08,
+                              );
                             });
                           }
                         },
@@ -1024,7 +1159,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         ),
                       ),
                     ],
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
                     if (billItems.isNotEmpty)
                       EntryContainer(
                         children: [
@@ -1059,66 +1194,105 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             const SizedBox(height: 12),
 
                             Column(
-                              children: List.generate(
-                                billItems.length,
-                                (index) =>
-                                    _buildBillItemCard(billItems[index], index),
-                              ),
+                              children: List.generate(billItems.length, (
+                                index,
+                              ) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: index == billItems.length - 1
+                                        ? 0
+                                        : 10,
+                                  ),
+                                  child: _buildBillItemCard(
+                                    billItems[index],
+                                    index,
+                                  ),
+                                );
+                              }),
                             ),
 
                             const SizedBox(height: 12),
 
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.bodyFillColor,
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(
-                                  color: AppColors.containerFillColor
-                                )
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 15,
-                                      vertical: 12,
-                                    ),
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.primaryPurple,
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(5),
-                                        topRight: Radius.circular(5),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      "Summary",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 17,
-                                      ),
-                                    ),
+                            Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(18),
                                   ),
-
-                                  Padding(
-                                    padding: const EdgeInsets.all(14),
-                                    child: Column(
-                                      children: [
-                                        _billField(
-                                          "Taxable Value",
-                                          totalTaxableValue.toStringAsFixed(2),
+                                  child: Column(
+                                    children: [
+                                      // SUMMARY HEADER
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 18,
+                                          vertical: 17,
                                         ),
-
-                                        _billField(
-                                          "Bill Amount",
-                                          totalBillAmount.toStringAsFixed(2),
-                                          isLast: true,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primaryPurple,
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(17),
+                                            topRight: Radius.circular(17),
+                                          ),
                                         ),
-                                      ],
-                                    ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: AppColors.bodyFillColor,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.pie_chart_rounded,
+                                                color: Colors.white,
+                                                size: 22,
+                                              ),
+                                            ),
+
+                                            const SizedBox(width: 12),
+
+                                            const Text(
+                                              "Summary",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // SUMMARY BODY
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 18,
+                                          vertical: 8,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            _summaryRow(
+                                              icon: Iconsax.calculator,
+                                              title: "Taxable Value",
+                                              value: totalTaxableValue
+                                                  .toStringAsFixed(2),
+                                            ),
+
+                                            _summaryRow(
+                                              icon: Iconsax.wallet_2,
+                                              title: "Bill Amount",
+                                              value: totalBillAmount
+                                                  .toStringAsFixed(2),
+                                              isLast: true,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ],
                         ],
@@ -1204,11 +1378,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               itemCount: totalCount,
                               separatorBuilder: (context, index) {
                                 return SizedBox(height: 5);
-                                //  const Divider(
-                                //   color: Colors.grey,
-                                //   thickness: 0.5,
-                                //   height: 1,
-                                // );
                               },
                               itemBuilder: (context, index) {
                                 String fileName;
@@ -1263,7 +1432,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                           },
                                           icon: Icon(Icons.remove_red_eye),
                                           color: Colors.blue,
-                                          //size: 22,
                                         ),
                                       ),
                                       InkWell(
@@ -1281,7 +1449,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                           child: Icon(
                                             Icons.download,
                                             color: Colors.green,
-                                            // size: 22,
                                           ),
                                         ),
                                       ),
@@ -1324,116 +1491,196 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       ),
                     ],
                     if (widget.mode == FormMode.add) ...[
-                      //SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomElevatedButton(
-                              text: "Reset",
-                              textStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
-                              onPressed: () async {
-                                clearFields();
-                              },
-                              borderRadius: 5,
-                            ),
-                          ),
-                          SizedBox(width: 20),
-                          Expanded(
-                            child: CustomElevatedButton(
-                              borderRadius: 5,
-                              color: AppColors.primaryPurple,
-                              text: "Save",
-                              textStyle: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                              ),
-                              onPressed: () async {
-                                if (!_formKey.currentState!.validate()) {
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    "Please fill all the required fields",
-                                  );
-                                  return;
-                                }
-                                if (billItems.isEmpty) {
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    "Please add at least one bill item",
-                                  );
-                                  return;
-                                }
-                                if (invoiceController.text.isEmpty ||
-                                    selectedSupplier == null ||
-                                    selectedCustomer == null) {
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    "Please fill all the required fields",
-                                  );
-                                  return;
-                                }
-                                final payload = {
-                                  "date": dateController.text,
-                                  "receivedDate":
-                                      receivedDateController.text.isEmpty
-                                      ? null
-                                      : receivedDateController.text,
-                                  "order": invoiceController.text,
-                                  "supplierId": selectedSupplier?.id,
-                                  "customerId": selectedCustomer?.id,
-                                  "transport": selectedTransport?.name,
-                                  "lrNumber": lrNumberController.text,
-                                  "remarks": remarksController.text,
-                                  "taxableValue": billItems.fold(
-                                    0.0,
-                                    (sum, item) =>
-                                        sum + item.taxableValue!.toDouble(),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, bottom: 10),
+                        child: Row(
+                          children: [
+                            // RESET
+                            Expanded(
+                              child: SizedBox(
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(5),
+                                    onTap: () {
+                                      clearFields();
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: const Color(0xFFE5E2EE),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.refresh_rounded,
+                                            color: AppColors.primaryPurple,
+                                            size: 30,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: const Text(
+                                              "Reset",
+                                              style: TextStyle(
+                                                color: AppColors.primaryPurple,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                  "billAmount": billItems.fold(
-                                    0.0,
-                                    (sum, item) =>
-                                        sum + item.totalAmount!.toDouble(),
-                                  ),
-                                  "billItems": billItems
-                                      .map(
-                                        (item) => {
-                                          "pieces": item.pieces,
-                                          "grossAmount": item.grossAmount,
-                                          "discountPercent":
-                                              item.discountPercent,
-                                          "discountAmount": item.discountAmount,
-                                          "addOnAmount": item.addOnAmount,
-                                          "ecrAmount": item.ecrAmount,
-                                          "gstPercent": item.gstPercent,
-                                          "gstAmount": item.gstAmount,
-                                        },
-                                      )
-                                      .toList(),
-                                };
-                                final images = newUploadedFiles
-                                    .where((e) => e.path != null)
-                                    .map((e) => File(e.path!))
-                                    .toList();
-                                try {
-                                  final message = await provider.saveBill(
-                                    payload: payload,
-                                    images: images,
-                                  );
-                                  if (!context.mounted) return;
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    "Bill Saved Successfully",
-                                  );
-                                  Navigator.pop(context, true);
-                                } catch (e) {
-                                  ScaffoldSnackBar.show(context, e.toString());
-                                }
-                              },
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+
+                            const SizedBox(width: 16),
+                            // SAVE
+                            Expanded(
+                              child: SizedBox(
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(5),
+                                    onTap: () async {
+                                      if (!_formKey.currentState!.validate()) {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Please fill all the required fields",
+                                        );
+                                        return;
+                                      }
+
+                                      if (billItems.isEmpty) {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Please add at least one bill item",
+                                        );
+                                        return;
+                                      }
+
+                                      if (invoiceController.text.isEmpty ||
+                                          selectedSupplier == null ||
+                                          selectedCustomer == null) {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Please fill all the required fields",
+                                        );
+                                        return;
+                                      }
+
+                                      final payload = {
+                                        "date": dateController.text,
+                                        "receivedDate":
+                                            receivedDateController.text.isEmpty
+                                            ? null
+                                            : receivedDateController.text,
+                                        "order": invoiceController.text,
+                                        "supplierId": selectedSupplier?.id,
+                                        "customerId": selectedCustomer?.id,
+                                        "transport": selectedTransport?.name,
+                                        "lrNumber": lrNumberController.text,
+                                        "remarks": remarksController.text,
+                                        "taxableValue": billItems.fold(
+                                          0.0,
+                                          (sum, item) =>
+                                              sum +
+                                              item.taxableValue!.toDouble(),
+                                        ),
+                                        "billAmount": billItems.fold(
+                                          0.0,
+                                          (sum, item) =>
+                                              sum +
+                                              item.totalAmount!.toDouble(),
+                                        ),
+                                        "billItems": billItems
+                                            .map(
+                                              (item) => {
+                                                "pieces": item.pieces,
+                                                "grossAmount": item.grossAmount,
+                                                "discountPercent":
+                                                    item.discountPercent,
+                                                "discountAmount":
+                                                    item.discountAmount,
+                                                "addOnAmount": item.addOnAmount,
+                                                "ecrAmount": item.ecrAmount,
+                                                "gstPercent": item.gstPercent,
+                                                "gstAmount": item.gstAmount,
+                                              },
+                                            )
+                                            .toList(),
+                                      };
+
+                                      final images = newUploadedFiles
+                                          .where((e) => e.path != null)
+                                          .map((e) => File(e.path!))
+                                          .toList();
+
+                                      try {
+                                        final message = await provider.saveBill(
+                                          payload: payload,
+                                          images: images,
+                                        );
+
+                                        if (!context.mounted) return;
+
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Bill Saved Successfully",
+                                        );
+
+                                        Navigator.pop(context, true);
+                                      } catch (e) {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          e.toString(),
+                                        );
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryPurple,
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.save_outlined,
+                                            color: Colors.white,
+                                            size: 30,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: const Text(
+                                              "Save",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                     if (widget.mode == FormMode.edit) ...[
@@ -1471,7 +1718,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             "order": invoiceController.text,
                             "supplierId": selectedSupplier?.id,
                             "customerId": selectedCustomer?.id,
-                            //  "transportId": selectedTransport?.id,
                             "transport": selectedTransport?.name,
                             "lrNumber": lrNumberController.text.isEmpty
                                 ? null
@@ -1529,17 +1775,27 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               .toList();
 
                           try {
-                            final message = await provider.updateBillEntry(
+                            final success = await provider.updateBillEntry(
                               id: bill?.id?.toInt() ?? 0,
                               payload: payload,
                               images: images,
                             );
-                            if (!context.mounted) return;
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Bill updated successfully",
-                            );
-                            Navigator.pop(context, true);
+
+                            if (!mounted) return;
+
+                            if (success) {
+                              ScaffoldSnackBar.show(
+                                context,
+                                "Bill updated successfully",
+                              );
+
+                              Navigator.of(context).pop(true);
+                            } else {
+                              ScaffoldSnackBar.show(
+                                context,
+                                provider.error ?? "Failed to update bill",
+                              );
+                            }
                           } catch (e) {
                             if (!context.mounted) return;
 
@@ -1552,16 +1808,64 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                     SizedBox(height: 40),
                   ],
                 ),
-              )
+              ),
             ),
           ),
-          // if (context.select<EntriesProvider, bool>((p) => p.isLoading))
-          //   Container(
-          //     color: Colors.black45,
-          //     child: const Center(child: CircularProgressIndicator()),
-          //   ),
-          //},
-          //),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow({
+    required IconData icon,
+    required String title,
+    required String value,
+    bool isLast = false,
+  }) {
+    final iconSize = 42.0;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 65),
+      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 1),
+      decoration: BoxDecoration(
+        border: isLast
+            ? null
+            : const Border(
+                bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
+              ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: iconSize,
+            width: iconSize,
+            decoration: BoxDecoration(
+              color: AppColors.containerFillColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: AppColors.primaryPurple, size: 28),
+          ),
+
+          const SizedBox(width: 16),
+
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.primaryPurple,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

@@ -7,7 +7,6 @@ import 'package:hisabio/provider/reporting_provider/credit_provider.dart';
 import 'package:hisabio/provider/master_provider/customer_provider.dart';
 import 'package:hisabio/provider/entries_provider/add_bill_item_calculation.dart';
 import 'package:hisabio/provider/entries_provider/entries_section_provider.dart';
-import 'package:hisabio/provider/get_purchase_provider.dart';
 import 'package:hisabio/provider/reporting_provider/ledger_provider.dart';
 import 'package:hisabio/provider/login_provider.dart';
 import 'package:hisabio/provider/monitoring_provider/graph_provider.dart';
@@ -25,8 +24,9 @@ import 'package:hisabio/services/credit/credit_services.dart';
 import 'package:hisabio/services/customer/customer_services.dart';
 import 'package:hisabio/services/entries_services/entries_service.dart';
 import 'package:hisabio/services/ledger/ledger_service.dart';
+import 'package:hisabio/services/login.dart';
 import 'package:hisabio/services/purchase/purchase_service.dart';
-import 'package:hisabio/services/retail_service.dart';
+import 'package:hisabio/services/retail/retail_service.dart';
 import 'package:hisabio/services/staff/staff_service.dart';
 import 'package:hisabio/services/suppliers/supplier_service.dart';
 import 'package:hisabio/services/transport/transport_service.dart';
@@ -54,7 +54,7 @@ void main() async {
         Provider<ApiService>.value(
           value: apiService,
         ),
-        ChangeNotifierProvider(create: (_) => LoginProvider()),
+        ChangeNotifierProvider(create: (_) => LoginProvider(LoginService(apiService))),
         ChangeNotifierProvider(create: (_) => TransportProvider(
             TransportService(apiService))),
         ChangeNotifierProvider(create: (_)=> SupplierProvider(

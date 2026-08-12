@@ -63,6 +63,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
   List<String> existingImageKeys = [];
   List<String> existingUrls = [];
   List<String> existingFileNames = [];
+
   @override
   void initState() {
     super.initState();
@@ -113,33 +114,25 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
     remarksControllers.add(TextEditingController(text: purchase.remarks));
     existingImageKeys = purchase.supplier.images
-        .map((e) => e.key ?? "")
+        .map((e) => e.key)
         .where((e) => e.isNotEmpty)
-        .toList() ??
-        [];
+        .toList();
 
-    existingUrls = purchase.supplier.images
-        .map((e) => e.url ?? "")
-        .toList() ??
-        [];
+    existingUrls = purchase.supplier.images.map((e) => e.url).toList();
 
     existingFileNames = purchase.supplier.images
         .map((e) => e.fileName)
-        .toList() ??
-        [];
+        .toList();
     final supplier = entriesProvider.entries.cast<EntriesModel?>().firstWhere(
-          (e) => e?.id == purchase.supplier.supplierId,
+      (e) => e?.id == purchase.supplier.supplierId,
       orElse: () => null,
     );
 
     selectedSuppliers.add(supplier);
-    // } else {
-    //   selectedSuppliers.add(null);
-    // }
     uploadedFiles.add([]);
 
     setState(() {});
-    }
+  }
 
   void clearFields() {
     _formKey.currentState?.reset();
@@ -382,27 +375,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
                           if (isSupplierExpanded) ...[
                             const SizedBox(height: 10),
-
-                            // if (isAddMode)
-                            //   CustomElevatedButton(
-                            //     color: AppColors.primaryPurple,
-                            //     text: "+ Add More Supplier",
-                            //     textStyle: const TextStyle(color: Colors.white),
-                            //     borderRadius: 5,
-                            //     onPressed: () async {
-                            //       setState(() {
-                            //         remarksControllers.add(
-                            //           TextEditingController(),
-                            //         );
-                            //
-                            //         selectedSuppliers.add(null);
-                            //
-                            //         uploadedFiles.add([]);
-                            //       });
-                            //     },
-                            //   ),
-                            //
-                            // const SizedBox(height: 10),
                             ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
@@ -452,29 +424,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                                   size: 24,
                                                 ),
                                               ),
-                                            // if (!isAddMode &&
-                                            //     selectedSuppliers.length > 1)
-                                            //   GestureDetector(
-                                            //     onTap: () {
-                                            //       setState(() {
-                                            //         remarksControllers.removeAt(
-                                            //           index,
-                                            //         );
-                                            //
-                                            //         selectedSuppliers.removeAt(
-                                            //           index,
-                                            //         );
-                                            //
-                                            //         uploadedFiles.removeAt(
-                                            //           index,
-                                            //         );
-                                            //       });
-                                            //     },
-                                            //     child: const Icon(
-                                            //       Icons.delete,
-                                            //       color: Colors.red,
-                                            //     ),
-                                            //   ),
                                           ],
                                         ),
 
@@ -553,7 +502,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                               if ((purchaseProvider
                                                       .purchaseDetails
                                                       ?.supplier
-                                                      ?.images
+                                                      .images
                                                       .isEmpty ??
                                                   true))
                                                 Container(
@@ -579,7 +528,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                                 )
                                               else
                                                 Column(
-                                                  children: purchaseProvider.purchaseDetails!.supplier!.images.map((
+                                                  children: purchaseProvider.purchaseDetails!.supplier.images.map((
                                                     image,
                                                   ) {
                                                     return Container(
@@ -600,15 +549,52 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                                       ),
                                                       child: InkWell(
                                                         onTap: () async {
+                                                          if (image.url ==
+                                                                  null ||
+                                                              image
+                                                                  .url!
+                                                                  .isEmpty) {
+                                                            ScaffoldSnackBar.show(
+                                                              context,
+                                                              "Invalid document URL",
+                                                            );
+                                                            return;
+                                                          }
+
                                                           final uri = Uri.parse(
-                                                            image.url ?? "",
+                                                            image.url!,
                                                           );
 
-                                                          await launchUrl(
-                                                            uri,
-                                                            mode: LaunchMode
-                                                                .externalApplication,
+                                                          debugPrint(
+                                                            "Opening URL: $uri",
                                                           );
+
+                                                          try {
+                                                            final launched =
+                                                                await launchUrl(
+                                                                  uri,
+                                                                  mode: LaunchMode
+                                                                      .externalApplication,
+                                                                );
+
+                                                            if (!launched &&
+                                                                mounted) {
+                                                              ScaffoldSnackBar.show(
+                                                                context,
+                                                                "Unable to open document",
+                                                              );
+                                                            }
+                                                          } catch (e) {
+                                                            debugPrint(
+                                                              "Launch error: $e",
+                                                            );
+                                                            if (mounted) {
+                                                              ScaffoldSnackBar.show(
+                                                                context,
+                                                                "Unable to open document",
+                                                              );
+                                                            }
+                                                          }
                                                         },
                                                         child: Row(
                                                           children: [
@@ -639,197 +625,170 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                             onTap: isViewMode
                                                 ? null
                                                 : () async {
-                                                    final dialog = BillEntryUploadDocuments(
-                                                      files: uploadedFiles[index],
-                                                      existingImageKeys: existingImageKeys,
-                                                      existingFileNames: existingFileNames,
-                                                      existingUrls: existingUrls,
+                                                    final dialog =
+                                                        BillEntryUploadDocuments(
+                                                          files:
+                                                              uploadedFiles[index],
+                                                          existingImageKeys:
+                                                              existingImageKeys,
+                                                          existingFileNames:
+                                                              existingFileNames,
+                                                          existingUrls:
+                                                              existingUrls,
 
-                                                      isViewMode: isViewMode,
-                                                      isEditMode: isEditMode,
-                                                    );
-                                                    final result = await showDialog<Map<String, dynamic>>(
-                                                      context: context,
-                                                      builder: (_) => dialog,
-                                                    );
+                                                          isViewMode:
+                                                              isViewMode,
+                                                          isEditMode:
+                                                              isEditMode,
+                                                        );
+                                                    final result =
+                                                        await showDialog<
+                                                          Map<String, dynamic>
+                                                        >(
+                                                          context: context,
+                                                          builder: (_) =>
+                                                              dialog,
+                                                        );
 
                                                     if (result != null) {
                                                       setState(() {
                                                         uploadedFiles[index] =
-                                                        List<PlatformFile>.from(result["files"]);
+                                                            List<
+                                                              PlatformFile
+                                                            >.from(
+                                                              result["files"],
+                                                            );
 
                                                         existingImageKeys =
-                                                        List<String>.from(result["existingImageKeys"]);
+                                                            List<String>.from(
+                                                              result["existingImageKeys"],
+                                                            );
 
                                                         existingFileNames =
-                                                        List<String>.from(result["existingFileNames"]);
+                                                            List<String>.from(
+                                                              result["existingFileNames"],
+                                                            );
 
                                                         existingUrls =
-                                                        List<String>.from(result["existingUrls"]);
+                                                            List<String>.from(
+                                                              result["existingUrls"],
+                                                            );
                                                       });
                                                     }
-                                                    // final files = await showDialog<List<PlatformFile>>(
-                                                    //   context: context,
-                                                    //   builder: (_) => dialog,
-                                                    // );
-                                                    //
-                                                    // if (files != null) {
-                                                    //   setState(() {
-                                                    //     uploadedFiles[index] = files;
-                                                    //
-                                                    //     // Keep parent state in sync
-                                                    //     existingImageKeys = dialog.existingImageKeys;
-                                                    //     existingFileNames = dialog.existingFileNames;
-                                                    //     existingUrls = dialog.existingUrls;
-                                                    //   });
-                                                    // }
+                                                    child:
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 16,
+                                                            vertical: 14,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              10,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: const Color(
+                                                            0xFFE4D9FF,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: Row(
+                                                        children: [
+                                                          Container(
+                                                            height: 46,
+                                                            width: 46,
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  const Color(
+                                                                    0xFFF4F0FF,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    10,
+                                                                  ),
+                                                            ),
+                                                            child: const Icon(
+                                                              Icons
+                                                                  .cloud_upload_outlined,
+                                                              color: AppColors
+                                                                  .primaryPurple,
+                                                            ),
+                                                          ),
 
-                                                    // final files = await showDialog<List<PlatformFile>>(
-                                                    //   context: context,
-                                                    //   builder: (_) => BillEntryUploadDocuments(
-                                                    //     files:
-                                                    //         uploadedFiles[index],
-                                                    //     existingImageKeys: existingImageKeys,
-                                                    //     existingFileNames:
-                                                    //         isEditMode
-                                                    //         ? purchaseProvider
-                                                    //                   .purchaseDetails
-                                                    //                   ?.supplier
-                                                    //                   .images
-                                                    //                   .map(
-                                                    //                     (e) => e
-                                                    //                         .fileName,
-                                                    //                   )
-                                                    //                   .toList() ??
-                                                    //               []
-                                                    //         : [],
-                                                    //     existingUrls: isEditMode
-                                                    //         ? purchaseProvider
-                                                    //                   .purchaseDetails
-                                                    //                   ?.supplier
-                                                    //                   .images
-                                                    //                   .map(
-                                                    //                     (e) => e
-                                                    //                         .url,
-                                                    //                   )
-                                                    //                   .toList() ??
-                                                    //               []
-                                                    //         : [],
-                                                    //     isViewMode: isViewMode,
-                                                    //     isEditMode: isEditMode,
-                                                    //   ),
-                                                    // );
-                                                    //
-                                                    // if (files != null) {
-                                                    //   setState(() {
-                                                    //     uploadedFiles[index] =
-                                                    //         files;
-                                                    //   });
-                                                    // }
+                                                          const SizedBox(
+                                                            width: 14,
+                                                          ),
+
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                const Text(
+                                                                  "Upload Documents",
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    color: AppColors
+                                                                        .primaryPurple,
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 3,
+                                                                ),
+                                                                Text(
+                                                                  "JPG, PNG, PDF • Max 3 files",
+                                                                  style: TextStyle(
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade600,
+                                                                    fontSize:
+                                                                        12,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal:
+                                                                      12,
+                                                                  vertical: 8,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  const Color(
+                                                                    0xFFF4F0FF,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    5,
+                                                                  ),
+                                                            ),
+                                                            child: Text(
+                                                              "${(isEditMode ? purchaseProvider.purchaseDetails?.supplier.images.length ?? 0 : 0) + uploadedFiles[index].length}/3",
+                                                              style: const TextStyle(
+                                                                color: AppColors
+                                                                    .primaryPurple,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
                                                   },
-                                            child: Container(
-                                              width: double.infinity,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 14,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                border: Border.all(
-                                                  color: const Color(
-                                                    0xFFE4D9FF,
-                                                  ),
-                                                ),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Container(
-                                                    height: 46,
-                                                    width: 46,
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(
-                                                        0xFFF4F0FF,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            10,
-                                                          ),
-                                                    ),
-                                                    child: const Icon(
-                                                      Icons
-                                                          .cloud_upload_outlined,
-                                                      color: AppColors
-                                                          .primaryPurple,
-                                                    ),
-                                                  ),
-
-                                                  const SizedBox(width: 14),
-
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        const Text(
-                                                          "Upload Documents",
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: AppColors
-                                                                .primaryPurple,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 3,
-                                                        ),
-                                                        Text(
-                                                          "JPG, PNG, PDF • Max 3 files",
-                                                          style: TextStyle(
-                                                            color: Colors
-                                                                .grey
-                                                                .shade600,
-                                                            fontSize: 12,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 12,
-                                                          vertical: 8,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(
-                                                        0xFFF4F0FF,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            5,
-                                                          ),
-                                                    ),
-                                                    child: Text(
-                                                      "${(isEditMode ? purchaseProvider.purchaseDetails
-                                                          ?.supplier.images.length ?? 0 : 0)
-                                                          + uploadedFiles[index].length}/3",
-                                                      style: const TextStyle(
-                                                        color: AppColors
-                                                            .primaryPurple,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
                                           ),
                                       ],
                                     ),
@@ -855,168 +814,166 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                   });
                                 },
                               ),
-],
-                            const SizedBox(height: 10),
-                            if (isAddMode)
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: CustomElevatedButton(
-                                      text: "Reset",
-                                      textStyle: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                      ),
-                                      borderRadius: 5,
-                                      onPressed: () async {
-                                        clearFields();
-                                      },
+                          ],
+                          const SizedBox(height: 10),
+                          if (isAddMode)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: CustomElevatedButton(
+                                    text: "Reset",
+                                    textStyle: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
                                     ),
+                                    borderRadius: 5,
+                                    onPressed: () async {
+                                      clearFields();
+                                    },
                                   ),
+                                ),
 
-                                  const SizedBox(width: 20),
+                                const SizedBox(width: 20),
 
-                                  Expanded(
-                                    child: CustomElevatedButton(
-                                      color: AppColors.primaryPurple,
-                                      text: "Save",
-                                      textStyle: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                      ),
-                                      borderRadius: 5,
-                                      onPressed: () async {
-                                        if (!_formKey.currentState!
-                                            .validate()) {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            "Please fill all the required fields",
+                                Expanded(
+                                  child: CustomElevatedButton(
+                                    color: AppColors.primaryPurple,
+                                    text: "Save",
+                                    textStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
+                                    borderRadius: 5,
+                                    onPressed: () async {
+                                      if (!_formKey.currentState!.validate()) {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Please fill all the required fields",
+                                        );
+                                        return;
+                                      }
+
+                                      if (selectedCustomer == null) {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Please select customer",
+                                        );
+                                        return;
+                                      }
+
+                                      if (selectedSuppliers.any(
+                                        (e) => e == null,
+                                      )) {
+                                        ScaffoldSnackBar.show(
+                                          context,
+                                          "Please select all suppliers",
+                                        );
+                                        return;
+                                      }
+
+                                      final request = AddPurchaseRequest(
+                                        date: transactionController.text,
+                                        staffId: selectedStaff?.staffId,
+                                        customerId: selectedCustomer!.id!,
+                                        suppliers: List.generate(
+                                          selectedSuppliers.length,
+                                          (index) => PurchaseSupplierRequest(
+                                            supplierId:
+                                                selectedSuppliers[index]!.id!,
+                                            remarks: remarksControllers[index]
+                                                .text
+                                                .trim(),
+                                          ),
+                                        ),
+                                      );
+
+                                      final success = await context
+                                          .read<PurchaseProvider>()
+                                          .addPurchase(
+                                            request: request,
+                                            uploadedFiles: uploadedFiles,
+                                            selectedSuppliers:
+                                                selectedSuppliers,
                                           );
-                                          return;
-                                        }
 
-                                        if (selectedCustomer == null) {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            "Please select customer",
-                                          );
-                                          return;
-                                        }
-
-                                        if (selectedSuppliers.any(
-                                          (e) => e == null,
-                                        )) {
-                                          ScaffoldSnackBar.show(
-                                            context,
-                                            "Please select all suppliers",
-                                          );
-                                          return;
-                                        }
-
-                                        final request = AddPurchaseRequest(
-                                          date: transactionController.text,
-                                          staffId: selectedStaff?.staffId,
-                                          customerId: selectedCustomer!.id!,
-                                          suppliers: List.generate(
-                                            selectedSuppliers.length,
-                                            (index) => PurchaseSupplierRequest(
-                                              supplierId:
-                                                  selectedSuppliers[index]!.id!,
-                                              remarks: remarksControllers[index]
-                                                  .text
-                                                  .trim(),
+                                      if (success) {
+                                        Navigator.pop(context, true);
+                                      } else {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              "Failed to add purchase",
                                             ),
                                           ),
                                         );
-
-                                        final success = await context
-                                            .read<PurchaseProvider>()
-                                            .addPurchase(
-                                              request: request,
-                                              uploadedFiles: uploadedFiles,
-                                              selectedSuppliers:
-                                                  selectedSuppliers,
-                                            );
-
-                                        if (success) {
-                                          Navigator.pop(context, true);
-                                        } else {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "Failed to add purchase",
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    ),
+                                      }
+                                    },
                                   ),
-                                ],
-                              ),
-
-                            if (isEditMode)
-                              CustomElevatedButton(
-                                color: AppColors.primaryPurple,
-                                text: "Update",
-                                textStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
                                 ),
-                                borderRadius: 5,
-                                onPressed: () async {
-                                  if (!_formKey.currentState!.validate()) {
-                                    ScaffoldSnackBar.show(
-                                      context,
-                                      "Please fill all the required fields",
+                              ],
+                            ),
+
+                          if (isEditMode)
+                            CustomElevatedButton(
+                              color: AppColors.primaryPurple,
+                              text: "Update",
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
+                              borderRadius: 5,
+                              onPressed: () async {
+                                if (!_formKey.currentState!.validate()) {
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    "Please fill all the required fields",
+                                  );
+                                  return;
+                                }
+
+                                final success = await context
+                                    .read<PurchaseProvider>()
+                                    .updatePurchase(
+                                      id: widget.id!,
+                                      date: transactionController.text,
+                                      customerId: selectedCustomer!.id!,
+                                      supplierId: selectedSuppliers.first!.id!,
+                                      staffId: selectedStaff?.staffId ?? 0,
+                                      remarks: remarksControllers.first.text,
+                                      existingImageKeys: existingImageKeys,
+                                      supplierImages: uploadedFiles.first
+                                          .where((e) => e.path != null)
+                                          .map((e) => File(e.path!))
+                                          .toList(),
                                     );
-                                    return;
-                                  }
 
-                                  final success = await context
-                                      .read<PurchaseProvider>()
-                                      .updatePurchase(
-                                        id: widget.id!,
-                                        date: transactionController.text,
-                                        customerId: selectedCustomer!.id!,
-                                        supplierId:
-                                            selectedSuppliers.first!.id!,
-                                        staffId: selectedStaff?.staffId ?? 0,
-                                        remarks: remarksControllers.first.text,
-                                    existingImageKeys: existingImageKeys,
-                                        supplierImages: uploadedFiles.first
-                                            .where((e) => e.path != null)
-                                            .map((e) => File(e.path!))
-                                            .toList(),
-                                      );
-
-                                  if (!success) {
-                                    if (!mounted) return;
-
-                                    ScaffoldSnackBar.show(
-                                      context,
-                                      "Failed to update purchase",
-                                    );
-                                    return;
-                                  }
-
+                                if (!success) {
                                   if (!mounted) return;
 
                                   ScaffoldSnackBar.show(
                                     context,
-                                    "Purchase updated successfully",
+                                    "Failed to update purchase",
                                   );
-                                  await context
-                                      .read<PurchaseProvider>()
-                                      .refreshPurchases();
-                                  Navigator.pop(context, true);
-                                },
-                              ),
+                                  return;
+                                }
 
-                            const SizedBox(height: 40),
-                          ],
+                                if (!mounted) return;
+
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  "Purchase updated successfully",
+                                );
+                                await context
+                                    .read<PurchaseProvider>()
+                                    .refreshPurchases();
+                                Navigator.pop(context, true);
+                              },
+                            ),
+
+                          const SizedBox(height: 40),
+                        ],
                       ),
                     ),
                   ],

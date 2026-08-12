@@ -19,9 +19,9 @@ class PurchaseService {
 
   static const String _purchase = "/purchase";
 
-  ///---------------------------------------------------------------
-  /// SEARCH PURCHASES
-  ///---------------------------------------------------------------
+
+  // SEARCH PURCHASES
+
 
   Future<ResponseResult<PaginatedResponse<Purchase>>> searchPurchases({
     String? fromDate,
@@ -33,16 +33,11 @@ class PurchaseService {
     int size = 20,
   }) async {
     final query = <String, dynamic>{
-      if (fromDate != null && fromDate.isNotEmpty)
-        "fromDate": fromDate,
-      if (toDate != null && toDate.isNotEmpty)
-        "toDate": toDate,
-      if (supplierId != null)
-        "supplierId": supplierId,
-      if (customerId != null)
-        "customerId": customerId,
-      if (staffId != null)
-        "staffId": staffId,
+      if (fromDate != null && fromDate.isNotEmpty) "fromDate": fromDate,
+      if (toDate != null && toDate.isNotEmpty) "toDate": toDate,
+      if (supplierId != null) "supplierId": supplierId,
+      if (customerId != null) "customerId": customerId,
+      if (staffId != null) "staffId": staffId,
       "page": page,
       "size": size,
     };
@@ -54,8 +49,7 @@ class PurchaseService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to fetch purchases",
+        errorMessage: result.errorMessage ?? "Failed to fetch purchases",
         statusCode: result.statusCode,
       );
     }
@@ -63,28 +57,24 @@ class PurchaseService {
     return ResponseResult.success(
       PaginatedResponse<Purchase>.fromJson(
         result.data!,
-            (json) => Purchase.fromJson(json),
+        (json) => Purchase.fromJson(json),
       ),
       result.statusCode,
     );
   }
 
-  ///---------------------------------------------------------------
-  /// PURCHASE DETAILS
-  ///---------------------------------------------------------------
 
-  Future<ResponseResult<ApiResponse>> getPurchaseDetails(
-      num id,
-      ) async {
+  // PURCHASE DETAILS
+
+
+  Future<ResponseResult<ApiResponse>> getPurchaseDetails(num id) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_purchase/get/details/$id",
     );
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ??
-            "Failed to fetch purchase details",
+        errorMessage: result.errorMessage ?? "Failed to fetch purchase details",
         statusCode: result.statusCode,
       );
     }
@@ -96,17 +86,16 @@ class PurchaseService {
         success: response.success,
         message: response.message,
         data: response.data != null
-            ? PurchaseDetails.fromJson(
-          response.data as Map<String, dynamic>,
-        )
+            ? PurchaseDetails.fromJson(response.data as Map<String, dynamic>)
             : null,
       ),
       result.statusCode,
     );
   }
-  ///---------------------------------------------------------------
-  /// ADD PURCHASE
-  ///---------------------------------------------------------------
+
+
+  // ADD PURCHASE
+
 
   Future<ResponseResult<ApiResponse>> addPurchase({
     required AddPurchaseRequest request,
@@ -121,27 +110,25 @@ class PurchaseService {
         "payload",
         MultipartFile.fromBytes(
           utf8.encode(jsonEncode(request.toJson())),
-          filename: "payload.json",
-          contentType: DioMediaType(
-            "application",
-            "json",
-          ),
+          filename: "blob",
+          contentType: DioMediaType("application", "json"),
         ),
       ),
     );
 
     // Images
     for (int i = 0; i < uploadedFiles.length; i++) {
+      final supplierId = selectedSuppliers[i]?.id;
+
+      if (supplierId == null) continue;
+
       for (final file in uploadedFiles[i]) {
         if (file.path == null) continue;
 
         formData.files.add(
           MapEntry(
-            "supplierImages",
-            await MultipartFile.fromFile(
-              file.path!,
-              filename: file.name,
-            ),
+            "supplier_${supplierId}_images",
+            await MultipartFile.fromFile(file.path!, filename: file.name),
           ),
         );
       }
@@ -149,7 +136,17 @@ class PurchaseService {
 
     print("========== ADD PURCHASE ==========");
     print("Payload : ${jsonEncode(request.toJson())}");
+    print("========== FILES ==========");
 
+    for (int i = 0; i < uploadedFiles.length; i++) {
+      final supplierId = selectedSuppliers[i]?.id;
+
+      print("Supplier: $supplierId");
+
+      for (final file in uploadedFiles[i]) {
+        print("Field: supplier_${supplierId}_images  File: ${file.name}");
+      }
+    }
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_purchase/entry/add",
       data: formData,
@@ -161,22 +158,19 @@ class PurchaseService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to add purchase",
+        errorMessage: result.errorMessage ?? "Failed to add purchase",
         statusCode: result.statusCode,
       );
     }
 
     final response = ApiResponse.fromJson(result.data!);
 
-    return ResponseResult.success(
-      response,
-      result.statusCode,
-    );
+    return ResponseResult.success(response, result.statusCode);
   }
-  ///---------------------------------------------------------------
-  /// UPDATE PURCHASE
-  ///---------------------------------------------------------------
+
+
+  // UPDATE PURCHASE
+
 
   Future<ResponseResult<ApiResponse>> updatePurchase({
     required num id,
@@ -205,10 +199,7 @@ class PurchaseService {
         MultipartFile.fromBytes(
           utf8.encode(jsonEncode(payload)),
           filename: "blob",
-          contentType: DioMediaType(
-            "application",
-            "json",
-          ),
+          contentType: DioMediaType("application", "json"),
         ),
       ),
     );
@@ -232,15 +223,18 @@ class PurchaseService {
       path: "$_purchase/entry/update/$id",
       data: formData,
     );
-
+    print("========== UPDATE PURCHASE ==========");
+    print("Payload: ${jsonEncode(payload)}");
+    for (final image in supplierImages) {
+      print("Image: ${image.path}");
+    }
     print("Status : ${result.statusCode}");
     print("Response : ${result.data}");
     print("Error : ${result.errorMessage}");
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to update purchase",
+        errorMessage: result.errorMessage ?? "Failed to update purchase",
         statusCode: result.statusCode,
       );
     }
@@ -251,21 +245,18 @@ class PurchaseService {
     );
   }
 
-  ///---------------------------------------------------------------
-  /// DELETE PURCHASE
-  ///---------------------------------------------------------------
 
-  Future<ResponseResult<ApiResponse>> deletePurchase(
-      num id,
-      ) async {
+  // DELETE PURCHASE
+
+
+  Future<ResponseResult<ApiResponse>> deletePurchase(num id) async {
     final result = await _api.delete<Map<String, dynamic>>(
       path: "$_purchase/entry/delete/$id",
     );
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to delete purchase",
+        errorMessage: result.errorMessage ?? "Failed to delete purchase",
         statusCode: result.statusCode,
       );
     }

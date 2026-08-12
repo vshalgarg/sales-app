@@ -157,31 +157,42 @@ class _StaffScreenState extends State<StaffScreen> {
                         context,
                         saveButtonText: "Yes",
                         discardButtonText: "No",
-                        body: RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            children: [
-                              const TextSpan(
-                                text:
-                                    "Are you sure you want to permanently delete ",
-                              ),
-                              TextSpan(
-                                text: item.staffName,
+                        body: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
                                 style: const TextStyle(
-                                  color: AppColors.orangeColor,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.black,
                                 ),
+                                children: [
+                                  const TextSpan(
+                                    text:
+                                        "Are you sure you want to permanently delete ",
+                                  ),
+                                  TextSpan(
+                                    text: item.staffName,
+                                    style: const TextStyle(
+                                      color: AppColors.orangeColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(text: "?"),
+                                ],
                               ),
-                              const TextSpan(
-                                text: "? This action cannot be undone.",
+                            ),
+                            const SizedBox(height: 3),
+                            const Text(
+                              "This action cannot be undone.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
 
                         onSave: () async {

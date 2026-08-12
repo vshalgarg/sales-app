@@ -1101,9 +1101,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 ),
 
                 const SizedBox(height: 5),
-                buildDepositSection(retail as RetailDetails),
+                buildDepositSection(retail),
                 const SizedBox(height: 5),
-                buildHistorySection(retailProvider, retail as RetailDetails),
+                buildHistorySection(retailProvider, retail),
               ],
             ),
           ),

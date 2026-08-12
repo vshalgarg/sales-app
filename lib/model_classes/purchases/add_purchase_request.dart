@@ -25,15 +25,12 @@ class PurchaseSupplierRequest {
   final num? supplierId;
   final String remarks;
 
-  PurchaseSupplierRequest({
-    this.supplierId,
-    required this.remarks,
-  });
+  PurchaseSupplierRequest({this.supplierId, required this.remarks});
 
   Map<String, dynamic> toJson() {
     return {
       "supplierId": supplierId,
-      "remarks": remarks,
+      "remarks": (remarks.trim().isEmpty) ? null : remarks,
     };
   }
 }

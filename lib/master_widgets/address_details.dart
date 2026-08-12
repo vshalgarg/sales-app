@@ -32,6 +32,7 @@ class AddressDetails extends StatefulWidget {
 }
 
 class _AddressDetailsState extends State<AddressDetails> {
+  final GlobalKey _addressKey = GlobalKey();
   String? selectedState;
   bool isExpanded = false;
 
@@ -52,35 +53,47 @@ class _AddressDetailsState extends State<AddressDetails> {
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              isExpanded = !isExpanded;
-            });
-          },
-          child: TextFormField(
-            enabled: false,
-            decoration: InputDecoration(
-              suffixIcon: Icon(
-                isExpanded
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                color: Colors.white,
-              ),
-              iconColor: Colors.white,
-              filled: true,
-              fillColor: AppColors.primaryPurple,
-              hintText: "Address Details",
-              hintStyle: TextStyle(color: Colors.white),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide.none,
+        Container(
+          key: _addressKey,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                isExpanded = !isExpanded;
+              });
+              if (isExpanded) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Scrollable.ensureVisible(
+                    _addressKey.currentContext!,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    alignment: 0.05,
+                  );
+                });
+              }
+            },
+            child: TextFormField(
+              enabled: false,
+              decoration: InputDecoration(
+                suffixIcon: Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: Colors.white,
+                ),
+                iconColor: Colors.white,
+                filled: true,
+                fillColor: AppColors.primaryPurple,
+                hintText: "Address Details",
+                hintStyle: TextStyle(color: Colors.white),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ),

@@ -1,3 +1,5 @@
+import 'package:hisabio/model_classes/supplier/bank_details_request.dart';
+
 class SupplierDetailsResponse {
   final bool success;
   final String message;
@@ -44,11 +46,7 @@ class SupplierDetails {
   final String? city;
   final String? pinCode;
   final String? msme;
-  final String? bankName;
-  final String? ifscCode;
-  final String? branchName;
-  final String? accountName;
-  final String? accountNumber;
+  final List<BankDetailRequest> bankDetails;
   final String? remark;
   final String? status;
 
@@ -71,11 +69,7 @@ class SupplierDetails {
     this.city,
     this.pinCode,
     this.msme,
-    this.bankName,
-    this.ifscCode,
-    this.branchName,
-    this.accountName,
-    this.accountNumber,
+   this.bankDetails=const[],
     this.remark,
     this.status,
     this.contacts = const [],
@@ -99,11 +93,14 @@ class SupplierDetails {
       city: json['city'],
       pinCode: json['pinCode']?.toString(),
       msme: json['msme'],
-      bankName: json['bankName'],
-      ifscCode: json['ifscCode'],
-      branchName: json['branchName'],
-      accountName: json['accountName'],
-      accountNumber: json['accountNumber'],
+      bankDetails: (json['bankDetails'] as List?)
+          ?.map(
+            (e) => BankDetailRequest.fromJson(
+          Map<String, dynamic>.from(e),
+        ),
+      )
+          .toList() ??
+          [],
       remark: json['remark'],
       status: json['status'],
       contacts: json['contacts'] ?? [],
@@ -128,11 +125,9 @@ class SupplierDetails {
       'city': city,
       'pinCode': pinCode,
       'msme': msme,
-      'bankName': bankName,
-      'ifscCode': ifscCode,
-      'branchName': branchName,
-      'accountName': accountName,
-      'accountNumber': accountNumber,
+      'bankDetails': bankDetails
+          .map((bank) => bank.toJson())
+          .toList(),
       'remark': remark,
       'status': status,
       'contacts': contacts,

@@ -31,7 +31,6 @@ class MasterContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: elevation,
-      // shadowColor: Colors.black12,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -54,7 +53,10 @@ class MasterContainer extends StatelessWidget {
                         color: AppColors.orangeColor,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.only(left:5.0,right:5,bottom:3,top:3),
+                        padding: const EdgeInsets.only(left:5.0,
+                            right:5,
+                            bottom:3,
+                            top:3),
                         child: Text(
                           code ?? "",
                           style: TextStyle(

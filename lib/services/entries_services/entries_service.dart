@@ -27,15 +27,11 @@ class EntriesService {
   static const String _purchase = "/purchase";
   static const String _retail = "/retail";
 
-  ///---------------------------------------------------------------
-  /// FETCH SUPPLIERS
-  ///---------------------------------------------------------------
+  // FETCH SUPPLIERS
 
   Future<ResponseResult<List<EntriesModel>>> fetchSuppliers() async {
     final sw = Stopwatch()..start();
-    final result = await _api.get<List<dynamic>>(
-      path: "$_suppliers/get/all",
-    );
+    final result = await _api.get<List<dynamic>>(path: "$_suppliers/get/all");
     print("Supplier API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
@@ -48,21 +44,14 @@ class EntriesService {
         .map((e) => EntriesModel.fromJson(e))
         .toList();
 
-    return ResponseResult.success(
-      suppliers,
-      result.statusCode,
-    );
+    return ResponseResult.success(suppliers, result.statusCode);
   }
 
-  ///---------------------------------------------------------------
-  /// FETCH CUSTOMERS
-  ///---------------------------------------------------------------
+  // FETCH CUSTOMERS
 
   Future<ResponseResult<List<EntriesCustomerModel>>> fetchCustomers() async {
     final sw = Stopwatch()..start();
-    final result = await _api.get<List<dynamic>>(
-      path: "$_customers/get/all",
-    );
+    final result = await _api.get<List<dynamic>>(path: "$_customers/get/all");
     print("Customer API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
@@ -75,20 +64,13 @@ class EntriesService {
         .map((e) => EntriesCustomerModel.fromJson(e))
         .toList();
 
-    return ResponseResult.success(
-      customers,
-      result.statusCode,
-    );
+    return ResponseResult.success(customers, result.statusCode);
   }
 
-  ///---------------------------------------------------------------
-  /// FETCH TRANSPORTS
-  ///---------------------------------------------------------------
+  // FETCH TRANSPORTS
 
   Future<ResponseResult<List<Transport>>> fetchTransports() async {
-    final result = await _api.get<List<dynamic>>(
-      path: "$_transports/getAll",
-    );
+    final result = await _api.get<List<dynamic>>(path: "$_transports/getAll");
 
     if (result.isFailure) {
       return ResponseResult.error(
@@ -101,20 +83,13 @@ class EntriesService {
         .map((e) => Transport.fromJson(e))
         .toList();
 
-    return ResponseResult.success(
-      transports,
-      result.statusCode,
-    );
+    return ResponseResult.success(transports, result.statusCode);
   }
 
-  ///---------------------------------------------------------------
-  /// FETCH STAFF
-  ///---------------------------------------------------------------
+  // FETCH STAFF
 
   Future<ResponseResult<List<GetStaffEntry>>> fetchStaff() async {
-    final result = await _api.get<List<dynamic>>(
-      path: "$_staffs/get/all",
-    );
+    final result = await _api.get<List<dynamic>>(path: "$_staffs/get/all");
 
     if (result.isFailure) {
       return ResponseResult.error(
@@ -127,15 +102,10 @@ class EntriesService {
         .map((e) => GetStaffEntry.fromJson(e))
         .toList();
 
-    return ResponseResult.success(
-      staff,
-      result.statusCode,
-    );
+    return ResponseResult.success(staff, result.statusCode);
   }
 
-  ///---------------------------------------------------------------
-  /// ADD SUPPLIER
-  ///---------------------------------------------------------------
+  // ADD SUPPLIER
 
   Future<ResponseResult<ApiResponse>> addSupplier({
     required Map<String, dynamic> body,
@@ -161,15 +131,10 @@ class EntriesService {
       );
     }
 
-    return ResponseResult.success(
-      response,
-      result.statusCode,
-    );
+    return ResponseResult.success(response, result.statusCode);
   }
 
-  ///---------------------------------------------------------------
-  /// ADD CREDIT ENTRY
-  ///---------------------------------------------------------------
+  // ADD CREDIT ENTRY
 
   Future<ResponseResult<AddNewSupplier>> addCreditEntry({
     required Map<String, dynamic> body,
@@ -181,8 +146,7 @@ class EntriesService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to add credit entry",
+        errorMessage: result.errorMessage ?? "Failed to add credit entry",
         statusCode: result.statusCode,
       );
     }
@@ -193,9 +157,7 @@ class EntriesService {
     );
   }
 
-  ///---------------------------------------------------------------
-  /// ADD RETAIL ENTRY
-  ///---------------------------------------------------------------
+  // ADD RETAIL ENTRY
 
   Future<ResponseResult<ApiResponse>> addRetailEntry({
     required Map<String, dynamic> body,
@@ -207,8 +169,7 @@ class EntriesService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to add retail entry",
+        errorMessage: result.errorMessage ?? "Failed to add retail entry",
         statusCode: result.statusCode,
       );
     }
@@ -222,15 +183,10 @@ class EntriesService {
       );
     }
 
-    return ResponseResult.success(
-      response,
-      result.statusCode,
-    );
+    return ResponseResult.success(response, result.statusCode);
   }
 
-  ///---------------------------------------------------------------
-  /// ADD BILL
-  ///---------------------------------------------------------------
+  // ADD BILL
 
   Future<ResponseResult<ApiResponse>> addBill({
     required Map<String, dynamic> payload,
@@ -244,10 +200,7 @@ class EntriesService {
         MultipartFile.fromString(
           jsonEncode(payload),
           filename: "payload.json",
-          contentType: DioMediaType(
-            "application",
-            "json",
-          ),
+          contentType: DioMediaType("application", "json"),
         ),
       ),
     );
@@ -287,9 +240,7 @@ class EntriesService {
     );
   }
 
-  ///---------------------------------------------------------------
-  /// UPDATE BILL
-  ///---------------------------------------------------------------
+  // UPDATE BILL
 
   Future<ResponseResult<ApiResponse>> updateBill({
     required int id,
@@ -304,10 +255,7 @@ class EntriesService {
         MultipartFile.fromBytes(
           utf8.encode(jsonEncode(payload)),
           filename: "blob",
-          contentType: DioMediaType(
-            "application",
-            "json",
-          ),
+          contentType: DioMediaType("application", "json"),
         ),
       ),
     );
@@ -338,8 +286,7 @@ class EntriesService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to update bill",
+        errorMessage: result.errorMessage ?? "Failed to update bill",
         statusCode: result.statusCode,
       );
     }
@@ -349,9 +296,8 @@ class EntriesService {
       result.statusCode,
     );
   }
-  ///---------------------------------------------------------------
-  /// ADD PURCHASE
-  ///---------------------------------------------------------------
+
+  // ADD PURCHASE
 
   Future<ResponseResult<ApiResponse>> addPurchase({
     required Map<String, dynamic> payload,
@@ -360,12 +306,7 @@ class EntriesService {
   }) async {
     final formData = FormData();
 
-    formData.fields.add(
-      MapEntry(
-        "payload",
-        jsonEncode(payload),
-      ),
-    );
+    formData.fields.add(MapEntry("payload", jsonEncode(payload)));
 
     for (int i = 0; i < uploadedFiles.length; i++) {
       final supplierId = selectedSuppliers[i]?.id;
@@ -378,10 +319,7 @@ class EntriesService {
         formData.files.add(
           MapEntry(
             "supplier_${supplierId}_images",
-            await MultipartFile.fromFile(
-              file.path!,
-              filename: file.name,
-            ),
+            await MultipartFile.fromFile(file.path!, filename: file.name),
           ),
         );
       }
@@ -405,20 +343,16 @@ class EntriesService {
     );
   }
 
-  ///---------------------------------------------------------------
-  /// GET CREDIT DETAILS
-  ///---------------------------------------------------------------
+  // GET CREDIT DETAILS
 
-  Future<ResponseResult<ApiResponse>> getCreditDetailsById(
-      int id,) async {
+  Future<ResponseResult<ApiResponse>> getCreditDetailsById(int id) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_credit/details/$id",
     );
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to fetch credit details",
+        errorMessage: result.errorMessage ?? "Failed to fetch credit details",
         statusCode: result.statusCode,
       );
     }
@@ -429,9 +363,7 @@ class EntriesService {
     );
   }
 
-  ///---------------------------------------------------------------
-  /// UPDATE CREDIT DETAILS
-  ///---------------------------------------------------------------
+  // UPDATE CREDIT DETAILS
 
   Future<ResponseResult<AddNewSupplier>> updateCreditDetails({
     required int id,
@@ -444,8 +376,7 @@ class EntriesService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage:
-        result.errorMessage ?? "Failed to update credit details",
+        errorMessage: result.errorMessage ?? "Failed to update credit details",
         statusCode: result.statusCode,
       );
     }
@@ -456,356 +387,3 @@ class EntriesService {
     );
   }
 }
-
-
-
-
-
-
-
-
-// import 'dart:convert';
-// import 'dart:io';
-// import 'package:file_picker/file_picker.dart';
-// import 'package:hisabio/model_classes/entries/entries_customer_model.dart';
-// import 'package:hisabio/model_classes/entries/entries_supplier.dart';
-// import 'package:hisabio/shared_preferences/login_token.dart';
-// import 'package:http/http.dart' as http;
-//
-// import '../../model_classes/Transport/transport.dart';
-// import '../../model_classes/entries/add_newsupplier.dart';
-// import '../../model_classes/credits/creditdetails_byid.dart';
-// import '../../model_classes/entries/get_staff_entry.dart';
-//
-// class EntriesApi {
-//   Future<List<EntriesModel>> getEntrySupplier() async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/suppliers/get/all",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.get(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//       );
-//       final List<dynamic> data = jsonDecode(response.body);
-//       if (response.statusCode == 200) {
-//         return data.map((e) => EntriesModel.fromJson(e)).toList();
-//       } else {
-//         throw Exception("Failed to fetch suppliers");
-//       }
-//     } catch (e) {
-//       throw Exception("Error $e");
-//     }
-//   }
-//
-//   Future<List<EntriesCustomerModel>> getEntryCustomer() async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/customers/get/all",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.get(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//       );
-//       final List<dynamic> data = jsonDecode(response.body);
-//       if (response.statusCode == 200) {
-//         return data.map((e) => EntriesCustomerModel.fromJson(e)).toList();
-//       } else {
-//         throw Exception("Failed to fetch customers");
-//       }
-//     } catch (e) {
-//       throw Exception("Error $e");
-//     }
-//   }
-//
-//   Future<List<Transport>> getTransporters() async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/transports/getAll",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.get(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//       );
-//       final List<dynamic> data = jsonDecode(response.body);
-//       if (response.statusCode == 200) {
-//         return data.map((e) => Transport.fromJson(e)).toList();
-//       } else {
-//         throw Exception("Failed to fetch transport");
-//       }
-//     } catch (e) {
-//       throw Exception("Error $e");
-//     }
-//   }
-//
-//   Future<AddNewsupplier> addNewCreditEntry(Map<String, dynamic> body) async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/credit/entry/add",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.post(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//         body: jsonEncode(body),
-//       );
-//       final data = jsonDecode(response.body);
-//       if (response.statusCode == 200) {
-//         return AddNewsupplier.fromJson(data);
-//       } else {
-//         throw Exception(data['message'] ?? "Failed to add credit entry");
-//       }
-//     } catch (e) {
-//       throw Exception("Error $e");
-//     }
-//   }
-//
-//   Future<String?> addBillEntry({
-//     required Map<String, dynamic> payload,
-//     required List<File> images,
-//   }) async {
-//     final url = Uri.parse(
-//       "http://192.168.1.100:8087/csm/api/v1/bill/entry/add",
-//     );
-//
-//     final token = await AppStorage.getToken();
-//
-//     final request = http.MultipartRequest('POST', url);
-//
-//     request.headers['Authorization'] = 'Bearer $token';
-//
-//     request.files.add(
-//       http.MultipartFile.fromString(
-//         'payload',
-//         jsonEncode(payload),
-//         contentType: http.MediaType('application', 'json'),
-//       ),
-//     );
-//
-//     for (final image in images) {
-//       request.files.add(
-//         await http.MultipartFile.fromPath('images', image.path),
-//       );
-//     }
-//
-//     final response = await request.send();
-//     final body = await response.stream.bytesToString();
-//
-//     final data = jsonDecode(body);
-//
-//     if (response.statusCode == 200) {
-//       return data["message"] ?? "Bill saved successfully";
-//     } else {
-//       throw Exception(data["message"] ?? "Failed to save bill");
-//     }
-//   }
-//
-//   Future<List<GetStaffEntry>> getStaffEntry() async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/staffs/get/all",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.get(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//       );
-//       final List<dynamic> data = jsonDecode(response.body);
-//       if (response.statusCode == 200) {
-//         return data.map((e) => GetStaffEntry.fromJson(e)).toList();
-//       } else {
-//         throw Exception("Failed to fetch staff");
-//       }
-//     } catch (e) {
-//       throw Exception("Error $e");
-//     }
-//   }
-//
-//   Future<String?> addPurchaseEntry({
-//     required Map<String, dynamic> payload,
-//     required List<List<PlatformFile>> uploadedFiles,
-//     required List<EntriesModel?>selectedSuppliers,
-//   }) async {
-//     final url = Uri.parse(
-//       "http://192.168.1.100:8087/csm/api/v1/purchase/entry/add",
-//     );
-//
-//     final token = await AppStorage.getToken();
-//
-//     final request = http.MultipartRequest('POST', url);
-//
-//     request.headers['Authorization'] = 'Bearer $token';
-//
-//     request.files.add(
-//       http.MultipartFile.fromString(
-//         'payload',
-//         jsonEncode(payload),
-//         contentType: http.MediaType('application', 'json'),
-//       ),
-//     );
-//
-//     for (int i =0;i<uploadedFiles.length;i++ ){
-//       final supplierId = selectedSuppliers[i]?.id;
-//       if(supplierId==null) continue;
-//       for(final file in uploadedFiles[i]){
-//         if (file.path ==null)continue;
-//
-//       request.files.add(
-//         await http.MultipartFile.fromPath('supplier_${supplierId}_images', file.path!),
-//       );
-//     }}
-//
-//     final response = await request.send();
-//     final body = await response.stream.bytesToString();
-//
-//     final data = jsonDecode(body);
-//
-//     if (response.statusCode == 200) {
-//       return data["message"] ?? "Purchase saved successfully";
-//     } else {
-//       throw Exception(data["message"] ?? "Failed to save purchase");
-//     }
-//   }
-//
-//   Future<String?> addNewRetailEntry(Map<String, dynamic> body) async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/retail/create",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.post(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//         body: jsonEncode(body),
-//       );
-//       final data = jsonDecode(response.body);
-//       if (response.statusCode == 200) {
-//         return data["message"];
-//       } else {
-//         throw Exception(data['message'] ?? "Failed to add retail entry");
-//       }
-//     } catch (e) {
-//       throw Exception("Error $e");
-//     }
-//   }
-//
-//   Future<String?> updateBillEntry({
-//     required Map<String, dynamic> payload,
-//     required List<File> images,
-//     required int id,
-//   }) async {
-//     final url = Uri.parse(
-//       "http://192.168.1.100:8087/csm/api/v1/bill/entry/update/$id",
-//     );
-//
-//     final token = await AppStorage.getToken();
-//
-//     final request = http.MultipartRequest("PATCH", url);
-//
-//     request.headers.addAll({
-//       "Authorization": "Bearer $token",
-//       "Accept": "application/json",
-//     });
-//
-//     request.files.add(
-//       http.MultipartFile.fromString(
-//         "data",
-//         jsonEncode(payload),
-//         contentType: http.MediaType("application", "json"),
-//       ),
-//     );
-//
-//     print(jsonEncode(payload));
-//
-//     for (final image in images) {
-//       request.files.add(
-//         await http.MultipartFile.fromPath("images", image.path),
-//       );
-//     }
-//
-//     final streamedResponse = await request.send();
-//     final response = await http.Response.fromStream(streamedResponse);
-//
-//     final body = jsonDecode(response.body);
-//
-//     if (response.statusCode == 200) {
-//       return body["message"] ?? "Bill updated successfully";
-//     } else {
-//       throw Exception(body["message"] ?? "Failed to update bill");
-//     }
-//   }
-//
-//   Future<CreditDetailsResponse> getCreditDetailsById(int id) async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/credit/details/$id",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.get(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//       );
-//       final data = jsonDecode(response.body);
-//       if (response.statusCode == 200) {
-//         return CreditDetailsResponse.fromJson(data);
-//       } else {
-//         throw Exception(data['message'] ?? "Failed to fetch Credit Details");
-//       }
-//     } catch (e) {
-//       throw Exception("Error $e");
-//     }
-//   }
-//   Future<AddNewsupplier> updateCreditDetails({
-//     required Map<String, dynamic> body,
-//     required int id,
-//   }) async {
-//     try {
-//       final url = Uri.parse(
-//         "http://192.168.1.100:8087/csm/api/v1/credit/entry/update/$id",
-//       );
-//       final token = await AppStorage.getToken();
-//       final response = await http.patch(
-//         url,
-//         headers: {
-//           "Content-Type": "application/json",
-//           "Authorization": "Bearer $token",
-//         },
-//         body: jsonEncode(body),
-//       );
-//
-//       final data = jsonDecode(response.body);
-//
-//       if (response.statusCode == 200||response.statusCode==201) {
-//         return AddNewsupplier.fromJson(data);
-//       } else {
-//         throw Exception(data['message'] ?? "Failed to update credit details");
-//       }
-//     } catch (e) {
-//       throw Exception("$e");
-//     }
-//   }
-// }

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
-import '../model_classes/retailers/add_retail_request.dart';
 import '../model_classes/retailers/retail_deposit_history_model.dart';
 import '../provider/reporting_provider/retail_provider.dart';
 
@@ -99,11 +98,9 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
                     _infoItem(
                       "Date",
-                      retail.date == null
-                          ? "-"
-                          : "${retail.date.day.toString().padLeft(2, "0")}-"
-                                "${retail.date.month.toString().padLeft(2, "0")}-"
-                                "${retail.date.year}",
+                      "${retail.date.day.toString().padLeft(2, "0")}-"
+                          "${retail.date.month.toString().padLeft(2, "0")}-"
+                          "${retail.date.year}",
                     ),
 
                     const SizedBox(height: 15),
@@ -180,7 +177,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
     final bool expanded = expandedSupplierIndex == index;
 
     return Card(
-      // margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -414,23 +410,17 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                                   color: Colors.indigo,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                    fontFeatures: [
-                                    FontFeature.tabularFigures(),
-                                ]
+                                  fontFeatures: [FontFeature.tabularFigures()],
                                 ),
                               ),
                             ),
 
                             // Status
                             SizedBox(
-                              width: 110,
+                              width: 90,
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 5,
-                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xffE8F7EE),
                                     borderRadius: BorderRadius.circular(10),
@@ -449,17 +439,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                           ],
                         ),
                       ),
-                      //           SizedBox(height: 3),
-                      //           if (i < history.deposits.length - 1)
-                      //             const DashedDivider(),
-                      //           SizedBox(height: 2),
-                      //         ],
-                      //       )
-                      //       )
-                      //         ]
-                      //       );
-                      //     }).toList(),
-                      // ],
                     ],
                   );
                 }),
@@ -544,11 +523,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  // fontWeight: FontWeight.w600,
-                  fontSize: 18,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
 
@@ -567,14 +542,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            // fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
+        Text(title, style: const TextStyle(color: Colors.white, fontSize: 18)),
 
         const SizedBox(height: 5),
 

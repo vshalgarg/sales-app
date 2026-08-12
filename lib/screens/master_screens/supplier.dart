@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
@@ -25,6 +24,8 @@ class SupplierScreen extends StatefulWidget {
 }
 
 class _SupplierState extends State<SupplierScreen> {
+  late SupplierProvider supplierProvider;
+  bool _isOpeningCopyDialog = false;
   final searchController = TextEditingController();
   Timer? _debounce;
 
@@ -33,8 +34,9 @@ class _SupplierState extends State<SupplierScreen> {
     super.initState();
 
     Future.microtask(() async {
-    //  context.read<SupplierProvider>().fetchInitial();
+      //  context.read<SupplierProvider>().fetchInitial();
       final provider = context.read<SupplierProvider>();
+    //  supplierProvider = context.read<SupplierProvider>();
 
       searchController.clear();
       await provider.clearSearch();
@@ -43,7 +45,7 @@ class _SupplierState extends State<SupplierScreen> {
 
   @override
   void dispose() {
-    context.read<SupplierProvider>().clearSearch();
+    supplierProvider.clearSearch();
     searchController.dispose();
     _debounce?.cancel();
     super.dispose();
@@ -155,31 +157,42 @@ class _SupplierState extends State<SupplierScreen> {
                       trashIconTap: () {
                         ExitConfirmationDialog.show(
                           context,
-                          body: RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                              children: [
-                                const TextSpan(
-                                  text:
-                                      "Are you sure you want to permanently delete ",
-                                ),
-                                TextSpan(
-                                  text: item.supplierName,
+                          body: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
                                   style: const TextStyle(
-                                    color: AppColors.orangeColor,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black,
                                   ),
+                                  children: [
+                                    const TextSpan(
+                                      text:
+                                          "Are you sure you want to permanently delete ",
+                                    ),
+                                    TextSpan(
+                                      text: item.supplierName,
+                                      style: const TextStyle(
+                                        color: AppColors.orangeColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    TextSpan(text: "?"),
+                                  ],
                                 ),
-                                const TextSpan(
-                                  text: "? This action cannot be undone.",
+                              ),
+                              const SizedBox(height: 3),
+                              const Text(
+                                "This action cannot be undone.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                           saveButtonText: "Yes",
                           discardButtonText: "No",
@@ -205,65 +218,122 @@ class _SupplierState extends State<SupplierScreen> {
                         );
                       },
                       copyIconTap: () async {
-                        final provider = context.read<SupplierProvider>();
+                        if (_isOpeningCopyDialog) return;
 
-                        await provider.fetchSupplierDetails(item.id.toInt());
+                        _isOpeningCopyDialog = true;
+                        try {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                          final provider = context.read<SupplierProvider>();
 
-                        final data = provider.supplierDetails;
-                        print("Bank Name: ${data?.bankName}");
-                        print("Account Holder: ${data?.accountName}");
-                        print("Account Number: ${data?.accountNumber}");
-                        print("IFSC: ${data?.ifscCode}");
-                        if (data == null) return;
+                          await provider.fetchSupplierDetails(item.id.toInt());
 
-                        String contactNumber = "";
-
-                        if (data.contacts.isNotEmpty) {
-                          final firstContact = data.contacts[0];
-
-                          if (firstContact is Map) {
-                            contactNumber = firstContact['mobileNumber'] ?? "";
+                          if (mounted) {
+                            Navigator.of(context).pop(); // Close loader
                           }
-                        }
-                        showDialog(
-                          context: context,
-                          builder: (_) {
-                            return CustomCopyDetailsDialog(
+
+                          if (!mounted) return;
+
+                          final data = provider.supplierDetails;
+
+                          if (data == null) {
+                            ScaffoldSnackBar.show(
+                              context,
+                              "Failed to load supplier details",
+                            );
+                            return;
+                          }
+
+                          String fullAddress = [
+                            data.addressLine1,
+                            data.addressLine2,
+                            data.city,
+                            data.state,
+                            data.pinCode,
+                          ]
+                              .where((e) => (e ?? "").trim().isNotEmpty)
+                              .join(", ");
+
+                          String contactsText = "";
+
+                          if (data.contacts.isNotEmpty) {
+                            contactsText = data.contacts.map((c) {
+                              if (c is Map) {
+                                return "${c['contactPerson'] ?? ""} - ${c['mobileNumber'] ?? ""}";
+                              }
+
+                              return "${c.contactPerson ?? ""} - ${c.mobileNumber ?? ""}";
+                            }).join("\n");
+                          }
+
+                          String transportText = "";
+
+                          if (data.preferredTransports.isNotEmpty) {
+                            transportText = data.preferredTransports.map((t) {
+                              if (t is Map) {
+                                return t['name']?.toString() ?? "";
+                              }
+
+                              return t.name ?? "";
+                            }).join("\n");
+                          }
+                          final bank = data.bankDetails.isNotEmpty
+                              ? data.bankDetails.first
+                              : null;
+
+                          await showDialog(
+                            context: context,
+                            builder: (_) => CustomCopyDetailsDialog(
                               firmName: data.supplierName ?? "",
-                              contact: contactNumber,
-                              address: data.addressLine1 ?? "",
+                              contact: contactsText,
+                              address: fullAddress,
                               gstNo: data.gstNo ?? "",
                               emails: data.email ?? "",
-                              bankName: data.bankName ?? "",
-                              accountHolder: data.accountName ?? "",
-                              accountNumber: data.accountNumber ?? "",
-                              ifscCode: data.ifscCode ?? "",
-                            );
-                          },
-                        );
+                              transport: transportText,
+                              accountHolder: bank?.accountName ?? "",
+                              bankName: bank?.bankName ?? "",
+                              accountNumber: bank?.accountNumber ?? "",
+                              ifscCode: bank?.ifscCode ?? "",
+                              branchName: bank?.branchName ?? "",
+                            ),
+                          );
+                        } catch (e) {
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
+
+                          ScaffoldSnackBar.show(
+                            context,
+                            "Something went wrong",
+                          );
+                        } finally {
+                          _isOpeningCopyDialog = false;
+                        }
                       },
                       editIconTap: () async {
-                        final supplierProvider = context.read<
-                            SupplierProvider>();
+                        final supplierProvider = context
+                            .read<SupplierProvider>();
 
                         final refresh = await Navigator.push<bool>(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                AddNewSupplier(
-                                  id: item.id,
-                                  mode: FormMode.edit,
-                                ),
+                            builder: (_) => AddNewSupplier(
+                              id: item.id,
+                              mode: FormMode.edit,
+                            ),
                           ),
                         );
                         if (!mounted) return;
 
                         if (refresh == true) {
-                          // await context.read<SupplierProvider>().refreshSuppliers();
-                          // }
                           await supplierProvider.refreshSuppliers();
                         }
-                      }
+                      },
                     ),
                   );
                 },

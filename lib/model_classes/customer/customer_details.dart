@@ -1,3 +1,5 @@
+import '../supplier/bank_details_request.dart';
+
 class CustomerDetailsResponse {
   final bool success;
   final String message;
@@ -45,12 +47,7 @@ class CustomerDetails {
   final String? remark;
   final String? status;
 
-  final String? bankName;
-  final String? ifsc;
-  final String? branch;
-  final String? accountName;
-  final String? accountNumber;
-
+  final List<BankDetailRequest> bankDetails;
   final List<CustomerContactDetails> contacts;
   final List<CustomerPreferredTransport> preferredTransports;
 
@@ -70,11 +67,7 @@ class CustomerDetails {
     this.msme,
     this.remark,
     this.status,
-    this.bankName,
-    this.ifsc,
-    this.branch,
-    this.accountName,
-    this.accountNumber,
+    this.bankDetails = const [],
     this.contacts = const [],
     this.preferredTransports = const [],
   });
@@ -96,11 +89,14 @@ class CustomerDetails {
       msme: json['msme'],
       remark: json['remark'],
       status: json['status'],
-      bankName: json['bankName'],
-      ifsc: json['ifsc'],
-      branch: json['branch'],
-      accountName: json['accountName'],
-      accountNumber: json['accountNumber'],
+      bankDetails: (json['bankDetails'] as List?)
+          ?.map(
+            (e) => BankDetailRequest.fromJson(
+          Map<String, dynamic>.from(e),
+        ),
+      )
+          .toList() ??
+          const [],
       contacts: (json['contacts'] as List?)
           ?.map((e) => CustomerContactDetails.fromJson(e))
           .toList() ??
@@ -129,11 +125,9 @@ class CustomerDetails {
     'msme': msme,
     'remark': remark,
     'status': status,
-    'bankName': bankName,
-    'ifsc': ifsc,
-    'branch': branch,
-    'accountName': accountName,
-    'accountNumber': accountNumber,
+    'bankDetails': bankDetails
+        .map((bank) => bank.toJson())
+        .toList(),
     'contacts': contacts.map((e) => e.toJson()).toList(),
     'preferredTransports':
     preferredTransports.map((e) => e.toJson()).toList(),

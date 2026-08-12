@@ -8,9 +8,6 @@ import 'package:hisabio/screens/reporting_screen/purchase.dart';
 import 'package:hisabio/screens/reporting_screen/retail.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors_used.dart';
-import '../model_classes/bills/bill.dart';
-import '../model_classes/credits/credit.dart';
-import '../model_classes/purchases/purchase.dart';
 import '../provider/master_provider/config_provider.dart';
 import '../shared_preferences/login_token.dart';
 import 'master_screens/configurations.dart';
@@ -30,25 +27,32 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // bool showRetailFeature = false;
   String email = "";
+  String role = "";
 
   @override
   void initState() {
     super.initState();
-    _loadEmail();
+    _loadUserData();
     Future.microtask(() {
       context.read<ConfigProvider>().fetchConfiguration();
     });
   }
 
-  Future<void> _loadEmail() async {
-    final value = await AppStorage.getEmail();
+  Future<void> _loadUserData() async {
+    final emailValue = await AppStorage.getEmail();
+    final roleValue = await AppStorage.getRole();
+    print("Stored Role = $roleValue");
 
     setState(() {
-      if (value != null && value.contains("@")) {
-        email = value.split("@").first;
+      if (emailValue != null && emailValue.contains("@")) {
+        email = emailValue
+            .split("@")
+            .first;
       } else {
-        email = value ?? "";
+        email = emailValue ?? "";
       }
+
+      role = roleValue ?? "";
     });
   }
 
@@ -152,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+                      if (role.toUpperCase() != "AGENT")
                       menuItemCard(
                         imagePath: "assets/images/config.png",
                         title: "Configurations",

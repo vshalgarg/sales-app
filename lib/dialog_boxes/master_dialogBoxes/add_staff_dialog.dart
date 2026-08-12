@@ -304,7 +304,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                   ),
                 ),
                 child: Icon(
-                 Iconsax.add,
+                 Iconsax.user_edit,
                   color: AppColors.primaryPurple,
                   size: 35,
                 ),

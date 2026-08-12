@@ -12,6 +12,7 @@ import '../../customs/dropdown_test.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/customer/add_customer_request.dart';
 import '../../model_classes/customer/customer_details.dart';
+import '../../model_classes/supplier/bank_details_request.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/master_provider/customer_provider.dart';
 import '../../provider/master_provider/transport_provider.dart';
@@ -46,16 +47,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   final referenceController = TextEditingController();
 
-  final bankNameController = TextEditingController();
-
-  final ifscController = TextEditingController();
-
-  final branchNameController = TextEditingController();
-
-  final accountholderNameController = TextEditingController();
-
-  final accountNumberController = TextEditingController();
-
   final addressLine1Controller = TextEditingController();
 
   final addressLine2Controller = TextEditingController();
@@ -70,12 +61,31 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   final remarksController = TextEditingController();
   List<ContactControllers> contacts = [];
+  List<BankControllers> bankDetails = [];
+  void addInitialBank() {
+    if (bankDetails.isEmpty) {
+      bankDetails.add(BankControllers());
+    }
+  }
+  void addBankDetails() {
+    if (bankDetails.length >= 4) return;
 
+    setState(() {
+      bankDetails.add(BankControllers());
+    });
+  }
+  void deleteBankDetails(int index) {
+    bankDetails[index].dispose();
+
+    setState(() {
+      bankDetails.removeAt(index);
+    });
+  }
   AddCustomerRequest _buildCustomerRequest() {
     return AddCustomerRequest(
       customerName: nameController.text,
       email: emailController.text.isEmpty ? null : emailController.text,
-      groupId: null, // Replace with selected group id if available
+      groupId: null,
       gstNo: gstController.text.isEmpty ? null : gstController.text,
       referencedBy: referenceController.text.isEmpty
           ? null
@@ -93,19 +103,29 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       pinCode: pinCodeController.text.isEmpty
           ? null
           : pinCodeController.text,
-      bankName: bankNameController.text.isEmpty
-          ? null
-          : bankNameController.text,
-      accountName: accountholderNameController.text.isEmpty
-          ? null
-          : accountholderNameController.text,
-      accountNumber: accountNumberController.text.isEmpty
-          ? null
-          : accountNumberController.text,
-      ifsc: ifscController.text.isEmpty ? null : ifscController.text,
-      branch: branchNameController.text.isEmpty
-          ? null
-          : branchNameController.text,
+      bankDetails: bankDetails.map((bank) {
+        return BankDetailRequest(
+          bankName: bank.bankName.text.trim().isEmpty
+              ? null
+              : bank.bankName.text.trim(),
+
+          accountNumber: bank.accountNumber.text.trim().isEmpty
+              ? null
+              : bank.accountNumber.text.trim(),
+
+          ifscCode: bank.ifscCode.text.trim().isEmpty
+              ? null
+              : bank.ifscCode.text.trim(),
+
+          branchName: bank.branchName.text.trim().isEmpty
+              ? null
+              : bank.branchName.text.trim(),
+
+          accountName: bank.accountName.text.trim().isEmpty
+              ? null
+              : bank.accountName.text.trim(),
+        );
+      }).toList(),
       preferredTransportIds: selectedTransportId == null
           ? []
           : [int.parse(selectedTransportId!)],
@@ -120,11 +140,12 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
           .toList(),
     );
   }
-  void _populateFormFromCustomer(CustomerDetails s){
+  void _populateFormFromCustomer(CustomerDetails s) {
     nameController.text = s.customerName ?? "";
     emailController.text = s.email ?? "";
     groupController.text = s.groupName ?? "";
     gstController.text = s.gstNo ?? "";
+
     msmeController.text = (s.msme ?? "").toLowerCase() == "small"
         ? "Small"
         : (s.msme ?? "").toLowerCase() == "micro"
@@ -132,12 +153,33 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
         : (s.msme ?? "").toLowerCase() == "medium"
         ? "Medium"
         : s.msme ?? "";
+
     referenceController.text = s.referencedBy ?? "";
-    accountholderNameController.text = s.accountName ?? "";
-    ifscController.text = s.ifsc ?? "";
-    accountNumberController.text = s.accountNumber ?? "";
-    bankNameController.text = s.bankName ?? "";
-    branchNameController.text = s.branch ?? "";
+
+    // BANK DETAILS
+    for (final bank in bankDetails) {
+      bank.dispose();
+    }
+
+    bankDetails.clear();
+
+    for (final bank in s.bankDetails) {
+      bankDetails.add(
+        BankControllers()
+          ..bankName.text = bank.bankName ?? ""
+          ..ifscCode.text = bank.ifscCode ?? ""
+          ..branchName.text = bank.branchName ?? ""
+          ..accountName.text = bank.accountName ?? ""
+          ..accountNumber.text = bank.accountNumber ?? "",
+      );
+    }
+
+    // For edit mode, if API has no bank, still show Bank 1.
+    if (bankDetails.isEmpty && widget.mode != FormMode.view) {
+      bankDetails.add(BankControllers());
+    }
+
+    // ADDRESS
     addressLine1Controller.text = s.addressLine1 ?? "";
     addressLine2Controller.text = s.addressLine2 ?? "";
     stateController.text = (s.state ?? "").trim();
@@ -145,14 +187,21 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     pinCodeController.text = s.pinCode ?? "";
     remarksController.text = s.remark ?? "";
 
+    // TRANSPORT
     if (s.preferredTransports.isNotEmpty) {
       final transport = s.preferredTransports.first;
 
       selectedTransportId = transport.id.toString();
       selectedType = transport.name;
-      preferredTransportController.text = transport.name!;
+      preferredTransportController.text = transport.name ?? "";
     }
-    contacts = [];
+
+    // CONTACTS
+    for (final contact in contacts) {
+      contact.dispose();
+    }
+
+    contacts.clear();
 
     if (s.contacts.isNotEmpty) {
       for (final c in s.contacts) {
@@ -165,9 +214,10 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
         contacts.add(contact);
       }
     } else {
-      contacts.add(ContactControllers());
+        contacts.add(ContactControllers());
+        addInitialBank();
+      }
     }
-  }
 
   Future<void> loadData() async {
     final transportProvider = context.read<TransportProvider>();
@@ -288,12 +338,12 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                     SizedBox(height: 15),
                     BankDetailsSection(
                       mode: widget.mode,
-                      accountNumber: accountNumberController,
-                      ifscCode: ifscController,
-                      bankName: bankNameController,
-                      branchName: branchNameController,
-                      accountHolderName: accountholderNameController,
+                      banks: bankDetails,
+                      onAdd: addBankDetails,
+                      onDelete: deleteBankDetails,
+                      scrollController: _scrollController,
                     ),
+
                     SizedBox(height: 15),
                     AddressDetails(
                       mode: widget.mode,
@@ -530,11 +580,9 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     msmeController.dispose();
     referenceController.dispose();
 
-    bankNameController.dispose();
-    ifscController.dispose();
-    branchNameController.dispose();
-    accountholderNameController.dispose();
-    accountNumberController.dispose();
+    for (final bank in bankDetails) {
+      bank.dispose();
+    }
 
     addressLine1Controller.dispose();
     addressLine2Controller.dispose();

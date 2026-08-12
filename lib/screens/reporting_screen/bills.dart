@@ -123,7 +123,7 @@ class _BillsState extends State<Bills> {
       provider.setFromDate(fromDateController.text);
       provider.setToDate(toDateController.text);
 
-      await provider.fetchInitial();
+      await provider.fetchInitialBills();
     });
   }
 

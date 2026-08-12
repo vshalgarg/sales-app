@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:hisabio/model_classes/common/paginated_response.dart';
 
 class PaginationState {
@@ -26,9 +27,8 @@ class PaginationState {
     totalElements = response.totalElements;
     hasMore = !response.last;
 
-    print(
-      "API page = ${response.page}, UI currentPage = $currentPage",
-    );
+    debugPrint("API page = ${response.page},"
+        " UI currentPage = $currentPage");
   }
   void reset() {
     currentPage = 0;

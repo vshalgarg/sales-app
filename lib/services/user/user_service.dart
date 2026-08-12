@@ -30,7 +30,9 @@ class UserService {
     (result.data!["users"] as List<dynamic>)
         .map((e) => User.fromJson(e))
         .toList();
-
+    for (final user in users) {
+      print("${user.username} -> ${user.role}");
+    }
     return ResponseResult.success(
       users,
       result.statusCode,

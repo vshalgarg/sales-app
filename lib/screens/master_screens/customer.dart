@@ -287,55 +287,121 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                     );
                                   },
 
-                                  copyIconTap: () async {
-                                    final details = provider.customerDetails!;
+                                copyIconTap: () async {
+                                  final provider = context.read<CustomerProvider>();
 
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) => CustomCopyDetailsDialog(
+                                  await provider.fetchCustomerDetails(customer.id);
+
+                                  final data = provider.customerDetails;
+
+                                  if (data == null) return;
+
+                                  String fullAddress = [
+                                    data.addressLine1,
+                                    data.addressLine2,
+                                    data.city,
+                                    data.state,
+                                    data.pinCode,
+                                  ]
+                                      .where((e) => (e ?? "").trim().isNotEmpty)
+                                      .join(", ");
+
+                                  String contactsText = "";
+
+                                  if (data.contacts.isNotEmpty) {
+                                    contactsText = data.contacts.map((c) {
+                                      final name = (c.contactPerson ?? "").trim();
+                                      final mobile = (c.mobileNumber ?? "").trim();
+
+                                      if (name.isNotEmpty && mobile.isNotEmpty) {
+                                        return "$name - $mobile";
+                                      }
+
+                                      if (name.isNotEmpty) {
+                                        return name;
+                                      }
+
+                                      if (mobile.isNotEmpty) {
+                                        return mobile;
+                                      }
+
+                                      return "";
+                                    }).where((e) => e.isNotEmpty).join("\n");
+                                  }
+
+                                  String transportText = "";
+
+                                  if (data.preferredTransports.isNotEmpty) {
+                                    transportText = data.preferredTransports.map((t) {
+                                      if (t is Map) {
+                                        return ['name'].toString() ?? "";
+                                      }
+
+                                      return t.name ?? "";
+                                    }).join("\n");
+                                  }
+                                  final bank = data.bankDetails.isNotEmpty
+                                      ? data.bankDetails.first
+                                      : null;
+                                await showDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      return CustomCopyDetailsDialog(
                                         heading: "Customer Details",
-                                        firmName: details.customerName,
-                                        gstNo: details.gstNo,
-                                        address: details.addressLine1,
-                                        contact: details.contacts.isNotEmpty
-                                            ? details.contacts.first.mobileNumber
-                                            : "",
-                                        emails: details.email,
-                                        bankName: details.bankName,
-                                        accountHolder: details.accountName,
-                                        accountNumber: details.accountNumber,
-                                        ifscCode: details.ifsc,
-                                      ),
-                                    );
-                                      },
+                                        firmName: data.customerName ?? "",
+                                        contact: contactsText,
+                                        address: fullAddress,
+                                        gstNo: data.gstNo ?? "",
+                                        emails: data.email ?? "",
+                                        transport: transportText,
+                                        accountHolder: bank?.accountName ?? "",
+                                        bankName: bank?.bankName ?? "",
+                                        accountNumber: bank?.accountNumber ?? "",
+                                        ifscCode: bank?.ifscCode ?? "",
+                                        branchName: bank?.branchName ?? "",
+                                      );
+                                    },
+                                  );
+                                },
                                   trashIconTap: () {
                                     ExitConfirmationDialog.show(
                                       context,
-                                        body: RichText(
-                                            textAlign: TextAlign.center,
-                                            text: TextSpan(
-                                              style: const TextStyle(
+                                        body: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            RichText(
+                                                textAlign: TextAlign.center,
+                                                text: TextSpan(
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                  ),
+                                                  children: [
+                                                const TextSpan(
+                                                text:
+                                                "Are you sure you want to permanently delete ",
+                                                ),
+                                              TextSpan(
+                                                  text: customer.customerName,
+                                                style: const TextStyle(
+                                                  color: AppColors.orangeColor,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                                    TextSpan(text: "?"),
+                                                  ],
+                                                ),
+                                            ),
+                                            const SizedBox(height: 3),
+                                            const Text(
+                                              "This action cannot be undone.",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
                                                 fontSize: 16,
-                                                fontWeight: FontWeight.w500,
                                                 color: Colors.black,
                                               ),
-                                              children: [
-                                            const TextSpan(
-                                            text:
-                                      "Are you sure you want to permanently delete ",
                                             ),
-                                          TextSpan(
-                                              text: customer.customerName,
-                                            style: const TextStyle(
-                                              color: AppColors.orangeColor,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                                const TextSpan(
-                                                  text: "? This action cannot be undone.",
-                                                ),
-                                              ],
-                                            ),
+                                          ],
                                         ),
                                       saveButtonText: "Yes",
                                       discardButtonText: "No",
