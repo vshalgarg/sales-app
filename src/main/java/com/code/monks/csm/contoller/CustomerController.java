@@ -94,7 +94,7 @@ public class CustomerController {
     @PutMapping(UPDATE_CUSTOMER)
     public ResponseEntity<ApiResponse<Void>> updateCustomer(
              @PathVariable Integer id,
-             @Valid @RequestBody UpdateCustomerRequestDto request) {
+              @RequestBody UpdateCustomerRequestDto request) {
 
         customerService.updateCustomer(id, request);
 

@@ -87,7 +87,7 @@ public class SupplierController {
     @PutMapping(UPDATE_SUPPLIER)
     public ResponseEntity<ApiResponse<?>> update(
              @PathVariable Integer id,
-             @Valid @RequestBody UpdateSupplierRequestDto request) {
+             @RequestBody UpdateSupplierRequestDto request) {
 
         supplierService.updateSupplier(id, request);
 

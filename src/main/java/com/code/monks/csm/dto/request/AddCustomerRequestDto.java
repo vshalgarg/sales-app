@@ -3,11 +3,8 @@ package com.code.monks.csm.dto.request;
 import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -38,8 +35,6 @@ public class AddCustomerRequestDto {
     private String city;
     private String pinCode;
 
-    @Valid
-    @Size(max = 4, message = "A customer can have maximum 4 bank details")
     private List<BankDetailRequestDto> bankDetails;
 
     private List<Integer> preferredTransportIds;

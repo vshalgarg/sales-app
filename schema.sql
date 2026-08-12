@@ -766,16 +766,31 @@ INSERT INTO configurations (
 
 
 CREATE TABLE bank_detail (
-    id INT NOT NULL AUTO_INCREMENT,
-    bank_name VARCHAR(255),
-    ifsc_code VARCHAR(255),
-    branch_name VARCHAR(255),
-    account_name VARCHAR(255),
-    account_number VARCHAR(255),
-    supplier_id INT,
-    customer_id INT,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bank_name VARCHAR(255) NULL,
+    ifsc_code VARCHAR(255) NULL,
+    branch_name VARCHAR(255) NULL,
+    account_name VARCHAR(255) NULL,
+    account_number VARCHAR(255) NULL,
+    supplier_id INT NULL,
+    customer_id INT NULL,
+    created_at DATETIME NULL,
+    updated_at DATETIME NULL,
+    created_by BIGINT NULL,
+    updated_by BIGINT NULL,
 
-    PRIMARY KEY (id),
-    CONSTRAINT fk_bank_detail_supplier FOREIGN KEY (supplier_id) REFERENCES supplier(id),
-    CONSTRAINT fk_bank_detail_customer FOREIGN KEY (customer_id) REFERENCES customer(id)
+    INDEX supplier_id (supplier_id),
+    INDEX customer_id (customer_id),
+
+    CONSTRAINT bank_detail_ibfk_1
+        FOREIGN KEY (supplier_id)
+        REFERENCES supplier(id)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+
+    CONSTRAINT bank_detail_ibfk_2
+        FOREIGN KEY (customer_id)
+        REFERENCES customer(id)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT
 );
