@@ -43,18 +43,16 @@ import { getCustomerFormattedText } from "../utils/copyFormatter";
 
 const EMPTY_BANK_ACCOUNT = {
   bankName: "",
-  ifsc: "",
-  branch: "",
+  ifscCode: "",
+  branchName: "",
   accountName: "",
   accountNumber: "",
 };
 
-const MAX_BANK_ACCOUNTS = 4;
-
 const mapBankAccount = (account = {}) => ({
   bankName: account.bankName || "",
-  ifsc: account.ifsc || account.ifscCode || "",
-  branch: account.branch || account.branchName || "",
+  ifscCode: account.ifscCode || account.ifsc || "",
+  branchName: account.branchName || account.branch || "",
   accountName: account.accountName || "",
   accountNumber: account.accountNumber || "",
 });
@@ -62,10 +60,10 @@ const mapBankAccount = (account = {}) => ({
 const hasBankAccountData = (account = {}) =>
   Boolean(
     account.bankName ||
-      account.ifsc ||
       account.ifscCode ||
-      account.branch ||
+      account.ifsc ||
       account.branchName ||
+      account.branch ||
       account.accountName ||
       account.accountNumber,
   );
@@ -74,9 +72,7 @@ const normalizeBankAccounts = (data = {}, { fallbackEmpty = true } = {}) => {
   const accounts = data.bankDetails || data.bankAccounts;
 
   if (Array.isArray(accounts) && accounts.length > 0) {
-    const mapped = accounts
-      .slice(0, MAX_BANK_ACCOUNTS)
-      .map(mapBankAccount);
+    const mapped = accounts.map(mapBankAccount);
 
     if (!fallbackEmpty) {
       return mapped.filter(hasBankAccountData);
@@ -227,7 +223,7 @@ const CustomerModal = ({
     : [{ ...EMPTY_BANK_ACCOUNT }];
 
   const addBankAccount = () => {
-    if (readOnly || bankDetails.length >= MAX_BANK_ACCOUNTS) return;
+    if (readOnly) return;
 
     setForm((prev) => ({
       ...prev,
@@ -651,10 +647,10 @@ const CustomerModal = ({
                         {account.bankName || "-"}
                       </DetailField>
                       <DetailField label="IFSC Code">
-                        {account.ifsc || "-"}
+                        {account.ifscCode || "-"}
                       </DetailField>
                       <DetailField label="Branch Name">
-                        {account.branch || "-"}
+                        {account.branchName || "-"}
                       </DetailField>
                       <DetailField label="Account Holder Name">
                         {account.accountName || "-"}
@@ -700,14 +696,14 @@ const CustomerModal = ({
                         label="Bank Name"
                       />
                       <CustomTextField
-                        name="ifsc"
-                        value={account.ifsc || ""}
+                        name="ifscCode"
+                        value={account.ifscCode || ""}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="IFSC Code"
                       />
                       <CustomTextField
-                        name="branch"
-                        value={account.branch || ""}
+                        name="branchName"
+                        value={account.branchName || ""}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="Branch Name"
                       />
@@ -728,20 +724,18 @@ const CustomerModal = ({
                   </div>
                 ))}
 
-                {bankDetails.length < MAX_BANK_ACCOUNTS && (
-                  <div className="flex justify-end mt-2">
-                    <AppButton
-                      type="primary"
-                      onClick={addBankAccount}
-                      startIcon={<Plus className="h-4 w-4" />}
-                    >
-                      <span className="sm:hidden">Add</span>
-                      <span className="hidden sm:inline">
-                        Add More Bank Accounts
-                      </span>
-                    </AppButton>
-                  </div>
-                )}
+                <div className="flex justify-end mt-2">
+                  <AppButton
+                    type="primary"
+                    onClick={addBankAccount}
+                    startIcon={<Plus className="h-4 w-4" />}
+                  >
+                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">
+                      Add More Bank Accounts
+                    </span>
+                  </AppButton>
+                </div>
               </>
             )}
           </FormSection>

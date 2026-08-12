@@ -63,8 +63,8 @@ export default function CustomerDashboard() {
     bankDetails: [
       {
         bankName: "",
-        ifsc: "",
-        branch: "",
+        ifscCode: "",
+        branchName: "",
         accountName: "",
         accountNumber: "",
       },

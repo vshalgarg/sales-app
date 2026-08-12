@@ -49,8 +49,6 @@ const EMPTY_BANK_ACCOUNT = {
   accountNumber: "",
 };
 
-const MAX_BANK_ACCOUNTS = 4;
-
 const mapBankAccount = (account = {}) => ({
   bankName: account.bankName || "",
   ifscCode: account.ifscCode || account.ifsc || "",
@@ -74,9 +72,7 @@ const normalizeBankAccounts = (data = {}, { fallbackEmpty = true } = {}) => {
   const accounts = data.bankDetails || data.bankAccounts;
 
   if (Array.isArray(accounts) && accounts.length > 0) {
-    const mapped = accounts
-      .slice(0, MAX_BANK_ACCOUNTS)
-      .map(mapBankAccount);
+    const mapped = accounts.map(mapBankAccount);
 
     if (!fallbackEmpty) {
       return mapped.filter(hasBankAccountData);
@@ -256,7 +252,7 @@ const SupplierModal = ({
     : [{ ...EMPTY_BANK_ACCOUNT }];
 
   const addBankAccount = () => {
-    if (readOnly || bankDetails.length >= MAX_BANK_ACCOUNTS) return;
+    if (readOnly) return;
 
     setForm((prev) => ({
       ...prev,
@@ -789,20 +785,18 @@ const SupplierModal = ({
                   </div>
                 ))}
 
-                {bankDetails.length < MAX_BANK_ACCOUNTS && (
-                  <div className="flex justify-end mt-2">
-                    <AppButton
-                      type="primary"
-                      onClick={addBankAccount}
-                      startIcon={<Plus className="h-4 w-4" />}
-                    >
-                      <span className="sm:hidden">Add</span>
-                      <span className="hidden sm:inline">
-                        Add More Bank Accounts
-                      </span>
-                    </AppButton>
-                  </div>
-                )}
+                <div className="flex justify-end mt-2">
+                  <AppButton
+                    type="primary"
+                    onClick={addBankAccount}
+                    startIcon={<Plus className="h-4 w-4" />}
+                  >
+                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">
+                      Add More Bank Accounts
+                    </span>
+                  </AppButton>
+                </div>
               </>
             )}
           </FormSection>

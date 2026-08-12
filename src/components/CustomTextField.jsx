@@ -35,6 +35,13 @@ const CustomTextField = forwardRef(
     },
     ref
   ) => {
+    const inputLabelProps = {
+      ...(rest.type === "number" && value !== "" && value != null
+        ? { shrink: true }
+        : {}),
+      ...rest.InputLabelProps,
+    };
+
     return (
       <StyledTextField
         {...rest}
@@ -54,6 +61,7 @@ const CustomTextField = forwardRef(
         autoFocus={autoFocus}
         fullWidth
         inputRef={ref}
+        InputLabelProps={inputLabelProps}
       />
     );
   }
