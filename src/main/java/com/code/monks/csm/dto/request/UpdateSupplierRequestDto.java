@@ -39,8 +39,6 @@ public class UpdateSupplierRequestDto {
 
     private String msme;
 
-    @Valid
-    @Size(max = 4, message = "A customer can have maximum 4 bank details")
     private List<BankDetailRequestDto> bankDetails;
 
     private Set<Integer> preferredTransportIds;

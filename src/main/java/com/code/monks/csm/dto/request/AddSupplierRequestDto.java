@@ -42,8 +42,6 @@ public class AddSupplierRequestDto {
     private String city;
     private String pinCode;
 
-    @Valid
-    @Size(max = 4, message = "A supplier can have maximum 4 bank details")
     private List<BankDetailRequestDto> bankDetails;
 
     @NotNull(message = "Preferred transport is required")
