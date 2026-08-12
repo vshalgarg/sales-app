@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.request.AddCustomerRequestDto;
 import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.UpdateCustomerRequestDto;
 import com.code.monks.csm.dto.response.CustomerListDto;
+import com.code.monks.csm.entity.BankDetailEntity;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.utils.ContactUtil;
@@ -28,11 +29,22 @@ public class CustomerMapper {
         entity.setMsme(dto.getCustomerMsme());
         entity.setRemark(dto.getRemark());
 
-        entity.setBankName(dto.getBankName());
-        entity.setIfscCode(dto.getIfsc());
-        entity.setBranchName(dto.getBranch());
-        entity.setAccountName(dto.getAccountName());
-        entity.setAccountNumber(dto.getAccountNumber());
+        if (dto.getBankDetails() != null) {
+            List<BankDetailEntity> bankDetails = dto.getBankDetails()
+                    .stream()
+                    .map(bankDto -> {
+                        BankDetailEntity bank = new BankDetailEntity();
+                        bank.setBankName(bankDto.getBankName());
+                        bank.setIfscCode(bankDto.getIfscCode());
+                        bank.setBranchName(bankDto.getBranchName());
+                        bank.setAccountName(bankDto.getAccountName());
+                        bank.setAccountNumber(bankDto.getAccountNumber());
+                        bank.setCustomer(entity);
+                        return bank;
+                    })
+                    .toList();
+            entity.setBankDetails(bankDetails);
+        }
     }
 
     public static void mapCommonFields(CustomerEntity entity, UpdateCustomerRequestDto dto) {
@@ -60,12 +72,27 @@ public class CustomerMapper {
         );
 
         entity.setRemark(dto.getRemark());
-
-        entity.setBankName(StringUtils.trimToNull(dto.getBankName()));
-        entity.setIfscCode(StringUtils.trimToNull(dto.getIfsc()));
-        entity.setBranchName(StringUtils.trimToNull(dto.getBranch()));
-        entity.setAccountName(StringUtils.trimToNull(dto.getAccountName()));
-        entity.setAccountNumber(StringUtils.trimToNull(dto.getAccountNumber()));
+        if (dto.getBankDetails() != null) {
+            if (entity.getBankDetails() == null) {
+                entity.setBankDetails(new ArrayList<>());
+            } else {
+                entity.getBankDetails().clear();
+            }
+            List<BankDetailEntity> bankDetails = dto.getBankDetails()
+                    .stream()
+                    .map(bankDto -> {
+                        BankDetailEntity bank = new BankDetailEntity();
+                        bank.setBankName(StringUtils.trimToNull(bankDto.getBankName()));
+                        bank.setIfscCode(StringUtils.trimToNull(bankDto.getIfscCode()));
+                        bank.setBranchName(StringUtils.trimToNull(bankDto.getBranchName()));
+                        bank.setAccountName(StringUtils.trimToNull(bankDto.getAccountName()));
+                        bank.setAccountNumber(StringUtils.trimToNull(bankDto.getAccountNumber()));
+                        bank.setCustomer(entity);
+                        return bank;
+                    })
+                    .toList();
+            entity.getBankDetails().addAll(bankDetails);
+        }
     }
 
     public static void mapContacts(CustomerEntity entity, List<ContactRequestDto> contacts) {

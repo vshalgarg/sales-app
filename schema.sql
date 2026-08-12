@@ -763,3 +763,19 @@ INSERT INTO configurations (
     NULL,
     NULL
 );
+
+
+CREATE TABLE bank_detail (
+    id INT NOT NULL AUTO_INCREMENT,
+    bank_name VARCHAR(255),
+    ifsc_code VARCHAR(255),
+    branch_name VARCHAR(255),
+    account_name VARCHAR(255),
+    account_number VARCHAR(255),
+    supplier_id INT,
+    customer_id INT,
+
+    PRIMARY KEY (id),
+    CONSTRAINT fk_bank_detail_supplier FOREIGN KEY (supplier_id) REFERENCES supplier(id),
+    CONSTRAINT fk_bank_detail_customer FOREIGN KEY (customer_id) REFERENCES customer(id)
+);

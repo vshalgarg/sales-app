@@ -3,6 +3,7 @@ package com.code.monks.csm.mapper;
 import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.purchase.PurchaseImageDto;
 import com.code.monks.csm.dto.purchase.SupplierPurchaseDetailDto;
+import com.code.monks.csm.dto.response.BankDetailResponseDto;
 import com.code.monks.csm.dto.response.CopySupplierDTO;
 import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
 import com.code.monks.csm.entity.PurchaseEntity;
@@ -109,13 +110,16 @@ public class PurchaseMapper {
     public CopySupplierDTO toSupplierCopyDto(
             SupplierEntity supplier
     ) {
+        List<BankDetailResponseDto> bankDetails = supplier.getBankDetails() == null ? List.of() : supplier.getBankDetails() .stream() .map(bank -> new BankDetailResponseDto(
+                bank.getBankName(),
+                bank.getIfscCode(),
+                bank.getBranchName(),
+                bank.getAccountName(),
+                bank.getAccountNumber()
+        )) .toList();
         return new CopySupplierDTO(
                 supplier.getSupplierName(),
-                supplier.getAccountName(),
-                supplier.getAccountNumber(),
-                supplier.getIfscCode(),
-                supplier.getBranchName(),
-                supplier.getBankName()
+                bankDetails
         );
     }
 }
