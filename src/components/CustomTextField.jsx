@@ -31,16 +31,14 @@ const CustomTextField = forwardRef(
       margin = "none",
       autoFocus = false,
       hideErrorUI = false, // 🔹 New prop to hide red border/helperText
+      slotProps,
+      InputLabelProps,
+      inputProps,
       ...rest
     },
     ref
   ) => {
-    const inputLabelProps = {
-      ...(rest.type === "number" && value !== "" && value != null
-        ? { shrink: true }
-        : {}),
-      ...rest.InputLabelProps,
-    };
+    const hasValue = value !== "" && value != null;
 
     return (
       <StyledTextField
@@ -61,7 +59,23 @@ const CustomTextField = forwardRef(
         autoFocus={autoFocus}
         fullWidth
         inputRef={ref}
-        InputLabelProps={inputLabelProps}
+        InputLabelProps={{
+          ...(hasValue ? { shrink: true } : {}),
+          ...InputLabelProps,
+        }}
+        inputProps={inputProps}
+        slotProps={{
+          ...slotProps,
+          inputLabel: {
+            ...(hasValue ? { shrink: true } : {}),
+            ...slotProps?.inputLabel,
+            ...InputLabelProps,
+          },
+          htmlInput: {
+            ...slotProps?.htmlInput,
+            ...inputProps,
+          },
+        }}
       />
     );
   }

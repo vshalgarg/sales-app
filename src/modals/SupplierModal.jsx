@@ -779,7 +779,7 @@ const SupplierModal = ({
                         value={account.accountNumber || ""}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="Account Number"
-                        type="number"
+                        inputProps={{ inputMode: "numeric" }}
                       />
                     </div>
                   </div>
