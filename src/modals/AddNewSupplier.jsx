@@ -664,7 +664,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         value={account.accountNumber}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="Account Number"
-                        type="number"
+                        inputProps={{ inputMode: "numeric" }}
                       />
                     </div>
                   </div>
