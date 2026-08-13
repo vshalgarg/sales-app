@@ -29,13 +29,11 @@ import {
 
 const EMPTY_BANK_ACCOUNT = {
   bankName: "",
-  ifsc: "",
-  branch: "",
+  ifscCode: "",
+  branchName: "",
   accountName: "",
   accountNumber: "",
 };
-
-const MAX_BANK_ACCOUNTS = 4;
 
 const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -157,8 +155,6 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     : [{ ...EMPTY_BANK_ACCOUNT }];
 
   const addBankAccount = () => {
-    if (bankDetails.length >= MAX_BANK_ACCOUNTS) return;
-
     setForm((prev) => ({
       ...prev,
       bankDetails: [
@@ -218,8 +214,8 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
     const filledBankDetails = (form.bankDetails || bankDetails).filter(
       (account) =>
         account.bankName ||
-        account.ifsc ||
-        account.branch ||
+        account.ifscCode ||
+        account.branchName ||
         account.accountName ||
         account.accountNumber,
     );
@@ -593,15 +589,15 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                       />
 
                       <CustomTextField
-                        name="ifsc"
-                        value={account.ifsc}
+                        name="ifscCode"
+                        value={account.ifscCode}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="IFSC Code"
                       />
 
                       <CustomTextField
-                        name="branch"
-                        value={account.branch}
+                        name="branchName"
+                        value={account.branchName}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="Branch Name"
                       />
@@ -618,26 +614,24 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                         value={account.accountNumber}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="Account Number"
-                        type="number"
+                        inputProps={{ inputMode: "numeric" }}
                       />
                     </div>
                   </div>
                 ))}
 
-                {bankDetails.length < MAX_BANK_ACCOUNTS && (
-                  <div className="flex justify-end mt-2">
-                    <AppButton
-                      type="primary"
-                      onClick={addBankAccount}
-                      startIcon={<Plus className="h-4 w-4" />}
-                    >
-                      <span className="sm:hidden">Add</span>
-                      <span className="hidden sm:inline">
-                        Add More Bank Accounts
-                      </span>
-                    </AppButton>
-                  </div>
-                )}
+                <div className="flex justify-end mt-2">
+                  <AppButton
+                    type="primary"
+                    onClick={addBankAccount}
+                    startIcon={<Plus className="h-4 w-4" />}
+                  >
+                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">
+                      Add More Bank Accounts
+                    </span>
+                  </AppButton>
+                </div>
               </FormSection>
             </div>
 

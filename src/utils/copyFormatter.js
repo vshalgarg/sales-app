@@ -47,8 +47,6 @@ const toFieldList = (data) =>
     .filter(([_, value]) => value !== undefined && value !== null && value !== "")
     .map(([label, value]) => ({ label, value }));
 
-const MAX_BANK_DETAILS = 4;
-
 const buildBankFields = ({
   bankName,
   accountName,
@@ -77,9 +75,7 @@ const resolveBankAccounts = (entity) => {
     if (legacyFields.length) list = [entity];
   }
 
-  return list
-    .slice(0, MAX_BANK_DETAILS)
-    .filter((account) => buildBankFields(account || {}).length > 0);
+  return list.filter((account) => buildBankFields(account || {}).length > 0);
 };
 
 const buildBankCopyData = (entity) => {

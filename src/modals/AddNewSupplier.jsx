@@ -37,8 +37,6 @@ const EMPTY_BANK_ACCOUNT = {
   accountNumber: "",
 };
 
-const MAX_BANK_ACCOUNTS = 4;
-
 const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
   const [errors, setErrors] = useState({
     contacts: [{}],
@@ -146,8 +144,6 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
     : [{ ...EMPTY_BANK_ACCOUNT }];
 
   const addBankAccount = () => {
-    if (bankDetails.length >= MAX_BANK_ACCOUNTS) return;
-
     setForm((prev) => ({
       ...prev,
       bankDetails: [...(prev.bankDetails || bankDetails), { ...EMPTY_BANK_ACCOUNT }],
@@ -668,26 +664,24 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                         value={account.accountNumber}
                         onChange={(e) => handleBankAccountChange(index, e)}
                         label="Account Number"
-                        type="number"
+                        inputProps={{ inputMode: "numeric" }}
                       />
                     </div>
                   </div>
                 ))}
 
-                {bankDetails.length < MAX_BANK_ACCOUNTS && (
-                  <div className="flex justify-end mt-2">
-                    <AppButton
-                      type="primary"
-                      onClick={addBankAccount}
-                      startIcon={<Plus className="h-4 w-4" />}
-                    >
-                      <span className="sm:hidden">Add</span>
-                      <span className="hidden sm:inline">
-                        Add More Bank Accounts
-                      </span>
-                    </AppButton>
-                  </div>
-                )}
+                <div className="flex justify-end mt-2">
+                  <AppButton
+                    type="primary"
+                    onClick={addBankAccount}
+                    startIcon={<Plus className="h-4 w-4" />}
+                  >
+                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">
+                      Add More Bank Accounts
+                    </span>
+                  </AppButton>
+                </div>
               </FormSection>
             </div>
 
