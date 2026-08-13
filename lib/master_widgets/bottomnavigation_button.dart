@@ -58,6 +58,7 @@ class BottomNavigationButton extends StatelessWidget {
                 ),
               ),
             ),
+            SizedBox(height:20)
           ],
 
         ],

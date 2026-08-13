@@ -25,7 +25,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // bool showRetailFeature = false;
   String email = "";
   String role = "";
 
@@ -92,7 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   GridView.count(
                     crossAxisCount: 3,
                     shrinkWrap: true,
-                    //crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                     physics: NeverScrollableScrollPhysics(),
                     children: [
@@ -221,14 +219,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => LedgerReporting()));
                         },
                       ),
-                      // menuItemCard(
-                      //   imagePath: "assets/images/charts.png",
-                      //   title: "Charts",
-                        // onTap: () {
-                          //Navigator.push(context, MaterialPageRoute(builder:(context)=>ChartsScreen()));
-                       // },
-                        //},
-                     // ),
                     ],
                   ),
                 ],

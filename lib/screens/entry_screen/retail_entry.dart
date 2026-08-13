@@ -31,7 +31,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   EntriesCustomerModel? selectedReffered;
   String?selectedRefferedName;
   final transactionController = TextEditingController();
-  //List<EntriesModel?> selectedSuppliers = [null];
   List<String?> selectedSuppliers = [null];
   List<int?> selectedSupplierIds = [null];
   String?selectedSupplierName;
@@ -112,10 +111,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                 onDiscard: () {
                   Navigator.pop(context);
                   Navigator.pop(context,true);
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => const Retail()),
-                  // );
                 },
               );
             },
@@ -314,8 +309,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                                         suppliers.removeAt(index);
                                         totalAmount.removeAt(index);
                                         balancedAmount.removeAt(index);
-                                        depositAmount.removeAt(index);
-                                      //  selectedSuppliers.removeAt(index);
                                         selectedSuppliers.removeAt(index);
                                         selectedSupplierIds.removeAt(index);
                                       });
@@ -456,10 +449,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                                     "Retail Entry Saved",
                                 );
                                 Navigator.pop(context,true);
-                                // Navigator.pushReplacement(
-                                //   context,
-                                //   MaterialPageRoute(builder: (context) => Retail()),
-                                // );
                               } catch (e) {
                                 ScaffoldSnackBar.show(context, e.toString());
                               }

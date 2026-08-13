@@ -67,13 +67,10 @@ class SupplierProvider extends PaginationProvider<Supplier> {
 
     if (result.isSuccess && result.data != null) {
       _supplierDetails = result.data!.data;
-      // notifyListeners();
-      // return true;
     }
 
     notifyListeners();
     return result.isSuccess && result.data != null;
-  //  return false;
   }
 
   Future<bool> addSupplier(AddSupplierRequest request) async {
@@ -106,11 +103,6 @@ try{
       );
 
       if (result.isSuccess) {
-        // await refresh();
-        //
-        // if (_supplierDetails?.id == id) {
-        //   await fetchSupplierDetails(id);
-        // }
 
         return true;
       }
@@ -139,25 +131,6 @@ try{
       notifyListeners();
     }
   }
-  // Future<bool> deleteSupplier( String code) async {
-  //   print("Deleting supplier: $code");
-  //   _actionLoading = true;
-  //   notifyListeners();
-  //
-  //   final result = await _service.deleteSupplier(code);
-  //   print("Delete success: ${result.isSuccess}");
-  //   print("Delete error: ${result.errorMessage}");
-  //   _actionLoading = false;
-  //
-  //   if (result.isSuccess) {
-  //     await refreshSuppliers();
-  //     notifyListeners();
-  //     return true;
-  //   }
-  //
-  //   notifyListeners();
-  //   return false;
-  // }
   Future<void> refreshSuppliers() async {
     await refresh();
   }

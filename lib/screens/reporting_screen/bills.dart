@@ -110,23 +110,25 @@ class _BillsState extends State<Bills> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
-      final entriesProvider =
-      context.read<EntriesProvider>();
+      final billProvider = context.read<BillProvider>();
 
-      await entriesProvider.fetchSuppliers();
+      billProvider.setFromDate(fromDateController.text);
+      billProvider.setToDate(toDateController.text);
 
-      await entriesProvider.fetchCustomer();
+      // Start bills immediately
+      await billProvider.fetchInitialBills();
 
-      final provider =
-      context.read<BillProvider>();
+      if (!mounted) return;
 
-      provider.setFromDate(fromDateController.text);
-      provider.setToDate(toDateController.text);
+      // Load filter data separately
+      final entriesProvider = context.read<EntriesProvider>();
 
-      await provider.fetchInitialBills();
+      await Future.wait([
+        entriesProvider.fetchSuppliers(),
+        entriesProvider.fetchCustomer(),
+      ]);
     });
   }
-
   @override
   void dispose() {
     fromDateController.dispose();
@@ -134,7 +136,6 @@ class _BillsState extends State<Bills> {
 
     super.dispose();
   }
-
   Future<void> _showBillDetails(String billNumber) async {
     if (!mounted) return;
 
@@ -307,7 +308,35 @@ class _BillsState extends State<Bills> {
       },
     );
   }
+  Future<void> _resetBillsBeforeExit() async {
+    final provider = context.read<BillProvider>();
 
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat("yyyy-MM-dd");
+
+    final fromDate = formatter.format(tenDaysAgo);
+    final toDate = formatter.format(now);
+
+    // Reset screen filter values
+    selectedSupplier = null;
+    selectedCustomer = null;
+    selectedSupplierId = null;
+    selectedCustomerId = null;
+    isFilterApplied = false;
+
+    fromDateController.text = fromDate;
+    toDateController.text = toDate;
+
+    // Reset provider filter values
+    provider.setFromDate(fromDate);
+    provider.setToDate(toDate);
+    provider.setSupplierId(null);
+    provider.setCustomerId(null);
+
+    // Remove the currently filtered cards
+    provider.clear();
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery
@@ -316,7 +345,18 @@ class _BillsState extends State<Bills> {
     final width = size.width;
     final height = size.height;
 
-    return Scaffold(
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+
+          await _resetBillsBeforeExit();
+
+          if (!mounted) return;
+
+          Navigator.pop(context);
+        },
+        child: Scaffold(
       backgroundColor: AppColors.bodyFillColor,
 
       appBar: CustomAppBar(
@@ -516,6 +556,7 @@ class _BillsState extends State<Bills> {
           },
         ),
       ),
+    )
     );
   }
 }

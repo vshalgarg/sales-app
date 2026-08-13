@@ -48,7 +48,6 @@ class DioExceptions implements Exception {
         }
         return "Something went wrong.";
       case DioExceptionType.transformTimeout:
-        //
         throw UnimplementedError();
     }
   }

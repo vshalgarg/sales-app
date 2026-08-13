@@ -33,18 +33,6 @@ class ReportingFilterSection extends StatelessWidget {
     required this.onApply,
     required this.onClear,
   });
-  // bool _hasSelectedFilter() {
-  //   if (fromDateController.text.isNotEmpty ||
-  //       toDateController.text.isNotEmpty) {
-  //     return true;
-  //   }
-  //
-  //   return dropdowns.any(
-  //         (dropdown) =>
-  //     dropdown.value != null &&
-  //         dropdown.value!.trim().isNotEmpty,
-  //   );
-  // }
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -148,14 +136,6 @@ class ReportingFilterSection extends StatelessWidget {
                   height: 52,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // if (!_hasSelectedFilter()) {
-                      //   ScaffoldMessenger.of(context).showSnackBar(
-                      //     const SnackBar(
-                      //       content: Text("Please select at least one filter."),
-                      //     ),
-                      //   );
-                      //   return;
-                      // }
 
                       onApply();
                     },
@@ -192,11 +172,9 @@ class ReportingFilterSection extends StatelessWidget {
       style: const TextStyle(
         color: AppColors.primaryBlue,
         fontSize: 16,
-       // fontWeight: FontWeight.w500,
       ),
     ),
 
-    //const SizedBox(height: 6),
     InkWell(
       onTap: () async {
         final picked = await showDatePicker(
@@ -211,7 +189,6 @@ class ReportingFilterSection extends StatelessWidget {
         }
       },
       child: Container(
-       // height: 58,
         padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -229,14 +206,6 @@ class ReportingFilterSection extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                     //  Text(
-                     //    label,
-                     //    style: const TextStyle(
-                     //      color: AppColors.primaryBlue,
-                     //      fontSize: 14,
-                     //      fontWeight: FontWeight.w500,
-                     //    ),
-                     //  ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 18.0),
                         child: Text(

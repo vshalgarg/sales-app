@@ -342,7 +342,35 @@ class _PurchasesState extends State<Purchases> {
       },
     );
   }
+  Future<void> _resetPurchaseBeforeExit() async {
+    final provider = context.read<PurchaseProvider>();
 
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat("yyyy-MM-dd");
+
+    final fromDate = formatter.format(tenDaysAgo);
+    final toDate = formatter.format(now);
+
+    // Reset screen filter values
+    selectedSupplier = null;
+    selectedCustomer = null;
+    selectedSupplierId = null;
+    selectedCustomerId = null;
+    isFilterApplied = false;
+
+    fromDateController.text = fromDate;
+    toDateController.text = toDate;
+
+    // Reset provider filter values
+    provider.setFromDate(fromDate);
+    provider.setToDate(toDate);
+    provider.setSupplierId(null);
+    provider.setCustomerId(null);
+
+    // Remove the currently filtered cards
+    provider.clear();
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -351,7 +379,18 @@ class _PurchasesState extends State<Purchases> {
 
     final height = size.height;
 
-    return Scaffold(
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+
+          await _resetPurchaseBeforeExit();
+
+          if (!mounted) return;
+
+          Navigator.pop(context);
+        },
+        child: Scaffold(
         backgroundColor: AppColors.bodyFillColor,
 
         appBar: CustomAppBar(
@@ -398,7 +437,6 @@ class _PurchasesState extends State<Purchases> {
               ),
             );
             print("Navigator returned: $refresh");
-           // if (!mounted) return;
 
             if (refresh == true) {
               print("Navigator returned: $refresh");
@@ -502,22 +540,6 @@ class _PurchasesState extends State<Purchases> {
                             ],
 
                             onTap: () async {
-                              final success =
-                              await provider.fetchPurchaseDetails(
-                                purchase.id!,
-                              );
-
-                              if (!mounted) return;
-
-                              if (!success ||
-                                  provider.purchaseDetails == null) {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  "Failed to fetch purchase details",
-                                );
-                                return;
-                              }
-
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -530,31 +552,13 @@ class _PurchasesState extends State<Purchases> {
                             },
 
                             onEdit: () async {
-                              final success =
-                              await provider.fetchPurchaseDetails(
-                                purchase.id!,
-                              );
-
-                              if (!mounted) return;
-
-                              if (!success ||
-                                  provider.purchaseDetails == null) {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  "Failed to fetch purchase details",
-                                );
-                                return;
-                              }
-
-                              final refresh =
-                              await Navigator.push(
+                              final refresh = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      PurchaseEntryScreen(
-                                        mode: FormMode.edit,
-                                        id: purchase.id,
-                                      ),
+                                  builder: (_) => PurchaseEntryScreen(
+                                    mode: FormMode.edit,
+                                    id: purchase.id,
+                                  ),
                                 ),
                               );
 
@@ -609,6 +613,7 @@ class _PurchasesState extends State<Purchases> {
                 },
             ),
         ),
+    )
     );
   }
 }

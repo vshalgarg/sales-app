@@ -4,14 +4,9 @@ import '../config/env.dart';
 import '../shared_preferences/login_token.dart';
 
 class ApiProvider {
- // final String baseUrl;
 
   late final Dio _dio;
 
- // ApiProvider{
-   // required this.baseUrl,
-  //})
-    //{
   ApiProvider() {
     _dio = Dio(
       BaseOptions(

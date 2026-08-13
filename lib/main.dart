@@ -17,6 +17,7 @@ import 'package:hisabio/provider/master_provider/staff_provider.dart';
 import 'package:hisabio/provider/master_provider/supplier_provider.dart';
 import 'package:hisabio/provider/master_provider/transport_provider.dart';
 import 'package:hisabio/provider/master_provider/user_provider.dart';
+import 'package:hisabio/screens/auth_manager.dart';
 
 import 'package:hisabio/screens/splash_screen.dart';
 import 'package:hisabio/services/bills/bill_service.dart';
@@ -34,15 +35,14 @@ import 'package:hisabio/services/user/user_service.dart';
 import 'package:provider/provider.dart';
 import 'network/api_provider.dart';
 import 'network/api_service.dart';
-
+final GlobalKey<NavigatorState> navigatorKey =
+GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-
+  AuthManager().initialize(navigatorKey);
   final apiProvider = ApiProvider(
-    //baseUrl: Env.baseUrl,
   );
-
   final apiService = ApiService(apiProvider);
   runApp(
     MultiProvider(
@@ -95,26 +95,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-     // title: 'Flutter Demo',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textTheme: GoogleFonts.nunitoTextTheme(ThemeData.light().textTheme),
-
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryPurple),
       ),
       home: const SplashScreen(),

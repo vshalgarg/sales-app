@@ -114,17 +114,7 @@ class CustomerProvider extends PaginationProvider<Customer> {
       );
 
       if (result.isSuccess) {
-        // If you want the list to refresh immediately after an update,
-        // uncomment the next line.
         await refreshCustomers();
-
-        // If the details screen is open for the same customer,
-        // uncomment the next block.
-        /*
-        if (_customerDetails?.id == id) {
-          await fetchCustomerDetails(id);
-        }
-        */
 
         return true;
       }

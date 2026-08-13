@@ -3,7 +3,7 @@ import '../../../../network/api_service.dart';
 import '../../../../network/response_result.dart';
 import '../../model_classes/Transport/add_transport_request.dart';
 import '../../model_classes/common/api_response.dart';
-import '../../model_classes/transport/transport.dart';
+import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/transport/transport_details.dart';
 
 class TransportService {
@@ -94,6 +94,9 @@ class TransportService {
       path: "$_transports/$id",
     );
 
+    print("GET TRANSPORT DETAILS RESPONSE:");
+    print(result.data);
+
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Something went wrong",
@@ -101,8 +104,16 @@ class TransportService {
       );
     }
 
+    final json = result.data!;
+
+    // If API response is wrapped inside "data"
+    final transportJson =
+    json["data"] is Map<String, dynamic>
+        ? json["data"] as Map<String, dynamic>
+        : json;
+
     return ResponseResult.success(
-      TransportDetails.fromJson(result.data!),
+      TransportDetails.fromJson(transportJson),
       result.statusCode,
     );
   }

@@ -33,7 +33,7 @@ class LoginModel {
     );
   }
 
-  /// Helper functions (VERY useful)
+  // Helper functions (VERY useful)
   bool get isSuccess => token != null;
 
   bool get isError => token == null;

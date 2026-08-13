@@ -32,8 +32,6 @@ class ExitConfirmationDialog {
                 Padding(
                   padding: const EdgeInsets.all(15.0),
                   child: Container(
-                   // width:350,
-                    //height:150,
                     padding: const EdgeInsets.all(40),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -50,33 +48,6 @@ class ExitConfirmationDialog {
                     ),
                   ),
                 ),
-
-                // Positioned(
-                //   top: 0,
-                //   right: 0,
-                //   child: GestureDetector(
-                //     onTap: onClose,
-                //     child: Container(
-                //       height: 30,
-                //       width: 30,
-                //       decoration: const BoxDecoration(
-                //         color: Colors.red,
-                //         shape: BoxShape.circle,
-                //         boxShadow: [
-                //           BoxShadow(
-                //             blurRadius: 8,
-                //             color: Colors.black26,
-                //           ),
-                //         ],
-                //       ),
-                //       child: const Icon(
-                //         Icons.close,
-                //         color: Colors.white,
-                //         size: 25,
-                //       ),
-                //     ),
-                //   ),
-                // ),
 
                 Positioned(
                   bottom: 0 ,

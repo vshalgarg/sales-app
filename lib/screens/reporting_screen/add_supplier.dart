@@ -32,7 +32,6 @@ class _AddSupplierState extends State<AddSupplier> {
   @override
   void initState() {
     super.initState();
-    // print("Received retailId = ${widget.retailId}");
     dateController.text = DateFormat("dd-MM-yyyy").format(DateTime.now());
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {

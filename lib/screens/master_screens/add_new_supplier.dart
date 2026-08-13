@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/dropdown_test.dart';
 import '../../enums/customer_mode.dart';
+import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/supplier/add_supplier_request.dart';
 import '../../model_classes/supplier/bank_details_request.dart';
 import '../../pop_ups/general_closing_popup.dart';
@@ -90,7 +91,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   List<ContactControllers> contacts = [];
 
   List<BankControllers> bankDetails = [];
-  String? selectedTransportId;
+  List<int> selectedTransportIds = [];
+  List<String> selectedTransportNames = [];
 
   AddSupplierRequest submitSupplier() {
     List<Map<String, dynamic>> contactList = contacts.map((c) {
@@ -139,9 +141,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       pinCode: pinCodeController.text.trim(),
       remark: remarksController.text.trim(),
       contacts: contactList,
-      preferredTransportIds: selectedTransportId != null
-          ? [int.parse(selectedTransportId!)]
-          : [],
+      preferredTransportIds: selectedTransportIds,
     );
   }
 
@@ -193,13 +193,12 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       pinCode: pinCodeController.text.trim(),
       remark: remarksController.text.trim(),
       contacts: contactList,
-      preferredTransportIds: selectedTransportId != null
-          ? [int.parse(selectedTransportId!)]
-          : [],
+      preferredTransportIds: selectedTransportIds,
     );
   }
 
   void _populateFormFromSupplier(SupplierDetails s) {
+    //  BASIC INFO
     nameController.text = s.supplierName ?? "";
     emailController.text = s.email ?? "";
     groupController.text = s.groupName ?? "";
@@ -209,9 +208,14 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     commissionRateController.text = s.commissionRate?.toString() ?? "";
     referenceController.text = s.referenceBy ?? "";
 
-    if (s.bankDetails.isNotEmpty) {
-      bankDetails.clear();
+    //  BANK DETAILS
+    for (final bank in bankDetails) {
+      bank.dispose();
+    }
 
+    bankDetails.clear();
+
+    if (s.bankDetails.isNotEmpty) {
       for (final bank in s.bankDetails) {
         bankDetails.add(
           BankControllers()
@@ -222,51 +226,75 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
             ..accountNumber.text = bank.accountNumber ?? "",
         );
       }
+    } else {
+      // Keep one empty bank section visible
+      // in View/Edit mode as well.
+      bankDetails.add(BankControllers());
+    }
 
-      if (bankDetails.isEmpty && widget.mode != FormMode.view) {
-        bankDetails.add(BankControllers());
+    //  ADDRESS DETAILS
+    addressLine1Controller.text = s.addressLine1 ?? "";
+    addressLine2Controller.text = s.addressLine2 ?? "";
+    stateController.text = (s.state ?? "").trim();
+    cityController.text = s.city ?? "";
+    pinCodeController.text = s.pinCode ?? "";
+
+    //  REMARKS
+    remarksController.text = s.remark ?? "";
+
+    //  PREFERRED TRANSPORTS
+    selectedTransportIds.clear();
+    selectedTransportNames.clear();
+
+    for (final transport in s.preferredTransports) {
+      if (transport is Map) {
+        final id = transport['id'];
+
+        if (id != null) {
+          selectedTransportIds.add(
+            int.parse(id.toString()),
+          );
+        }
+
+        final name = transport['name']?.toString();
+
+        if (name != null && name.isNotEmpty) {
+          selectedTransportNames.add(name);
+        }
       }
-      addressLine1Controller.text = s.addressLine1 ?? "";
-      addressLine2Controller.text = s.addressLine2 ?? "";
-      stateController.text = (s.state ?? "").trim();
-      cityController.text = s.city ?? "";
-      pinCodeController.text = s.pinCode ?? "";
-      remarksController.text = s.remark ?? "";
+    }
 
-      if (s.preferredTransports.isNotEmpty) {
-        final first = s.preferredTransports.first;
-        if (first is Map) {
-          selectedTransportId = first['id']?.toString();
+    //  CONTACT DETAILS
+    for (final contact in contacts) {
+      contact.dispose();
+    }
+
+    contacts = [];
+
+    if (s.contacts.isNotEmpty) {
+      for (var c in s.contacts) {
+        final contact = ContactControllers();
+
+        if (c is Map) {
+          contact.name.text =
+              c['contactPerson']?.toString() ?? "";
+
+          contact.mobile.text =
+              c['mobileNumber']?.toString() ?? "";
+
+          contact.type.text =
+              c['type']?.toString() ?? "";
         } else {
-          selectedTransportId = first.toString();
+          contact.name.text = c.contactPerson ?? "";
+          contact.mobile.text = c.mobileNumber ?? "";
+          contact.type.text = c.type ?? "";
         }
+
+        contacts.add(contact);
       }
-
-      contacts = [];
-
-      if ((s.contacts).isNotEmpty) {
-        for (var c in s.contacts) {
-          final contact = ContactControllers();
-
-          if (c is Map) {
-            contact.name.text = c['contactPerson']?.toString() ?? "";
-
-            contact.mobile.text = c['mobileNumber']?.toString() ?? "";
-
-            contact.type.text = c['type']?.toString() ?? "";
-          } else {
-            contact.name.text = c.contactPerson ?? "";
-
-            contact.mobile.text = c.mobileNumber ?? "";
-
-            contact.type.text = c.type ?? "";
-          }
-
-          contacts.add(contact);
-        }
-      } else {
-        contacts.add(ContactControllers());
-      }
+    } else {
+      // Keep one empty contact section visible
+      contacts.add(ContactControllers());
     }
   }
 
@@ -296,7 +324,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     }
 
     Future.microtask(() {
-      Provider.of<TransportProvider>(context, listen: false).fetchInitial();
+      Provider.of<TransportProvider>(context, listen: false).fetchAllTransports();
     });
   }
 
@@ -314,11 +342,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   }
 
   void addBankDetails() {
-    if (bankDetails.length >= 4) {
-      ScaffoldSnackBar.show(context, "Maximum 4 bank details can be added");
-      return;
-    }
-
     setState(() {
       bankDetails.add(BankControllers());
     });
@@ -347,7 +370,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
     setState(() {
       bankDetails = [BankControllers()];
-      selectedTransportId = null;
+      selectedTransportIds.clear();
+      selectedTransportNames.clear();
       contacts = [ContactControllers()];
     });
     addressLine1Controller.clear();
@@ -361,12 +385,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       c.mobile.clear();
       c.type.clear();
     }
-
-    setState(() {
-      selectedTransportId = null;
-
-      contacts = [ContactControllers()];
-    });
   }
 
   @override
@@ -427,10 +445,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   onDiscard: () {
                     Navigator.pop(context);
                     Navigator.pop(context, true);
-                    //   Navigator.pushReplacement(
-                    //     context,
-                    //    MaterialPageRoute(builder: (context) => Supplier()),
-                    //   );
                   },
                 );
               },
@@ -539,30 +553,46 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
                 Consumer<TransportProvider>(
-                  builder: (context, provider, child) {
+                  builder: (context, transportProvider, child) {
+                    if (transportProvider.data.isLoading) {
+                      return const CircularProgressIndicator();
+                    }
+
+                    final List<Transport> transports =
+                    transportProvider.data.items.cast<Transport>();
+
                     return CustomDropdown(
-                      isDisabled: widget.mode == FormMode.view,
-                      hintText: "Preferred Transport",
-                      items: provider.data.items
-                          .map((e) => e.name ?? "")
+                      hintText: "Preferred Transports",
+
+                      items: transports
+                          .map<String>((e) => e.name ?? "")
+                          .where((name) => name.isNotEmpty)
                           .toList(),
-                      initialValue:
-                          provider.data.items.any(
-                            (e) => e.id.toString() == selectedTransportId,
-                          )
-                          ? provider.data.items
-                                .firstWhere(
-                                  (e) => e.id.toString() == selectedTransportId,
-                                )
-                                .name
-                          : null,
-                      onChanged: (value) {
-                        final transport = provider.data.items.firstWhere(
-                          (e) => e.name == value,
-                        );
+
+                      isMultiSelect: true,
+
+                      initialValues: List<String>.from(
+                        selectedTransportNames,
+                      ),
+
+                      isDisabled: widget.mode == FormMode.view,
+
+                      onChanged: (_) {},
+
+                      onMultiChanged: (values) {
+                        final List<String> names =
+                        List<String>.from(values);
 
                         setState(() {
-                          selectedTransportId = transport.id.toString();
+                          selectedTransportNames = names;
+
+                          selectedTransportIds = names.map<int>((name) {
+                            final transport = transports.firstWhere(
+                                  (e) => e.name == name,
+                            );
+
+                            return transport.id!.toInt();
+                          }).toList();
                         });
                       },
                     );
@@ -624,56 +654,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 ScaffoldSnackBar.show(context, "Something went wrong: $e");
               }
             },
-
-            // saveSupplier: () async {
-            //   print("🔥 SAVE BUTTON CLICKED");
-            //
-            //   try {
-            //     print("actionLoading = ${provider.actionLoading}");
-            //
-            //     if (nameController.text.trim().isEmpty) {
-            //       print(" Supplier name is empty");
-            //
-            //       ScaffoldSnackBar.show(context, "Supplier name is required");
-            //       return;
-            //     }
-            //
-            //     for (int i = 0; i < bankDetails.length; i++) {
-            //       print("========== BANK ${i + 1} ==========");
-            //       print("Bank Name: ${bankDetails[i].bankName.text}");
-            //       print("IFSC: ${bankDetails[i].ifscCode.text}");
-            //       print("Branch: ${bankDetails[i].branchName.text}");
-            //       print("Account Holder: ${bankDetails[i].accountName.text}");
-            //       print("Account Number: ${bankDetails[i].accountNumber.text}");
-            //     }
-            //
-            //     final request = submitSupplier();
-            //
-            //     print("🔥 SUPPLIER REQUEST:");
-            //     print(request.toJson());
-            //
-            //     final success = await provider.addSupplier(request);
-            //
-            //     print("🔥 ADD SUCCESS: $success");
-            //
-            //     if (!context.mounted) return;
-            //
-            //     if (success) {
-            //       ScaffoldSnackBar.show(context, "Supplier Added Successfully");
-            //
-            //       Navigator.pop(context, true);
-            //     } else {
-            //       ScaffoldSnackBar.show(context, "Failed to add supplier");
-            //     }
-            //   } catch (e, stackTrace) {
-            //     print("🔥 SAVE ERROR: $e");
-            //     print(stackTrace);
-            //
-            //     if (!context.mounted) return;
-            //
-            //     ScaffoldSnackBar.show(context, "Something went wrong: $e");
-            //   }
-            // },
 
             saveSupplier: provider.actionLoading
                 ? () {}

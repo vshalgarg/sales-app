@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/dropdown_test.dart';
 import '../../enums/customer_mode.dart';
+import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/customer/add_customer_request.dart';
 import '../../model_classes/customer/customer_details.dart';
 import '../../model_classes/supplier/bank_details_request.dart';
@@ -57,7 +58,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   final pinCodeController = TextEditingController();
 
-  final preferredTransportController = TextEditingController();
+
 
   final remarksController = TextEditingController();
   List<ContactControllers> contacts = [];
@@ -126,9 +127,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               : bank.accountName.text.trim(),
         );
       }).toList(),
-      preferredTransportIds: selectedTransportId == null
-          ? []
-          : [int.parse(selectedTransportId!)],
+      preferredTransportIds: selectedTransportIds,
       contacts: contacts
           .map(
             (c) => CustomerContactRequest(
@@ -188,12 +187,14 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     remarksController.text = s.remark ?? "";
 
     // TRANSPORT
-    if (s.preferredTransports.isNotEmpty) {
-      final transport = s.preferredTransports.first;
+    selectedTransportIds.clear();
+    selectedTransportNames.clear();
 
-      selectedTransportId = transport.id.toString();
-      selectedType = transport.name;
-      preferredTransportController.text = transport.name ?? "";
+    for (final transport in s.preferredTransports) {
+      if (transport.id != null) {
+        selectedTransportIds.add(transport.id!);
+        selectedTransportNames.add(transport.name ?? "");
+      }
     }
 
     // CONTACTS
@@ -223,7 +224,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     final transportProvider = context.read<TransportProvider>();
     final customerProvider = context.read<CustomerProvider>();
 
-    await transportProvider.fetchInitial();
+    await transportProvider.fetchAllTransports();
 
     if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
       final success = await customerProvider.fetchCustomerDetails(
@@ -235,6 +236,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       }
     } else {
       contacts.add(ContactControllers());
+      addInitialBank();
     }
 
     if (mounted) {
@@ -245,14 +247,13 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
   @override
   void initState() {
     super.initState();
-    context.read<CustomerProvider>().setDetailsLoading(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadData();
     });
   }
 
-  String? selectedType;
-  String? selectedTransportId;
+  List<int> selectedTransportIds = [];
+  List<String> selectedTransportNames = [];
 
   void deleteContact(int index) {
     contacts[index].dispose();
@@ -266,7 +267,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       contacts.add(ContactControllers());
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final customerProvider = context.watch<CustomerProvider>();
@@ -313,11 +313,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
           fontSize: 25,
         ),
       ),
-      body:
-      // customerProvider.detailsLoading &&
-      //         (widget.mode == FormMode.view || widget.mode == FormMode.edit)
-      //     ? const Center(child: CircularProgressIndicator())
-           SingleChildScrollView(
+      body: SingleChildScrollView(
               controller: _scrollController,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -386,7 +382,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                                 ) {
                                   _scrollController.animateTo(
                                     _scrollController.offset + 250,
-                                    // _scrollController.position.maxScrollExtent,
                                     duration: const Duration(milliseconds: 300),
                                     curve: Curves.easeOut,
                                   );
@@ -435,31 +430,36 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                                 return const CircularProgressIndicator();
                               }
 
-                              final transports = transportProvider.data.items;
+                              final List<Transport> transports =
+                              transportProvider.data.items.cast<Transport>();
 
                               return CustomDropdown(
-                                hintText: "Preferred Transport",
+                                hintText: "Preferred Transports",
+
                                 items: transports
                                     .map((e) => e.name ?? "")
+                                    .where((name) => name.isNotEmpty)
                                     .toList(),
 
-                                initialValue: selectedType,
+                                isMultiSelect: true,
+
+                                initialValues: selectedTransportNames,
 
                                 isDisabled: widget.mode == FormMode.view,
 
-                                onChanged: (value) {
-                                  if (value == null) return;
+                                onChanged: (_) {},
 
-                                  final selected = transports.firstWhere(
-                                    (e) => e.name == value,
-                                  );
-
+                                onMultiChanged: (values) {
                                   setState(() {
-                                    selectedType = selected.name;
-                                    selectedTransportId = selected.id
-                                        .toString();
-                                    preferredTransportController.text =
-                                        selected.name ?? "";
+                                    selectedTransportNames = values;
+
+                                    selectedTransportIds = values.map((name) {
+                                      final transport = transports.firstWhere(
+                                            (e) => e.name == name,
+                                      );
+
+                                      return transport.id!.toInt();
+                                    }).toList();
                                   });
                                 },
                               );
@@ -490,6 +490,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                 ),
               ),
             ),
+
       bottomNavigationBar: Consumer<CustomerProvider>(
         builder: (context, provider, child) {
           return BottomNavigationButton(
@@ -589,8 +590,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     stateController.dispose();
     cityController.dispose();
     pinCodeController.dispose();
-
-    preferredTransportController.dispose();
     remarksController.dispose();
 
     for (var contact in contacts) {

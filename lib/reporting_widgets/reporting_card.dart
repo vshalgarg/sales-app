@@ -86,8 +86,6 @@ class ReportingCard extends StatelessWidget {
                             ),
                           ),
 
-                         // const SizedBox(height: 5),
-
                           Expanded(
                             child: Text(
                               value!,
@@ -271,7 +269,6 @@ class ReportingCard extends StatelessWidget {
                           onTap: onDelete!,
                         ),
                       ],
-                      // const SizedBox(width: 12),
                     ],
                   ),
                 ],

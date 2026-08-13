@@ -190,19 +190,10 @@ class _PaginationWidgetState<T>
                 onRefresh: widget.refresh,
 
                 child: widget.items.isEmpty
-                  //   ? ListView(
-                  // physics: const AlwaysScrollableScrollPhysics(),
-                  // children: const [
-                  //   SizedBox(height: 250),
-                  //   Center(
-                     // child:
                  ? Text("No Data Found",
                       style: TextStyle(
                         color: Colors.white
                       )
-                     // ),
-                   // ),
-                  //],
                 )
                 : ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),

@@ -34,9 +34,7 @@ class _SupplierState extends State<SupplierScreen> {
     super.initState();
 
     Future.microtask(() async {
-      //  context.read<SupplierProvider>().fetchInitial();
       final provider = context.read<SupplierProvider>();
-    //  supplierProvider = context.read<SupplierProvider>();
 
       searchController.clear();
       await provider.clearSearch();
@@ -54,8 +52,6 @@ class _SupplierState extends State<SupplierScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SupplierProvider>();
-
-    // final isSearching = searchController.text.trim().isNotEmpty;
 
     final suppliers = provider.data.items;
     return Scaffold(
@@ -282,9 +278,6 @@ class _SupplierState extends State<SupplierScreen> {
                               return t.name ?? "";
                             }).join("\n");
                           }
-                          final bank = data.bankDetails.isNotEmpty
-                              ? data.bankDetails.first
-                              : null;
 
                           await showDialog(
                             context: context,
@@ -295,11 +288,7 @@ class _SupplierState extends State<SupplierScreen> {
                               gstNo: data.gstNo ?? "",
                               emails: data.email ?? "",
                               transport: transportText,
-                              accountHolder: bank?.accountName ?? "",
-                              bankName: bank?.bankName ?? "",
-                              accountNumber: bank?.accountNumber ?? "",
-                              ifscCode: bank?.ifscCode ?? "",
-                              branchName: bank?.branchName ?? "",
+                              bankDetails: data.bankDetails,
                             ),
                           );
                         } catch (e) {

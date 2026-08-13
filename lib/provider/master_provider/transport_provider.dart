@@ -1,11 +1,11 @@
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/Transport/add_transport_request.dart';
-import '../../model_classes/transport/transport.dart';
+import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/transport/transport_details.dart';
 import '../../services/transport/transport_service.dart';
 
-class TransportProvider extends PaginationProvider<Transport> {
+class TransportProvider extends PaginationProvider {
   final TransportService _service;
 
   TransportProvider(this._service);
@@ -40,23 +40,66 @@ class TransportProvider extends PaginationProvider<Transport> {
     );
 
     if (result.isFailure || result.data == null) {
-      throw Exception(result.errorMessage ?? "Failed to load transports");
+      throw Exception(
+        result.errorMessage ?? "Failed to load transports",
+      );
     }
 
     return result.data!;
   }
 
-  Future<void> search(String keyword) async {
+
+  // LOAD ALL TRANSPORTS
+
+
+  Future<void> fetchAllTransports() async {
+    data.isLoading = true;
+    data.error = null;
+    notifyListeners();
+
+    try {
+      const int pageSize = 100;
+
+      int page = 0;
+      bool hasMore = true;
+
+      final List<Transport> allTransports = [];
+
+      while (hasMore) {
+        final response = await requestPage(
+          page: page,
+          size: pageSize,
+        );
+
+        allTransports.addAll(response.content);
+
+        hasMore = !response.last;
+
+        page++;
+      }
+
+      data.items
+        ..clear()
+        ..addAll(allTransports);
+    } catch (e) {
+      data.error = e.toString();
+    } finally {
+      data.isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future search(String keyword) async {
     _searchKeyword = keyword.trim();
     await refreshTransports();
   }
 
-  Future<void> clearSearch() async {
+  Future clearSearch() async {
     _searchKeyword = "";
     await refreshTransports();
   }
 
-  Future<bool> fetchTransportDetails(int id) async {
+  Future fetchTransportDetails(int id) async {
     _detailsLoading = true;
     notifyListeners();
 
@@ -69,10 +112,11 @@ class TransportProvider extends PaginationProvider<Transport> {
     }
 
     notifyListeners();
+
     return result.isSuccess && result.data != null;
   }
 
-  Future<bool> addTransport(AddTransportRequest request) async {
+  Future addTransport(AddTransportRequest request) async {
     _actionLoading = true;
     notifyListeners();
 
@@ -91,7 +135,7 @@ class TransportProvider extends PaginationProvider<Transport> {
     }
   }
 
-  Future<bool> updateTransport({
+  Future updateTransport({
     required int id,
     required AddTransportRequest request,
   }) async {
@@ -105,8 +149,6 @@ class TransportProvider extends PaginationProvider<Transport> {
       );
 
       if (result.isSuccess) {
-   //     await refreshTransports();
-
         if (_transportDetails?.id == id) {
           await fetchTransportDetails(id);
         }
@@ -121,7 +163,7 @@ class TransportProvider extends PaginationProvider<Transport> {
     }
   }
 
-  Future<bool> deleteTransport(int id) async {
+  Future deleteTransport(int id) async {
     _actionLoading = true;
     notifyListeners();
 
@@ -139,7 +181,7 @@ class TransportProvider extends PaginationProvider<Transport> {
     }
   }
 
-  Future<void> refreshTransports() async {
+  Future refreshTransports() async {
     await refresh();
   }
 

@@ -111,8 +111,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         Scrollable.ensureVisible(
           targetContext,
           duration: const Duration(milliseconds: 350),
-          // curve: Curves.easeInOut,
-          // alignment: 0.05,
         );
       });
     }
@@ -275,8 +273,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
           ),
           AnimatedSize(
             duration: const Duration(milliseconds: 250),
-            // curve: Curves.easeInOut,
-            // alignment: Alignment.topCenter,
             child: billItemExpanded[index]
                 ? Padding(
                     padding: const EdgeInsets.all(10),
@@ -419,7 +415,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
               // VALUE BOX
               Container(
                 width: valueWidth,
-                //height: 86,
                 alignment: Alignment.centerRight,
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(

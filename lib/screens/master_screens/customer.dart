@@ -36,7 +36,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
     super.initState();
 
     Future.microtask(() async{
-      //context.read<CustomerProvider>().fetchInitial();
       final provider = context.read<CustomerProvider>();
 
       searchController.clear();
@@ -78,7 +77,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
           fontSize: 25,
         ),
       ),
-      //drawer: MasterDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
@@ -340,9 +338,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                       return t.name ?? "";
                                     }).join("\n");
                                   }
-                                  final bank = data.bankDetails.isNotEmpty
-                                      ? data.bankDetails.first
-                                      : null;
                                 await showDialog(
                                     context: context,
                                     builder: (_) {
@@ -354,11 +349,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                         gstNo: data.gstNo ?? "",
                                         emails: data.email ?? "",
                                         transport: transportText,
-                                        accountHolder: bank?.accountName ?? "",
-                                        bankName: bank?.bankName ?? "",
-                                        accountNumber: bank?.accountNumber ?? "",
-                                        ifscCode: bank?.ifscCode ?? "",
-                                        branchName: bank?.branchName ?? "",
+                                        bankDetails: data.bankDetails,
                                       );
                                     },
                                   );

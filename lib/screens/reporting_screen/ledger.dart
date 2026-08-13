@@ -73,9 +73,7 @@ class _LedgerReportingState extends State<LedgerReporting> {
           fontSize: 25,
         ),
       ),
-      body: //loading
-          // ? const Center(child: CircularProgressIndicator())
-          Padding(
+      body: Padding(
             padding: const EdgeInsets.all(15.0),
             child: SingleChildScrollView(
               child: Column(
@@ -232,10 +230,6 @@ class _LedgerReportingState extends State<LedgerReporting> {
                           backgroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
-                            // side: BorderSide(
-                            // color: AppColors.primaryPurple,
-                            //width: 1,
-                            //),
                           ),
                         ),
                         child: Text("DOWNLOAD"),

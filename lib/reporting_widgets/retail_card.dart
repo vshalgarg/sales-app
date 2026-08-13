@@ -207,7 +207,6 @@ class RetailCard extends StatelessWidget {
         onTap: onTap,
         child: SizedBox(
           width: 32,
-          // height: 52,
           child: Center(
             child: customIcon(icon: icon, iconColor: color, bgColor: color),
           ),

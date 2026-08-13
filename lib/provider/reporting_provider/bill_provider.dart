@@ -85,6 +85,16 @@ class BillProvider extends PaginationProvider<Bill> {
     hasLoadedBills = true;
     notifyListeners();
   }
+  Future<void> resetToDefaultBills() async {
+    _fromDate = null;
+    _toDate = null;
+    _supplierId = null;
+    _customerId = null;
+
+    data.clear();
+
+    await fetchInitialBills();
+  }
 
   Future<void> search(String keyword) async {
     _searchKeyword = keyword.trim();
@@ -154,13 +164,6 @@ class BillProvider extends PaginationProvider<Bill> {
       );
 
       if (result.isSuccess) {
-        // Refresh the list if needed
-        // await refreshBills();
-
-        // Refresh details if currently viewing the same bill
-        // if (_billDetails?.id == id) {
-        //   await fetchBillDetails(_billDetails!.billNumber!);
-        // }
 
         return true;
       }

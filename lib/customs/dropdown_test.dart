@@ -7,12 +7,17 @@ class CustomDropdown extends StatefulWidget {
   final List<String> items;
   final String? initialValue;
   final ValueChanged<String?> onChanged;
+
   final bool isDisabled;
   final bool isRequired;
   final String hintText;
-  final bool isEmbedded;
-  final Color? color;
   final String? Function(String?)? validator;
+  final bool isEmbedded;
+
+  // Multi-select support
+  final bool isMultiSelect;
+  final List<String>? initialValues;
+  final ValueChanged<List<String>>? onMultiChanged;
 
   const CustomDropdown({
     super.key,
@@ -20,12 +25,14 @@ class CustomDropdown extends StatefulWidget {
     required this.items,
     this.initialValue,
     required this.onChanged,
-    this.color,
     this.isDisabled = false,
     this.isRequired = false,
     this.hintText = "Select",
-    this.isEmbedded = false,
     this.validator,
+    this.isEmbedded = false,
+    this.isMultiSelect = false,
+    this.initialValues,
+    this.onMultiChanged,
   });
 
   @override
@@ -39,14 +46,16 @@ class _CustomDropdownState extends State<CustomDropdown> {
   OverlayEntry? _overlayEntry;
 
   String? selectedValue;
+  List<String> selectedValues = [];
   final GlobalKey _fieldKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    selectedValue = widget.items.contains(widget.initialValue)
-        ? widget.initialValue
-        : null;
+
+    selectedValue = widget.initialValue;
+
+    selectedValues = List<String>.from(widget.initialValues ?? []);
   }
 
   @override
@@ -55,6 +64,10 @@ class _CustomDropdownState extends State<CustomDropdown> {
 
     if (widget.initialValue != oldWidget.initialValue) {
       selectedValue = widget.initialValue;
+
+      if (widget.initialValues != oldWidget.initialValues) {
+        selectedValues = List<String>.from(widget.initialValues ?? []);
+      }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -92,8 +105,13 @@ class _CustomDropdownState extends State<CustomDropdown> {
     }
   }
 
+  void _refreshOverlay() {
+    _overlayEntry?.markNeedsBuild();
+  }
+
   void _showOverlay() {
     final renderBox = _fieldKey.currentContext!.findRenderObject() as RenderBox;
+
     final size = renderBox.size;
 
     const double itemHeight = 49.0;
@@ -113,11 +131,12 @@ class _CustomDropdownState extends State<CustomDropdown> {
               behavior: HitTestBehavior.translucent,
             ),
           ),
+
           CompositedTransformFollower(
             link: _layerLink,
-
             showWhenUnlinked: false,
             offset: Offset(0, size.height),
+
             child: Material(
               elevation: 6,
               borderRadius: BorderRadius.circular(5),
@@ -125,53 +144,75 @@ class _CustomDropdownState extends State<CustomDropdown> {
               child: SizedBox(
                 height: dropdownHeight,
                 width: size.width,
+
                 child: Container(
                   width: size.width,
+
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(5),
-                    //  border: Border.all(color: Colors.grey.shade300),
                   ),
+
                   child: ListView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     itemCount: widget.items.length,
+
                     itemBuilder: (_, index) {
                       final item = widget.items[index];
+
+                      final bool isSelected =
+                          widget.isMultiSelect && selectedValues.contains(item);
+
                       return InkWell(
                         onTap: () {
-                          setState(() {
-                            selectedValue = item;
-                          });
+                          if (widget.isMultiSelect) {
+                            setState(() {
+                              // Add only if not already selected
+                              if (!selectedValues.contains(item)) {
+                                selectedValues.add(item);
+                              }
+                            });
 
-                          _formFieldKey.currentState?.didChange(
-                            item,
-                          ); // <-- Important
-                          _formFieldKey.currentState
-                              ?.validate(); // <-- Removes error immediately
+                            widget.onMultiChanged?.call(
+                              List<String>.from(selectedValues),
+                            );
 
-                          widget.onChanged(item);
-                          _removeOverlay();
+                            // Close after selecting
+                            _removeOverlay();
+                          } else {
+                            setState(() {
+                              selectedValue = item;
+                            });
+
+                            _formFieldKey.currentState?.didChange(item);
+                            _formFieldKey.currentState?.validate();
+
+                            widget.onChanged(item);
+
+                            _removeOverlay();
+                          }
                         },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 14,
+
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black,
+                                  ),
+                                ),
                               ),
-                              child: Text(item),
-                            ),
-                            // Light divider
-                            if (index != widget.items.length - 1)
-                              Divider(
-                                height: 1,
-                                thickness: 0.5,
-                                color: Colors.grey.shade300,
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -249,31 +290,124 @@ class _CustomDropdownState extends State<CustomDropdown> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: 18.0,
-                                bottom: 18,
-                              ),
-                              child: Text(
-                                (selectedValue == null ||
-                                        selectedValue!.trim().isEmpty)
-                                    ? widget.hintText
-                                    : selectedValue!,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: widget.isDisabled
-                                      ? Colors.grey
-                                      : (selectedValue == null ||
-                                                selectedValue!.trim().isEmpty
+                            child: widget.isMultiSelect
+                                ? selectedValues.isEmpty
+                                      ? Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 18,
+                                          ),
+                                          child: Text(
+                                            widget.hintText,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        )
+                                      : Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 10,
+                                          ),
+                                          child: Wrap(
+                                            spacing: 6,
+                                            runSpacing: 6,
+                                            children: selectedValues.map((
+                                              value,
+                                            ) {
+                                              return Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 6,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade200,
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      value,
+                                                      style: const TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+
+                                                    if (!widget.isDisabled) ...[
+                                                      const SizedBox(width: 6),
+
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          setState(() {
+                                                            selectedValues
+                                                                .remove(value);
+                                                          });
+
+                                                          widget.onMultiChanged
+                                                              ?.call(
+                                                                List<
+                                                                  String
+                                                                >.from(
+                                                                  selectedValues,
+                                                                ),
+                                                              );
+                                                        },
+                                                        child: Container(
+                                                          width: 20,
+                                                          height: 20,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade400,
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                              ),
+                                                          child: const Icon(
+                                                            Icons.close,
+                                                            size: 13,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+                                        )
+                                : Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                    ),
+                                    child: Text(
+                                      (selectedValue == null ||
+                                              selectedValue!.trim().isEmpty)
+                                          ? widget.hintText
+                                          : selectedValue!,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: widget.isDisabled
                                             ? Colors.grey
-                                            : Colors.black),
-                                ),
-                              ),
-                            ),
+                                            : (selectedValue == null ||
+                                                      selectedValue!
+                                                          .trim()
+                                                          .isEmpty
+                                                  ? Colors.grey
+                                                  : Colors.black),
+                                      ),
+                                    ),
+                                  ),
                           ),
+
                           Icon(
                             Icons.keyboard_arrow_down,
-                            color: widget.isDisabled == true
+                            color: widget.isDisabled
                                 ? Colors.grey
                                 : Colors.black54,
                           ),

@@ -37,7 +37,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ================= BANK DETAILS HEADER =================
+        //  BANK DETAILS HEADER
         Container(
           key: _bankKey,
           child: GestureDetector(
@@ -81,7 +81,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
           ),
         ),
 
-        // ================= BANK LIST =================
+        //  BANK LIST
         if (isExpanded) ...[
           const SizedBox(height: 15),
 
@@ -103,7 +103,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ================= BANK TITLE =================
+                      //  BANK TITLE
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -128,7 +128,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       const SizedBox(height: 15),
 
-                      // ================= ACCOUNT HOLDER =================
+                      //  ACCOUNT HOLDER
                       const Text(
                         "Account Holder Name",
                         style: TextStyle(color: Colors.white, fontSize: 18),
@@ -151,9 +151,9 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       const SizedBox(height: 15),
 
-                      // ================= BANK NAME =================
+                      //  BANK NAME
                       const Text(
-                        "Bank Name",
+                        "Bank Name*",
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
 
@@ -174,9 +174,9 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       const SizedBox(height: 15),
 
-                      // ================= ACCOUNT NUMBER =================
+                      //  ACCOUNT NUMBER
                       const Text(
-                        "Account Number",
+                        "Account Number*",
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
 
@@ -201,9 +201,9 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       const SizedBox(height: 15),
 
-                      // ================= IFSC =================
+                      //  IFSC
                       const Text(
-                        "IFSC Code",
+                        "IFSC Code*",
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
 
@@ -224,7 +224,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       const SizedBox(height: 15),
 
-                      // ================= BRANCH =================
+                      //  BRANCH
                       const Text(
                         "Branch Name",
                         style: TextStyle(color: Colors.white, fontSize: 18),
@@ -251,7 +251,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
             }),
           ),
 
-          // ================= ADD BANK =================
+          //  ADD BANK
           if (widget.mode != FormMode.view && banks.length < 4)
             Align(
               alignment: Alignment.centerRight,
@@ -294,167 +294,3 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import '../constants/colors_used.dart';
-// import '../enums/customer_mode.dart';
-//
-// class BankDetailsSection extends StatefulWidget {
-//   final FormMode? mode;
-//   final TextEditingController accountNumber;
-//   final TextEditingController ifscCode;
-//   final TextEditingController bankName;
-//   final TextEditingController branchName;
-//   final TextEditingController accountHolderName;
-//   final int index;
-//   final VoidCallback? onAdd;
-//   final VoidCallback? onDelete;
-//   final bool showAddButton;
-//   const BankDetailsSection({
-//     super.key,
-//     this.mode,
-//     required this.accountNumber,
-//     required this.ifscCode,
-//     required this.bankName,
-//     required this.branchName,
-//     required this.accountHolderName,
-//     required this.index,
-//     this.onAdd,
-//     this.onDelete,
-//     this.showAddButton = false,
-//   });
-//
-//   @override
-//   State<BankDetailsSection> createState() => _BankDetailsSectionState();
-// }
-//
-// class _BankDetailsSectionState extends State<BankDetailsSection> {
-//   final GlobalKey _bankKey = GlobalKey();
-//   bool isExpanded = false;
-//   bool isBasicInfoExpanded=false;
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Container(
-//           padding: const EdgeInsets.all(10),
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(10),
-//             color: AppColors.bodyFillColor,
-//           ),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                 children: [
-//                   Text(
-//                     "Bank Details ${widget.index + 1}",
-//                     style: const TextStyle(
-//                       fontWeight: FontWeight.bold,
-//                       color: Colors.white,
-//                     ),
-//                   ),
-//
-//                   if (widget.mode != FormMode.view && widget.index > 0)
-//                     IconButton(
-//                       icon: const Icon(
-//                         Icons.delete,
-//                         color: Colors.red,
-//                       ),
-//                       onPressed: widget.onDelete,
-//                     ),
-//                 ],
-//               ),
-//
-//               const SizedBox(height: 15),
-//
-//         if (isBasicInfoExpanded) ...[
-//         SizedBox(height: 15),
-//           Text("Account Holder Name",
-//               style:TextStyle(
-//                   color:Colors.white,
-//                   fontSize: 18)),
-//           TextFormField(
-//             enabled: widget.mode != FormMode.view,
-//             controller: widget.accountHolderName,
-//             decoration: InputDecoration(
-//               filled:true,
-//               fillColor: Colors.white,
-//               hintText: "Account Holder Name",
-//               hintStyle: const TextStyle(
-//                   color: Colors.grey),
-//               border: OutlineInputBorder(
-//                 borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
-//             ),
-//           ),
-//           SizedBox(height: 15),
-//           Text("Bank Name",style:TextStyle(color:Colors.white,fontSize: 18)),
-//           TextFormField(
-//             enabled: widget.mode != FormMode.view,
-//             controller: widget.bankName,
-//             decoration: InputDecoration(
-//               filled:true,
-//               fillColor: Colors.white,
-//               hintText: "Bank Name",
-//               hintStyle: const TextStyle(
-//                   color: Colors.grey),
-//               border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
-//             ),
-//           ),
-//           SizedBox(height: 15),
-//         Text("Account Number",style:TextStyle(color:Colors.white,fontSize: 18)),
-//         TextFormField(
-//           keyboardType: TextInputType.number,
-//           enabled: widget.mode != FormMode.view,
-//           inputFormatters: [
-//             FilteringTextInputFormatter.digitsOnly,
-//           ],
-//
-//           controller: widget.accountNumber,
-//           decoration: InputDecoration(
-//             filled:true,
-//             fillColor: Colors.white,
-//             hintText: "Account Number",
-//             hintStyle: const TextStyle(
-//                 color: Colors.grey),
-//             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
-//           ),
-//         ),
-//         SizedBox(height: 15),
-//         Text("IFSC Code",style:TextStyle(color:Colors.white,fontSize: 18)),
-//         TextFormField(
-//           enabled: widget.mode != FormMode.view,
-//           controller: widget.ifscCode,
-//           decoration: InputDecoration(
-//             filled:true,
-//             fillColor: Colors.white,
-//             hintText: "IFSC Code",
-//             hintStyle: const TextStyle(
-//                 color: Colors.grey),
-//             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
-//           ),
-//         ), SizedBox(height: 15),
-//         Text("Branch Name",style:TextStyle(color:Colors.white,fontSize: 18)),
-//         TextFormField(
-//           enabled: widget.mode != FormMode.view,
-//           controller: widget.branchName,
-//           decoration: InputDecoration(
-//             filled:true,
-//             fillColor: Colors.white,
-//             hintText: "Branch Name",
-//             hintStyle: const TextStyle(
-//                 color: Colors.grey),
-//             border: OutlineInputBorder(borderRadius: BorderRadius.circular(5),  borderSide: BorderSide.none,),
-//           ),
-//         ),
-//         ],
-//       ],
-//     )
-//         )
-//       ]
-//     );
-//   }
-// }

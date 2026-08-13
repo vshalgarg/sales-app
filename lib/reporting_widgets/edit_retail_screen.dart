@@ -194,9 +194,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             style: const TextStyle(color: Colors.white, fontSize: 18),
           ),
           Container(
-            // padding: addPadding
-            //     ? const EdgeInsets.symmetric(horizontal: 15)
-            //     : EdgeInsets.zero,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(5),
@@ -234,14 +231,12 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               showRetailInfo = !showRetailInfo;
 
               if (showRetailInfo) {
-                //showDeposits = false;
-                //showHistory = false;
               }
             });
           },
         ),
 
-        //
+
         if (showRetailInfo) ...[
           const SizedBox(height: 10),
           buildField(
@@ -277,7 +272,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
           buildField(
             label: "Referred By",
-            // addPadding: false,
             child: CustomDropdown(
               hintText: "Referred By",
               items: entriesProvider.customerEntries
@@ -308,7 +302,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
           buildField(
             label: "Staff",
-            //  addPadding: false,
+
             child: CustomDropdown(
               hintText: "Staff",
               items: staffProvider.data.items
@@ -412,16 +406,10 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
           onTap: () {
             setState(() {
               showDeposits = !showDeposits;
-
-              // if (showDeposits) {
-              //   showRetailInfo = true;
-              //   showHistory = false;
-              // }
             });
           },
         ),
 
-        //
         if (showDeposits) ...[
           ...List.generate(retail.suppliers.length, (index) {
             final supplier = retail.suppliers[index];
@@ -624,11 +612,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
           onTap: () async {
             setState(() {
               showHistory = !showHistory;
-
-              // if (showHistory) {
-              //   showRetailInfo = false;
-              //   showDeposits = false;
-              // }
             });
             if (showHistory) {
               await Future.delayed(const Duration(milliseconds: 100));
@@ -693,7 +676,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
     return Card(
       color: Colors.white,
-      // margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -1070,7 +1052,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  //bodyText: "",
                   saveButtonText: "Stay",
                   discardButtonText: "Leave",
                   onSave: () async {

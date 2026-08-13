@@ -3,12 +3,16 @@ import '../shared_preferences/login_token.dart';
 
 class AuthService {
   static Future<bool> isTokenValid() async {
-    final token = await AppStorage.getToken();
+    try {
+      final token = await AppStorage.getToken();
 
-    if (token == null || token.isEmpty) {
+      if (token == null || token.isEmpty) {
+        return false;
+      }
+
+      return !JwtDecoder.isExpired(token);
+    } catch (e) {
       return false;
     }
-
-    return !JwtDecoder.isExpired(token);
   }
 }
