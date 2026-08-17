@@ -111,6 +111,7 @@ public class PurchaseMapper {
             SupplierEntity supplier
     ) {
         List<BankDetailResponseDto> bankDetails = supplier.getBankDetails() == null ? List.of() : supplier.getBankDetails() .stream() .map(bank -> new BankDetailResponseDto(
+                bank.getId(),
                 bank.getBankName(),
                 bank.getIfscCode(),
                 bank.getBranchName(),

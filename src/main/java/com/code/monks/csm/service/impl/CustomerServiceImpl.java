@@ -272,6 +272,7 @@ public class CustomerServiceImpl implements CustomerService {
                             .orElse(Collections.emptyList())
                             .stream()
                             .map(bank -> new BankDetailResponseDto(
+                                    bank.getId(),
                                     bank.getBankName(),
                                     bank.getIfscCode(),
                                     bank.getBranchName(),
