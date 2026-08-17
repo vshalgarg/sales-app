@@ -133,7 +133,6 @@ public class SupplierMapper {
                             BankDetailEntity::getId,
                             Function.identity()
                     ));
-
             for (BankDetailRequestDto bankDto : dto.getBankDetails()) {
                 BankDetailEntity bank;
                 if (bankDto.getId() != null) {
@@ -141,13 +140,11 @@ public class SupplierMapper {
                     if (bank == null) {
                         throw new ResourceNotFoundException(ResponseErrorCode.DATA_NOT_FOUND,"Bank detail not found with id: " + bankDto.getId());
                     }
-
                 } else {
                     bank = new BankDetailEntity();
                     bank.setSupplier(entity);
                     existingBanks.add(bank);
                 }
-
                 bank.setBankName(bankDto.getBankName());
                 bank.setIfscCode(bankDto.getIfscCode());
                 bank.setBranchName(bankDto.getBranchName());
