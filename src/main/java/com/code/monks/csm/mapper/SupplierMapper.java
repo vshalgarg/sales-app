@@ -145,11 +145,11 @@ public class SupplierMapper {
                     bank.setSupplier(entity);
                     existingBanks.add(bank);
                 }
-                bank.setBankName(bankDto.getBankName());
-                bank.setIfscCode(bankDto.getIfscCode());
-                bank.setBranchName(bankDto.getBranchName());
-                bank.setAccountName(bankDto.getAccountName());
-                bank.setAccountNumber(bankDto.getAccountNumber());
+                bank.setBankName(StringUtils.trimToNull(bankDto.getBankName()));
+                bank.setIfscCode(StringUtils.trimToNull(bankDto.getIfscCode()));
+                bank.setBranchName(StringUtils.trimToNull(bankDto.getBranchName()));
+                bank.setAccountName(StringUtils.trimToNull(bankDto.getAccountName()));
+                bank.setAccountNumber(StringUtils.trimToNull(bankDto.getAccountNumber()));
             }
         }
         if (dto.getContacts() != null) {
