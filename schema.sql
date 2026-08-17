@@ -778,19 +778,11 @@ CREATE TABLE bank_detail (
     updated_at DATETIME NULL,
     created_by BIGINT NULL,
     updated_by BIGINT NULL,
-
     INDEX supplier_id (supplier_id),
     INDEX customer_id (customer_id),
+     CONSTRAINT fk_bank_detail_supplier
+            FOREIGN KEY (supplier_id) REFERENCES supplier(id),
 
-    CONSTRAINT bank_detail_ibfk_1
-        FOREIGN KEY (supplier_id)
-        REFERENCES supplier(id)
-        ON DELETE RESTRICT
-        ON UPDATE RESTRICT,
-
-    CONSTRAINT bank_detail_ibfk_2
-        FOREIGN KEY (customer_id)
-        REFERENCES customer(id)
-        ON DELETE RESTRICT
-        ON UPDATE RESTRICT
+        CONSTRAINT fk_bank_detail_customer
+            FOREIGN KEY (customer_id) REFERENCES customer(id)
 );

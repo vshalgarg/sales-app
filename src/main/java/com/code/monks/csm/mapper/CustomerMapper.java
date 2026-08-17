@@ -73,20 +73,16 @@ public class CustomerMapper {
 
         entity.setRemark(dto.getRemark());
         if (dto.getBankDetails() != null) {
-            if (entity.getBankDetails() == null) {
-                entity.setBankDetails(new ArrayList<>());
-            } else {
-                entity.getBankDetails().clear();
-            }
+            entity.getBankDetails().clear();
             List<BankDetailEntity> bankDetails = dto.getBankDetails()
                     .stream()
                     .map(bankDto -> {
                         BankDetailEntity bank = new BankDetailEntity();
-                        bank.setBankName(StringUtils.trimToNull(bankDto.getBankName()));
-                        bank.setIfscCode(StringUtils.trimToNull(bankDto.getIfscCode()));
-                        bank.setBranchName(StringUtils.trimToNull(bankDto.getBranchName()));
-                        bank.setAccountName(StringUtils.trimToNull(bankDto.getAccountName()));
-                        bank.setAccountNumber(StringUtils.trimToNull(bankDto.getAccountNumber()));
+                        bank.setBankName(bankDto.getBankName());
+                        bank.setIfscCode(bankDto.getIfscCode());
+                        bank.setBranchName(bankDto.getBranchName());
+                        bank.setAccountName(bankDto.getAccountName());
+                        bank.setAccountNumber(bankDto.getAccountNumber());
                         bank.setCustomer(entity);
                         return bank;
                     })
