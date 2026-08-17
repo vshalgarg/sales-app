@@ -8,14 +8,15 @@ import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.entity.BankDetailEntity;
+import com.code.monks.csm.enums.ResponseErrorCode;
 import com.code.monks.csm.enums.StatusEnum;
+import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.utils.ContactUtil;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.StringUtils;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -124,25 +125,32 @@ public class SupplierMapper {
         entity.setRemark(dto.getRemark());
 
         if (dto.getBankDetails() != null) {
-            entity.getBankDetails().clear();
-
-            List<BankDetailEntity> bankDetails = dto.getBankDetails()
+            List<BankDetailEntity> existingBanks = entity.getBankDetails();
+            Map<Integer, BankDetailEntity> existingBankMap = existingBanks
                     .stream()
-                    .map(bankDto -> {
-
-                        BankDetailEntity bank = new BankDetailEntity();
-
-                        bank.setBankName(bankDto.getBankName());
-                        bank.setIfscCode(bankDto.getIfscCode());
-                        bank.setBranchName(bankDto.getBranchName());
-                        bank.setAccountName(bankDto.getAccountName());
-                        bank.setAccountNumber(bankDto.getAccountNumber());
-                        bank.setSupplier(entity);
-                        return bank;
-                    })
-                    .toList();
-
-            entity.getBankDetails().addAll(bankDetails);
+                    .filter(bank -> bank.getId() != null)
+                    .collect(Collectors.toMap(
+                            BankDetailEntity::getId,
+                            Function.identity()
+                    ));
+            for (BankDetailRequestDto bankDto : dto.getBankDetails()) {
+                BankDetailEntity bank;
+                if (bankDto.getId() != null) {
+                    bank = existingBankMap.get(bankDto.getId());
+                    if (bank == null) {
+                        throw new ResourceNotFoundException(ResponseErrorCode.DATA_NOT_FOUND,"Bank detail not found with id: " + bankDto.getId());
+                    }
+                } else {
+                    bank = new BankDetailEntity();
+                    bank.setSupplier(entity);
+                    existingBanks.add(bank);
+                }
+                bank.setBankName(StringUtils.trimToNull(bankDto.getBankName()));
+                bank.setIfscCode(StringUtils.trimToNull(bankDto.getIfscCode()));
+                bank.setBranchName(StringUtils.trimToNull(bankDto.getBranchName()));
+                bank.setAccountName(StringUtils.trimToNull(bankDto.getAccountName()));
+                bank.setAccountNumber(StringUtils.trimToNull(bankDto.getAccountNumber()));
+            }
         }
         if (dto.getContacts() != null) {
             entity.getContactList().clear();
@@ -184,6 +192,7 @@ public class SupplierMapper {
                         .orElse(Collections.emptyList())
                         .stream()
                         .map(bank -> new BankDetailResponseDto(
+                                bank.getId(),
                                 bank.getBankName(),
                                 bank.getIfscCode(),
                                 bank.getBranchName(),

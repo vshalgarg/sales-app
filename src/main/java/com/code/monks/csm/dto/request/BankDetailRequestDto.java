@@ -1,10 +1,10 @@
 package com.code.monks.csm.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class BankDetailRequestDto {
+    private Integer id;
     private String bankName;
     private String ifscCode;
     private String branchName;
