@@ -50,6 +50,7 @@ const EMPTY_BANK_ACCOUNT = {
 };
 
 const mapBankAccount = (account = {}) => ({
+  ...(account.id != null ? { id: account.id } : {}),
   bankName: account.bankName || "",
   ifscCode: account.ifscCode || account.ifsc || "",
   branchName: account.branchName || account.branch || "",

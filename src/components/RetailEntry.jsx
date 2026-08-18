@@ -125,9 +125,9 @@ const RetailEntry = () => {
       newErrors.supplierIds = "Please select at least one supplier";
     }
 
-    if (!formData.customerId) {
-      newErrors.customerId = "Please select a Customer";
-    }
+    // if (!formData.customerId) {
+    //   newErrors.customerId = "Please select a Customer";
+    // }
 
     if (!formData.name) {
       newErrors.name = "Please enter a retailer name";
@@ -149,7 +149,7 @@ const RetailEntry = () => {
         name: formData.name,
         date: formData.date || null,
         staffId: formData.staffId || null,
-        referredByCustomerId: formData.customerId,
+        referredByCustomerId: formData.customerId || null,
         suppliers: suppliers
           .filter((s) => s.supplierId)
           .map((s) => ({
@@ -287,9 +287,9 @@ const RetailEntry = () => {
                   null
                 }
                 label="ReferredBy"
-                required={true}
-                error={!!errors.customerId}
-                helperText={errors.customerId || ""}
+                // required={true}
+                // error={!!errors.customerId}
+                // helperText={errors.customerId || ""}
                 onChange={(value) => {
                   if (!value) {
                     resetCustomer();
