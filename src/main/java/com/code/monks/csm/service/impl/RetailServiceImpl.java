@@ -429,6 +429,9 @@ public class RetailServiceImpl implements RetailService {
     }
 
     private CustomerEntity getCustomer(Integer customerId) {
+        if(customerId == null){
+            return null;
+        }
         return customerRepository.findById(customerId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(

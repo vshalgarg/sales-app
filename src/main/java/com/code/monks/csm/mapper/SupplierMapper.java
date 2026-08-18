@@ -133,6 +133,15 @@ public class SupplierMapper {
                             BankDetailEntity::getId,
                             Function.identity()
                     ));
+            List<Integer> incomingIds = dto.getBankDetails()
+                    .stream()
+                    .map(BankDetailRequestDto::getId)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            existingBanks.removeIf(bank ->
+                    bank.getId() != null && !incomingIds.contains(bank.getId())
+            );
             for (BankDetailRequestDto bankDto : dto.getBankDetails()) {
                 BankDetailEntity bank;
                 if (bankDto.getId() != null) {
