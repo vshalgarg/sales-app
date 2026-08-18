@@ -286,7 +286,7 @@ const RetailEntry = () => {
                   customerOptions.find((c) => c.id === formData.customerId) ||
                   null
                 }
-                label="ReferredBy"
+                label="Referred By"
                 // required={true}
                 // error={!!errors.customerId}
                 // helperText={errors.customerId || ""}
