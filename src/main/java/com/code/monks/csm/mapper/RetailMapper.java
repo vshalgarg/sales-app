@@ -66,11 +66,12 @@ public class RetailMapper {
                         })
                         .toList();
 
-         String customerName = retail.getCustomer().getCustomerName();
         return new RetailerListResponseDto(
                 retail.getId(),
                 retail.getName(),
-                customerName,
+                retail.getCustomer() != null
+                        ? retail.getCustomer().getCustomerName()
+                        : null,
                 staff != null ? staff.getStaffName() : null,
                 retail.getDate(),
                 suppliers
