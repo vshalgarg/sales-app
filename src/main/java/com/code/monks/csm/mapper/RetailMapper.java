@@ -69,7 +69,9 @@ public class RetailMapper {
         return new RetailerListResponseDto(
                 retail.getId(),
                 retail.getName(),
-                retail.getCustomer().getCustomerName(),
+                retail.getCustomer() != null
+                        ? retail.getCustomer().getCustomerName()
+                        : null,
                 staff != null ? staff.getStaffName() : null,
                 retail.getDate(),
                 suppliers
