@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -88,6 +89,15 @@ public class CustomerMapper {
                                     BankDetailEntity::getId,
                                     Function.identity()
                             ));
+            List<Integer> incomingIds = dto.getBankDetails()
+                    .stream()
+                    .map(BankDetailRequestDto::getId)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            existingBanks.removeIf(bank ->
+                    bank.getId() != null && !incomingIds.contains(bank.getId())
+            );
             for (BankDetailRequestDto bankDto : dto.getBankDetails()) {
                 BankDetailEntity bank;
                 if (bankDto.getId() != null) {
