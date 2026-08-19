@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import BasicSelect from "../components/BasicSelect";
+import { MSME_OPTIONS } from "../constants/options";
 import CustomTextField from "../components/CustomTextField";
 import SupplierService from "../service/SupplierService";
 import TransportService from "../service/TransportService";
@@ -439,11 +440,7 @@ const SupplierModal = ({
                     value={form.msme || ""}
                     onChange={handleChange}
                     label="MSME"
-                    options={[
-                      { value: "Micro", label: "Micro" },
-                      { value: "Small", label: "Small" },
-                      { value: "Medium", label: "Medium" },
-                    ]}
+                    options={MSME_OPTIONS}
                   />
                   <BasicSelect
                     name="commissionScheme"

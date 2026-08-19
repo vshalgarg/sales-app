@@ -3,6 +3,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import BasicSelect from "../components/BasicSelect";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
+import { MSME_OPTIONS } from "../constants/options";
 import CustomTextField from "../components/CustomTextField";
 import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
@@ -350,11 +351,7 @@ const AddNewSupplier = ({ form, open, setOpen, setForm, fetchSuppliers }) => {
                     value={form.supplierMsme}
                     onChange={handleFormChange}
                     label="MSME"
-                    options={[
-                      { value: "Micro", label: "Micro" },
-                      { value: "Small", label: "Small" },
-                      { value: "Medium", label: "Medium" },
-                    ]}
+                    options={MSME_OPTIONS}
                   />
                   <BasicSelect
                     name="commissionScheme"

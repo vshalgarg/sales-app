@@ -21,6 +21,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomTextField from "../components/CustomTextField";
 import BasicSelect from "../components/BasicSelect";
+import { MSME_OPTIONS } from "../constants/options";
 import CustomerService from "../service/CustomerService";
 import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -394,11 +395,7 @@ const CustomerModal = ({
                     value={form.msme || ""}
                     onChange={handleChange}
                     label="MSME"
-                    options={[
-                      { value: "Micro", label: "Micro" },
-                      { value: "Small", label: "Small" },
-                      { value: "Medium", label: "Medium" },
-                    ]}
+                    options={MSME_OPTIONS}
                   />
                   <CustomTextField
                     name="referencedBy"

@@ -8,6 +8,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CustomerService from "../service/CustomerService";
 import { useSnackbar } from "../context/SnackbarContext";
 import validate from "../validations/Validation";
+import { MSME_OPTIONS } from "../constants/options";
 import TransportService from "../service/TransportService";
 import { sanitizePayload } from "../utils/sanitizePayload";
 import StateAutocomplete from "../components/common/StateAutocomplete";
@@ -325,11 +326,7 @@ const AddNewCustomer = ({ form, open, setOpen, setForm, fetchCustomers }) => {
                     value={form.customerMsme}
                     onChange={handleFormChange}
                     label="MSME"
-                    options={[
-                      { value: "Micro", label: "Micro" },
-                      { value: "Small", label: "Small" },
-                      { value: "Medium", label: "Medium" },
-                    ]}
+                    options={MSME_OPTIONS}
                   />
                   <CustomTextField
                     name="referencedBy"
