@@ -100,7 +100,7 @@ const mapCustomerToForm = (data) => ({
   state: data.state || "",
   city: data.city || "",
   pinCode: data.pinCode || "",
-  msme: data.msme?.toUpperCase() || "",
+  msme: data.msme || "",
   remark: data.remark || "",
   bankDetails: normalizeBankAccounts(data, { fallbackEmpty: true }),
   contacts: data.contacts?.length
@@ -395,9 +395,9 @@ const CustomerModal = ({
                     onChange={handleChange}
                     label="MSME"
                     options={[
-                      { value: "MICRO", label: "Micro" },
-                      { value: "SMALL", label: "Small" },
-                      { value: "MEDIUM", label: "Medium" },
+                      { value: "Micro", label: "Micro" },
+                      { value: "Small", label: "Small" },
+                      { value: "Medium", label: "Medium" },
                     ]}
                   />
                   <CustomTextField
