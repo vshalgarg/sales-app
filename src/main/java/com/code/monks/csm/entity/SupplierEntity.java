@@ -92,11 +92,7 @@ public class SupplierEntity extends BaseEntity{
     @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ContactEntity> contactList;
 
-    @OneToMany(
-            mappedBy = "supplier",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BankDetailEntity> bankDetails= new ArrayList<>();
 
 }

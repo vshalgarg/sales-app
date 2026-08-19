@@ -94,7 +94,6 @@ public class CustomerMapper {
                     .map(BankDetailRequestDto::getId)
                     .filter(Objects::nonNull)
                     .toList();
-
             existingBanks.removeIf(bank ->
                     bank.getId() != null && !incomingIds.contains(bank.getId())
             );

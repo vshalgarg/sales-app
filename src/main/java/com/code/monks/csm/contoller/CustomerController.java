@@ -93,8 +93,8 @@ public class CustomerController {
 
     @PutMapping(UPDATE_CUSTOMER)
     public ResponseEntity<ApiResponse<Void>> updateCustomer(
-             @PathVariable Integer id,
-              @RequestBody UpdateCustomerRequestDto request) {
+            @PathVariable Integer id,
+            @RequestBody UpdateCustomerRequestDto request) {
 
         customerService.updateCustomer(id, request);
 

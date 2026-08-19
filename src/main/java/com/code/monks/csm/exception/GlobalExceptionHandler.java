@@ -114,7 +114,6 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .map(FieldError::getDefaultMessage)
-                .distinct()
                 .collect(Collectors.toList());
 
         String combinedMessage = String.join("; ", errorMessages);
