@@ -94,7 +94,7 @@ const mapSupplierToForm = (data) => ({
   email: data.email || "",
   groupName: data.groupName || "",
   gstNo: data.gstNo || "",
-  msme: data.msme?.toUpperCase() || "",
+  msme: data.msme || "",
   city: data.city || "",
   pinCode: data.pinCode || "",
   state: data.state || "",
@@ -440,9 +440,9 @@ const SupplierModal = ({
                     onChange={handleChange}
                     label="MSME"
                     options={[
-                      { value: "MICRO", label: "Micro" },
-                      { value: "SMALL", label: "Small" },
-                      { value: "MEDIUM", label: "Medium" },
+                      { value: "Micro", label: "Micro" },
+                      { value: "Small", label: "Small" },
+                      { value: "Medium", label: "Medium" },
                     ]}
                   />
                   <BasicSelect
