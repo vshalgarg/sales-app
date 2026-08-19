@@ -94,7 +94,7 @@ const mapSupplierToForm = (data) => ({
   email: data.email || "",
   groupName: data.groupName || "",
   gstNo: data.gstNo || "",
-  msme: data.msme || "",
+  msme: data.msme?.toUpperCase() || "",
   city: data.city || "",
   pinCode: data.pinCode || "",
   state: data.state || "",

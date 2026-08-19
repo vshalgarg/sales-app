@@ -100,7 +100,7 @@ const mapCustomerToForm = (data) => ({
   state: data.state || "",
   city: data.city || "",
   pinCode: data.pinCode || "",
-  msme: data.msme || "",
+  msme: data.msme?.toUpperCase() || "",
   remark: data.remark || "",
   bankDetails: normalizeBankAccounts(data, { fallbackEmpty: true }),
   contacts: data.contacts?.length
