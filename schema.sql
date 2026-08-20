@@ -818,3 +818,5 @@ DROP COLUMN ifsc_code,
 DROP COLUMN branch_name,
 DROP COLUMN account_name,
 DROP COLUMN account_number;
+
+ALTER TABLE retailers add column commission VARCHAR(255);

@@ -41,4 +41,6 @@ public class RetailerEntity extends BaseEntity{
     private List<RetailSupplierEntity> suppliers;
 
     private StatusEnum status;
+
+    private String commission;
 }

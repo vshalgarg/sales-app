@@ -18,6 +18,7 @@ public record UpdateRetailerRequestDto (
         @NotNull(message = "Customer is required")
         Integer referredByCustomerId,
 
-        Integer staffId
+        Integer staffId,
+        String commission
 ){
 }
