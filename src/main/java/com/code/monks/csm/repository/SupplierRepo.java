@@ -20,6 +20,7 @@ public interface SupplierRepo extends JpaRepository<SupplierEntity,Integer> {
     @Query(value = "SELECT MAX(CAST(SUBSTRING(code, 2) AS UNSIGNED)) FROM supplier", nativeQuery = true)
     Integer findMaxCodeSuffix();
 
+    @EntityGraph(attributePaths = {"bankDetails"})
     Optional<SupplierEntity> findOneByCode(String code);
 
     boolean existsByCode(String code);

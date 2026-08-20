@@ -42,11 +42,7 @@ public class AddSupplierRequestDto {
     private String city;
     private String pinCode;
 
-    private String bankName;
-    private String ifscCode;
-    private String branchName;
-    private String accountName;
-    private String accountNumber;
+    private List<BankDetailRequestDto> bankDetails;
 
     @NotNull(message = "Preferred transport is required")
     private List<Integer> preferredTransportIds;

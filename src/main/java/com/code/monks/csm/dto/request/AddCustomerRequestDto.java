@@ -3,10 +3,8 @@ package com.code.monks.csm.dto.request;
 import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
@@ -37,11 +35,7 @@ public class AddCustomerRequestDto {
     private String city;
     private String pinCode;
 
-    private String bankName;
-    private String ifsc;
-    private String branch;
-    private String accountName;
-    private String accountNumber;
+    private List<BankDetailRequestDto> bankDetails;
 
     private List<Integer> preferredTransportIds;
 

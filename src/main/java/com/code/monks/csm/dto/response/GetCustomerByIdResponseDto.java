@@ -26,11 +26,7 @@ public class GetCustomerByIdResponseDto {
     private String msme;
     private String remark;
     private StatusEnum status;
-    private String bankName;
-    private String ifsc;
-    private String branch;
-    private String accountName;
-    private String accountNumber;
+    private List<BankDetailResponseDto> bankDetails;
     private List<ContactRequestDto> contacts;
     private List<TransportDto> preferredTransports;
 }

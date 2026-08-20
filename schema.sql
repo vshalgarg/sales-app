@@ -764,4 +764,59 @@ INSERT INTO configurations (
     NULL
 );
 
+
+CREATE TABLE bank_detail (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bank_name VARCHAR(255) NULL,
+    ifsc_code VARCHAR(255) NULL,
+    branch_name VARCHAR(255) NULL,
+    account_name VARCHAR(255) NULL,
+    account_number VARCHAR(255) NULL,
+    supplier_id INT NULL,
+    customer_id INT NULL,
+    created_at DATETIME NULL,
+    updated_at DATETIME NULL,
+    created_by BIGINT NULL,
+    updated_by BIGINT NULL,
+    INDEX supplier_id (supplier_id),
+    INDEX customer_id (customer_id),
+    CONSTRAINT fk_bank_detail_supplier
+        FOREIGN KEY (supplier_id) REFERENCES supplier(id),
+
+    CONSTRAINT fk_bank_detail_customer
+         FOREIGN KEY (customer_id) REFERENCES customer(id)
+);
+
+INSERT INTO bank_detail (bank_name,ifsc_code,branch_name,account_name,account_number,customer_id,created_at,updated_at)
+SELECT bank_name,ifsc_code,branch_name,account_name,account_number,id,NOW(),NOW()
+FROM customer
+WHERE bank_name IS NOT NULL
+   OR ifsc_code IS NOT NULL
+   OR branch_name IS NOT NULL
+   OR account_name IS NOT NULL
+   OR account_number IS NOT NULL;
+
+INSERT INTO bank_detail (bank_name,ifsc_code,branch_name,account_name,account_number,supplier_id,created_at,updated_at)
+SELECT bank_name,ifsc_code,branch_name,account_name,account_number,id,NOW(),NOW()
+FROM supplier
+WHERE bank_name IS NOT NULL
+   OR ifsc_code IS NOT NULL
+   OR branch_name IS NOT NULL
+   OR account_name IS NOT NULL
+   OR account_number IS NOT NULL;
+
+ALTER TABLE customer
+DROP COLUMN bank_name,
+DROP COLUMN ifsc_code,
+DROP COLUMN branch_name,
+DROP COLUMN account_name,
+DROP COLUMN account_number;
+
+ALTER TABLE supplier
+DROP COLUMN bank_name,
+DROP COLUMN ifsc_code,
+DROP COLUMN branch_name,
+DROP COLUMN account_name,
+DROP COLUMN account_number;
+
 ALTER TABLE retailers add column commission VARCHAR(255);

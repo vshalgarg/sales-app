@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -38,11 +39,7 @@ public class UpdateSupplierRequestDto {
 
     private String msme;
 
-    private String bankName;
-    private String ifscCode;
-    private String branchName;
-    private String accountName;
-    private String accountNumber;
+    private List<BankDetailRequestDto> bankDetails;
 
     private Set<Integer> preferredTransportIds;
 

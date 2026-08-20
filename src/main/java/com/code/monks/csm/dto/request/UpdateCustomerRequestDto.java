@@ -1,6 +1,7 @@
 package com.code.monks.csm.dto.request;
 
 import com.code.monks.csm.enums.StatusEnum;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -36,11 +37,7 @@ public class UpdateCustomerRequestDto {
 
     private String msme;
 
-    private String bankName;
-    private String ifsc;
-    private String branch;
-    private String accountName;
-    private String accountNumber;
+    private List<BankDetailRequestDto> bankDetails;;
 
     private Set<Integer> preferredTransportIds;
 
