@@ -15,9 +15,9 @@ public record CreateRetailerRequestDto(
         @NotNull(message = "Date is required")
         LocalDate date,
 
-        @NotNull(message = "Customer is required")
         Integer referredByCustomerId,
         Integer staffId,
-        List<RetailSupplierRequest> suppliers
+        List<RetailSupplierRequest> suppliers,
+        String commission
 ) {
 }

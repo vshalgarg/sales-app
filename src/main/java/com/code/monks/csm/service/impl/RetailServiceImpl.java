@@ -62,6 +62,7 @@ public class RetailServiceImpl implements RetailService {
         retailer.setCustomer(getCustomer(request.referredByCustomerId()));
         retailer.setStaff(getStaff(request.staffId()));
         retailer.setStatus(StatusEnum.ACTIVE);
+        retailer.setCommission(request.commission());
         retailer.setSuppliers(new ArrayList<>(
                         request.suppliers()
                                 .stream()
@@ -89,6 +90,7 @@ public class RetailServiceImpl implements RetailService {
         retailer.setDate(request.date());
         retailer.setCustomer(getCustomer(request.referredByCustomerId()));
         retailer.setStaff(getStaff(request.staffId()));
+        retailer.setCommission(request.commission());
         log.info("Retailer updated successfully with id: {}", retailId);
     }
 
@@ -429,6 +431,9 @@ public class RetailServiceImpl implements RetailService {
     }
 
     private CustomerEntity getCustomer(Integer customerId) {
+        if(customerId == null){
+            return null;
+        }
         return customerRepository.findById(customerId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
