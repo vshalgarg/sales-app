@@ -18,6 +18,7 @@ public record CreateRetailerRequestDto(
         @NotNull(message = "Customer is required")
         Integer referredByCustomerId,
         Integer staffId,
-        List<RetailSupplierRequest> suppliers
+        List<RetailSupplierRequest> suppliers,
+        String commission
 ) {
 }

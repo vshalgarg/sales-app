@@ -40,7 +40,8 @@ public class RetailMapper {
                 retailer.getCustomer().getCustomerName(),
                 staff != null ? staff.getId() : null,
                 staff != null ? staff.getStaffName() : null,
-                suppliers
+                suppliers,
+                retailer.getCommission()
         );
     }
 
