@@ -343,7 +343,7 @@ const Retail = () => {
               <GenericAutocomplete
                 options={allCustomers}
                 value={selectedCustomer}
-                label="ReferredBy"
+                label="Referred By"
                 placeholder="Select customer"
                 onChange={(value) => {
                   setSelectedCustomer(value);
