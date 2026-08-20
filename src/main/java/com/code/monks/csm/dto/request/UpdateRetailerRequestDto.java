@@ -15,7 +15,6 @@ public record UpdateRetailerRequestDto (
         @NotNull(message = "Date is required")
         LocalDate date,
 
-        @NotNull(message = "Customer is required")
         Integer referredByCustomerId,
 
         Integer staffId,

@@ -36,8 +36,8 @@ public class RetailMapper {
                 retailer.getId(),
                 retailer.getName(),
                 retailer.getDate(),
-                retailer.getCustomer().getId(),
-                retailer.getCustomer().getCustomerName(),
+                retailer.getCustomer() != null ? retailer.getCustomer().getId() : null,
+                retailer.getCustomer() != null ? retailer.getCustomer().getCustomerName() : null,
                 staff != null ? staff.getId() : null,
                 staff != null ? staff.getStaffName() : null,
                 suppliers,
@@ -70,7 +70,7 @@ public class RetailMapper {
         return new RetailerListResponseDto(
                 retail.getId(),
                 retail.getName(),
-                retail.getCustomer().getCustomerName(),
+                retail.getCustomer() != null ? retail.getCustomer().getCustomerName() : null,
                 staff != null ? staff.getStaffName() : null,
                 retail.getDate(),
                 suppliers
