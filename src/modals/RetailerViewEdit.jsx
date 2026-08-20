@@ -449,6 +449,7 @@ const RetailerViewEdit = ({
     date: data?.date ?? "",
     customerId: data?.referredByCustomerId ?? null,
     staffId: data?.staffId ?? null,
+    commission: data?.commission ?? "",
   });
 
   const [savingRetailer, setSavingRetailer] = useState(false);
@@ -467,6 +468,7 @@ const RetailerViewEdit = ({
           date: retailerInputs.date,
           referredByCustomerId: retailerInputs.customerId,
           staffId: retailerInputs.staffId,
+          commission: retailerInputs.commission || null,
         },
       });
       setExpanded(false);
@@ -646,6 +648,9 @@ const RetailerViewEdit = ({
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <InfoField label="Staff" value={data?.staffName} />
                 </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoField label="Commission" value={data?.commission} />
+                </Grid>
               </Grid>
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -710,6 +715,19 @@ const RetailerViewEdit = ({
                       onChange={(value) =>
                         handleRetailerChange("staffId", value?.id ?? null)
                       }
+                    />
+                  </Grid>
+
+                  {/* Commission */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      label="Commission"
+                      value={retailerInputs.commission}
+                      onChange={(e) =>
+                        handleRetailerChange("commission", e.target.value)
+                      }
+                      size="small"
+                      fullWidth
                     />
                   </Grid>
                 </Grid>
