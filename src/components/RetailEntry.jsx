@@ -38,6 +38,7 @@ const RetailEntry = () => {
     date: dayjs(),
     staffId: "",
     customerId: "",
+    commission: "",
   });
 
   const [suppliers, setSuppliers] = useState(
@@ -150,6 +151,7 @@ const RetailEntry = () => {
         date: formData.date || null,
         staffId: formData.staffId || null,
         referredByCustomerId: formData.customerId,
+        commission: formData.commission || null,
         suppliers: suppliers
           .filter((s) => s.supplierId)
           .map((s) => ({
@@ -181,6 +183,7 @@ const RetailEntry = () => {
       date: dayjs(),
       staffId: "",
       customerId: "",
+      commission: "",
     });
     setErrors({});
   };
@@ -308,6 +311,15 @@ const RetailEntry = () => {
                 label="Staff"
                 onChange={(value) => {
                   handleChange("staffId", value?.id || "");
+                }}
+              />
+
+              {/* Commission */}
+              <CustomTextField
+                label="Commission"
+                value={formData.commission}
+                onChange={(e) => {
+                  handleChange("commission", e.target.value);
                 }}
               />
             </div>
