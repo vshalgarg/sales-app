@@ -11,6 +11,7 @@ public record RetailResponseDto(
         String customerName,
         Integer staffId,
         String staffName,
-        List<RetailSupplierResponseDto> suppliers
+        List<RetailSupplierResponseDto> suppliers,
+        String commission
 ) {
 }

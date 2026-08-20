@@ -763,3 +763,5 @@ INSERT INTO configurations (
     NULL,
     NULL
 );
+
+ALTER TABLE retailers add column commission VARCHAR(255);
