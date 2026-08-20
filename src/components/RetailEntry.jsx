@@ -38,6 +38,7 @@ const RetailEntry = () => {
     date: dayjs(),
     staffId: "",
     customerId: "",
+    commission: "",
   });
 
   const [suppliers, setSuppliers] = useState(
@@ -125,9 +126,9 @@ const RetailEntry = () => {
       newErrors.supplierIds = "Please select at least one supplier";
     }
 
-    if (!formData.customerId) {
-      newErrors.customerId = "Please select a Customer";
-    }
+    // if (!formData.customerId) {
+    //   newErrors.customerId = "Please select a Customer";
+    // }
 
     if (!formData.name) {
       newErrors.name = "Please enter a retailer name";
@@ -149,7 +150,8 @@ const RetailEntry = () => {
         name: formData.name,
         date: formData.date || null,
         staffId: formData.staffId || null,
-        referredByCustomerId: formData.customerId,
+        referredByCustomerId: formData.customerId || null,
+        commission: formData.commission || null,
         suppliers: suppliers
           .filter((s) => s.supplierId)
           .map((s) => ({
@@ -181,6 +183,7 @@ const RetailEntry = () => {
       date: dayjs(),
       staffId: "",
       customerId: "",
+      commission: "",
     });
     setErrors({});
   };
@@ -286,10 +289,10 @@ const RetailEntry = () => {
                   customerOptions.find((c) => c.id === formData.customerId) ||
                   null
                 }
-                label="ReferredBy"
-                required={true}
-                error={!!errors.customerId}
-                helperText={errors.customerId || ""}
+                label="Referred By"
+                // required={true}
+                // error={!!errors.customerId}
+                // helperText={errors.customerId || ""}
                 onChange={(value) => {
                   if (!value) {
                     resetCustomer();
@@ -308,6 +311,15 @@ const RetailEntry = () => {
                 label="Staff"
                 onChange={(value) => {
                   handleChange("staffId", value?.id || "");
+                }}
+              />
+
+              {/* Commission */}
+              <CustomTextField
+                label="Commission"
+                value={formData.commission}
+                onChange={(e) => {
+                  handleChange("commission", e.target.value);
                 }}
               />
             </div>
