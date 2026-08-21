@@ -8,6 +8,7 @@ import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.entity.BankDetailEntity;
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.ResponseErrorCode;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
@@ -48,13 +49,7 @@ public class SupplierMapper {
         entity.setState(dto.getState());
         entity.setCity(dto.getCity());
         entity.setPinCode(dto.getPinCode());
-
-        entity.setMsme(
-                StringUtils.isBlank(dto.getSupplierMsme())
-                        ? "SMALL"
-                        : dto.getSupplierMsme()
-        );
-
+        entity.setMsme(dto.getSupplierMsme() == null ? MsmeEnum.SMALL : dto.getSupplierMsme());
         entity.setRemark(dto.getRemark());
 
         if (dto.getBankDetails() != null) {
@@ -109,19 +104,12 @@ public class SupplierMapper {
         entity.setCommissionScheme(dto.getCommissionScheme());
         entity.setCommissionRate(dto.getCommissionRate());
         entity.setReferenceBy(dto.getReferenceBy());
-
         entity.setAddressLine1(dto.getAddressLine1());
         entity.setAddressLine2(dto.getAddressLine2());
         entity.setState(dto.getState());
         entity.setCity(dto.getCity());
         entity.setPinCode(dto.getPinCode());
-
-        entity.setMsme(
-                StringUtils.isBlank(dto.getMsme())
-                        ? "SMALL"
-                        : dto.getMsme()
-        );
-
+        entity.setMsme(dto.getMsme() == null ? MsmeEnum.SMALL : dto.getMsme());
         entity.setRemark(dto.getRemark());
 
         if (dto.getBankDetails() != null) {

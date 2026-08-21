@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.request;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -21,7 +22,7 @@ public class AddCustomerRequestDto {
     @Convert(converter = EmptyStringToNullConverter.class)
     private String customerGstNo;
 
-    private String customerMsme;
+    private MsmeEnum customerMsme;
 
     @Convert(converter = EmptyStringToNullConverter.class)
     private String referencedBy;

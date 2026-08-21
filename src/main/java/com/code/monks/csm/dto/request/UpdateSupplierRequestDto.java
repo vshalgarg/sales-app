@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.request;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -37,7 +38,7 @@ public class UpdateSupplierRequestDto {
     @Size(max = 10, message = "Pin code cannot exceed 10 characters")
     private String pinCode;
 
-    private String msme;
+    private MsmeEnum msme;
 
     private List<BankDetailRequestDto> bankDetails;
 

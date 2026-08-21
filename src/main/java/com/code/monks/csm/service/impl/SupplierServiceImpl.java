@@ -6,6 +6,7 @@ import com.code.monks.csm.dto.request.UpdateSupplierRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.SupplierEntity;
 import com.code.monks.csm.entity.TransportEntity;
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.StatusFilter;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
@@ -51,8 +52,8 @@ public class SupplierServiceImpl implements SupplierService {
             if (StringUtils.isBlank(requestDto.getSupplierGroup())) {
                 requestDto.setSupplierGroup(requestDto.getSupplierName());
             }
-            if (StringUtils.isBlank(requestDto.getSupplierMsme())) {
-                requestDto.setSupplierMsme("SMALL");
+            if (requestDto.getSupplierMsme() == null) {
+                requestDto.setSupplierMsme(MsmeEnum.SMALL);
             }
             validateSupplierAndContacts(requestDto, code);
             SupplierEntity entity = supplierMapper.toEntity(requestDto, code);

@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.response;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -23,11 +24,11 @@ public class BillDetailResponseDto {
     private Integer supplierId;
     private String supplierGroup;
     private String supplierGstNo;
-    private String supplierMsme;
+    private MsmeEnum supplierMsme;
     private Integer customerId;
     private String customerGroup;
     private String customerGstNo;
-    private String customerMsme;
+    private MsmeEnum customerMsme;
 
     private String transport;
     private String lrNumber;
