@@ -152,7 +152,6 @@ const RetailEntry = () => {
         staffId: formData.staffId || null,
         referredByCustomerId: formData.customerId || null,
         commission: formData.commission || null,
-
         suppliers: suppliers
           .filter((s) => s.supplierId)
           .map((s) => ({
