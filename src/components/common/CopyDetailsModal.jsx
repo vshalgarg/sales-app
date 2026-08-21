@@ -108,7 +108,38 @@ const StructuredCopyPreview = ({ mandatory = [], bank }) => (
       );
     })}
 
-    {bank?.fields?.length > 0 && (
+    {bank?.accounts?.length > 0 ? (
+      <div className="pt-1 space-y-3">
+        <PreviewRow
+          label="Bank Details"
+          icon={FIELD_ICONS["Bank Details"]}
+          showValue={false}
+        />
+        {bank.accounts.map((account) => (
+          <div
+            key={account.label}
+            className="ml-9 space-y-1 border-l border-brand-surface-border pl-3"
+          >
+            {bank.accounts.length > 1 ? (
+              <p className="text-sm font-semibold text-brand-navy">
+                {account.label}
+              </p>
+            ) : null}
+            {account.fields.map((field) => (
+              <p
+                key={`${account.label}-${field.label}`}
+                className="text-sm text-gray-700 break-words"
+              >
+                <span className="font-medium text-brand-navy">
+                  {field.label}:
+                </span>{" "}
+                {field.value}
+              </p>
+            ))}
+          </div>
+        ))}
+      </div>
+    ) : bank?.fields?.length > 0 ? (
       <div className="pt-1">
         <PreviewRow
           label="Bank Details"
@@ -116,15 +147,22 @@ const StructuredCopyPreview = ({ mandatory = [], bank }) => (
           showValue={false}
         />
         <div className="ml-9 space-y-1 border-l border-brand-surface-border pl-3">
-          {bank.fields.map((field) => (
-            <p key={field.label} className="text-sm text-gray-700 break-words">
-              <span className="font-medium text-brand-navy">{field.label}:</span>{" "}
-              {field.value}
-            </p>
-          ))}
+          {bank.fields
+            .filter((field) => !field.isSection)
+            .map((field) => (
+              <p
+                key={field.label}
+                className="text-sm text-gray-700 break-words"
+              >
+                <span className="font-medium text-brand-navy">
+                  {field.label}:
+                </span>{" "}
+                {field.value}
+              </p>
+            ))}
         </div>
       </div>
-    )}
+    ) : null}
   </div>
 );
 
@@ -156,7 +194,10 @@ export default function CopyDetailsModal({
   const [selectedIds, setSelectedIds] = useState([]);
 
   const isStructuredCopy = Array.isArray(formattedText?.mandatory);
-  const hasBankDetails = Boolean(formattedText?.bank?.fields?.length);
+  const hasBankDetails = Boolean(
+    formattedText?.bank?.accounts?.length ||
+      formattedText?.bank?.fields?.length,
+  );
 
   const legacyEntries = useMemo(
     () =>
@@ -337,7 +378,7 @@ export default function CopyDetailsModal({
           <AppButton
             type="secondary"
             onClick={handleCopyBankDetails}
-            disabled={copyingBank || copying}
+            disabled={copyingBank || copying || !hasBankDetails}
             startIcon={<Landmark className="h-4 w-4" />}
           >
             {copyingBank ? "Copying..." : "Copy Bank Details"}
