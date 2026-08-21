@@ -16,9 +16,12 @@ import {
   Phone,
   Truck,
   Landmark,
+  Plus,
 } from "lucide-react";
+import DeleteIcon from "@mui/icons-material/Delete";
 import CustomTextField from "../components/CustomTextField";
 import BasicSelect from "../components/BasicSelect";
+import { MSME_OPTIONS } from "../constants/options";
 import CustomerService from "../service/CustomerService";
 import TransportService from "../service/TransportService";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -39,6 +42,54 @@ import ConfirmDialog from "../components/common/ConfirmDialog";
 import CopyDetailsModal from "../components/common/CopyDetailsModal";
 import { getCustomerFormattedText } from "../utils/copyFormatter";
 
+const EMPTY_BANK_ACCOUNT = {
+  bankName: "",
+  ifscCode: "",
+  branchName: "",
+  accountName: "",
+  accountNumber: "",
+};
+
+const mapBankAccount = (account = {}) => ({
+  ...(account.id != null ? { id: account.id } : {}),
+  bankName: account.bankName || "",
+  ifscCode: account.ifscCode || account.ifsc || "",
+  branchName: account.branchName || account.branch || "",
+  accountName: account.accountName || "",
+  accountNumber: account.accountNumber || "",
+});
+
+const hasBankAccountData = (account = {}) =>
+  Boolean(
+    account.bankName ||
+      account.ifscCode ||
+      account.ifsc ||
+      account.branchName ||
+      account.branch ||
+      account.accountName ||
+      account.accountNumber,
+  );
+
+const normalizeBankAccounts = (data = {}, { fallbackEmpty = true } = {}) => {
+  const accounts = data.bankDetails || data.bankAccounts;
+
+  if (Array.isArray(accounts) && accounts.length > 0) {
+    const mapped = accounts.map(mapBankAccount);
+
+    if (!fallbackEmpty) {
+      return mapped.filter(hasBankAccountData);
+    }
+
+    return mapped.length ? mapped : [{ ...EMPTY_BANK_ACCOUNT }];
+  }
+
+  if (hasBankAccountData(data)) {
+    return [mapBankAccount(data)];
+  }
+
+  return fallbackEmpty ? [{ ...EMPTY_BANK_ACCOUNT }] : [];
+};
+
 const mapCustomerToForm = (data) => ({
   customerName: data.customerName || "",
   email: data.email || "",
@@ -52,11 +103,7 @@ const mapCustomerToForm = (data) => ({
   pinCode: data.pinCode || "",
   msme: data.msme || "",
   remark: data.remark || "",
-  bankName: data.bankName || "",
-  ifsc: data.ifsc || "",
-  branch: data.branch || "",
-  accountName: data.accountName || "",
-  accountNumber: data.accountNumber || "",
+  bankDetails: normalizeBankAccounts(data, { fallbackEmpty: true }),
   contacts: data.contacts?.length
     ? data.contacts
     : [{ contactPerson: "", mobileNumber: "", type: "" }],
@@ -173,6 +220,57 @@ const CustomerModal = ({
     setForm((prev) => ({ ...prev, contacts: updated }));
   };
 
+  const bankDetails = form.bankDetails?.length
+    ? form.bankDetails
+    : [{ ...EMPTY_BANK_ACCOUNT }];
+
+  const addBankAccount = () => {
+    if (readOnly) return;
+
+    setForm((prev) => ({
+      ...prev,
+      bankDetails: [
+        ...(prev.bankDetails?.length ? prev.bankDetails : bankDetails),
+        { ...EMPTY_BANK_ACCOUNT },
+      ],
+    }));
+  };
+
+  const deleteBankAccount = (indexToRemove) => {
+    if (readOnly) return;
+
+    setForm((prev) => {
+      const current = prev.bankDetails?.length
+        ? prev.bankDetails
+        : [{ ...EMPTY_BANK_ACCOUNT }];
+
+      if (current.length <= 1) return prev;
+
+      return {
+        ...prev,
+        bankDetails: current.filter((_, index) => index !== indexToRemove),
+      };
+    });
+  };
+
+  const handleBankAccountChange = (index, e) => {
+    if (readOnly) return;
+    const { name, value } = e.target;
+
+    setForm((prev) => {
+      const current = prev.bankDetails?.length
+        ? [...prev.bankDetails]
+        : [{ ...EMPTY_BANK_ACCOUNT }];
+
+      current[index] = {
+        ...current[index],
+        [name]: value,
+      };
+
+      return { ...prev, bankDetails: current };
+    });
+  };
+
   const handleUpdate = async () => {
     const nameError = validate("customerName", form.customerName);
     if (nameError) {
@@ -180,9 +278,14 @@ const CustomerModal = ({
       return;
     }
 
+    const filledBankDetails = (form.bankDetails || bankDetails).filter(
+      hasBankAccountData,
+    );
+
     const payload = sanitizePayload({
       ...form,
       preferredTransportIds: selectedTransports.map((t) => t.id),
+      bankDetails: filledBankDetails,
     });
 
     try {
@@ -201,6 +304,9 @@ const CustomerModal = ({
   if (!open || !isLoaded) return null;
 
   const customer = recordData || {};
+  const viewBankAccounts = normalizeBankAccounts(customer, {
+    fallbackEmpty: false,
+  });
   const fullAddress =
     [customer.addressLine1, customer.addressLine2]
       .filter(Boolean)
@@ -289,11 +395,7 @@ const CustomerModal = ({
                     value={form.msme || ""}
                     onChange={handleChange}
                     label="MSME"
-                    options={[
-                      { value: "MICRO", label: "Micro" },
-                      { value: "SMALL", label: "Small" },
-                      { value: "MEDIUM", label: "Medium" },
-                    ]}
+                    options={MSME_OPTIONS}
                   />
                   <CustomTextField
                     name="referencedBy"
@@ -526,55 +628,114 @@ const CustomerModal = ({
           </FormSection>
 
           <FormSection title="Bank Details" icon={Landmark} variantIndex={4}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {isView ? (
-                <>
-                  <DetailField label="Bank Name">{customer.bankName || "-"}</DetailField>
-                  <DetailField label="IFSC Code">{customer.ifsc || "-"}</DetailField>
-                  <DetailField label="Branch Name">{customer.branch || "-"}</DetailField>
-                  <DetailField label="Account Holder Name">
-                    {customer.accountName || "-"}
-                  </DetailField>
-                  <DetailField label="Account Number">
-                    {customer.accountNumber || "-"}
-                  </DetailField>
-                </>
+            {isView ? (
+              viewBankAccounts.length > 0 ? (
+                viewBankAccounts.map((account, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50 mb-4 last:mb-0 dark:bg-zinc-800/50 dark:border-zinc-700"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium text-gray-700 dark:text-gray-200">
+                        Bank Account {index + 1}
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <DetailField label="Bank Name">
+                        {account.bankName || "-"}
+                      </DetailField>
+                      <DetailField label="IFSC Code">
+                        {account.ifscCode || "-"}
+                      </DetailField>
+                      <DetailField label="Branch Name">
+                        {account.branchName || "-"}
+                      </DetailField>
+                      <DetailField label="Account Holder Name">
+                        {account.accountName || "-"}
+                      </DetailField>
+                      <DetailField label="Account Number">
+                        {account.accountNumber || "-"}
+                      </DetailField>
+                    </div>
+                  </div>
+                ))
               ) : (
-                <>
-                  <CustomTextField
-                    name="bankName"
-                    value={form.bankName || ""}
-                    onChange={handleChange}
-                    label="Bank Name"
-                  />
-                  <CustomTextField
-                    name="ifsc"
-                    value={form.ifsc || ""}
-                    onChange={handleChange}
-                    label="IFSC Code"
-                  />
-                  <CustomTextField
-                    name="branch"
-                    value={form.branch || ""}
-                    onChange={handleChange}
-                    label="Branch Name"
-                  />
-                  <CustomTextField
-                    name="accountName"
-                    value={form.accountName || ""}
-                    onChange={handleChange}
-                    label="Account Holder Name"
-                  />
-                  <CustomTextField
-                    name="accountNumber"
-                    value={form.accountNumber || ""}
-                    onChange={handleChange}
-                    label="Account Number"
-                    type="number"
-                  />
-                </>
-              )}
-            </div>
+                <div className="text-gray-500">No bank details available</div>
+              )
+            ) : (
+              <>
+                {bankDetails.map((account, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50 mb-4 dark:bg-zinc-800/50 dark:border-zinc-700"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium text-gray-700 dark:text-gray-200">
+                        Bank Account {index + 1}
+                      </h4>
+
+                      {bankDetails.length > 1 && (
+                        <IconButton
+                          color="error"
+                          size="small"
+                          onClick={() => deleteBankAccount(index)}
+                          aria-label={`Delete bank account ${index + 1}`}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <CustomTextField
+                        name="bankName"
+                        value={account.bankName || ""}
+                        onChange={(e) => handleBankAccountChange(index, e)}
+                        label="Bank Name"
+                      />
+                      <CustomTextField
+                        name="ifscCode"
+                        value={account.ifscCode || ""}
+                        onChange={(e) => handleBankAccountChange(index, e)}
+                        label="IFSC Code"
+                      />
+                      <CustomTextField
+                        name="branchName"
+                        value={account.branchName || ""}
+                        onChange={(e) => handleBankAccountChange(index, e)}
+                        label="Branch Name"
+                      />
+                      <CustomTextField
+                        name="accountName"
+                        value={account.accountName || ""}
+                        onChange={(e) => handleBankAccountChange(index, e)}
+                        label="Account Holder Name"
+                      />
+                      <CustomTextField
+                        name="accountNumber"
+                        value={account.accountNumber || ""}
+                        onChange={(e) => handleBankAccountChange(index, e)}
+                        label="Account Number"
+                        inputProps={{ inputMode: "numeric" }}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex justify-end mt-2">
+                  <AppButton
+                    type="primary"
+                    onClick={addBankAccount}
+                    startIcon={<Plus className="h-4 w-4" />}
+                  >
+                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">
+                      Add More Bank Accounts
+                    </span>
+                  </AppButton>
+                </div>
+              </>
+            )}
           </FormSection>
         </div>
 

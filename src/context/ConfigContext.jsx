@@ -1,5 +1,3 @@
-// src/context/ConfigContext.jsx
-
 import { createContext, useContext, useEffect, useState } from "react";
 import AdminService from "../service/AdminService";
 import { useAuth } from "./AuthContext";
@@ -30,7 +28,7 @@ export const ConfigProvider = ({ children }) => {
     } else {
       setConfig(null);
     }
-  }, []);
+  }, [auth?.token]);
 
   return (
     <ConfigContext.Provider
