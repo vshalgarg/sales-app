@@ -1,5 +1,6 @@
 package com.code.monks.csm.entity;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.enums.converter.StatusEnumConverter;
 import jakarta.persistence.*;
@@ -64,7 +65,9 @@ public class CustomerEntity extends BaseEntity{
     private String pinCode;
 
     @Column(name = "msme")
-    private String msme;
+    @Enumerated(EnumType.STRING)
+    private MsmeEnum msme;
+
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

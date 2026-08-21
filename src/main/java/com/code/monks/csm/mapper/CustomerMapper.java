@@ -8,6 +8,7 @@ import com.code.monks.csm.dto.response.CustomerListDto;
 import com.code.monks.csm.entity.BankDetailEntity;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.ResponseErrorCode;
 import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.utils.ContactUtil;
@@ -71,13 +72,7 @@ public class CustomerMapper {
         entity.setState(dto.getState());
         entity.setCity(dto.getCity());
         entity.setPinCode(dto.getPinCode());
-
-        entity.setMsme(
-                StringUtils.isBlank(dto.getMsme())
-                        ? "SMALL"
-                        : dto.getMsme()
-        );
-
+        entity.setMsme(dto.getMsme() != null ? dto.getMsme() : MsmeEnum.SMALL);
         entity.setRemark(dto.getRemark());
 
         if (dto.getBankDetails() != null) {

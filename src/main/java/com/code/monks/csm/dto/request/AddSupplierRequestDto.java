@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.request;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -24,7 +25,7 @@ public class AddSupplierRequestDto {
     private String supplierGstNo;
 
 
-    private String supplierMsme;
+    private MsmeEnum supplierMsme;
     
 
     private String commissionScheme;
