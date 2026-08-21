@@ -199,6 +199,22 @@ const SupplierModal = ({
     if (readOnly) return;
     const { name, value } = e.target;
     if (name === "pinCode" && !/^\d{0,6}$/.test(value)) return;
+
+    // commissionRate (max 100, 2 decimals) 
+    if (name === "commissionRate") {
+      if (
+        /^\d*\.?\d{0,2}$/.test(value) &&
+        (value === "" || parseFloat(value) <= 100)
+      ) {
+        setForm((prev) => ({ ...prev, commissionRate: value }));
+        setErrors((prev) => ({
+          ...prev,
+          commissionRate: validate("commissionRate", value),
+        }));
+      }
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
       [name]: value,
