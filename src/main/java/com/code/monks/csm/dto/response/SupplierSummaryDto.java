@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.response;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,6 @@ public class SupplierSummaryDto {
     private String supplierName;
     private String supplierGroup;
     private String supplierGstNo;
-    private String supplierMsme;
+    private MsmeEnum supplierMsme;
     private String city;
 }

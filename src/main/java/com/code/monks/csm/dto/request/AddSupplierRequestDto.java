@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.request;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.converter.EmptyStringToNullConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -24,7 +25,7 @@ public class AddSupplierRequestDto {
     private String supplierGstNo;
 
 
-    private String supplierMsme;
+    private MsmeEnum supplierMsme;
     
 
     private String commissionScheme;
@@ -42,11 +43,7 @@ public class AddSupplierRequestDto {
     private String city;
     private String pinCode;
 
-    private String bankName;
-    private String ifscCode;
-    private String branchName;
-    private String accountName;
-    private String accountNumber;
+    private List<BankDetailRequestDto> bankDetails;
 
     @NotNull(message = "Preferred transport is required")
     private List<Integer> preferredTransportIds;

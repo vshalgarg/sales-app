@@ -1,16 +1,25 @@
 package com.code.monks.csm.mapper;
 
 import com.code.monks.csm.dto.request.AddCustomerRequestDto;
+import com.code.monks.csm.dto.request.BankDetailRequestDto;
 import com.code.monks.csm.dto.request.ContactRequestDto;
 import com.code.monks.csm.dto.request.UpdateCustomerRequestDto;
 import com.code.monks.csm.dto.response.CustomerListDto;
+import com.code.monks.csm.entity.BankDetailEntity;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
+import com.code.monks.csm.enums.MsmeEnum;
+import com.code.monks.csm.enums.ResponseErrorCode;
+import com.code.monks.csm.exception.ResourceNotFoundException;
 import com.code.monks.csm.utils.ContactUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class CustomerMapper {
 
@@ -28,11 +37,22 @@ public class CustomerMapper {
         entity.setMsme(dto.getCustomerMsme());
         entity.setRemark(dto.getRemark());
 
-        entity.setBankName(dto.getBankName());
-        entity.setIfscCode(dto.getIfsc());
-        entity.setBranchName(dto.getBranch());
-        entity.setAccountName(dto.getAccountName());
-        entity.setAccountNumber(dto.getAccountNumber());
+        if (dto.getBankDetails() != null) {
+            List<BankDetailEntity> bankDetails = dto.getBankDetails()
+                    .stream()
+                    .map(bankDto -> {
+                        BankDetailEntity bank = new BankDetailEntity();
+                        bank.setBankName(bankDto.getBankName());
+                        bank.setIfscCode(bankDto.getIfscCode());
+                        bank.setBranchName(bankDto.getBranchName());
+                        bank.setAccountName(bankDto.getAccountName());
+                        bank.setAccountNumber(bankDto.getAccountNumber());
+                        bank.setCustomer(entity);
+                        return bank;
+                    })
+                    .toList();
+            entity.setBankDetails(bankDetails);
+        }
     }
 
     public static void mapCommonFields(CustomerEntity entity, UpdateCustomerRequestDto dto) {
@@ -52,20 +72,45 @@ public class CustomerMapper {
         entity.setState(dto.getState());
         entity.setCity(dto.getCity());
         entity.setPinCode(dto.getPinCode());
-
-        entity.setMsme(
-                StringUtils.isBlank(dto.getMsme())
-                        ? "SMALL"
-                        : dto.getMsme()
-        );
-
+        entity.setMsme(dto.getMsme() != null ? dto.getMsme() : MsmeEnum.SMALL);
         entity.setRemark(dto.getRemark());
 
-        entity.setBankName(StringUtils.trimToNull(dto.getBankName()));
-        entity.setIfscCode(StringUtils.trimToNull(dto.getIfsc()));
-        entity.setBranchName(StringUtils.trimToNull(dto.getBranch()));
-        entity.setAccountName(StringUtils.trimToNull(dto.getAccountName()));
-        entity.setAccountNumber(StringUtils.trimToNull(dto.getAccountNumber()));
+        if (dto.getBankDetails() != null) {
+            List<BankDetailEntity> existingBanks = entity.getBankDetails();
+            Map<Integer, BankDetailEntity> existingBankMap = existingBanks
+                            .stream()
+                            .filter(bank -> bank.getId() != null)
+                            .collect(Collectors.toMap(
+                                    BankDetailEntity::getId,
+                                    Function.identity()
+                            ));
+            List<Integer> incomingIds = dto.getBankDetails()
+                    .stream()
+                    .map(BankDetailRequestDto::getId)
+                    .filter(Objects::nonNull)
+                    .toList();
+            existingBanks.removeIf(bank ->
+                    bank.getId() != null && !incomingIds.contains(bank.getId())
+            );
+            for (BankDetailRequestDto bankDto : dto.getBankDetails()) {
+                BankDetailEntity bank;
+                if (bankDto.getId() != null) {
+                    bank = existingBankMap.get(bankDto.getId());
+                    if (bank == null) {
+                        throw new ResourceNotFoundException(ResponseErrorCode.DATA_NOT_FOUND,"Bank detail not found with id: " + bankDto.getId());
+                    }
+                } else {
+                    bank = new BankDetailEntity();
+                    bank.setCustomer(entity);
+                    existingBanks.add(bank);
+                }
+                bank.setBankName(StringUtils.trimToNull(bankDto.getBankName()));
+                bank.setIfscCode(StringUtils.trimToNull(bankDto.getIfscCode()));
+                bank.setBranchName(StringUtils.trimToNull(bankDto.getBranchName()));
+                bank.setAccountName(StringUtils.trimToNull(bankDto.getAccountName()));
+                bank.setAccountNumber(StringUtils.trimToNull(bankDto.getAccountNumber()));
+            }
+        }
     }
 
     public static void mapContacts(CustomerEntity entity, List<ContactRequestDto> contacts) {
