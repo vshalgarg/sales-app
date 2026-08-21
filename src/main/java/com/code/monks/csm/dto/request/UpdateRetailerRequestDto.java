@@ -17,6 +17,7 @@ public record UpdateRetailerRequestDto (
 
         Integer referredByCustomerId,
 
-        Integer staffId
+        Integer staffId,
+        String commission
 ){
 }

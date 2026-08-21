@@ -17,6 +17,7 @@ public record CreateRetailerRequestDto(
 
         Integer referredByCustomerId,
         Integer staffId,
-        List<RetailSupplierRequest> suppliers
+        List<RetailSupplierRequest> suppliers,
+        String commission
 ) {
 }
