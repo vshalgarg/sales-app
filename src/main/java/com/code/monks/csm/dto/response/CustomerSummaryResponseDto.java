@@ -1,5 +1,6 @@
 package com.code.monks.csm.dto.response;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ public class CustomerSummaryResponseDto {
     private String customerName;
     private String customerGroup;
     private String customerGstNo;
-    private String customerMsme;
+    private MsmeEnum customerMsme;
     private String city;
 
 }

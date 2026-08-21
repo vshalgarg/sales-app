@@ -8,6 +8,7 @@ import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.entity.ContactEntity;
 import com.code.monks.csm.entity.CustomerEntity;
 import com.code.monks.csm.entity.TransportEntity;
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.StatusFilter;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.CustomerException;
@@ -54,8 +55,8 @@ public class CustomerServiceImpl implements CustomerService {
             if (StringUtils.isBlank(requestDto.getCustomerGroup())) {
                 requestDto.setCustomerGroup(requestDto.getCustomerName());
             }
-            if (StringUtils.isBlank(requestDto.getCustomerMsme())) {
-                requestDto.setCustomerMsme("SMALL");
+            if (requestDto.getCustomerMsme() == null) {
+                requestDto.setCustomerMsme(MsmeEnum.SMALL);
             }
 
             // Step 1: Validate all unique fields
@@ -267,6 +268,19 @@ public class CustomerServiceImpl implements CustomerService {
                             .name(t.getName())
                             .build())
                     .toList();
+            List<BankDetailResponseDto> bankDetails =
+                    Optional.ofNullable(entity.getBankDetails())
+                            .orElse(Collections.emptyList())
+                            .stream()
+                            .map(bank -> new BankDetailResponseDto(
+                                    bank.getId(),
+                                    bank.getBankName(),
+                                    bank.getIfscCode(),
+                                    bank.getBranchName(),
+                                    bank.getAccountName(),
+                                    bank.getAccountNumber()
+                            ))
+                            .toList();
 
             log.info("Customer details fetched successfully for id={}", id);
 
@@ -288,11 +302,7 @@ public class CustomerServiceImpl implements CustomerService {
                     .status(entity.getStatus())
                     .contacts(contacts)
                     .preferredTransports(transportDtos)
-                    .bankName(entity.getBankName())
-                    .branch(entity.getBranchName())
-                    .accountName(entity.getAccountName())
-                    .accountNumber(entity.getAccountNumber())
-                    .ifsc(entity.getIfscCode())
+                    .bankDetails(bankDetails)
                     .build();
 
         } catch (DataAccessException dae) {

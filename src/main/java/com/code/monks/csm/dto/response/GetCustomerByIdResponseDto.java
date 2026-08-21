@@ -1,6 +1,7 @@
 package com.code.monks.csm.dto.response;
 
 import com.code.monks.csm.dto.request.ContactRequestDto;
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.StatusEnum;
 import lombok.Builder;
 import lombok.Data;
@@ -23,14 +24,10 @@ public class GetCustomerByIdResponseDto {
     private String state;
     private String city;
     private String pinCode;
-    private String msme;
+    private MsmeEnum msme;
     private String remark;
     private StatusEnum status;
-    private String bankName;
-    private String ifsc;
-    private String branch;
-    private String accountName;
-    private String accountNumber;
+    private List<BankDetailResponseDto> bankDetails;
     private List<ContactRequestDto> contacts;
     private List<TransportDto> preferredTransports;
 }

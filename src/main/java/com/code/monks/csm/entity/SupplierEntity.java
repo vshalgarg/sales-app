@@ -1,5 +1,6 @@
 package com.code.monks.csm.entity;
 
+import com.code.monks.csm.enums.MsmeEnum;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.enums.converter.StatusEnumConverter;
 import jakarta.persistence.*;
@@ -8,10 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Getter
@@ -60,21 +58,6 @@ public class SupplierEntity extends BaseEntity{
     @Column(name = "reference_by")
     private String referenceBy;
 
-    @Column(name = "bank_name")
-    private String bankName;
-
-    @Column(name = "ifsc_code")
-    private String ifscCode;
-
-    @Column(name = "branch_name")
-    private String branchName;
-
-    @Column(name = "account_name")
-    private String accountName;
-
-    @Column(name = "account_number")
-    private String accountNumber;
-
     @Column(name = "address_line1")
     private String addressLine1;
 
@@ -91,7 +74,8 @@ public class SupplierEntity extends BaseEntity{
     private String pinCode;
 
     @Column(name = "msme")
-    private String msme;
+    @Enumerated(EnumType.STRING)
+    private MsmeEnum msme;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -109,5 +93,8 @@ public class SupplierEntity extends BaseEntity{
 
     @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ContactEntity> contactList;
+
+    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BankDetailEntity> bankDetails= new ArrayList<>();
 
 }
