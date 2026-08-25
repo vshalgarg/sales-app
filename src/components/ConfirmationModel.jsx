@@ -1,5 +1,5 @@
 import React from 'react';
-import AppButton from "../components/common/AppButton"
+import AppButton from "./AppButton"
 const ConfirmationModal = ({
   isOpen,
   onClose,

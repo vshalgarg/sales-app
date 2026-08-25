@@ -22,7 +22,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import useResponsive from "../customHooks/useResponsive";
+import useResponsive from "../hooks/useResponsive";
 
 const DataTable = ({
   columns,
