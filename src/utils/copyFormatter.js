@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 export const formatDetails = (data) => {
   const filteredEntries = Object.entries(data).filter(
     ([_, value]) => value !== undefined && value !== null && value !== "",
@@ -35,6 +37,7 @@ export const convertHtmlToWhatsApp = (html) => {
     .replace(/<b>(.*?)<\/b>/gi, "*$1*")
     .replace(/<strong>(.*?)<\/strong>/gi, "*$1*")
     .replace(/<i>(.*?)<\/i>/gi, "_$1_")
+    .replace(/<div[^>]*data-copy-gap="true"[^>]*>\s*<\/div>/gi, "\n")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n")
     .replace(/<li>(.*?)<\/li>/gi, "• $1\n")
@@ -177,12 +180,25 @@ export const getSupplierFormattedText = (supplier) => {
   };
 };
 
-export const getSuppliersFormattedText = (data) => {
+export const getSuppliersFormattedText = (data, meta = {}) => {
   const suppliers = data?.suppliers ?? [];
+  const selectedDate = meta.date
+    ? dayjs(meta.date).isValid()
+      ? dayjs(meta.date).format("DD-MM-YYYY")
+      : String(meta.date)
+    : "";
+  const customerName = (meta.customerName || "").trim();
 
-  if (suppliers.length === 0) return { html: "", text: "" };
+  const header = [
+    selectedDate ? `<b>Date:</b> ${selectedDate}` : "",
+    customerName ? `<b>Customer:</b> ${customerName}` : "",
+  ]
+    .filter(Boolean)
+    .join("<br/>");
 
-  const html = suppliers
+  if (suppliers.length === 0 && !header) return { html: "", text: "" };
+
+  const suppliersHtml = suppliers
     .map((supplier) => {
       const bank = buildBankCopyData(supplier);
       const bankParts = bank?.accounts
@@ -207,6 +223,7 @@ export const getSuppliersFormattedText = (data) => {
     })
     .join("<br/><br/>");
 
+  const html = [header, suppliersHtml].filter(Boolean).join("<br/><br/>");
   const text = convertHtmlToWhatsApp(html);
 
   return { html, text };
