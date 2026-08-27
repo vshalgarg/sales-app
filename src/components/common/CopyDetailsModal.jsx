@@ -71,17 +71,7 @@ const parseFormattedEntries = (html = "") => {
 
 const toFormattedText = (entries) => {
   const html = entries
-    .map(({ label, value }, index) => {
-      const nextLabel = entries[index + 1]?.label;
-      const extraBreak =
-        nextLabel === "Name" &&
-        label !== "Selected Date" &&
-        label !== "Date" &&
-        label !== "Customer"
-          ? `<div data-copy-gap="true" style="height:12px"></div>`
-          : "";
-      return `<b>${label}:</b> ${value}<br/>${extraBreak}`;
-    })
+    .map(({ label, value }) => `<b>${label}:</b> ${value}<br/>`)
     .join("");
 
   return {

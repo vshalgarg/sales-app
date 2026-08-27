@@ -18,6 +18,7 @@ const PurchaseHistory = ({
   data,
   loading,
   page,
+  filterObject,
   totalItems,
   rowsPerPage,
   onPageChange,
@@ -45,16 +46,10 @@ const PurchaseHistory = ({
       setCopyLoadingId(row.id);
 
       const result = await getSupplierDataByCustomer({
-        fromDate: row.date,
-        toDate: row.date,
+        ...filterObject,
         customerId: row.customerId,
       });
-      setCopyData(
-        getSuppliersFormattedText(result, {
-          date: row.date,
-          customerName: row.customerName,
-        }),
-      );
+      setCopyData(getSuppliersFormattedText(result));
     } catch {
       showSnackbar("Failed to load copy data", "error");
     } finally {
