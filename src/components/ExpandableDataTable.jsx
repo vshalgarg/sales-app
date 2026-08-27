@@ -21,7 +21,7 @@ import {
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import useResponsive from "../customHooks/useResponsive";
+import useResponsive from "../hooks/useResponsive";
 import { BRAND_COLORS } from "../theme/brandColors";
 
 const headerCellSx = {
