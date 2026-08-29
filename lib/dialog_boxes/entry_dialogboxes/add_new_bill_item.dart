@@ -101,7 +101,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                 width: iconBoxSize,
                 height: iconBoxSize,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPurple.withOpacity(0.10),
+                  color: AppColors.primaryPurple.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(
                     smallScreen ? 12 : 14,
                   ),
@@ -249,7 +249,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                   height: width < 360 ? 42 : 48,
                   width: width < 360 ? 42 : 48,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
+                    color: Colors.white.withValues(alpha:0.18),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -331,7 +331,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                 height: iconContainer,
                 width: iconContainer,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPurple.withOpacity(0.10),
+                  color: AppColors.primaryPurple.withValues(alpha:0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -488,7 +488,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha:0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -511,7 +511,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                         if (showBillDetails) ...[
                           _billItemInput(
                             icon: Icons.inventory_2_outlined,
-                            title: "Pieces",
+                            title: "Pieces * ",
                             subtitle: "Enter number of pieces",
                             controller: piecesController,
                             integerOnly: true,
@@ -519,7 +519,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
 
                           _billItemInput(
                             icon: Icons.currency_rupee,
-                            title: "Gross Amount",
+                            title: "Gross Amount * ",
                             subtitle: "Enter gross amount",
                             controller: grossAmountController,
                             integerOnly: true,
@@ -538,7 +538,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha:0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -588,7 +588,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha:0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -639,7 +639,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha:0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -694,7 +694,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha:0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -724,7 +724,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                                     width: smallScreen ? 44 : 48,
                                     height: smallScreen ? 44 : 48,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.18),
+                                      color: Colors.white.withValues(alpha:0.18),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
@@ -809,14 +809,21 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                           title: "Save",
                           isPrimary: true,
                           onTap: () async {
-                            if (piecesController.text.isEmpty ||
-                                grossAmountController.text.isEmpty) {
+                            final pieces = int.tryParse(piecesController.text.trim());
+                            final grossAmount = double.tryParse(grossAmountController.text.trim());
+
+                            if (grossAmount == null || grossAmount <= 0) {
                               return ScaffoldSnackBar.show(
                                 context,
-                                "Please Enter Pieces and Gross Amount",
+                                "Gross Amount is required and must be greater than zero",
                               );
                             }
-
+                            if (pieces == null || pieces<=0) {
+                              return ScaffoldSnackBar.show(
+                                context,
+                                "Please enter at least 1 piece",
+                              );
+                            }
                             final provider = context.read<BillItemProvider>();
 
                             final item = BillItem(

@@ -1,6 +1,6 @@
 class AddCreditRequest {
   final String? billNumber;
-  final String date;
+  final String? date;
   final int supplierId;
   final int? customerId;
   final String paymentType;
@@ -13,7 +13,7 @@ class AddCreditRequest {
 
   const AddCreditRequest({
     this.billNumber,
-    required this.date,
+    this.date,
     required this.supplierId,
     this.customerId,
     required this.paymentType,
@@ -28,7 +28,7 @@ class AddCreditRequest {
   factory AddCreditRequest.fromJson(Map<String, dynamic> json) {
     return AddCreditRequest(
       billNumber: json['billNumber'],
-      date: json['date'] ?? '',
+      date: json['date'],
       supplierId: json['supplierId'] ?? 0,
       customerId: json['customerId'],
       paymentType: json['paymentType'] ?? '',
@@ -46,17 +46,17 @@ class AddCreditRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      "billNumber": billNumber ?? "",
+      "billNumber": billNumber,
       "date": date,
       "supplierId": supplierId,
       "customerId": customerId,
       "paymentType": paymentType,
       "referenceNumber": referenceNumber,
       "referenceDate": referenceDate,
-      "slipNumber": slipNumber ?? "",
+      "slipNumber": slipNumber,
       "drawType": drawType,
       "receivedAmount": receivedAmount,
-      "remark": remark ?? "",
+      "remark": remark,
     };
   }
 

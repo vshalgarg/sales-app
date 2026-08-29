@@ -36,7 +36,7 @@ class Staff {
     String? joiningDate,
   }) {
     return Staff(
-      id: staffId ?? this.id,
+      id: staffId ?? id,
       staffName: staffName ?? this.staffName,
       phone: phone ?? this.phone,
       joiningDate: joiningDate ?? this.joiningDate,

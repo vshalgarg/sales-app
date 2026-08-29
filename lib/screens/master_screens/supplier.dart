@@ -33,11 +33,11 @@ class _SupplierState extends State<SupplierScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() async {
-      final provider = context.read<SupplierProvider>();
+    supplierProvider = context.read<SupplierProvider>();
 
+    Future.microtask(() async {
       searchController.clear();
-      await provider.clearSearch();
+      await supplierProvider.clearSearch();
     });
   }
 
@@ -140,7 +140,8 @@ class _SupplierState extends State<SupplierScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) =>
-                              AddNewSupplier(id: item.id, mode: FormMode.view),
+                              AddNewSupplier(
+                                  id: item.id, mode: FormMode.view),
                         ),
                       );
                     },
@@ -153,6 +154,7 @@ class _SupplierState extends State<SupplierScreen> {
                       trashIconTap: () {
                         ExitConfirmationDialog.show(
                           context,
+                          isDelete: true,
                           body: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -190,8 +192,8 @@ class _SupplierState extends State<SupplierScreen> {
                               ),
                             ],
                           ),
-                          saveButtonText: "Yes",
-                          discardButtonText: "No",
+                          saveButtonText: "Delete",
+                          discardButtonText: "Cancel",
                           onSave: () async {
                             Navigator.of(context).pop();
                             final provider = context.read<SupplierProvider>();
@@ -229,11 +231,11 @@ class _SupplierState extends State<SupplierScreen> {
 
                           await provider.fetchSupplierDetails(item.id.toInt());
 
-                          if (mounted) {
-                            Navigator.of(context).pop(); // Close loader
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
                           }
 
-                          if (!mounted) return;
+                          if (!context.mounted) return;
 
                           final data = provider.supplierDetails;
 
@@ -292,6 +294,7 @@ class _SupplierState extends State<SupplierScreen> {
                             ),
                           );
                         } catch (e) {
+                          if (!context.mounted) return;
                           if (Navigator.canPop(context)) {
                             Navigator.pop(context);
                           }
@@ -331,21 +334,38 @@ class _SupplierState extends State<SupplierScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        onPressed: () async {
-          final refresh = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddNewSupplier()),
-          );
+        floatingActionButton: FloatingActionButton(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AddNewSupplier(),
+                ),
+              );
 
-          if (refresh == true && mounted) {
-            await context.read<SupplierProvider>().refresh();
-          }
-        },
-        backgroundColor: AppColors.primaryPurple,
-        child: Icon(Iconsax.add, color: Colors.white, size: 40),
-      ),
+              if (!mounted) return;
+
+              if (result != null) {
+                await context.read<SupplierProvider>().refresh();
+
+                if (!mounted) return;
+
+                ScaffoldSnackBar.show(
+                  context,
+                  result.toString(),
+                );
+            }
+          },
+          backgroundColor: AppColors.primaryPurple,
+          child: Icon(
+            Iconsax.add,
+            color: Colors.white,
+            size: 40,
+          ),
+        ),
     );
   }
 }

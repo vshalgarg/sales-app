@@ -30,10 +30,16 @@ class _StaffScreenState extends State<StaffScreen> {
   void initState() {
     super.initState();
 
+    final staffProvider = context.read<StaffProvider>();
+
     Future.microtask(() async {
       searchController.clear();
-      await context.read<StaffProvider>().clearSearch();
-      context.read<StaffProvider>().fetchInitial();
+
+      await staffProvider.clearSearch();
+
+      if (!mounted) return;
+
+      staffProvider.fetchInitial();
     });
   }
 
@@ -143,7 +149,8 @@ class _StaffScreenState extends State<StaffScreen> {
                     joiningDate: item.joiningDate ?? "-",
 
                     editIconTap: () async {
-                      final refresh = await showDialog<bool>(
+                     // final refresh =
+                      await showDialog<bool>(
                         context: context,
                         builder: (_) => AddStaffDialog(
                           id: item.id,
@@ -155,8 +162,9 @@ class _StaffScreenState extends State<StaffScreen> {
                     trashIconTap: () {
                       ExitConfirmationDialog.show(
                         context,
-                        saveButtonText: "Yes",
-                        discardButtonText: "No",
+                        isDelete: true,
+                        saveButtonText: "Delete",
+                        discardButtonText: "Cancel",
                         body: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [

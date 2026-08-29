@@ -13,16 +13,18 @@ class TransportProvider extends PaginationProvider {
   TransportDetails? _transportDetails;
 
   bool _detailsLoading = false;
-  bool _actionLoading = false;
 
   TransportDetails? get transportDetails => _transportDetails;
+  String? _message;
+
+  String? get message => _message;
 
   bool get detailsLoading => _detailsLoading;
-
-  bool get actionLoading => _actionLoading;
-
   String _searchKeyword = "";
 
+  void clearMessage() {
+    _message = null;
+  }
   @override
   Future<PaginatedResponse<Transport>> requestPage({
     required int page,
@@ -116,31 +118,30 @@ class TransportProvider extends PaginationProvider {
     return result.isSuccess && result.data != null;
   }
 
-  Future addTransport(AddTransportRequest request) async {
-    _actionLoading = true;
-    notifyListeners();
+  Future<bool> addTransport(AddTransportRequest request) async {
+    _message = null;
 
     try {
       final result = await _service.addTransport(request);
 
       if (result.isSuccess) {
+        _message = result.data?.message;
         await refreshTransports();
         return true;
       }
 
+      _message = result.errorMessage;
       return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
 
-  Future updateTransport({
+  Future<bool> updateTransport({
     required int id,
     required AddTransportRequest request,
   }) async {
-    _actionLoading = true;
-    notifyListeners();
+    _message = null;
 
     try {
       final result = await _service.updateTransport(
@@ -149,6 +150,8 @@ class TransportProvider extends PaginationProvider {
       );
 
       if (result.isSuccess) {
+        _message = result.data?.message;
+
         if (_transportDetails?.id == id) {
           await fetchTransportDetails(id);
         }
@@ -156,16 +159,14 @@ class TransportProvider extends PaginationProvider {
         return true;
       }
 
+      _message = result.errorMessage;
       return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
 
   Future deleteTransport(int id) async {
-    _actionLoading = true;
-    notifyListeners();
 
     try {
       final result = await _service.deleteTransport(id);
@@ -176,7 +177,6 @@ class TransportProvider extends PaginationProvider {
 
       return result.isSuccess;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }

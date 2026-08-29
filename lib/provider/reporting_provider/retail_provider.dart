@@ -14,7 +14,6 @@ class RetailProvider extends PaginationProvider<Retail> {
   RetailDetails? _retailDetails;
 
   bool _detailsLoading = false;
-  bool _actionLoading = false;
   bool _depositLoading = false;
 
   List<RetailDepositHistoryModel> _depositHistory = [];
@@ -22,9 +21,6 @@ class RetailProvider extends PaginationProvider<Retail> {
   RetailDetails? get retailDetails => _retailDetails;
 
   bool get detailsLoading => _detailsLoading;
-
-  bool get actionLoading => _actionLoading;
-
   bool get depositLoading => _depositLoading;
 
   List<RetailDepositHistoryModel> get depositHistory =>
@@ -100,8 +96,7 @@ class RetailProvider extends PaginationProvider<Retail> {
   }
 
   Future<bool> deleteRetail(int retailId) async {
-    _actionLoading = true;
-    notifyListeners();
+
 
     try {
       final result = await _service.deleteRetail(retailId);
@@ -112,7 +107,6 @@ class RetailProvider extends PaginationProvider<Retail> {
 
       return result.isSuccess;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
@@ -121,8 +115,7 @@ class RetailProvider extends PaginationProvider<Retail> {
     required int retailId,
     required Map<String, dynamic> body,
   }) async {
-    _actionLoading = true;
-    notifyListeners();
+
 
     try {
       final result = await _service.updateRetail(
@@ -142,13 +135,13 @@ class RetailProvider extends PaginationProvider<Retail> {
 
       return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
 
   Future<Map<String, dynamic>> addDeposit(
-      AddDepositModel request) async {
+      AddDepositModel request,
+      ) async {
     _depositLoading = true;
     notifyListeners();
 
@@ -156,9 +149,15 @@ class RetailProvider extends PaginationProvider<Retail> {
       final result = await _service.addDeposit(request);
 
       if (result.isSuccess) {
+        // Refresh both supplier summary and deposit history immediately.
+        if (_retailDetails != null) {
+          await fetchRetailDetails(_retailDetails!.id);
+          await fetchDepositHistory(_retailDetails!.id);
+        }
+
         return {
           "success": true,
-          "message": result.data?.message ?? "Success",
+          "message": result.data?.message ?? "Deposit added successfully",
         };
       }
 
@@ -173,21 +172,18 @@ class RetailProvider extends PaginationProvider<Retail> {
   }
 
   Future<bool> fetchDepositHistory(int retailId) async {
-    _depositLoading = true;
-    notifyListeners();
-
     try {
       final result = await _service.getDepositHistory(retailId);
 
       if (result.isSuccess && result.data != null) {
         _depositHistory = result.data!;
+        notifyListeners();
         return true;
       }
 
       return false;
-    } finally {
-      _depositLoading = false;
-      notifyListeners();
+    } catch (_) {
+      return false;
     }
   }
 
@@ -201,8 +197,7 @@ class RetailProvider extends PaginationProvider<Retail> {
   Future<bool> createRetail(
       Map<String, dynamic> body,
       ) async {
-    _actionLoading = true;
-    notifyListeners();
+
 
     try {
       final result = await _service.createRetail(body);
@@ -214,7 +209,6 @@ class RetailProvider extends PaginationProvider<Retail> {
 
       return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
@@ -224,8 +218,7 @@ class RetailProvider extends PaginationProvider<Retail> {
   Future<bool> addRetailSupplier(
       Map<String, dynamic> body,
       ) async {
-    _actionLoading = true;
-    notifyListeners();
+
 
     try {
       final result = await _service.addRetailSupplier(body);
@@ -239,7 +232,6 @@ class RetailProvider extends PaginationProvider<Retail> {
 
       return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
@@ -250,8 +242,7 @@ class RetailProvider extends PaginationProvider<Retail> {
     required int retailSupplierId,
     required Map<String, dynamic> body,
   }) async {
-    _actionLoading = true;
-    notifyListeners();
+
 
     try {
       final result = await _service.updateRetailSupplier(
@@ -268,7 +259,6 @@ class RetailProvider extends PaginationProvider<Retail> {
 
       return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
@@ -278,8 +268,7 @@ class RetailProvider extends PaginationProvider<Retail> {
   Future<bool> deleteRetailSupplier(
       int retailSupplierId,
       ) async {
-    _actionLoading = true;
-    notifyListeners();
+
 
     try {
       final result =
@@ -294,7 +283,6 @@ class RetailProvider extends PaginationProvider<Retail> {
 
       return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:open_filex/open_filex.dart';
@@ -16,6 +17,6 @@ Future<void> viewAttachment(String url, String fileName) async {
 
     await OpenFilex.open(path);
   } catch (e) {
-    print(e);
+    log(e.toString());
   }
 }

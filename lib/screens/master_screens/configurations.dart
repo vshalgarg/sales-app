@@ -14,16 +14,39 @@ class ConfigurationScreen extends StatefulWidget {
 }
 
 class _ConfigurationScreenState extends State<ConfigurationScreen> {
-bool isChecked=false;
+  bool isRetailEnabled = false;
+  bool isLoading = true;
+
+
   @override
   void initState() {
-  super.initState();
+    super.initState();
 
-  Future.microtask(() {
-  context.read<ConfigProvider>().fetchConfiguration();
-  });
+    Future.microtask(() async {
+      final configProvider = context.read<ConfigProvider>();
+
+      try {
+        await configProvider.fetchConfiguration();
+        if (!mounted) return;
+
+        setState(() {
+          isRetailEnabled = configProvider.retailEnabled;
+          isLoading = false;
+        });
+      } catch (e) {
+        if (!mounted) return;
+
+        setState(() {
+          isLoading = false;
+        });
+
+        ScaffoldSnackBar.show(
+          context,
+          e.toString(),
+        );
+      }
+    });
   }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ConfigProvider>();
@@ -76,35 +99,44 @@ bool isChecked=false;
                       ),
                     ),
                     Checkbox(
-                      value: provider.retailEnabled,
-                      onChanged: (value) {
-                        context.read<ConfigProvider>().setRetailEnabled(value!);
+                      value: isRetailEnabled,
+                      onChanged: isLoading
+                          ? null
+                          : (value) {
+                        setState(() {
+                          isRetailEnabled = value ?? false;
+                        });
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height:20),
+            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {try {
-                await context.read<ConfigProvider>().saveConfiguration(
-                  provider.retailEnabled,
-                );
-                if(!context.mounted) return;
+              onPressed: () async {
+                try {
+                  await context
+                      .read<ConfigProvider>()
+                      .saveConfiguration(isRetailEnabled);
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Configuration updated successfully",
-                );
+                  if (!context.mounted) return;
 
-                Navigator.pop(context);
-              } catch (e) {
-                ScaffoldSnackBar.show(
-                  context,
-                  e.toString(),
-                );
-              }},
+                  ScaffoldSnackBar.show(
+                    context,
+                    "Configuration updated successfully",
+                  );
+
+                  Navigator.pop(context);
+                } catch (e) {
+                  if (!context.mounted) return;
+
+                  ScaffoldSnackBar.show(
+                    context,
+                    e.toString(),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryPurple,
                 shape: RoundedRectangleBorder(
@@ -112,7 +144,10 @@ bool isChecked=false;
                 ),
               ),
 
-              child: Text("Save Changes",style: TextStyle(color:Colors.white),),
+              child: Text(
+                "Save Changes",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),

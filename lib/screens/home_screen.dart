@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/containers/new_custom_app_bar.dart';
 import 'package:hisabio/customs/widget_menu.dart';
@@ -32,15 +34,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+    final configProvider = context.read<ConfigProvider>();
+
     Future.microtask(() {
-      context.read<ConfigProvider>().fetchConfiguration();
+      configProvider.fetchConfiguration();
     });
   }
 
   Future<void> _loadUserData() async {
     final emailValue = await AppStorage.getEmail();
     final roleValue = await AppStorage.getRole();
-    print("Stored Role = $roleValue");
+    log("Stored Role = $roleValue");
 
     setState(() {
       if (emailValue != null && emailValue.contains("@")) {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -32,7 +33,7 @@ class EntriesService {
   Future<ResponseResult<List<EntriesModel>>> fetchSuppliers() async {
     final sw = Stopwatch()..start();
     final result = await _api.get<List<dynamic>>(path: "$_suppliers/get/all");
-    print("Supplier API: ${sw.elapsedMilliseconds} ms");
+    log("Supplier API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch suppliers",
@@ -52,7 +53,7 @@ class EntriesService {
   Future<ResponseResult<List<EntriesCustomerModel>>> fetchCustomers() async {
     final sw = Stopwatch()..start();
     final result = await _api.get<List<dynamic>>(path: "$_customers/get/all");
-    print("Customer API: ${sw.elapsedMilliseconds} ms");
+    log("Customer API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch customers",
@@ -217,15 +218,15 @@ class EntriesService {
       );
     }
 
-    print("=========== BILL PAYLOAD ===========");
-    print(jsonEncode(payload));
+    log("=========== BILL PAYLOAD ===========");
+    log(jsonEncode(payload));
 
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_bill/entry/add",
       data: formData,
     );
 
-    print(result.data);
+    log(result.data.toString());
 
     if (result.isFailure) {
       return ResponseResult.error(
@@ -272,17 +273,17 @@ class EntriesService {
       );
     }
 
-    print("========== UPDATE BILL ==========");
-    print(jsonEncode(payload));
+    log("========== UPDATE BILL ==========");
+    log(jsonEncode(payload));
 
     final result = await _api.patch<Map<String, dynamic>>(
       path: "$_bill/entry/update/$id",
       data: formData,
     );
 
-    print("Status : ${result.statusCode}");
-    print("Response : ${result.data}");
-    print("Error : ${result.errorMessage}");
+    log("Status : ${result.statusCode}");
+    log("Response : ${result.data}");
+    log("Error : ${result.errorMessage}");
 
     if (result.isFailure) {
       return ResponseResult.error(

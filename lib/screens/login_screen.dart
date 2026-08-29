@@ -138,6 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               password: passwordController.text.trim(),
                             );
+                            if (!context.mounted) return;
                             if (success) {
                               ScaffoldSnackBar.show(
                                 context,
@@ -147,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>   HomeScreen(), //Supplier(),
+                                  builder: (context) =>   HomeScreen(),
                                 ),
                               );
                             }

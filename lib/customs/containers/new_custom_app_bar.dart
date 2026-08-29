@@ -36,32 +36,31 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: Padding(
-        padding: const EdgeInsets.all(7),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.primaryPurple,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Center(
-            child: Text(
-              "h",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+        backgroundColor: Colors.white,
+
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+          SizedBox(
+          width: 48,
+          height: 48,
+          child: Padding(
+        padding: const EdgeInsets.all(2),
+            child: Image.asset('assets/images/img.png',
+              fit: BoxFit.contain,
+            ),
             ),
           ),
-        ),
-      ),
-      title: const Text(
+      const SizedBox(width: 5),
+      const Text(
         "hissabio",
         style: TextStyle(
           color: AppColors.primaryPurple,
           fontWeight: FontWeight.bold,
         ),
       ),
+      ]
+        ),
       actions: [
         IconButton(
           icon: const Icon(Icons.logout,size:30),
@@ -72,11 +71,14 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
               icon: Icons.logout,
               saveButtonText: "Logout",
               discardButtonText: "Cancel",
-
+              isLogout: true,
               onSave: () async {
+                final navigator = Navigator.of(context);
                 await AppStorage.clear();
-
-                Navigator.push(context,MaterialPageRoute(builder: (context)=>LoginScreen()));
+                if (!mounted) return;
+                navigator.push(
+                    MaterialPageRoute(
+                        builder: (_) => const LoginScreen()));
               },
 
               onDiscard: () {

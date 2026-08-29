@@ -32,6 +32,7 @@ class AddNewCustomer extends StatefulWidget {
 class _AddNewCustomerState extends State<AddNewCustomer> {
   final GlobalKey financialSectionKey = GlobalKey();
   final GlobalKey _contactKey = GlobalKey();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
   bool isExpanded = false;
   int? selectedState;
@@ -58,16 +59,16 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   final pinCodeController = TextEditingController();
 
-
-
   final remarksController = TextEditingController();
   List<ContactControllers> contacts = [];
   List<BankControllers> bankDetails = [];
+
   void addInitialBank() {
     if (bankDetails.isEmpty) {
       bankDetails.add(BankControllers());
     }
   }
+
   void addBankDetails() {
     if (bankDetails.length >= 4) return;
 
@@ -75,6 +76,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       bankDetails.add(BankControllers());
     });
   }
+
   void deleteBankDetails(int index) {
     bankDetails[index].dispose();
 
@@ -82,6 +84,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       bankDetails.removeAt(index);
     });
   }
+
   AddCustomerRequest _buildCustomerRequest() {
     return AddCustomerRequest(
       customerName: nameController.text,
@@ -101,9 +104,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
           : addressLine2Controller.text,
       state: stateController.text,
       city: cityController.text,
-      pinCode: pinCodeController.text.isEmpty
-          ? null
-          : pinCodeController.text,
+      pinCode: pinCodeController.text.isEmpty ? null : pinCodeController.text,
       bankDetails: bankDetails.map((bank) {
         return BankDetailRequest(
           bankName: bank.bankName.text.trim().isEmpty
@@ -131,14 +132,15 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       contacts: contacts
           .map(
             (c) => CustomerContactRequest(
-          contactPerson: c.name.text,
-          mobileNumber: c.mobile.text,
-          type: c.type.text.isEmpty ? null : c.type.text,
-        ),
-      )
+              contactPerson: c.name.text,
+              mobileNumber: c.mobile.text,
+              type: c.type.text.isEmpty ? null : c.type.text,
+            ),
+          )
           .toList(),
     );
   }
+
   void _populateFormFromCustomer(CustomerDetails s) {
     nameController.text = s.customerName ?? "";
     emailController.text = s.email ?? "";
@@ -163,6 +165,18 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     bankDetails.clear();
 
     for (final bank in s.bankDetails) {
+      final hasBankData =
+          (bank.bankName ?? "").trim().isNotEmpty ||
+          (bank.ifscCode ?? "").trim().isNotEmpty ||
+          (bank.branchName ?? "").trim().isNotEmpty ||
+          (bank.accountName ?? "").trim().isNotEmpty ||
+          (bank.accountNumber ?? "").trim().isNotEmpty;
+
+      // Ignore empty bank objects returned by API
+      if (!hasBankData) {
+        continue;
+      }
+
       bankDetails.add(
         BankControllers()
           ..bankName.text = bank.bankName ?? ""
@@ -173,8 +187,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       );
     }
 
-    // For edit mode, if API has no bank, still show Bank 1.
-    if (bankDetails.isEmpty && widget.mode != FormMode.view) {
+    if (bankDetails.isEmpty && widget.mode == FormMode.edit) {
       bankDetails.add(BankControllers());
     }
 
@@ -204,21 +217,31 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
     contacts.clear();
 
-    if (s.contacts.isNotEmpty) {
-      for (final c in s.contacts) {
+    bool hasContactData = false;
+
+    for (final c in s.contacts) {
+      final name = c.contactPerson?.toString().trim() ?? "";
+      final mobile = c.mobileNumber?.toString().trim() ?? "";
+      final type = c.type?.toString().trim() ?? "";
+
+      // Ignore contact objects where all fields are empty/null
+      if (name.isNotEmpty || mobile.isNotEmpty || type.isNotEmpty) {
+        hasContactData = true;
+
         final contact = ContactControllers();
 
-        contact.name.text = c.contactPerson ?? "";
-        contact.mobile.text = c.mobileNumber ?? "";
-        contact.type.text = c.type ?? "";
+        contact.name.text = name;
+        contact.mobile.text = mobile;
+        contact.type.text = type;
 
         contacts.add(contact);
       }
-    } else {
-        contacts.add(ContactControllers());
-        addInitialBank();
-      }
     }
+
+    if (!hasContactData && widget.mode != FormMode.view) {
+      contacts.add(ContactControllers());
+    }
+  }
 
   Future<void> loadData() async {
     final transportProvider = context.read<TransportProvider>();
@@ -267,9 +290,10 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       contacts.add(ContactControllers());
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    final customerProvider = context.watch<CustomerProvider>();
+    //  final customerProvider = context.watch<CustomerProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -295,8 +319,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                   saveButtonText: "Stay",
                   onDiscard: () {
                     Navigator.pop(context);
-                    Navigator.pop(context,true);
-
+                    Navigator.pop(context, true);
                   },
                 );
               },
@@ -314,182 +337,186 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
         ),
       ),
       body: SingleChildScrollView(
-              controller: _scrollController,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SupplierBasicInfo(
-                      mode: widget.mode,
-                      showCommissionRate: false,
-                      showCommissionScheme: false,
-                      nameController: nameController,
-                      emailController: emailController,
-                      groupController: groupController,
-                      gstNoController: gstController,
-                      msmeController: msmeController,
-                      referenceController: referenceController,
-                    ),
-                    SizedBox(height: 15),
-                    BankDetailsSection(
-                      mode: widget.mode,
-                      banks: bankDetails,
-                      onAdd: addBankDetails,
-                      onDelete: deleteBankDetails,
-                      scrollController: _scrollController,
-                    ),
+        controller: _scrollController,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SupplierBasicInfo(
+                  partyType: "Customer",
+                  mode: widget.mode,
+                  showCommissionRate: false,
+                  showCommissionScheme: false,
+                  nameController: nameController,
+                  emailController: emailController,
+                  groupController: groupController,
+                  gstNoController: gstController,
+                  msmeController: msmeController,
+                  referenceController: referenceController,
+                ),
+                SizedBox(height: 15),
+                BankDetailsSection(
+                  mode: widget.mode,
+                  banks: bankDetails,
+                  onAdd: addBankDetails,
+                  onDelete: deleteBankDetails,
+                  scrollController: _scrollController,
+                ),
 
-                    SizedBox(height: 15),
-                    AddressDetails(
-                      mode: widget.mode,
-                      addressLine1: addressLine1Controller,
-                      addressLine2: addressLine2Controller,
-                      state: stateController,
-                      city: cityController,
-                      pinCode: pinCodeController,
-                      onStateSelected: (id) {
-                        selectedState = id;
-                      },
+                SizedBox(height: 15),
+                AddressDetails(
+                  mode: widget.mode,
+                  addressLine1: addressLine1Controller,
+                  addressLine2: addressLine2Controller,
+                  state: stateController,
+                  city: cityController,
+                  pinCode: pinCodeController,
+                  onStateSelected: (id) {
+                    selectedState = id;
+                  },
 
-                      onCitySelected: (id) {
-                        selectedCity = id;
-                      },
-                    ),
-                    SizedBox(height: 15),
+                  onCitySelected: (id) {
+                    selectedCity = id;
+                  },
+                ),
+                SizedBox(height: 15),
 
-                    ContactInfo(
-                      mode: widget.mode,
-                      contacts: contacts,
-                      onAdd: addContact,
-                      onDelete: deleteContact,
-                      scrollController: _scrollController,
-                    ),
-                    SizedBox(height: 15),
-                    Container(
-                      key: _contactKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isExpanded = !isExpanded;
-                              });
-                              if (isExpanded) {
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  _scrollController.animateTo(
-                                    _scrollController.offset + 250,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOut,
-                                  );
-                                });
-                              }
-                            },
-                            child: TextFormField(
-                              enabled: false,
-                              decoration: InputDecoration(
-                                suffixIcon: Icon(
-                                  isExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: Colors.white,
-                                ),
-                                iconColor: Colors.white,
-                                filled: true,
-                                fillColor: AppColors.primaryPurple,
-                                hintText: "Financial and Logistics",
-                                hintStyle: TextStyle(color: Colors.white),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (isExpanded) ...[
-                      Column(
-                        key: financialSectionKey,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 15),
-
-                          Text(
-                            "Preferred Transport",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
-
-                          Consumer<TransportProvider>(
-                            builder: (context, transportProvider, child) {
-                              if (transportProvider.data.isLoading) {
-                                return const CircularProgressIndicator();
-                              }
-
-                              final List<Transport> transports =
-                              transportProvider.data.items.cast<Transport>();
-
-                              return CustomDropdown(
-                                hintText: "Preferred Transports",
-
-                                items: transports
-                                    .map((e) => e.name ?? "")
-                                    .where((name) => name.isNotEmpty)
-                                    .toList(),
-
-                                isMultiSelect: true,
-
-                                initialValues: selectedTransportNames,
-
-                                isDisabled: widget.mode == FormMode.view,
-
-                                onChanged: (_) {},
-
-                                onMultiChanged: (values) {
-                                  setState(() {
-                                    selectedTransportNames = values;
-
-                                    selectedTransportIds = values.map((name) {
-                                      final transport = transports.firstWhere(
-                                            (e) => e.name == name,
-                                      );
-
-                                      return transport.id!.toInt();
-                                    }).toList();
-                                  });
-                                },
+                ContactInfo(
+                  mode: widget.mode,
+                  contacts: contacts,
+                  onAdd: addContact,
+                  onDelete: deleteContact,
+                  scrollController: _scrollController,
+                ),
+                SizedBox(height: 15),
+                Container(
+                  key: _contactKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isExpanded = !isExpanded;
+                          });
+                          if (isExpanded) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollController.animateTo(
+                                _scrollController.offset + 250,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
                               );
-                            },
-                          ),
-                          SizedBox(height: 15),
-                          Text(
-                            "Remarks (Optional)",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
-                          TextFormField(
-                            enabled: widget.mode != FormMode.view,
-                            controller: remarksController,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Colors.white,
-                              hintText: "Remarks (optional)",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide.none,
-                              ),
+                            });
+                          }
+                        },
+                        child: TextFormField(
+                          enabled: false,
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(
+                              isExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                            ),
+                            iconColor: Colors.white,
+                            filled: true,
+                            fillColor: AppColors.primaryPurple,
+                            hintText: "Financial and Logistics",
+                            hintStyle: TextStyle(color: Colors.white),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide.none,
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
+                if (isExpanded) ...[
+                  Column(
+                    key: financialSectionKey,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 15),
+
+                      Text(
+                        "Preferred Transport",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+
+                      Consumer<TransportProvider>(
+                        builder: (context, transportProvider, child) {
+                          if (transportProvider.data.isLoading) {
+                            return const CircularProgressIndicator();
+                          }
+
+                          final List<Transport> transports = transportProvider
+                              .data
+                              .items
+                              .cast<Transport>();
+
+                          return CustomDropdown(
+                            hintText: "Preferred Transports",
+
+                            items: transports
+                                .map((e) => e.name ?? "")
+                                .where((name) => name.isNotEmpty)
+                                .toList(),
+
+                            isMultiSelect: true,
+
+                            initialValues: selectedTransportNames,
+
+                            isDisabled: widget.mode == FormMode.view,
+
+                            onChanged: (_) {},
+
+                            onMultiChanged: (values) {
+                              setState(() {
+                                selectedTransportNames = values;
+
+                                selectedTransportIds = values.map((name) {
+                                  final transport = transports.firstWhere(
+                                    (e) => e.name == name,
+                                  );
+
+                                  return transport.id!.toInt();
+                                }).toList();
+                              });
+                            },
+                          );
+                        },
+                      ),
+                      SizedBox(height: 15),
+                      Text(
+                        "Remarks (Optional)",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      TextFormField(
+                        enabled: widget.mode != FormMode.view,
+                        controller: remarksController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: "Remarks (optional)",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
+          ),
+        ),
+      ),
 
       bottomNavigationBar: Consumer<CustomerProvider>(
         builder: (context, provider, child) {
@@ -498,10 +525,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
             update: () async {
               if (nameController.text.trim().isEmpty) {
-                ScaffoldSnackBar.show(
-                  context,
-                  "Please enter customer name",
-                );
+                ScaffoldSnackBar.show(context, "Please enter customer name");
                 return;
               }
 
@@ -517,27 +541,21 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
                 if (!context.mounted) return;
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Customer updated successfully",
-                );
+                ScaffoldSnackBar.show(context, "Customer updated successfully");
 
                 Navigator.pop(context, true);
               } else {
-                ScaffoldSnackBar.show(
-                  context,
-                 "Unable to update customer",
-                );
+                ScaffoldSnackBar.show(context, "Unable to update customer");
               }
             },
 
-            saveSupplier: provider.actionLoading
-                ? () {}
-                : () async {
-              if (nameController.text.trim().isEmpty) {
+            saveSupplier: () async {
+              final isValid = _formKey.currentState!.validate();
+
+              if (!isValid) {
                 ScaffoldSnackBar.show(
                   context,
-                  "Please enter customer name",
+                  "Name is required.",
                 );
                 return;
               }
@@ -567,8 +585,8 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               }
             },
           );
-            },
-          ),
+        },
+      ),
     );
   }
 

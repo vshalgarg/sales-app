@@ -8,6 +8,7 @@ class EntryTextField extends StatelessWidget {
   final bool? enabled;
   final bool integerOnly;
   final bool decimalAllowed;
+  final AutovalidateMode? autovalidateMode;
   final String? Function(String?)? validator;
   const EntryTextField({
     super.key,
@@ -18,12 +19,14 @@ class EntryTextField extends StatelessWidget {
     this.integerOnly = false,
     this.decimalAllowed = false,
     this.validator,
+    this.autovalidateMode,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      autovalidateMode: autovalidateMode,
       validator: validator,
       onChanged: onChanged,
       enabled: enabled,

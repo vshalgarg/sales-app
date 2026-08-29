@@ -95,7 +95,9 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            hintText: "New Password",
+                            labelText: "New Password",
+                            hintStyle: TextStyle(
+                                color:Colors.grey),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide.none,
@@ -135,7 +137,9 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            hintText: "Confirm Password",
+                            labelText: "Confirm Password",
+                            hintStyle: TextStyle(
+                                color:Colors.grey),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide.none,
@@ -170,20 +174,27 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                         ),
                         SizedBox(height: 15),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            CustomElevatedButton(
-                              text: "Cancel",
-                              onPressed: widget.onCancel,
-                              borderRadius: 5,
+                            Expanded(
+                              child: CustomElevatedButton(
+                                text: "Cancel",
+                                onPressed: widget.onCancel,
+                                borderRadius: 5,
+                              ),
                             ),
-                            SizedBox(width: 10),
-                            CustomElevatedButton(
-                              color: AppColors.primaryPurple,
-                              text: "Save",
-                              textStyle: TextStyle(color: Colors.white),
-                              onPressed: widget.onUpdate,
-                              borderRadius: 5,
+
+                            const SizedBox(width: 10),
+
+                            Expanded(
+                              child: CustomElevatedButton(
+                                color: AppColors.primaryPurple,
+                                text: "Save",
+                                textStyle: const TextStyle(
+                                  color: Colors.white,
+                                ),
+                                onPressed: widget.onUpdate,
+                                borderRadius: 5,
+                              ),
                             ),
                           ],
                         ),

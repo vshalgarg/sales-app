@@ -48,7 +48,7 @@ class AddSupplierRequest {
       supplierName: json['supplierName'] ?? '',
       email: json['email'],
       supplierGroup: json['supplierGroup'],
-      gstNo: json['gstNo'],
+      gstNo: json['supplierGstNo'],
       commissionScheme: json['commissionScheme'],
       commissionRate: json['commissionRate'],
       referenceBy: json['referenceBy'],
@@ -57,7 +57,7 @@ class AddSupplierRequest {
       state: json['state'],
       city: json['city'],
       pinCode: json['pinCode'],
-      msme: json['msme'],
+      msme: json['supplierMsme'],
       bankDetails: (json['bankDetails'] as List?)
           ?.map(
             (e) => BankDetailRequest.fromJson(
@@ -81,7 +81,7 @@ class AddSupplierRequest {
       'supplierName': supplierName,
       'email': email,
       'supplierGroup': supplierGroup,
-      'gstNo': gstNo,
+      'supplierGstNo': gstNo,
       'commissionScheme': commissionScheme,
       'commissionRate': commissionRate,
       'referenceBy': referenceBy,
@@ -90,7 +90,7 @@ class AddSupplierRequest {
       'state': state,
       'city': city,
       'pinCode': pinCode,
-      'msme': msme,
+      'supplierMsme': msme,
       'bankDetails':
       bankDetails?.map((bank) => bank.toJson()).toList(),
       'remark': remark,
@@ -139,7 +139,28 @@ class AddSupplierRequest {
       preferredTransportIds ?? this.preferredTransportIds,
     );
   }
-
+  Map<String, dynamic> toUpdateJson() {
+    return {
+      'supplierName': supplierName,
+      'email': email,
+      'groupName': supplierGroup,
+      'gstNo': gstNo,
+      'commissionScheme': commissionScheme,
+      'commissionRate': commissionRate,
+      'referenceBy': referenceBy,
+      'addressLine1': addressLine1,
+      'addressLine2': addressLine2,
+      'state': state,
+      'city': city,
+      'pinCode': pinCode,
+      'msme': msme,
+      'bankDetails':
+      bankDetails?.map((bank) => bank.toJson()).toList(),
+      'remark': remark,
+      'contacts': contacts,
+      'preferredTransportIds': preferredTransportIds,
+    };
+  }
   @override
   String toString() {
     return 'AddSupplierRequest(supplierName: $supplierName)';

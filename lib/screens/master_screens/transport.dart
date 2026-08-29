@@ -33,10 +33,16 @@ class _TransportScreenState extends State<TransportScreen> {
   void initState() {
     super.initState();
 
+    final transportProvider = context.read<TransportProvider>();
+
     Future.microtask(() async {
       searchController.clear();
-      await context.read<TransportProvider>().clearSearch();
-      context.read<TransportProvider>().fetchInitial();
+
+      await transportProvider.clearSearch();
+
+      if (!mounted) return;
+
+      transportProvider.fetchInitial();
     });
   }
 
@@ -217,6 +223,7 @@ class _TransportScreenState extends State<TransportScreen> {
                             trashIconTap: () {
                               ExitConfirmationDialog.show(
                                 context,
+                                isDelete: true,
                                 body: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -254,8 +261,8 @@ class _TransportScreenState extends State<TransportScreen> {
                                     ),
                                   ],
                                 ),
-                                saveButtonText: "Yes",
-                                discardButtonText: "No",
+                                discardButtonText: "Cancel",
+                                saveButtonText: "Delete",
                                 onSave: () async {
                                   Navigator.of(context).pop();
 
@@ -264,7 +271,7 @@ class _TransportScreenState extends State<TransportScreen> {
                                     item.id!.toInt(),
                                   );
 
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
 
                                   ScaffoldSnackBar.show(
                                     context,
@@ -280,10 +287,11 @@ class _TransportScreenState extends State<TransportScreen> {
                             },
 
                             copyIconTap: () async {
+
                               await provider.fetchTransportDetails(
                                 item.id!.toInt(),
                               );
-
+                              if (!context.mounted) return;
                               final data = provider.transportDetails;
 
                               if (data == null) return;
@@ -303,7 +311,7 @@ class _TransportScreenState extends State<TransportScreen> {
                               if (data.contacts.isNotEmpty) {
                                 contactsText = data.contacts.map((c) {
                                   if (c is Map) {
-                                    return "${['contactPerson'] ?? ""} - ${['mobileNumber'] ?? ""}";
+                                    return "${['contactPerson']} - ${['mobileNumber']}";
                                   }
 
                                   return "${c.contactPerson ?? ""} - ${c.contactNumber ?? ""}";

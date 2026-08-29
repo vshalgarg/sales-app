@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../config/env.dart';
+import '../main.dart';
+import '../screens/login_screen.dart';
 import '../shared_preferences/login_token.dart';
 
 class ApiProvider {
@@ -41,6 +44,17 @@ class ApiProvider {
         onError: (error, handler) async {
           if (error.response?.statusCode == 401) {
             await AppStorage.logout();
+
+            final navigator = navigatorKey.currentState;
+
+            if (navigator != null) {
+              navigator.pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+                    (route) => false,
+              );
+            }
           }
 
           handler.next(error);

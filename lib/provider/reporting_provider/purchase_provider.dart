@@ -1,7 +1,6 @@
+import 'dart:developer';
 import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
-
 import '../../model_classes/common/paginated_response.dart';
 import '../../model_classes/entries/entries_supplier.dart';
 import '../../model_classes/purchases/add_purchase_request.dart';
@@ -18,15 +17,13 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
   PurchaseDetails? _purchaseDetails;
 
   bool _detailsLoading = false;
-  bool _actionLoading = false;
 
   PurchaseDetails? get purchaseDetails => _purchaseDetails;
 
   bool get detailsLoading => _detailsLoading;
 
-  bool get actionLoading => _actionLoading;
 
-  String _searchKeyword = "";
+  //String _searchKeyword = "";
 
   String? _fromDate;
   String? _toDate;
@@ -48,8 +45,8 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
     required int page,
     required int size,
   }) async {
-    print("========== PURCHASE ==========");
-    print("Requested page = $page");
+    log(" PURCHASE ");
+    log("Requested page = $page");
     final result = await _service.searchPurchases(
       page: page,
       size: size,
@@ -65,10 +62,10 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
         result.errorMessage ?? "Failed to load purchases",
       );
     }
-    print("API page = ${result.data!.page}");
-    print("Total pages = ${result.data!.totalPages}");
-    print("Last = ${result.data!.last}");
-    print("Items = ${result.data!.content.length}");
+    log("API page = ${result.data!.page}");
+    log("Total pages = ${result.data!.totalPages}");
+    log("Last = ${result.data!.last}");
+    log("Items = ${result.data!.content.length}");
     return result.data!;
   }
 
@@ -94,7 +91,6 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
     required List<List<PlatformFile>> uploadedFiles,
     required List<EntriesModel?> selectedSuppliers,
   }) async {
-    _actionLoading = true;
     notifyListeners();
 
     try {
@@ -113,9 +109,7 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
 
       return false;
 
-      return false;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
@@ -129,7 +123,6 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
     required List<String> existingImageKeys,
     required List<File> supplierImages,
   }) async {
-    _actionLoading = true;
     notifyListeners();
 
     try {
@@ -146,13 +139,11 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
 
       return result.isSuccess;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }
 
   Future<bool> deletePurchase(num id) async {
-    _actionLoading = true;
     notifyListeners();
 
     try {
@@ -164,7 +155,6 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
 
       return result.isSuccess;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }

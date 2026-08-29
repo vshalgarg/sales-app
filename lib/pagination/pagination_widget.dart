@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import '../model_classes/common/pagination_state.dart';
@@ -45,7 +47,7 @@ class _PaginationWidgetState<T>
   }
 
   Future<void> _nextPage() async {
-    print("NEXT: currentPage = ${widget.pagination.currentPage}");
+    log("NEXT: currentPage = ${widget.pagination.currentPage}");
 
     if (widget.pagination.currentPage >= widget.pagination.lastValidPage) {
       return;
@@ -54,7 +56,7 @@ class _PaginationWidgetState<T>
     await controller.execute(
       direction: SwipeDirection.left,
       callback: () async {
-        print("Fetching page ${widget.pagination.currentPage + 1}");
+        log("Fetching page ${widget.pagination.currentPage + 1}");
         await widget.fetchPage(
           widget.pagination.currentPage + 1,
         );
@@ -135,67 +137,57 @@ class _PaginationWidgetState<T>
 
         Expanded(
           child: GestureDetector(
-
             onHorizontalDragEnd: (details) async {
-
-              final velocity =
-                  details.primaryVelocity ?? 0;
+              final velocity = details.primaryVelocity ?? 0;
 
               if (velocity < -250) {
-
                 await _nextPage();
-
               }
 
               if (velocity > 250) {
-
                 await _previousPage();
-
               }
             },
-
             child: AnimatedSwitcher(
-
-              duration:
-              const Duration(milliseconds: 250),
-
-              transitionBuilder: (
-                  child,
-                  animation,
-                  ) {
-
-                final begin = controller.direction ==
-                    SwipeDirection.left
+              duration: const Duration(milliseconds: 250),
+              transitionBuilder: (child, animation) {
+                final begin = controller.direction == SwipeDirection.left
                     ? const Offset(1, 0)
                     : const Offset(-1, 0);
 
                 return SlideTransition(
-
-                  position:
-                  Tween<Offset>(
+                  position: Tween<Offset>(
                     begin: begin,
                     end: Offset.zero,
                   ).animate(animation),
-
                   child: child,
                 );
               },
-
-              child: RefreshIndicator(
-
-                key: ValueKey(
-                  widget.pagination.currentPage,
+              child: widget.loading
+                  ? const Center(
+                key: ValueKey('pagination_loading'),
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Colors.white,
                 ),
-
+              )
+                  : RefreshIndicator(
+                key: ValueKey(
+                  '${widget.pagination.currentPage}_'
+                      '${widget.items.length}_'
+                      '${widget.items.isNotEmpty ? widget.items.first.hashCode : 0}',
+                ),
                 onRefresh: widget.refresh,
-
                 child: widget.items.isEmpty
-                 ? Text("No Data Found",
-                      style: TextStyle(
-                        color: Colors.white
-                      )
+                    ? const Center(
+                  child: Text(
+                    "No Data Found",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                 )
-                : ListView.builder(
+                    : ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   itemCount: widget.items.length,
                   itemBuilder: (context, index) {

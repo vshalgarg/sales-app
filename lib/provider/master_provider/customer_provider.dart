@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/customer/add_customer_request.dart';
@@ -13,7 +15,6 @@ class CustomerProvider extends PaginationProvider<Customer> {
   CustomerDetails? _customerDetails;
 
   bool _detailsLoading = false;
-  bool _actionLoading = false;
 
   String _searchKeyword = "";
 
@@ -21,14 +22,12 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
   bool get detailsLoading => _detailsLoading;
 
-  bool get actionLoading => _actionLoading;
-
   @override
   Future<PaginatedResponse<Customer>> requestPage({
     required int page,
     required int size,
   }) async {
-    print("Search keyword = '$_searchKeyword'");
+    log("Search keyword = '$_searchKeyword'");
 
     final result = _searchKeyword.isEmpty
         ? await _service.getCustomers(
@@ -42,7 +41,9 @@ class CustomerProvider extends PaginationProvider<Customer> {
     );
 
     if (result.isFailure || result.data == null) {
-      throw Exception(result.errorMessage ?? "Failed to load customers");
+      throw Exception(
+        result.errorMessage ?? "Failed to load customers",
+      );
     }
 
     return result.data!;
@@ -62,41 +63,42 @@ class CustomerProvider extends PaginationProvider<Customer> {
     _detailsLoading = true;
     notifyListeners();
 
-    final result = await _service.getCustomerById(id);
+    try {
+      final result = await _service.getCustomerById(id);
 
-    _detailsLoading = false;
+      if (result.isSuccess && result.data != null) {
+        _customerDetails = result.data!.data;
+      }
 
-    if (result.isSuccess && result.data != null) {
-      _customerDetails = result.data!.data;
+      return result.isSuccess && result.data != null;
+    } finally {
+      _detailsLoading = false;
+      notifyListeners();
     }
-
-    notifyListeners();
-    return result.isSuccess && result.data != null;
   }
 
   Future<bool> addCustomer(AddCustomerRequest request) async {
-    _actionLoading = true;
-    notifyListeners();
-
     try {
-      print("========== ADD CUSTOMER ==========");
-      print("Customer Request: ${request.toJson()}");
+      log("========== ADD CUSTOMER ==========");
+      log("Customer Request: ${request.toJson()}");
 
       final result = await _service.addCustomer(request);
-      print("Status: ${result.statusCode}");
-      print("Success: ${result.isSuccess}");
-      print("Failure: ${result.isFailure}");
-      print("Error: ${result.errorMessage}");
-      print("Data: ${result.data}");
+
+      log("Status: ${result.statusCode}");
+      log("Success: ${result.isSuccess}");
+      log("Failure: ${result.isFailure}");
+      log("Error: ${result.errorMessage}");
+      log("Data: ${result.data}");
+
       if (result.isSuccess) {
         await refreshCustomers();
         return true;
       }
 
       return false;
-    } finally {
-      _actionLoading = false;
-      notifyListeners();
+    } catch (e) {
+      log("Add customer error: $e");
+      return false;
     }
   }
 
@@ -104,9 +106,6 @@ class CustomerProvider extends PaginationProvider<Customer> {
     required int id,
     required AddCustomerRequest request,
   }) async {
-    _actionLoading = true;
-    notifyListeners();
-
     try {
       final result = await _service.updateCustomer(
         id: id,
@@ -115,44 +114,45 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
       if (result.isSuccess) {
         await refreshCustomers();
-
         return true;
       }
 
       return false;
-    } finally {
-      _actionLoading = false;
-      notifyListeners();
+    } catch (e) {
+      log("Update customer error: $e");
+      return false;
     }
   }
 
   Future<bool> deleteCustomer(String code) async {
-    _actionLoading = true;
-    notifyListeners();
-
     try {
-      print("Deleting customer: $code");
+      log("Deleting customer: $code");
+
       final result = await _service.deleteCustomer(code);
-      print("Delete success: ${result.isSuccess}");
-      print("Delete error: ${result.errorMessage}");
+
+      log("Delete success: ${result.isSuccess}");
+      log("Delete error: ${result.errorMessage}");
+
       if (result.isSuccess) {
         await refresh();
       }
 
       return result.isSuccess;
-    } finally {
-      _actionLoading = false;
-      notifyListeners();
+    } catch (e) {
+      log("Delete customer error: $e");
+      return false;
     }
   }
 
   Future<void> refreshCustomers() async {
     await refresh();
   }
+
   void setDetailsLoading(bool value) {
     _detailsLoading = value;
     notifyListeners();
   }
+
   void clearDetails() {
     _customerDetails = null;
     notifyListeners();

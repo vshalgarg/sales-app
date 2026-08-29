@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hisabio/constants/list_items.dart';
 
 import '../constants/colors_used.dart';
@@ -14,6 +15,7 @@ class SupplierBasicInfo extends StatefulWidget {
   final TextEditingController? commissionSchemeController;
   final TextEditingController? commissionRateController;
   final TextEditingController? referenceController;
+  final String partyType;
   final FormMode? mode;
   final bool showCommissionScheme;
   final bool showCommissionRate;
@@ -27,6 +29,7 @@ class SupplierBasicInfo extends StatefulWidget {
     this.emailController,
     this.groupController,
     this.gstNoController,
+    required this.partyType,
     this.msmeController,
     this.commissionSchemeController,
     this.commissionRateController,
@@ -48,7 +51,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
     selectedMsme = widget.msmeController?.text.isEmpty ?? true
         ? null
-        : widget.msmeController!.text;
+        : widget.msmeController!.text.toUpperCase();
 
     selectedCommissionScheme =
         widget.commissionSchemeController?.text.isEmpty ?? true
@@ -59,10 +62,9 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
   @override
   void didUpdateWidget(covariant SupplierBasicInfo oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (widget.msmeController?.text != selectedMsme) {
       setState(() {
-        selectedMsme = widget.msmeController?.text;
+        selectedMsme = widget.msmeController?.text.trim().toUpperCase();
       });
     }
 
@@ -108,21 +110,47 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
 
         if (isExpanded) ...[
           SizedBox(height: 15),
-          Text("Name * ", style: TextStyle(color: Colors.white, fontSize: 18)),
+          Text(
+          widget.mode == FormMode.view ? "Name" : "Name ",
+          style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
           TextFormField(
-            maxLines: 5,
-            minLines: 1,
-            enabled: widget.mode != FormMode.view,
             controller: widget.nameController,
+            enabled: widget.mode != FormMode.view,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return "Name is required.";
+              }
+              return null;
+            },
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
-              hintText: "Name",
+
+              hintText: "Name *",
               hintStyle: const TextStyle(
-                color: Colors.grey),
+                color: Colors.grey,
+              ),
+
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
                 borderSide: BorderSide.none,
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: const BorderSide(
+                  color: Colors.red,
+                  width: 1.5,
+                ),
+              ),
+
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: const BorderSide(
+                  color: Colors.red,
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -196,8 +224,8 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
             initialValue: selectedMsme,
             onChanged: (value) {
               setState(() {
-                selectedMsme = value;
-                widget.msmeController?.text = value ?? "";
+                selectedMsme = value?.toUpperCase();
+                widget.msmeController?.text = value?.toUpperCase() ?? "";
               });
             },
           ),
@@ -229,15 +257,60 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               style: TextStyle(color: Colors.white, fontSize: 18),
             ),
             TextFormField(
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               enabled: widget.mode != FormMode.view,
               controller: widget.commissionRateController,
+
+              inputFormatters: [
+                TextInputFormatter.withFunction(
+                      (oldValue, newValue) {
+                    if (newValue.text.isEmpty) {
+                      return newValue;
+                    }
+                    final validFormat = RegExp(r'^\d+(\.\d{0,2})?$');
+                    if (!validFormat.hasMatch(newValue.text)) {
+                      return oldValue;
+                    }
+
+                    final value = double.tryParse(newValue.text);
+
+                    if (value != null && value <= 100) {
+                      return newValue;
+                    }
+
+                    // Do not remove existing text
+                    return oldValue;
+                  },
+                ),
+              ],
+
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return null;
+                }
+
+                final rate = num.tryParse(value.trim());
+
+                if (rate == null) {
+                  return "Enter a valid commission rate";
+                }
+
+                if (rate < 0 || rate > 100) {
+                  return "Commission rate must be between 0% and 100%";
+                }
+
+                return null;
+              },
+
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
                 hintText: "Commission % (Rate)",
                 hintStyle: const TextStyle(
-                    color: Colors.grey),
+                  color: Colors.grey,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(5),
                   borderSide: BorderSide.none,

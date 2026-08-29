@@ -1,4 +1,5 @@
 class BankDetailRequest {
+  final int? id;
   final String? bankName;
   final String? accountNumber;
   final String? ifscCode;
@@ -6,6 +7,7 @@ class BankDetailRequest {
   final String? accountName;
 
   const BankDetailRequest({
+    this.id,
     this.bankName,
     this.accountNumber,
     this.ifscCode,
@@ -25,6 +27,7 @@ class BankDetailRequest {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'bankName': bankName,
       'accountNumber': accountNumber,
       'ifscCode': ifscCode,

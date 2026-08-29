@@ -13,9 +13,7 @@ class CreditService {
   static const String _creditEntry = "/credit/entry";
   static const String _creditEntries = "/credit/entries";
 
-  //==========================================================
   // GET CREDITS
-  //==========================================================
 
   Future<ResponseResult<PaginatedResponse<Credit>>> getCredits({
     required int page,
@@ -34,10 +32,8 @@ class CreditService {
           "fromDate": fromDate,
         if (toDate != null && toDate.isNotEmpty)
           "toDate": toDate,
-        if (supplierId != null)
-          "supplierId": supplierId,
-        if (customerId != null)
-          "customerId": customerId,
+        "supplierId": ?supplierId,
+        "customerId": ?customerId,
       }
     );
 
@@ -66,9 +62,8 @@ class CreditService {
       result.statusCode,
     );
   }
-//==========================================================
+
 // SEARCH CREDITS
-//==========================================================
 
 Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
   required String keyword,
@@ -119,9 +114,9 @@ Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
     result.statusCode,
   );
 }
-//==========================================================
+
 // UPDATE CREDIT
-//==========================================================
+
   Future<ResponseResult<ApiResponse>> updateCredit({
     required int id,
     required AddCreditRequest request,
@@ -152,64 +147,8 @@ Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
       result.statusCode,
     );
   }
-// Future<ResponseResult<ApiResponse>> updateCredit({
-//   required int id,
-//   required String date,
-//   required int supplierId,
-//   int? customerId,
-//   required String paymentType,
-//   String? referenceNumber,
-//   String? referenceDate,
-//   String? slipNumber,
-//   String? drawType,
-//   required double receivedAmount,
-//   String? remark,
-// }) async {
-//   final payload = {
-//     "date": date,
-//     "supplierId": supplierId,
-//     "customerId": customerId,
-//     "paymentType": paymentType,
-//     "referenceNumber":
-//     referenceNumber?.trim().isEmpty ?? true ? null : referenceNumber,
-//     "referenceDate":
-//     referenceDate?.trim().isEmpty ?? true ? null : referenceDate,
-//     "slipNumber":
-//     slipNumber?.trim().isEmpty ?? true ? null : slipNumber,
-//     "drawType": drawType,
-//     "receivedAmount": receivedAmount,
-//     "remark": remark?.trim().isEmpty ?? true ? null : remark,
-//   };
 
-//   final result = await _api.patch<Map<String, dynamic>>(
-//     path: "$_creditEntry/update/$id",
-//     data: payload,
-//   );
-//
-//   if (result.isFailure) {
-//     return ResponseResult.error(
-//       errorMessage: result.errorMessage ?? "Something went wrong",
-//       statusCode: result.statusCode,
-//     );
-//   }
-//
-//   final response = ApiResponse.fromJson(result.data!);
-//
-//   if (!response.success) {
-//     return ResponseResult.error(
-//       errorMessage: response.message,
-//       statusCode: result.statusCode,
-//     );
-//   }
-//
-//   return ResponseResult.success(
-//     response,
-//     result.statusCode,
-//   );
-// }
-  //==========================================================
   // ADD CREDIT
-  //==========================================================
 
   Future<ResponseResult<ApiResponse>> addCredit({
     required AddCreditRequest request,
@@ -241,9 +180,8 @@ Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
       result.statusCode,
     );
   }
-//==========================================================
+
 // DELETE CREDIT
-//==========================================================
 
 Future<ResponseResult<ApiResponse>> deleteCredit(
     int id,

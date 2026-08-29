@@ -21,7 +21,8 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
   bool showRetailInfo = true;
   bool showHistory = true;
-
+  final Map<int, GlobalKey> _historyKeys = {};
+ // final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
     super.initState();
@@ -33,7 +34,11 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
       await provider.fetchDepositHistory(widget.retailId);
     });
   }
-
+  @override
+  void dispose() {
+  //  _scrollController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Consumer<RetailProvider>(
@@ -72,7 +77,10 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              //controller: _scrollController,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10),
 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,11 +113,17 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
                     const SizedBox(height: 15),
 
-                    _infoItem("Referred By", retail.customerName),
+                    _infoItem("Referred By", retail.customerName ?? "-"),
 
                     const SizedBox(height: 15),
 
                     _infoItem("Staff", retail.staffName ?? "-"),
+                    const SizedBox(height: 15),
+
+          _infoItem(
+            "Commission",
+            retail.commission ?? "-",
+                    ),
                   ],
 
                   const SizedBox(height: 24),
@@ -151,7 +165,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                           history: history,
                           retailDate: retail.date,
                           staffName: retail.staffName,
-                          customerName: retail.customerName,
+                          customerName: retail.customerName ?? "-",
                           index: index,
                         );
                       },
@@ -175,8 +189,10 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
     required int index,
   }) {
     final bool expanded = expandedSupplierIndex == index;
-
+    final GlobalKey cardKey =
+    _historyKeys.putIfAbsent(index, () => GlobalKey());
     return Card(
+      key: cardKey,
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -210,45 +226,49 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                       Text(
                         supplier.supplierName,
                         style: const TextStyle(
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          height: 1.2,
+                          height: 2,
                         ),
                       ),
 
-                      const SizedBox(height: 3),
+                     // const SizedBox(height: 3),
 
-                      RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 12,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "Referred By : ",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            TextSpan(text: customerName),
-                          ],
-                        ),
-                      ),
-
-                      RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 12,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "Staff :              ",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            TextSpan(text: staffName ?? "-"),
-                          ],
-                        ),
-                      ),
+                      // Text.rich(
+                      //   TextSpan(
+                      //     children: [
+                      //       const TextSpan(
+                      //         text: "Referred By : ",
+                      //         style: TextStyle(fontWeight: FontWeight.w600),
+                      //       ),
+                      //       TextSpan(text: customerName),
+                      //     ],
+                      //   ),
+                      //   maxLines: 1,
+                      //   overflow: TextOverflow.ellipsis,
+                      //   style: TextStyle(
+                      //     color: Colors.grey[700],
+                      //     fontSize: 12,
+                      //   ),
+                      // ),
+                      //
+                      // Text.rich(
+                      //   TextSpan(
+                      //     children: [
+                      //       const TextSpan(
+                      //         text: "Staff : ",
+                      //         style: TextStyle(fontWeight: FontWeight.w600),
+                      //       ),
+                      //       TextSpan(text: staffName ?? "-"),
+                      //     ],
+                      //   ),
+                      //   maxLines: 1,
+                      //   overflow: TextOverflow.ellipsis,
+                      //   style: TextStyle(
+                      //     color: Colors.grey[700],
+                      //     fontSize: 12,
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -330,10 +350,33 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                   ),
 
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
+                      if (expanded) {
+                        setState(() {
+                          expandedSupplierIndex = null;
+                        });
+                        return;
+                      }
+
                       setState(() {
-                        expandedSupplierIndex = expanded ? null : index;
+                        expandedSupplierIndex = index;
                       });
+
+                      // Wait until the expanded content has been laid out.
+                      await WidgetsBinding.instance.endOfFrame;
+
+                      if (!mounted) return;
+
+                      final cardContext = cardKey.currentContext;
+
+                      if (cardContext != null) {
+                        await Scrollable.ensureVisible(
+                          cardContext,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
+                          alignment: 0.05,
+                        );
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(top: 3),
@@ -416,26 +459,26 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                             ),
 
                             // Status
-                            SizedBox(
-                              width: 90,
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xffE8F7EE),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Text(
-                                    "Deposited",
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // SizedBox(
+                            //   width: 70,
+                            //   child: Align(
+                            //     alignment: Alignment.centerRight,
+                            //     child: Container(
+                            //       decoration: BoxDecoration(
+                            //         color: const Color(0xffE8F7EE),
+                            //         borderRadius: BorderRadius.circular(10),
+                            //       ),
+                            //       child: const Text(
+                            //         "Deposited",
+                            //         style: TextStyle(
+                            //           color: Colors.green,
+                            //           fontWeight: FontWeight.w600,
+                            //           fontSize: 10,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
@@ -485,17 +528,21 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
               ),
               const SizedBox(height: 3),
 
-              Text(
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
                 value,
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 style: TextStyle(
                   color: color,
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   height: 1,
                 ),
               ),
+          )
             ],
           ),
         ),

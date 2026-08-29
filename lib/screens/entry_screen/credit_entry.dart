@@ -1,8 +1,10 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 
@@ -51,23 +53,50 @@ class _CreditEntryState extends State<CreditEntry> {
   final List<String> paymentModeList = ["NEFT_RTGS", "UPI", "CASH", "CHEQUE"];
 
   bool get isViewMode => widget.mode == FormMode.view;
+  String? _toApiDate(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
 
+    try {
+      return DateFormat('yyyy-MM-dd').format(
+        DateFormat('dd-MM-yyyy').parse(value.trim()),
+      );
+    } catch (_) {
+      return value;
+    }
+  }
   Map<String, dynamic> _creditBody() {
     return {
       "billNumber": invoiceController.text.trim(),
       "customerId": selectedCustomer?.id,
       "supplierId": selectedSupplier?.id,
       "paymentType": paymentMode,
+
       "receivedAmount": receivedAmountController.text.trim().isEmpty
           ? null
           : num.parse(receivedAmountController.text.trim()),
+
       "referenceNumber": referenceController.text.trim(),
-      "referenceDate": referenceDateController.text.trim(),
-      "date": transactionDateController.text.trim(),
+
+      "referenceDate": _toApiDate(
+        referenceDateController.text,
+      ),
+
+      "date": _toApiDate(
+        transactionDateController.text,
+      ),
+
       "slipNumber": slipController.text.trim(),
       "drawType": drawType,
       "remark": remarksController.text.trim(),
     };
+  }
+
+  AutovalidateMode _validationMode = AutovalidateMode.disabled;
+
+  void _enableValidation() {
+    setState(() {
+      _validationMode = AutovalidateMode.always;
+    });
   }
 
   @override
@@ -83,44 +112,75 @@ class _CreditEntryState extends State<CreditEntry> {
     super.dispose();
   }
 
+  bool _initialized = false;
+
   @override
   void initState() {
     super.initState();
-    print("1. Credit screen opened: ${DateTime.now()}");
+    if (widget.mode == FormMode.add) {
+      transactionDateController.text = DateFormat(
+        'dd-MM-yyyy',
+      ).format(DateTime.now());
+    }
+    log("1. Credit screen opened: ${DateTime.now()}");
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_initialized) return;
+    _initialized = true;
+
+    final provider = context.read<EntriesProvider>();
 
     Future.microtask(() async {
-      print("2. Before fetch: ${DateTime.now()}");
-
-      final provider = context.read<EntriesProvider>();
+      log("2. Before fetch: ${DateTime.now()}");
 
       await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
 
-      print("3. After fetch: ${DateTime.now()}");
+      log("3. After fetch: ${DateTime.now()}");
+
+      if (!mounted) return;
 
       if (widget.credit != null) {
         _fillData(provider);
       }
 
-      print("4. After fillData: ${DateTime.now()}");
+      log("4. After fillData: ${DateTime.now()}");
+
+      setState(() {});
     });
   }
+  String _formatDisplayDate(String? value) {
+    if (value == null || value.trim().isEmpty) return "";
 
+    try {
+      return DateFormat('dd-MM-yyyy').format(
+        DateTime.parse(value.trim()),
+      );
+    } catch (_) {
+      return value;
+    }
+  }
   void _fillData(EntriesProvider provider) {
     final credit = widget.credit;
 
     if (credit == null) return;
 
     invoiceController.text = credit.billNumber ?? "";
-    receivedAmountController.text = credit.receivedAmount?.toString() ?? "";
+    receivedAmountController.text =
+        credit.receivedAmount?.toString() ?? "";
 
     referenceController.text = credit.referenceNumber ?? "";
 
-    referenceDateController.text = credit.referenceDate ?? "";
+    referenceDateController.text =
+        _formatDisplayDate(credit.referenceDate);
 
-    transactionDateController.text = credit.date ?? "";
+    transactionDateController.text =
+        _formatDisplayDate(credit.date);
 
     slipController.text = credit.slipNumber ?? "";
-
     remarksController.text = credit.remark ?? "";
 
     paymentMode = credit.paymentType;
@@ -154,7 +214,6 @@ class _CreditEntryState extends State<CreditEntry> {
     referenceController.clear();
     slipController.clear();
     referenceDateController.clear();
-    transactionDateController.clear();
     setState(() {
       drawType = null;
       selectedSupplier = null;
@@ -162,12 +221,13 @@ class _CreditEntryState extends State<CreditEntry> {
       selectedCustomer = null;
       selectedCustomerName = null;
       paymentMode = null;
+      _validationMode = AutovalidateMode.disabled;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<EntriesProvider>();
+    final provider = context.watch<EntriesProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -220,136 +280,168 @@ class _CreditEntryState extends State<CreditEntry> {
                 controller: _scrollController,
                 child: Column(
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isExpanded = !isExpanded;
-                        });
-                      },
-                      child: EntryContainer(
-                        children: [
-                          TextField(
-                            decoration: InputDecoration(
-                              suffixIcon: Icon(
-                                isExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: Colors.white,
+                    EntryContainer(
+                      children: [
+                        Container(
+                          height: 55,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryPurple,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    "Party Information",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              enabled: false,
-                              filled: true,
-                              fillColor: AppColors.primaryPurple,
-                              hintText: "Party Information",
-                              hintStyle: TextStyle(color: Colors.white),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide.none,
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isExpanded = !isExpanded;
+                                  });
+                                },
+                                icon: Icon(
+                                  isExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.white,
+                                ),
                               ),
+                            ],
+                          ),
+                        ),
+                        if (isExpanded) ...[
+                          SizedBox(height: 10),
+                          Text(
+                            widget.mode == FormMode.add ? "Supplier * " : "Supplier",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
                             ),
                           ),
-                          if (isExpanded) ...[
-                            SizedBox(height: 10),
-                            Text(
-                              "Supplier",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
-                            ),
-                            CustomDropdown(
-                              isDisabled: isViewMode,
-                              hintText: "Supplier",
-                              items: provider.entries
-                                  .map((e) => e.supplierName ?? '')
-                                  .toList(),
-                              initialValue: selectedSupplierName,
-                              validator: (value) {
-                                if (value == null) {
-                                  return "Supplier is required";
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedSupplierName = value;
+                          CustomDropdown(
+                            isDisabled: isViewMode,
+                            hintText: "Supplier ",
+                            items: provider.entries
+                                .map((e) => e.supplierName ?? '')
+                                .where((e) => e.isNotEmpty)
+                                .toList(),
+                            initialValue: selectedSupplierName,
+                            autovalidateMode: _validationMode,
+                            validator: (value) {
+                              if (selectedSupplier == null ||
+                                  value == null ||
+                                  value.trim().isEmpty) {
+                                return "Supplier is required";
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              if (value == null) return;
 
-                                  selectedSupplier = provider.entries
-                                      .firstWhere(
-                                        (e) => e.supplierName == value,
-                                      );
-                                });
-                              },
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              "Customer",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
-                            ),
-                            CustomDropdown(
-                              isDisabled: isViewMode,
-                              hintText: "Customer",
-                              items: provider.customerEntries
-                                  .map((e) => e.customerName ?? '')
-                                  .toList(),
-                              initialValue: selectedCustomerName,
-                              validator: (value) {
-                                if (value == null) {
-                                  return "Customer is required";
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedCustomerName = value;
+                              final supplier = provider.entries.firstWhere(
+                                (e) => e.supplierName == value,
+                              );
 
-                                  selectedCustomer = provider.customerEntries
-                                      .firstWhere(
-                                        (e) => e.customerName == value,
-                                      );
-                                });
-                              },
+                              setState(() {
+                                selectedSupplierName = value;
+                                selectedSupplier = supplier;
+                              });
+                            },
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            widget.mode == FormMode.add ? "Customer * " : "Customer",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
                             ),
-                            SizedBox(height: 10),
-                          ],
+                          ),
+                          CustomDropdown(
+                            isDisabled: isViewMode,
+                            hintText: "Customer  ",
+                            items: provider.customerEntries
+                                .map((e) => e.customerName ?? '')
+                                .where((e) => e.isNotEmpty)
+                                .toList(),
+                            initialValue: selectedCustomerName,
+                            autovalidateMode: _validationMode,
+                            validator: (value) {
+                              if (selectedCustomer == null ||
+                                  value == null ||
+                                  value.trim().isEmpty) {
+                                return "Customer is required";
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              if (value == null) return;
+
+                              final customer = provider.customerEntries
+                                  .firstWhere((e) => e.customerName == value);
+
+                              setState(() {
+                                selectedCustomerName = value;
+                                selectedCustomer = customer;
+                              });
+                            },
+                          ),
+                          SizedBox(height: 10),
                         ],
-                      ),
+                      ],
                     ),
                     SizedBox(height: 15),
 
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isTransactionExpanded = !isTransactionExpanded;
-                        });
-                      },
-                      child: EntryContainer(
+              EntryContainer(
                         children: [
-                          TextField(
-                            decoration: InputDecoration(
-                              suffixIcon: Icon(
-                                isTransactionExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: Colors.white,
-                              ),
-                              enabled: false,
-                              filled: true,
-                              fillColor: AppColors.primaryPurple,
-                              hintText: "Transaction Details",
-                              hintStyle: TextStyle(color: Colors.white),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide.none,
-                              ),
+                          Container(
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryPurple,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text(
+                                      "Transaction Details",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isTransactionExpanded = !isTransactionExpanded;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    isTransactionExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           if (isTransactionExpanded) ...[
                             SizedBox(height: 10),
                             Text(
-                              "Payment Mode",
+                              widget.mode == FormMode.add ? "Payment Mode * " : "Payment Mode",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -357,11 +449,12 @@ class _CreditEntryState extends State<CreditEntry> {
                             ),
                             CustomDropdown(
                               isDisabled: isViewMode,
-                              hintText: "Payment Mode*",
+                              hintText: "Payment Mode ",
                               initialValue: paymentMode,
                               items: paymentModeList,
+                              autovalidateMode: _validationMode,
                               validator: (value) {
-                                if (value == null) {
+                                if (value == null || value.trim().isEmpty) {
                                   return "Payment Mode is required";
                                 }
                                 return null;
@@ -402,7 +495,7 @@ class _CreditEntryState extends State<CreditEntry> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              "Reference Number",
+                              widget.mode == FormMode.add ? " Reference Number * " : "Reference Number",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -411,7 +504,8 @@ class _CreditEntryState extends State<CreditEntry> {
                             EntryTextField(
                               enabled: !isViewMode,
                               controller: referenceController,
-                              hintText: "Reference Number*",
+                              hintText: "Reference Number ",
+                              autovalidateMode: _validationMode,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return "Reference Number is required";
@@ -421,7 +515,7 @@ class _CreditEntryState extends State<CreditEntry> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              "Reference Date",
+                              widget.mode == FormMode.add ? "Reference Date * " : "Reference Date",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -429,8 +523,9 @@ class _CreditEntryState extends State<CreditEntry> {
                             ),
                             EntryDateTextField(
                               enabled: !isViewMode,
-                              label: "Reference Date*",
+                              label: "Reference Date  ",
                               controller: referenceDateController,
+                              autovalidateMode: _validationMode,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return "Reference Date is required";
@@ -446,10 +541,12 @@ class _CreditEntryState extends State<CreditEntry> {
                                 fontSize: 18,
                               ),
                             ),
+
                             EntryDateTextField(
                               enabled: !isViewMode,
                               label: "Transaction Date",
                               controller: transactionDateController,
+                              autovalidateMode: _validationMode,
                             ),
                             SizedBox(height: 10),
                             Text(
@@ -468,42 +565,43 @@ class _CreditEntryState extends State<CreditEntry> {
                           ],
                         ],
                       ),
-                    ),
                     SizedBox(height: 15),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isAdditionalExpanded = !isAdditionalExpanded;
-                        });
-                        if (isAdditionalExpanded) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _scrollController.animateTo(
-                              _scrollController.position.maxScrollExtent,
-                              duration: const Duration(milliseconds: 400),
-                              curve: Curves.easeInOut,
-                            );
-                          });
-                        }
-                      },
-                      child: EntryContainer(
+              EntryContainer(
                         children: [
-                          TextField(
-                            decoration: InputDecoration(
-                              suffixIcon: Icon(
-                                isAdditionalExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: Colors.white,
-                              ),
-                              enabled: false,
-                              filled: true,
-                              fillColor: AppColors.primaryPurple,
-                              hintText: "Additional Information",
-                              hintStyle: TextStyle(color: Colors.white),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide.none,
-                              ),
+                          Container(
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryPurple,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text(
+                                      "Additional Information",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isAdditionalExpanded = !isAdditionalExpanded;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    isAdditionalExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           if (isAdditionalExpanded) ...[
@@ -543,79 +641,171 @@ class _CreditEntryState extends State<CreditEntry> {
                           ],
                         ],
                       ),
-                    ),
                     SizedBox(height: 15),
                     if (widget.mode == FormMode.add)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomElevatedButton(
-                              text: "Reset",
-                              textStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, bottom: 10),
+                        child: Row(
+                          children: [
+                            // RESET
+                            Expanded(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(5),
+                                  onTap: () {
+                                    clearFields();
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: const Color(0xFFE5E2EE),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.refresh_rounded,
+                                          color: AppColors.primaryPurple,
+                                          size: 30,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Reset",
+                                            style: TextStyle(
+                                              color: AppColors.primaryPurple,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
-                              onPressed: () async {
-                                clearFields();
-                              },
-                              borderRadius: 5,
                             ),
-                          ),
-                          SizedBox(width: 20),
-                          Expanded(
-                            child: CustomElevatedButton(
-                              text: "Save",
-                              textStyle: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
+
+                            const SizedBox(width: 16),
+
+                            // SAVE
+                            Expanded(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(5),
+                                  onTap: () async {
+                                    log("SAVE BUTTON CLICKED");
+
+                                    setState(() {
+                                      isExpanded = true;
+                                      isTransactionExpanded = true;
+                                      isAdditionalExpanded = true;
+                                      _validationMode = AutovalidateMode.always;
+                                    });
+
+                                    await Future<void>.delayed(Duration.zero);
+
+                                    if (!mounted) return;
+
+                                    final isValid =
+                                        _formKey.currentState?.validate() ??
+                                            false;
+
+                                    if (!isValid) {
+                                      log("FORM VALIDATION FAILED");
+
+                                      ScaffoldSnackBar.show(
+                                        context,
+                                        "Please fill all required fields",
+                                      );
+
+                                      return;
+                                    }
+
+                                    log("FORM VALIDATION PASSED");
+
+                                    final body = _creditBody();
+                                    try {
+                                      final request = AddCreditRequest.fromJson(
+                                        body,
+                                      );
+
+                                      final success = await context
+                                          .read<CreditProvider>()
+                                          .addCredit(request: request);
+
+                                      if (!mounted) return;
+
+                                      if (success) {
+                                        Navigator.pop(context, true);
+                                      }
+                                    } catch (e, stackTrace) {
+                                      log(
+                                        "ADD CREDIT ERROR: $e",
+                                        stackTrace: stackTrace,
+                                      );
+
+                                      if (!mounted) return;
+
+                                      final message = e
+                                          .toString()
+                                          .replaceFirst("Exception: ", "")
+                                          .trim();
+
+                                      ScaffoldSnackBar.show(context, message);
+                                    }
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryPurple,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.save_rounded,
+                                          color: Colors.white,
+                                          size: 30,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Save",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
-                              onPressed: () async {
-                                if (!_formKey.currentState!.validate()) {
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    "Please fill all the required fields",
-                                  );
-                                  return;
-                                }
-                                try {
-                                  final request = AddCreditRequest.fromJson(
-                                    _creditBody(),
-                                  );
-
-                                  final success = await context
-                                      .read<CreditProvider>()
-                                      .addCredit(request: request);
-
-                                  if (!mounted) return;
-
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    "Please fill all the required fields",
-                                  );
-
-                                  if (success) {
-                                    Navigator.pop(context, true);
-                                  }
-                                } catch (e) {
-                                  if (!mounted) return;
-                                  ScaffoldSnackBar.show(context, e.toString());
-                                }
-                              },
-                              borderRadius: 5,
-                              color: AppColors.primaryPurple,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+
                     if (widget.mode == FormMode.edit)
                       CustomElevatedButton(
                         text: "Update",
                         color: AppColors.primaryPurple,
                         textStyle: TextStyle(color: Colors.white, fontSize: 20),
                         onPressed: () async {
-                          print("SAVE BUTTON CLICKED");
+                          log("SAVE BUTTON CLICKED");
                           if (!_formKey.currentState!.validate()) {
-                            print("FORM INVALID");
+                            log("FORM INVALID");
                             ScaffoldSnackBar.show(
                               context,
                               "Credit entry successfully added."
@@ -625,7 +815,7 @@ class _CreditEntryState extends State<CreditEntry> {
                           }
 
                           try {
-                            print("FORM VALID");
+                            log("FORM VALID");
                             final body = _creditBody();
 
                             final response = await context
@@ -637,10 +827,6 @@ class _CreditEntryState extends State<CreditEntry> {
 
                             if (!context.mounted) return;
 
-                            ScaffoldSnackBar.show(
-                              context,
-                              response?.message ?? "Updated Successfully",
-                            );
                             Navigator.pop(context, true);
                           } catch (e) {
                             if (!mounted) return;
@@ -655,18 +841,6 @@ class _CreditEntryState extends State<CreditEntry> {
                 ),
               ),
             ),
-          ),
-          Consumer<EntriesProvider>(
-            builder: (context, provider, child) {
-              if (!provider.isLoading) {
-                return const SizedBox.shrink();
-              }
-
-              return Container(
-                color: Colors.black45,
-                child: const Center(child: CircularProgressIndicator()),
-              );
-            },
           ),
         ],
       ),

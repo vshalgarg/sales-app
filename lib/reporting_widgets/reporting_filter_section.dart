@@ -185,7 +185,7 @@ class ReportingFilterSection extends StatelessWidget {
         );
 
         if (picked != null) {
-          controller.text = DateFormat('yyyy-MM-dd').format(picked);
+          controller.text = DateFormat('dd-MM-yyyy').format(picked);
         }
       },
       child: Container(

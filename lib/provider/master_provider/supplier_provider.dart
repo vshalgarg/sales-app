@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/supplier/add_supplier_request.dart';
@@ -13,13 +15,10 @@ class SupplierProvider extends PaginationProvider<Supplier> {
   SupplierDetails? _supplierDetails;
 
   bool _detailsLoading = false;
-  bool _actionLoading = false;
 
   SupplierDetails? get supplierDetails => _supplierDetails;
 
   bool get detailsLoading => _detailsLoading;
-
-  bool get actionLoading => _actionLoading;
 
   String _searchKeyword = "";
 
@@ -28,7 +27,7 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     required int page,
     required int size,
   }) async {
-    print("Search keyword = '$_searchKeyword'");
+    log("Search keyword = '$_searchKeyword'");
     final result = _searchKeyword.isEmpty
         ? await _service.getSuppliers(
       page: page,
@@ -73,29 +72,29 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     return result.isSuccess && result.data != null;
   }
 
-  Future<bool> addSupplier(AddSupplierRequest request) async {
-    _actionLoading = true;
+  Future<String?> addSupplier(AddSupplierRequest request) async {
     notifyListeners();
-try{
-  print("Supplier Request: ${request.toJson()}");
-    final result = await _service.addSupplier(request);
-    if (result.isSuccess) {
-      await refreshSuppliers();
-      return true;
-    }
 
-    return false;
-} finally {
-  _actionLoading = false;
-  notifyListeners();
-}
+    try {
+      log("Supplier Request: ${request.toJson()}");
+
+      final result = await _service.addSupplier(request);
+
+      if (result.isSuccess && result.data != null) {
+        return result.data!.message;
+      }
+
+      return result.errorMessage;
+    } finally {
+      notifyListeners();
+    }
   }
-  Future<bool> updateSupplier({
+  Future<String?> updateSupplier({
     required int id,
     required AddSupplierRequest request,
   }) async {
-    _actionLoading = true;
     notifyListeners();
+
     try {
       final result = await _service.updateSupplier(
         id: id,
@@ -103,19 +102,16 @@ try{
       );
 
       if (result.isSuccess) {
-
-        return true;
+        return null;
       }
 
-      return false;
+      return result.errorMessage;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
-
-   }
+  }
   Future<bool> deleteSupplier(String code) async {
-    _actionLoading = true;
+
     notifyListeners();
 
     try {
@@ -127,7 +123,6 @@ try{
 
       return result.isSuccess;
     } finally {
-      _actionLoading = false;
       notifyListeners();
     }
   }

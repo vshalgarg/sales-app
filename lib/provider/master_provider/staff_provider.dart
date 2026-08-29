@@ -13,15 +13,12 @@ class StaffProvider extends PaginationProvider<Staff> {
   StaffDetails? _staffDetails;
 
   bool _detailsLoading = false;
-  bool _actionLoading = false;
 
   String _searchKeyword = "";
 
   StaffDetails? get staffDetails => _staffDetails;
 
   bool get detailsLoading => _detailsLoading;
-
-  bool get actionLoading => _actionLoading;
 
   @override
   Future<PaginatedResponse<Staff>> requestPage({
@@ -76,7 +73,6 @@ class StaffProvider extends PaginationProvider<Staff> {
   }
 
   Future<bool> addStaff(AddStaffRequest request) async {
-    _actionLoading = true;
     notifyListeners();
 
     try {
@@ -89,7 +85,7 @@ class StaffProvider extends PaginationProvider<Staff> {
 
       return false;
     } finally {
-      _actionLoading = false;
+
       notifyListeners();
     }
   }
@@ -98,7 +94,6 @@ class StaffProvider extends PaginationProvider<Staff> {
     required int id,
     required AddStaffRequest request,
   }) async {
-    _actionLoading = true;
     notifyListeners();
 
     try {
@@ -119,13 +114,12 @@ class StaffProvider extends PaginationProvider<Staff> {
 
       return false;
     } finally {
-      _actionLoading = false;
+
       notifyListeners();
     }
   }
 
   Future<bool> deleteStaff(int id) async {
-    _actionLoading = true;
     notifyListeners();
 
     try {
@@ -137,7 +131,7 @@ class StaffProvider extends PaginationProvider<Staff> {
 
       return result.isSuccess;
     } finally {
-      _actionLoading = false;
+
       notifyListeners();
     }
   }

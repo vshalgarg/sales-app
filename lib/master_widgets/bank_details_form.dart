@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
-
 import '../constants/colors_used.dart';
 import '../enums/customer_mode.dart';
 
@@ -29,7 +28,27 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
   final GlobalKey _bankKey = GlobalKey();
   final GlobalKey _lastBankKey = GlobalKey();
   bool isExpanded = false;
-
+  // List<String> _getMissingBankFields(dynamic bank) {
+  //   final missingFields = <String>[];
+  //
+  //   if (bank.accountName.text.trim().isEmpty) {
+  //     missingFields.add("Account Holder Name");
+  //   }
+  //
+  //   if (bank.bankName.text.trim().isEmpty) {
+  //     missingFields.add("Bank Name");
+  //   }
+  //
+  //   if (bank.accountNumber.text.trim().isEmpty) {
+  //     missingFields.add("Account Number");
+  //   }
+  //
+  //   if (bank.ifscCode.text.trim().isEmpty) {
+  //     missingFields.add("IFSC Code");
+  //   }
+  //
+  //   return missingFields;
+  // }
   @override
   Widget build(BuildContext context) {
     final banks = widget.banks;
@@ -84,7 +103,24 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
         //  BANK LIST
         if (isExpanded) ...[
           const SizedBox(height: 15),
-
+          if (banks.isEmpty && widget.mode == FormMode.view)
+            const Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 20,
+              ),
+              child: Center(
+                child: Text(
+                  "No Bank Details Available",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            )
+          else
           Column(
             children: List.generate(banks.length, (index) {
               final bank = banks[index];
@@ -108,14 +144,14 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Bank Details ${index + 1}",
+                            "Bank Account ${index + 1}",
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
 
-                          if (widget.mode != FormMode.view && index > 0)
+                          if (widget.mode != FormMode.view && banks.length > 1)
                             IconButton(
                               icon: const Icon(
                                 Iconsax.trash,
@@ -153,7 +189,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       //  BANK NAME
                       const Text(
-                        "Bank Name*",
+                        "Bank Name",
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
 
@@ -176,7 +212,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       //  ACCOUNT NUMBER
                       const Text(
-                        "Account Number*",
+                        "Account Number",
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
 
@@ -203,7 +239,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
 
                       //  IFSC
                       const Text(
-                        "IFSC Code*",
+                        "IFSC Code",
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
 
@@ -252,7 +288,7 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
           ),
 
           //  ADD BANK
-          if (widget.mode != FormMode.view && banks.length < 4)
+          if (widget.mode != FormMode.view)
             Align(
               alignment: Alignment.centerRight,
 
@@ -264,6 +300,28 @@ class _BankDetailsSectionState extends State<BankDetailsSection> {
                 ),
                 child: TextButton(
                   onPressed: () {
+                    final banks = widget.banks;
+
+                    // If there is no bank at all, add the first one.
+                    if (banks.isEmpty) {
+                      widget.onAdd();
+                      return;
+                    }
+
+                    // Only check the last bank before adding another one.
+                  //  final lastBank = banks.last;
+
+                    // final missingFields = _getMissingBankFields(lastBank);
+                    //
+                    // if (missingFields.isNotEmpty) {
+                    //   ScaffoldSnackBar.show(
+                    //     context,
+                    //     "Please fill: ${missingFields.join(", ")}",
+                    //   );
+                    //   return;
+                    // }
+
+                    // All required fields are filled.
                     widget.onAdd();
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {

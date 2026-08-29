@@ -26,9 +26,7 @@ class ContactInfo extends StatefulWidget {
 
 class _ContactInfoState extends State<ContactInfo> {
   final GlobalKey _contactKey = GlobalKey();
-  final GlobalKey _expandedKey = GlobalKey();
   bool isExpanded = false;
-  final ScrollController _scrollController = ScrollController();
   @override
   Widget build(BuildContext context) {
     final contacts = widget.contacts;
@@ -77,7 +75,24 @@ class _ContactInfoState extends State<ContactInfo> {
         ),
         if (isExpanded) ...[
           SizedBox(height: 15),
-
+          if (contacts.isEmpty && widget.mode == FormMode.view)
+            const Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 20,
+              ),
+              child: Center(
+                child: Text(
+                  "No Contact Information Available",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            )
+          else
           Column(
             children: List.generate(contacts.length, (index) {
               final contact = contacts[index];

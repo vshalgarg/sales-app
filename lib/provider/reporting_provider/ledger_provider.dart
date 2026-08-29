@@ -14,24 +14,17 @@ class LedgerProvider extends ChangeNotifier {
   bool get hasSearched => _hasSearched;
   LedgerData? _ledger;
 
-  bool _loading = false;
   bool _downloading = false;
 
   LedgerData? get ledger => _ledger;
 
-  bool get loading => _loading;
-
   bool get downloading => _downloading;
 
-  Future<bool> fetchLedger({
-    required num supplierId,
-    required num customerId,
+  Future<void> fetchLedger({
+    required int supplierId,
+    required int customerId,
     required String viewType,
-
   }) async {
-    _loading = true;
-    notifyListeners();
-
     try {
       final result = await _service.getLedger(
         supplierId: supplierId,
@@ -39,18 +32,27 @@ class LedgerProvider extends ChangeNotifier {
         viewType: viewType,
       );
 
-      if (result.isSuccess && result.data != null) {
-        _ledger = result.data!.data as LedgerData?;
-        return true;
-      }
+      if (result.isSuccess) {
+        _ledger = result.data?.data as LedgerData?;
+        _hasSearched = true;
+      } else {
+        _ledger = null;
+        _hasSearched = true;
 
-      return false;
+        debugPrint(
+          "Ledger API error: ${result.errorMessage}",
+        );
+      }
+    } catch (e, stackTrace) {
+      _ledger = null;
+      _hasSearched = true;
+
+      debugPrint("Ledger exception: $e");
+      debugPrintStack(stackTrace: stackTrace);
     } finally {
-      _loading = false;
       notifyListeners();
     }
   }
-
   Future<Uint8List?> downloadLedger({
     required num supplierId,
     required num customerId,
@@ -80,7 +82,6 @@ class LedgerProvider extends ChangeNotifier {
   void clearLedger() {
     _ledger = null;
     _hasSearched = false;
-    _loading = false;
     _downloading = false;
     notifyListeners();
   }

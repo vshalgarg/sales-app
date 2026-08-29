@@ -135,7 +135,7 @@ class _AddressDetailsState extends State<AddressDetails> {
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
-              hintText: "Address Line2",
+              hintText: "Address Line2 (optional)",
               hintStyle: const TextStyle(
                   color: Colors.grey),
               border: OutlineInputBorder(
@@ -190,7 +190,7 @@ class _AddressDetailsState extends State<AddressDetails> {
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
-
+              counterText: widget.mode == FormMode.view ? '' : null,
               hintText: "Pin Code",
               hintStyle: const TextStyle(
                   color: Colors.grey),

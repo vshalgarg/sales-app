@@ -40,7 +40,12 @@ class _RetailState extends State<Retail> {
   int? selectedCustomerId;
 
   int? selectedStaffId;
+  String _toApiDate(String date) {
+    if (date.isEmpty) return date;
 
+    final parsed = DateFormat("dd-MM-yyyy").parse(date);
+    return DateFormat("yyyy-MM-dd").format(parsed);
+  }
   void _showBottomSheetSnackBar(BuildContext context, String message) {
     final overlay = Overlay.of(context);
 
@@ -81,14 +86,13 @@ class _RetailState extends State<Retail> {
 
     final tenDaysAgo = now.subtract(const Duration(days: 10));
 
-    final formatter = DateFormat("yyyy-MM-dd");
+    final formatter = DateFormat("dd-MM-yyyy");
 
-    fromDateController.text = formatter.format(tenDaysAgo);
-
-    toDateController.text = formatter.format(now);
+    final defaultFromDate = formatter.format(tenDaysAgo);
+    final defaultToDate = formatter.format(now);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       final entriesProvider = context.read<EntriesProvider>();
 
@@ -101,8 +105,8 @@ class _RetailState extends State<Retail> {
       final provider = context.read<RetailProvider>();
 
       provider.applyFilters(
-        fromDate: fromDateController.text,
-        toDate: toDateController.text,
+        fromDate: _toApiDate(defaultFromDate),
+        toDate: _toApiDate(defaultToDate),
       );
 
       await provider.refresh();
@@ -128,19 +132,26 @@ class _RetailState extends State<Retail> {
 
       supplierId = supplier.id?.toInt();
     }
-
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat("dd-MM-yyyy");
     final provider = context.read<RetailProvider>();
 
+    final fromDate = fromDateController.text.isNotEmpty
+        ? fromDateController.text
+        : formatter.format(tenDaysAgo);
+
+    final toDate = toDateController.text.isNotEmpty
+        ? toDateController.text
+        : formatter.format(now);
+
     provider.applyFilters(
-      fromDate: fromDateController.text.isEmpty
-          ? null
-          : fromDateController.text,
-      toDate: toDateController.text.isEmpty ? null : toDateController.text,
+      fromDate: _toApiDate(fromDate),
+      toDate: _toApiDate(toDate),
       supplierId: supplierId,
       customerId: selectedCustomerId,
       staffId: selectedStaffId,
     );
-
     setState(() {
       isFilterApplied = true;
     });
@@ -149,6 +160,9 @@ class _RetailState extends State<Retail> {
   }
 
   Future<void> _clearFilters() async {
+    final now = DateTime.now();
+    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final formatter = DateFormat("dd-MM-yyyy");
     setState(() {
       fromDateController.clear();
       toDateController.clear();
@@ -162,9 +176,13 @@ class _RetailState extends State<Retail> {
 
     provider.clearFilters();
 
+    // Restore automatic last 10 days.
     provider.applyFilters(
-      fromDate: fromDateController.text,
-      toDate: toDateController.text,
+      fromDate: formatter.format(tenDaysAgo),
+      toDate: formatter.format(now),
+      supplierId: null,
+      customerId: null,
+      staffId: null,
     );
 
     await provider.refresh();
@@ -300,16 +318,18 @@ class _RetailState extends State<Retail> {
 
     final now = DateTime.now();
     final tenDaysAgo = now.subtract(const Duration(days: 10));
-    final formatter = DateFormat("yyyy-MM-dd");
+    final formatter = DateFormat("dd-MM-yyyy");
 
     final fromDate = formatter.format(tenDaysAgo);
     final toDate = formatter.format(now);
 
-    // Reset screen filter values
-    selectedSupplier = null;
-    selectedCustomerId = null;
-    selectedSupplier = null;
-    selectedCustomerId = null;
+    provider.applyFilters(
+      fromDate: _toApiDate(fromDate),
+      toDate: _toApiDate(toDate),
+      supplierId: null,
+      customerId: null,
+      staffId: null,
+    );
     isFilterApplied = false;
 
     fromDateController.text = fromDate;
@@ -341,7 +361,7 @@ class _RetailState extends State<Retail> {
 
         await _resetRetailBeforeExit();
 
-        if (!mounted) return;
+        if (!context.mounted) return;
 
         Navigator.pop(context);
       },
@@ -351,7 +371,11 @@ class _RetailState extends State<Retail> {
         appBar: CustomAppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
+            onPressed: () async {
+              await _resetRetailBeforeExit();
+
+              if (!context.mounted) return;
+
               Navigator.pop(context);
             },
           ),
@@ -388,7 +412,7 @@ class _RetailState extends State<Retail> {
                     ),
                   );
 
-                  if (!mounted) return;
+                  if (!context.mounted) return;
 
                   if (refresh == true) {
                     await context.read<RetailProvider>().refresh();
@@ -439,7 +463,7 @@ class _RetailState extends State<Retail> {
                       fields: [
                         MapEntry(
                           "Date",
-                          DateFormat("yyyy-MM-dd").format(retail.date),
+                          DateFormat("dd-MM-yyyy").format(retail.date),
                         ),
 
                         MapEntry("Retailer", retail.name),
@@ -496,13 +520,39 @@ class _RetailState extends State<Retail> {
                       onDelete: () async {
                         ExitConfirmationDialog.show(
                           context,
+                          isDelete: true,
+                          body: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                    children: [
+                                      const TextSpan(
+                                        text:
+                                        "Are you sure you want to delete Retailer :  ",
+                                      ),
+                                      TextSpan(
+                                        text: retail.name,
+                                        style: const TextStyle(
+                                          color: AppColors.orangeColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextSpan(text: "?"),
+                                    ],
+                                  ),
+                                ),
+                              ]
+                          ),
 
-                          bodyText:
-                              "Are you sure you want to delete this retail?",
+                          saveButtonText: "Delete",
 
-                          saveButtonText: "Yes",
-
-                          discardButtonText: "No",
+                          discardButtonText: "Cancel",
 
                           onDiscard: () {
                             Navigator.pop(context);
@@ -519,7 +569,7 @@ class _RetailState extends State<Retail> {
                               await provider.refresh();
                             }
 
-                            if (!mounted) return;
+                            if (!context.mounted) return;
 
                             ScaffoldSnackBar.show(
                               context,

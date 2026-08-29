@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -35,9 +36,9 @@ class PurchaseService {
     final query = <String, dynamic>{
       if (fromDate != null && fromDate.isNotEmpty) "fromDate": fromDate,
       if (toDate != null && toDate.isNotEmpty) "toDate": toDate,
-      if (supplierId != null) "supplierId": supplierId,
-      if (customerId != null) "customerId": customerId,
-      if (staffId != null) "staffId": staffId,
+      "supplierId": ?supplierId,
+      "customerId": ?customerId,
+      "staffId": ?staffId,
       "page": page,
       "size": size,
     };
@@ -134,17 +135,17 @@ class PurchaseService {
       }
     }
 
-    print("========== ADD PURCHASE ==========");
-    print("Payload : ${jsonEncode(request.toJson())}");
-    print("========== FILES ==========");
+    log("========== ADD PURCHASE ==========");
+    log("Payload : ${jsonEncode(request.toJson())}");
+    log("========== FILES ==========");
 
     for (int i = 0; i < uploadedFiles.length; i++) {
       final supplierId = selectedSuppliers[i]?.id;
 
-      print("Supplier: $supplierId");
+      log("Supplier: $supplierId");
 
       for (final file in uploadedFiles[i]) {
-        print("Field: supplier_${supplierId}_images  File: ${file.name}");
+        log("Field: supplier_${supplierId}_images  File: ${file.name}");
       }
     }
     final result = await _api.post<Map<String, dynamic>>(
@@ -152,9 +153,9 @@ class PurchaseService {
       data: formData,
     );
 
-    print("Status : ${result.statusCode}");
-    print("Response : ${result.data}");
-    print("Error : ${result.errorMessage}");
+    log("Status : ${result.statusCode}");
+    log("Response : ${result.data}");
+    log("Error : ${result.errorMessage}");
 
     if (result.isFailure) {
       return ResponseResult.error(
@@ -216,21 +217,21 @@ class PurchaseService {
       );
     }
 
-    print("========== UPDATE PURCHASE ==========");
-    print(jsonEncode(payload));
+    log("========== UPDATE PURCHASE ==========");
+    log(jsonEncode(payload));
 
     final result = await _api.patch<Map<String, dynamic>>(
       path: "$_purchase/entry/update/$id",
       data: formData,
     );
-    print("========== UPDATE PURCHASE ==========");
-    print("Payload: ${jsonEncode(payload)}");
+    log("========== UPDATE PURCHASE ==========");
+    log("Payload: ${jsonEncode(payload)}");
     for (final image in supplierImages) {
-      print("Image: ${image.path}");
+      log("Image: ${image.path}");
     }
-    print("Status : ${result.statusCode}");
-    print("Response : ${result.data}");
-    print("Error : ${result.errorMessage}");
+    log("Status : ${result.statusCode}");
+    log("Response : ${result.data}");
+    log("Error : ${result.errorMessage}");
 
     if (result.isFailure) {
       return ResponseResult.error(

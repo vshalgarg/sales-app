@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
 import '../../../../network/response_result.dart';
@@ -55,11 +57,11 @@ class SupplierService {
     required int page,
     required int size,
   }) async {
-    print("Searching: $keyword");
+    log("Searching: $keyword");
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_suppliers/search/v2",
       queryParameters: {
-        "keyword": keyword,          // instead of "search"
+        "keyword": keyword,
         "page": page,
         "size": size,
         "sortBy": "supplierName",
@@ -85,26 +87,6 @@ class SupplierService {
       result.data!,
       Supplier.fromJson,
     );
-    // final result = await _api.get<Map<String, dynamic>>(
-    //   path: "$_suppliers/search/v2",
-    //   queryParameters: {
-    //     "search": keyword,
-    //     "page": page,
-    //     "size": size,
-    //   },
-    // );
-    //
-    // if (result.isFailure) {
-    //   return ResponseResult.error(
-    //     errorMessage: result.errorMessage ?? "Something went wrong",
-    //     statusCode: result.statusCode,
-    //   );
-    // }
-    //
-    // final suppliers = PaginatedResponse<Supplier>.fromJson(
-    //   result.data!,
-    //   Supplier.fromJson,
-    // );
 
     return ResponseResult.success(
       suppliers,
@@ -175,7 +157,7 @@ class SupplierService {
   }) async {
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_suppliers/update/id/$id",
-      data: request.toJson(),
+      data: request.toUpdateJson(),
     );
 
     if (result.isFailure) {

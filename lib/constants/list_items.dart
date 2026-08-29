@@ -30,7 +30,7 @@ class ListItems {
     "West Bengal",
     "Delhi",
   ];
-  static List<String> msmeItems=["Micro","Small","Medium"];
+  static List<String> msmeItems=["MICRO","SMALL","MEDIUM"];
   static List<String> commissionScheme=["Fixed","Percentage","Tiered"];
 
 }

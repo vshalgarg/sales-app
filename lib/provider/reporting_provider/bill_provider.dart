@@ -15,13 +15,12 @@ class BillProvider extends PaginationProvider<Bill> {
   BillDetails? _billDetails;
   bool hasLoadedBills = false;
   bool _detailsLoading = false;
-  bool _actionLoading = false;
+
 
   BillDetails? get billDetails => _billDetails;
 
   bool get detailsLoading => _detailsLoading;
 
-  bool get actionLoading => _actionLoading;
 
   String _searchKeyword = "";
   String? _fromDate;
@@ -78,7 +77,6 @@ class BillProvider extends PaginationProvider<Bill> {
 
   Future<void> fetchInitialBills() async {
     hasLoadedBills = false;
-    notifyListeners();
 
     await fetchInitial();
 
@@ -107,7 +105,6 @@ class BillProvider extends PaginationProvider<Bill> {
   }
   Future<bool> fetchBillDetails(String billNumber) async {
     _detailsLoading = true;
-    notifyListeners();
 
     final result = await _service.getBillById(billNumber);
 
@@ -126,9 +123,6 @@ class BillProvider extends PaginationProvider<Bill> {
     required AddBillRequest request,
     List<File> images = const [],
   }) async {
-    _actionLoading = true;
-    notifyListeners();
-
     try {
       final result = await _service.addBill(
         request: request,
@@ -141,9 +135,8 @@ class BillProvider extends PaginationProvider<Bill> {
       }
 
       return false;
-    } finally {
-      _actionLoading = false;
-      notifyListeners();
+    } catch (e) {
+      return false;
     }
   }
   Future<bool> updateBill({
@@ -152,9 +145,6 @@ class BillProvider extends PaginationProvider<Bill> {
     List<String> existingImageKeys = const [],
     List<File> images = const [],
   }) async {
-    _actionLoading = true;
-    notifyListeners();
-
     try {
       final result = await _service.updateBill(
         id: id,
@@ -164,21 +154,16 @@ class BillProvider extends PaginationProvider<Bill> {
       );
 
       if (result.isSuccess) {
-
         return true;
       }
 
       return false;
-    } finally {
-      _actionLoading = false;
-      notifyListeners();
+    } catch (e) {
+      return false;
     }
   }
 
   Future<bool> deleteBill(String billNumber) async {
-    _actionLoading = true;
-    notifyListeners();
-
     try {
       final result = await _service.deleteBill(billNumber);
 
@@ -187,9 +172,8 @@ class BillProvider extends PaginationProvider<Bill> {
       }
 
       return result.isSuccess;
-    } finally {
-      _actionLoading = false;
-      notifyListeners();
+    } catch (e) {
+      return false;
     }
   }
   Future<void> refreshBills() async {

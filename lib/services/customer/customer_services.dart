@@ -1,3 +1,4 @@
+import 'dart:developer';
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
 import '../../../../network/response_result.dart';
@@ -53,7 +54,7 @@ class CustomerService {
     required int page,
     required int size,
   }) async {
-    print("Searching: $keyword");
+    log("Searching: $keyword");
 
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_customers/search",
@@ -135,15 +136,6 @@ class CustomerService {
       );
     }
 
-    // final response = ApiResponse.fromJson(result.data!);
-    //
-    // if (!response.success) {
-    //   return ResponseResult.error(
-    //     errorMessage: response.message,
-    //     statusCode: result.statusCode,
-    //   );
-    // }
-
     return ResponseResult.success(
       ApiResponse(
         success: true,
@@ -162,7 +154,7 @@ class CustomerService {
   }) async {
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_customers/update/id/$id",
-      data: request.toJson(),
+      data: request.toUpdateJson(),
     );
 
     if (result.isFailure) {
@@ -190,19 +182,19 @@ class CustomerService {
   // DELETE CUSTOMER
 
   Future<ResponseResult<ApiResponse>> deleteCustomer(String code) async {
-    print("DELETE CUSTOMER");
-    print("URL: $_customer/delete");
-    print("BODY: {code: $code}");
+    log("DELETE CUSTOMER");
+    log("URL: $_customer/delete");
+    log("BODY: {code: $code}");
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_customer/delete",
       data: {
         "customerCode": code,
       },
     );
-    print("STATUS: ${result.statusCode}");
-    print("SUCCESS: ${result.isSuccess}");
-    print("ERROR: ${result.errorMessage}");
-    print("DATA: ${result.data}");
+    log("STATUS: ${result.statusCode}");
+    log("SUCCESS: ${result.isSuccess}");
+    log("ERROR: ${result.errorMessage}");
+    log("DATA: ${result.data}");
 
     if (result.isFailure) {
       return ResponseResult.error(

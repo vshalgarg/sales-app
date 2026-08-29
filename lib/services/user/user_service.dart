@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:hisabio/model_classes/common/api_response.dart';
 import 'package:hisabio/model_classes/user/add_user_request.dart';
 import 'package:hisabio/model_classes/user/user.dart';
@@ -31,7 +33,7 @@ class UserService {
         .map((e) => User.fromJson(e))
         .toList();
     for (final user in users) {
-      print("${user.username} -> ${user.role}");
+      log("${user.username} -> ${user.role}");
     }
     return ResponseResult.success(
       users,

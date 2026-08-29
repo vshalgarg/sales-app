@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/master_widgets/address_details.dart';
@@ -8,7 +9,6 @@ import 'package:hisabio/master_widgets/contact_info.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/model_classes/supplier/supplier_details.dart';
 import 'package:provider/provider.dart';
-
 import '../../constants/colors_used.dart';
 import '../../customs/dropdown_test.dart';
 import '../../enums/customer_mode.dart';
@@ -34,6 +34,7 @@ class ContactControllers {
 }
 
 class BankControllers {
+  int? id;
   final bankName = TextEditingController();
   final ifscCode = TextEditingController();
   final branchName = TextEditingController();
@@ -61,6 +62,7 @@ class AddNewSupplier extends StatefulWidget {
 
 class _AddNewSupplierState extends State<AddNewSupplier> {
   bool isExpanded = false;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
   final nameController = TextEditingController();
 
@@ -93,18 +95,26 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   List<BankControllers> bankDetails = [];
   List<int> selectedTransportIds = [];
   List<String> selectedTransportNames = [];
-
+  String? nullableText(String value) {
+    final text = value.trim();
+    return text.isEmpty ? null : text;
+  }
   AddSupplierRequest submitSupplier() {
-    List<Map<String, dynamic>> contactList = contacts.map((c) {
-      return {
-        "contactPerson": c.name.text,
-        "mobileNumber": c.mobile.text,
-        "type": c.type.text,
-      };
-    }).toList();
+    final List<Map<String, dynamic>> contactList = contacts
+        .map((c) => {
+      "contactPerson": c.name.text.trim(),
+      "mobileNumber": c.mobile.text.trim(),
+      "type": c.type.text.trim(),
+    })
+        .where((contact) =>
+    (contact["contactPerson"] as String).isNotEmpty ||
+        (contact["mobileNumber"] as String).isNotEmpty ||
+        (contact["type"] as String).isNotEmpty)
+        .toList();
     final List<BankDetailRequest> bankDetailList = bankDetails
         .map(
           (bank) => BankDetailRequest(
+            id: bank.id,
             bankName: bank.bankName.text.trim(),
             accountNumber: bank.accountNumber.text.trim(),
             ifscCode: bank.ifscCode.text.trim(),
@@ -124,24 +134,29 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
     return AddSupplierRequest(
       supplierName: nameController.text.trim(),
-      email: emailController.text.trim(),
-      supplierGroup: groupController.text.trim(),
-      gstNo: gstController.text.trim(),
-      msme: msmeController.text.trim(),
-      commissionScheme: commissionSchemeController.text.trim(),
+      email: nullableText(emailController.text),
+      supplierGroup: nullableText(groupController.text),
+      gstNo: nullableText(gstController.text),
+
+      msme: nullableText(msmeController.text),
+
+      commissionScheme: nullableText(
+        commissionSchemeController.text,
+      ),
       commissionRate: num.tryParse(commissionRateController.text.trim()),
-      referenceBy: referenceController.text.trim(),
+      referenceBy: nullableText(referenceController.text),
+
+      addressLine1: nullableText(addressLine1Controller.text),
+      addressLine2: nullableText(addressLine2Controller.text),
+      state: nullableText(stateController.text),
+      city: nullableText(cityController.text),
+      pinCode: nullableText(pinCodeController.text),
 
       bankDetails: bankDetailList,
-
-      addressLine1: addressLine1Controller.text.trim(),
-      addressLine2: addressLine2Controller.text.trim(),
-      state: stateController.text.trim(),
-      city: cityController.text.trim(),
-      pinCode: pinCodeController.text.trim(),
-      remark: remarksController.text.trim(),
       contacts: contactList,
       preferredTransportIds: selectedTransportIds,
+
+      remark: nullableText(remarksController.text),
     );
   }
 
@@ -203,7 +218,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     emailController.text = s.email ?? "";
     groupController.text = s.groupName ?? "";
     gstController.text = s.gstNo ?? "";
-    msmeController.text = s.msme ?? "";
+    log("API GST: ${s.gstNo}");
+    log("GST Controller: ${gstController.text}");
+    msmeController.text = s.msme?.toUpperCase() ?? "";
     commissionSchemeController.text = s.commissionScheme ?? "";
     commissionRateController.text = s.commissionRate?.toString() ?? "";
     referenceController.text = s.referenceBy ?? "";
@@ -219,6 +236,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       for (final bank in s.bankDetails) {
         bankDetails.add(
           BankControllers()
+            ..id = bank.id
             ..bankName.text = bank.bankName ?? ""
             ..ifscCode.text = bank.ifscCode ?? ""
             ..branchName.text = bank.branchName ?? ""
@@ -226,9 +244,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
             ..accountNumber.text = bank.accountNumber ?? "",
         );
       }
-    } else {
-      // Keep one empty bank section visible
-      // in View/Edit mode as well.
+    } else if (widget.mode == FormMode.edit) {
       bankDetails.add(BankControllers());
     }
 
@@ -251,9 +267,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         final id = transport['id'];
 
         if (id != null) {
-          selectedTransportIds.add(
-            int.parse(id.toString()),
-          );
+          selectedTransportIds.add(int.parse(id.toString()));
         }
 
         final name = transport['name']?.toString();
@@ -264,56 +278,64 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       }
     }
 
-    //  CONTACT DETAILS
+    // CONTACT DETAILS
     for (final contact in contacts) {
       contact.dispose();
     }
 
     contacts = [];
 
-    if (s.contacts.isNotEmpty) {
-      for (var c in s.contacts) {
+    bool hasContactData = false;
+
+    for (final c in s.contacts) {
+      String name = "";
+      String mobile = "";
+      String type = "";
+
+      if (c is Map) {
+        name = c['contactPerson']?.toString().trim() ?? "";
+        mobile = c['mobileNumber']?.toString().trim() ?? "";
+        type = c['type']?.toString().trim() ?? "";
+      } else {
+        name = c.contactPerson?.toString().trim() ?? "";
+        mobile = c.mobileNumber?.toString().trim() ?? "";
+        type = c.type?.toString().trim() ?? "";
+      }
+
+      // Add only contacts that actually contain data
+      if (name.isNotEmpty || mobile.isNotEmpty || type.isNotEmpty) {
+        hasContactData = true;
+
         final contact = ContactControllers();
 
-        if (c is Map) {
-          contact.name.text =
-              c['contactPerson']?.toString() ?? "";
-
-          contact.mobile.text =
-              c['mobileNumber']?.toString() ?? "";
-
-          contact.type.text =
-              c['type']?.toString() ?? "";
-        } else {
-          contact.name.text = c.contactPerson ?? "";
-          contact.mobile.text = c.mobileNumber ?? "";
-          contact.type.text = c.type ?? "";
-        }
+        contact.name.text = name;
+        contact.mobile.text = mobile;
+        contact.type.text = type;
 
         contacts.add(contact);
       }
-    } else {
-      // Keep one empty contact section visible
+    }
+
+// Add an empty contact only in Add/Edit mode
+    if (!hasContactData && widget.mode != FormMode.view) {
       contacts.add(ContactControllers());
     }
   }
-
   @override
   void initState() {
     super.initState();
 
     if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
+      final provider = context.read<SupplierProvider>();
       Future.microtask(() async {
-        final provider = context.read<SupplierProvider>();
-
         await provider.fetchSupplierDetails(widget.id!.toInt());
 
         final s = provider.supplierDetails;
         if (s == null || !mounted) return;
 
         _populateFormFromSupplier(s);
-        print("API pinCode: ${s.pinCode}");
-        print("Controller pinCode: ${pinCodeController.text}");
+        log("API pinCode: ${s.pinCode}");
+        log("Controller pinCode: ${pinCodeController.text}");
         setState(() {});
       });
     }
@@ -323,8 +345,13 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       bankDetails.add(BankControllers());
     }
 
+    final transportProvider = Provider.of<TransportProvider>(
+      context,
+      listen: false,
+    );
+
     Future.microtask(() {
-      Provider.of<TransportProvider>(context, listen: false).fetchAllTransports();
+      transportProvider.fetchAllTransports();
     });
   }
 
@@ -466,10 +493,13 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.all(15.0),
+          child: Form(
+            key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SupplierBasicInfo(
+                partyType: "Supplier",
                 showCommissionScheme: true,
                 showCommissionRate: true,
                 mode: widget.mode,
@@ -554,12 +584,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 ),
                 Consumer<TransportProvider>(
                   builder: (context, transportProvider, child) {
-                    if (transportProvider.data.isLoading) {
-                      return const CircularProgressIndicator();
-                    }
 
-                    final List<Transport> transports =
-                    transportProvider.data.items.cast<Transport>();
+                    final List<Transport> transports = transportProvider
+                        .data.items.cast<Transport>();
 
                     return CustomDropdown(
                       hintText: "Preferred Transports",
@@ -571,24 +598,21 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
                       isMultiSelect: true,
 
-                      initialValues: List<String>.from(
-                        selectedTransportNames,
-                      ),
+                      initialValues: List<String>.from(selectedTransportNames),
 
                       isDisabled: widget.mode == FormMode.view,
 
                       onChanged: (_) {},
 
                       onMultiChanged: (values) {
-                        final List<String> names =
-                        List<String>.from(values);
+                        final List<String> names = List<String>.from(values);
 
                         setState(() {
                           selectedTransportNames = names;
 
                           selectedTransportIds = names.map<int>((name) {
                             final transport = transports.firstWhere(
-                                  (e) => e.name == name,
+                              (e) => e.name == name,
                             );
 
                             return transport.id!.toInt();
@@ -622,7 +646,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
           ),
         ),
       ),
-
+      ),
       bottomNavigationBar: Consumer<SupplierProvider>(
         builder: (context, provider, child) {
           return BottomNavigationButton(
@@ -632,61 +656,48 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
               try {
                 final request = updateSupplier();
 
-                print("Update Request: ${request.toJson()}");
-                final success = await provider.updateSupplier(
+                log("Update Request: ${request.toJson()}");
+                final message = await provider.updateSupplier(
                   id: widget.id!.toInt(),
                   request: request,
                 );
 
                 if (!context.mounted) return;
 
-                if (success) {
-                  ScaffoldSnackBar.show(
-                    context,
-                    "Supplier Updated Successfully",
-                  );
-
+                if (message != null && message.isNotEmpty) {
+                  ScaffoldSnackBar.show(context, message);
                   Navigator.pop(context, true);
-                } else {
-                  ScaffoldSnackBar.show(context, "Failed to update supplier");
                 }
               } catch (e) {
-                ScaffoldSnackBar.show(context, "Something went wrong: $e");
+                log("Update supplier error: $e");
               }
             },
 
-            saveSupplier: provider.actionLoading
-                ? () {}
-                : () async {
+            saveSupplier: () async {
               try {
-                if (nameController.text.trim().isEmpty) {
+                final isValid = _formKey.currentState!.validate();
+
+                if (!isValid) {
                   ScaffoldSnackBar.show(
                     context,
-                    "Supplier name is required",
+                    " Name is required.",
                   );
                   return;
                 }
 
+
                 final request = submitSupplier();
-                print("Supplier Request: ${request.toJson()}");
-                final success = await provider.addSupplier(request);
+
+                final message = await provider.addSupplier(request);
 
                 if (!context.mounted) return;
 
-                if (success) {
-                  ScaffoldSnackBar.show(
-                    context,
-                    "Supplier Added Successfully",
-                  );
-
-                  Navigator.pop(context, true);
-                } else {
-                  ScaffoldSnackBar.show(
-                    context,
-                    "Failed to add supplier",
-                  );
+                if (message != null && message.isNotEmpty) {
+                  Navigator.pop(context, message);
                 }
               } catch (e) {
+                if (!context.mounted) return;
+
                 ScaffoldSnackBar.show(
                   context,
                   "Something went wrong: $e",

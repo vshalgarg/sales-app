@@ -24,7 +24,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
-
+  String? nameError;
   Future<void> selectDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -34,7 +34,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
     );
 
     if (picked != null) {
-      dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      dateController.text = DateFormat('dd-MM-yyyy').format(picked);
     }
   }
 
@@ -48,10 +48,13 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
   void initState() {
     super.initState();
 
-    if (widget.mode != StaffMode.add && widget.id != null) {
-      Future.microtask(() async {
-        final provider = context.read<StaffProvider>();
+    if (widget.mode == StaffMode.add) {
+      dateController.text =
+          DateFormat('dd-MM-yyyy').format(DateTime.now());
+    } else if (widget.id != null) {
+      final provider = context.read<StaffProvider>();
 
+      Future.microtask(() async {
         final success = await provider.fetchStaffDetails(widget.id!);
 
         if (!mounted || !success) return;
@@ -120,16 +123,28 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                       TextFormField(
                         controller: nameController,
                         readOnly: false,
+                        onChanged: (value) {
+                          if (value.trim().isNotEmpty && nameError != null) {
+                            setState(() {
+                              nameError = null;
+                            });
+                          }
+                        },
                         decoration: InputDecoration(
                           prefixIcon: const Icon(
                             Iconsax.user,
                             color: AppColors.primaryPurple,
                           ),
-                          hintText: "Name",
+                          labelText: "Staff Name *",
                           filled: true,
                           fillColor: Colors.white,
+                          errorText: nameError,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(5),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            borderSide: const BorderSide(color: Colors.red),
                           ),
                         ),
                       ),
@@ -148,7 +163,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                             Iconsax.mobile,
                             color: AppColors.primaryPurple,
                           ),
-                          hintText: "Phone",
+                          labelText: "Phone Number",
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -169,7 +184,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                             Iconsax.calendar,
                             color: AppColors.primaryPurple,
                           ),
-                          hintText: "Date of Joining",
+                          labelText: "Joining Date*",
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -184,18 +199,31 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: provider.actionLoading
-                                  ? null
-                                  : () async {
-                                      if (nameController.text.trim().isEmpty ||
-                                          phoneController.text.trim().isEmpty ||
-                                          dateController.text.trim().isEmpty) {
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          "All the fields are required",
-                                        );
-                                        return;
-                                      }
+                              onPressed:()async {
+                                if (nameController.text.trim().isEmpty) {
+                                  setState(() {
+                                    nameError = "Staff Name is required";
+                                  });
+
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    "Staff Name is required.",
+                                  );
+
+                                  return;
+                                }
+
+                                setState(() {
+                                  nameError = null;
+                                });
+
+                                if (dateController.text.trim().isEmpty) {
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    "Joining Date is required.",
+                                  );
+                                  return;
+                                }
 
                                       bool success;
 
@@ -210,7 +238,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                                         );
                                       }
 
-                                      if (!mounted) return;
+                                      if (!context.mounted) return;
 
                                       if (success) {
                                         ScaffoldSnackBar.show(
@@ -239,16 +267,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                                   vertical: 14,
                                 ),
                               ),
-                              child: provider.actionLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : Text(
+                              child: Text(
                                       widget.mode == StaffMode.add
                                           ? "Save Staff"
                                           : "Update Staff",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import '../constants/colors_used.dart';
 import '../constants/custom_icons.dart';
 
@@ -31,7 +32,16 @@ class RetailCard extends StatelessWidget {
     final otherFields = fields
         .where((e) => e.key.toLowerCase() != "date")
         .toList();
+    String displayDate = date.value;
 
+    if (date.value.isNotEmpty) {
+      try {
+        final parsedDate = DateTime.parse(date.value);
+        displayDate = DateFormat("dd-MM-yyyy").format(parsedDate);
+      } catch (_) {
+        displayDate = date.value;
+      }
+    }
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
@@ -70,7 +80,7 @@ class RetailCard extends StatelessWidget {
                               const SizedBox(width: 5),
 
                               Text(
-                                date.value,
+                                displayDate,
                                 style: const TextStyle(
                                   color: Colors.deepOrange,
                                   fontWeight: FontWeight.bold,

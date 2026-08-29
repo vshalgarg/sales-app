@@ -1,7 +1,10 @@
 import 'dart:core';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
@@ -13,8 +16,7 @@ import 'package:hisabio/model_classes/entries/entries_customer_model.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../constants/custom_icons.dart';
+import 'package:public_file_saver/public_file_saver.dart';
 import '../../constants/view_image_method.dart';
 import '../../dialog_boxes/entry_dialogboxes/add_new_bill_item.dart';
 import '../../dialog_boxes/entry_dialogboxes/bill_section_upload_documents_dialog.dart';
@@ -39,10 +41,13 @@ class EntriesBillEntry extends StatefulWidget {
 }
 
 class _EntriesBillEntryState extends State<EntriesBillEntry> {
+  static const MethodChannel _channel = MethodChannel('file_opener');
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
   List<bool> billItemExpanded = [];
   List<GlobalKey> billItemKeys = [];
+  bool showBillItemError = false;
+  // bool isSaving = false;
 
   bool get isViewMode => widget.mode == FormMode.view;
   bool isExpanded = true;
@@ -80,7 +85,38 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   List<dynamic> get allAttachments {
     return [...existingUrls, ...newUploadedFiles];
   }
+  String? _toApiDate(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
 
+    try {
+      return DateFormat('yyyy-MM-dd')
+          .format(DateFormat('dd-MM-yyyy').parse(value.trim()));
+    } catch (_) {
+      return value;
+    }
+  }
+  Widget _requiredLabel(String text) {
+    return RichText(
+      text: TextSpan(
+        text: text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+        ),
+        children: !isViewMode
+            ? const [
+          TextSpan(
+            text: ' * ',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ]
+            : [],
+      ),
+    );
+  }
   String _formatAmount(dynamic value) {
     if (value == null) return "-";
 
@@ -91,6 +127,97 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     }
 
     return NumberFormat('#,##0.00').format(number);
+  }
+
+  Future<void> _downloadAttachment(String url, String fileName) async {
+    try {
+      if (url.isEmpty) {
+        if (!mounted) return;
+
+        ScaffoldSnackBar.show(context, 'Download URL not available');
+        return;
+      }
+
+      final response = await Dio().get<List<int>>(
+        url,
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+          receiveTimeout: const Duration(seconds: 60),
+          sendTimeout: const Duration(seconds: 60),
+        ),
+      );
+
+      final bytes = response.data;
+
+      if (bytes == null || bytes.isEmpty) {
+        throw Exception('Downloaded file is empty');
+      }
+
+      String safeFileName = fileName.trim();
+
+      if (safeFileName.isEmpty) {
+        safeFileName =
+            'attachment_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      }
+
+      final extension = safeFileName.contains('.')
+          ? safeFileName.split('.').last.toLowerCase()
+          : 'jpg';
+
+      final mimeType = extension == 'pdf'
+          ? 'application/pdf'
+          : extension == 'png'
+          ? 'image/png'
+          : extension == 'webp'
+          ? 'image/webp'
+          : 'image/jpeg';
+
+      final fileSaver = PublicFileSaver();
+
+      final result = await fileSaver.saveBytes(
+        bytes: Uint8List.fromList(bytes),
+        fileName: safeFileName,
+        mimeType: mimeType,
+      );
+
+      if (result == null || !result.isSuccess) {
+        throw Exception('Unable to save file');
+      }
+
+      debugPrint('Downloaded file: ${result.fileName}');
+      debugPrint('Downloaded URI: ${result.uri}');
+      debugPrint('Downloaded path: ${result.path}');
+      if (!mounted) return;
+
+      // First show success message
+      ScaffoldSnackBar.show(context, 'File downloaded successfully');
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+      final uri = result.uri;
+
+      if (uri == null || uri.isEmpty) {
+        ScaffoldSnackBar.show(
+          context,
+          'File downloaded, but could not open it',
+        );
+        return;
+      }
+
+      await _channel.invokeMethod(
+        'openFile',
+        {
+          'uri': result.uri,
+          'mimeType': mimeType,
+        },
+      );
+    } catch (e) {
+      debugPrint('Download error: $e');
+
+      if (!mounted) return;
+
+      ScaffoldSnackBar.show(context, 'Download failed: $e');
+    }
   }
 
   void _toggleBillItem(int index) {
@@ -138,13 +265,13 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     super.initState();
 
     if (widget.mode == FormMode.add) {
-      dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
     }
 
-    Future.microtask(() async {
-      final entriesProvider = context.read<EntriesProvider>();
-      final billsProvider = context.read<BillProvider>();
+    final entriesProvider = context.read<EntriesProvider>();
+    final billsProvider = context.read<BillProvider>();
 
+    Future.microtask(() async {
       if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
         // Fetch bill details immediately
         final success = await billsProvider.fetchBillDetails(widget.id!);
@@ -327,6 +454,34 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           value: _formatAmount(item.gstAmount),
                           isLast: true,
                         ),
+                        _billItemField(
+                          icon: Iconsax.receipt_item,
+                          title: "Taxable Value",
+                          subtitle: "Auto calculated",
+                          value: _formatAmount(
+                            item.taxableValue ??
+                                ((item.grossAmount ?? 0) -
+                                    (item.discountAmount ?? 0) +
+                                    (item.addOnAmount ?? 0) +
+                                    (item.ecrAmount ?? 0)),
+                          ),
+                        ),
+
+                        _billItemField(
+                          icon: Iconsax.wallet_2,
+                          title: "Bill Amount",
+                          subtitle: "Auto calculated",
+                          value: _formatAmount(
+                            item.totalAmount ??
+                                ((item.taxableValue ??
+                                        ((item.grossAmount ?? 0) -
+                                            (item.discountAmount ?? 0) +
+                                            (item.addOnAmount ?? 0) +
+                                            (item.ecrAmount ?? 0))) +
+                                    (item.gstAmount ?? 0)),
+                          ),
+                          isLast: true,
+                        ),
                       ],
                     ),
                   )
@@ -348,7 +503,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       builder: (context, constraints) {
         const iconSize = 42.0;
 
-        // Screenshot is a wide phone, so give the value box enough space.
         final valueWidth = constraints.maxWidth * 0.38;
 
         return Container(
@@ -369,7 +523,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                 height: iconSize,
                 width: iconSize,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPurple.withOpacity(0.10),
+                  color: AppColors.primaryPurple.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Icon(icon, color: AppColors.primaryPurple, size: 32),
@@ -446,10 +600,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       },
     );
   }
+  String _formatDisplayDate(String? value) {
+    if (value == null || value.trim().isEmpty) return "";
 
+    try {
+      return DateFormat('dd-MM-yyyy')
+          .format(DateTime.parse(value.trim()));
+    } catch (_) {
+      return value;
+    }
+  }
   void fillBillData(BillDetails bill) {
-    dateController.text = bill.date ?? "";
-    receivedDateController.text = bill.receivedDate ?? "";
+    dateController.text = _formatDisplayDate(bill.date);
+    receivedDateController.text = _formatDisplayDate(bill.receivedDate);
     invoiceController.text = bill.invoiceNo ?? "";
 
     supplierGroupController.text = bill.supplierGroup ?? "";
@@ -461,7 +624,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     lrNumberController.text = bill.lrNumber ?? "";
     remarksController.text = bill.remarks ?? "";
 
-    billItems = bill.items!.cast<BillItem>();
+    billItems = bill.items ?? [];
 
     billItemExpanded = List.generate(billItems.length, (_) => false);
 
@@ -484,20 +647,12 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       selectedCustomerName = customer.first.customerName;
     }
     selectedCustomerName = selectedCustomer?.customerName;
-    if (bill.transport != null) {
-      final transport = provider.transportDetails.where(
-        (e) => e.name == bill.transport,
-      );
+    selectedTransportName = bill.transport;
 
-      if (transport.isNotEmpty) {
-        selectedTransport = transport.first;
-        selectedTransportName = selectedTransport?.name;
-      }
-    }
     existingObjectKeys = List<String>.from(bill.objectKeys ?? []);
-
     existingUrls = List<String>.from(bill.publicUrls ?? []);
     existingFileNames = List<String>.from(bill.originalFileNames ?? []);
+
     if (!mounted) return;
     setState(() {});
   }
@@ -512,25 +667,40 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     customerGstController.clear();
     lrNumberController.clear();
     supplierController.clear();
-    dateController.clear();
+    showBillItemError = false;
+    // Reset date back to today's date
+    dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
+
     setState(() {
-      uploadedFiles = [];
+      // Reset bill items
       billItems = [];
       billItemExpanded = [];
       billItemKeys = [];
+
+      // Reset supplier/customer
       selectedSupplier = null;
       selectedSupplierName = null;
       selectedCustomer = null;
       selectedCustomerName = null;
+
+      // Reset transport
       selectedTransport = null;
       selectedTransportName = null;
+
+      // Reset ALL uploaded files/images
+      uploadedFiles = [];
+      newUploadedFiles = [];
+      existingUrls = [];
+      existingObjectKeys = [];
+      existingFileNames = [];
+      removedObjectKeys = [];
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.read<EntriesProvider>();
-    final bill = context.watch<BillProvider>().billDetails;
+    final bill = context.read<BillProvider>().billDetails;
     final totalTaxableValue = billItems.fold<double>(
       0,
       (sum, item) =>
@@ -612,38 +782,45 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                   children: [
                     EntryContainer(
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isExpanded = !isExpanded;
-                            });
-                          },
-                          child: TextField(
-                            decoration: InputDecoration(
-                              suffixIcon: Icon(
-                                isExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: Colors.white,
+                        Container(
+                          height: 55,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryPurple,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    "Order Information",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              enabled: false,
-                              filled: true,
-                              fillColor: AppColors.primaryPurple,
-                              hintText: "Order Information",
-                              hintStyle: TextStyle(color: Colors.white),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide.none,
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isExpanded = !isExpanded;
+                                  });
+                                },
+                                icon: Icon(
+                                  isExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                         if (isExpanded) ...[
                           SizedBox(height: 10),
-                          Text(
-                            "Date",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
+                          _requiredLabel("Date"),
                           EntryDateTextField(
                             enabled: !isViewMode,
                             label: "Date",
@@ -660,14 +837,18 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             controller: receivedDateController,
                           ),
                           SizedBox(height: 10),
-                          Text(
-                            "Invoice",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
+                          _requiredLabel("Invoice"),
                           EntryTextField(
                             enabled: !isViewMode,
                             controller: invoiceController,
                             hintText: "Invoice",
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            onChanged: (value) {
+                              if (value.trim().isNotEmpty) {
+                                _formKey.currentState?.validate();
+                              }
+                            },
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return "Invoice is required";
@@ -685,41 +866,45 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       onTap: () {},
                       child: EntryContainer(
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isSupplierExpanded = !isSupplierExpanded;
-                              });
-                            },
-                            child: TextField(
-                              decoration: InputDecoration(
-                                suffixIcon: Icon(
-                                  isSupplierExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: Colors.white,
+                          Container(
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryPurple,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text(
+                                      "Supplier Information",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                enabled: false,
-                                filled: true,
-                                fillColor: AppColors.primaryPurple,
-                                hintText: "Supplier Information",
-                                hintStyle: TextStyle(color: Colors.white),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide.none,
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isSupplierExpanded = !isSupplierExpanded;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    isSupplierExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           if (isSupplierExpanded) ...[
                             SizedBox(height: 10),
-                            Text(
-                              "Supplier",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
-                            ),
+                         _requiredLabel("Supplier"),
 
                             CustomDropdown(
                               isDisabled: isViewMode,
@@ -729,7 +914,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                   .toList(),
                               initialValue: selectedSupplierName,
                               validator: (value) {
-                                if (value == null) {
+                                if (value == null || value.trim().isEmpty) {
                                   return "Supplier is required";
                                 }
                                 return null;
@@ -787,41 +972,45 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       onTap: () {},
                       child: EntryContainer(
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isCustomerExpanded = !isCustomerExpanded;
-                              });
-                            },
-                            child: TextField(
-                              decoration: InputDecoration(
-                                suffixIcon: Icon(
-                                  isCustomerExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: Colors.white,
+                          Container(
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryPurple,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text(
+                                      "Customer Information",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                enabled: false,
-                                filled: true,
-                                fillColor: AppColors.primaryPurple,
-                                hintText: "Customer Information",
-                                hintStyle: TextStyle(color: Colors.white),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide.none,
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isCustomerExpanded = !isCustomerExpanded;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    isCustomerExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           if (isCustomerExpanded) ...[
                             SizedBox(height: 10),
-                            Text(
-                              "Customer",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
-                            ),
+                            _requiredLabel("Customer"),
                             CustomDropdown(
                               isDisabled: isViewMode,
                               hintText: "Customer",
@@ -830,7 +1019,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                   .toList(),
                               initialValue: selectedCustomerName,
                               validator: (value) {
-                                if (value == null) {
+                                if (value == null || value.trim().isEmpty) {
                                   return "Customer is required";
                                 }
                                 return null;
@@ -888,30 +1077,40 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       onTap: () {},
                       child: EntryContainer(
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isLogisticExpanded = !isLogisticExpanded;
-                              });
-                            },
-                            child: TextField(
-                              decoration: InputDecoration(
-                                suffixIcon: Icon(
-                                  isLogisticExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: Colors.white,
+                          Container(
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryPurple,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text(
+                                      "Logistic & Notes",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                enabled: false,
-                                filled: true,
-                                fillColor: AppColors.primaryPurple,
-                                hintText: "Logistic & Notes",
-                                hintStyle: TextStyle(color: Colors.white),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide.none,
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isLogisticExpanded = !isLogisticExpanded;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    isLogisticExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           if (isLogisticExpanded) ...[
@@ -975,17 +1174,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
                       GestureDetector(
                         onTap: () async {
-                          final remainingSlots =
-                              3 - existingUrls.length - newUploadedFiles.length;
-
-                          if (remainingSlots <= 0) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Maximum 3 files can be uploaded",
-                            );
-                            return;
-                          }
-
                           final result = await showDialog<Map<String, dynamic>>(
                             context: context,
                             builder: (_) => BillEntryUploadDocuments(
@@ -1104,8 +1292,160 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         ),
                       ),
                     ],
-                    if (!isViewMode) ...[
-                      SizedBox(height: 15),
+
+                    // BILL ITEMS
+
+                    // EXISTING BILL ITEMS
+                    if (billItems.isNotEmpty) ...[
+                      const SizedBox(height: 15),
+
+                      Column(
+                        children: List.generate(billItems.length, (index) {
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 10),
+                            child: _buildBillItemCard(billItems[index], index),
+                          );
+                        }),
+                      ),
+
+                      // ADD BILL ITEM BUTTON BELOW LAST ITEM
+                      if (!isViewMode) ...[
+                        const SizedBox(height: 2),
+
+                        GestureDetector(
+                          onTap: () async {
+                            final BillItem? item =
+                                await Navigator.push<BillItem>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AddNewBillItem(),
+                                  ),
+                                );
+
+                            if (item != null) {
+                              setState(() {
+                                billItems.add(item);
+
+                                billItemExpanded.add(true);
+                                billItemKeys.add(GlobalKey());
+
+                                showBillItemError = false;
+                              });
+
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (!mounted || billItemKeys.isEmpty) return;
+
+                                final target = billItemKeys.last.currentContext;
+
+                                if (target == null) return;
+
+                                Scrollable.ensureVisible(
+                                  target,
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.easeInOut,
+                                  alignment: 0.08,
+                                );
+                              });
+                            }
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: AppColors.primaryPurple,
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(
+                                child: Text(
+                                  "+ Add Bill Item",
+                                  style: TextStyle(color: Colors.white),
+
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      // SUMMARY
+                      const SizedBox(height: 12),
+
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 17,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: AppColors.primaryPurple,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(17),
+                                  topRight: Radius.circular(17),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColors.bodyFillColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.pie_chart_rounded,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    "Summary",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 8,
+                              ),
+                              child: Column(
+                                children: [
+                                  _summaryRow(
+                                    icon: Iconsax.calculator,
+                                    title: "Taxable Value",
+                                    value: totalTaxableValue.toStringAsFixed(2),
+                                  ),
+                                  _summaryRow(
+                                    icon: Iconsax.wallet_2,
+                                    title: "Bill Amount",
+                                    value: totalBillAmount.toStringAsFixed(2),
+                                    isLast: true,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ]
+                    // NO ITEMS YET
+                    // Add/Edit: show only Add Bill Item
+                    else if (!isViewMode) ...[
+                      const SizedBox(height: 15),
+
                       GestureDetector(
                         onTap: () async {
                           final BillItem? item = await Navigator.push<BillItem>(
@@ -1118,15 +1458,20 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           if (item != null) {
                             setState(() {
                               billItems.add(item);
+
                               billItemExpanded.add(true);
                               billItemKeys.add(GlobalKey());
-                              isBillItemsExpanded = true;
+
+                              showBillItemError = false;
                             });
 
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (!mounted || billItemKeys.isEmpty) return;
+
                               final target = billItemKeys.last.currentContext;
+
                               if (target == null) return;
+
                               Scrollable.ensureVisible(
                                 target,
                                 duration: const Duration(milliseconds: 400),
@@ -1142,8 +1487,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             borderRadius: BorderRadius.circular(5),
                             color: AppColors.primaryPurple,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                          child: const Padding(
+                            padding: EdgeInsets.all(8.0),
                             child: Center(
                               child: Text(
                                 "+Add Bill Item",
@@ -1154,143 +1499,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         ),
                       ),
                     ],
-                    SizedBox(height: 10),
-                    if (billItems.isNotEmpty)
-                      EntryContainer(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isBillItemsExpanded = !isBillItemsExpanded;
-                              });
-                            },
-                            child: TextField(
-                              enabled: false,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.primaryPurple,
-                                hintText: "Bill Items",
-                                hintStyle: const TextStyle(color: Colors.white),
-                                suffixIcon: Icon(
-                                  isBillItemsExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: Colors.white,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
+                    if (showBillItemError)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 5, left: 4),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Please add at least one bill item",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
                             ),
                           ),
-
-                          if (isBillItemsExpanded) ...[
-                            const SizedBox(height: 12),
-
-                            Column(
-                              children: List.generate(billItems.length, (
-                                index,
-                              ) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: index == billItems.length - 1
-                                        ? 0
-                                        : 10,
-                                  ),
-                                  child: _buildBillItemCard(
-                                    billItems[index],
-                                    index,
-                                  ),
-                                );
-                              }),
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      // SUMMARY HEADER
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 18,
-                                          vertical: 17,
-                                        ),
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.primaryPurple,
-                                          borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(17),
-                                            topRight: Radius.circular(17),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: AppColors.bodyFillColor,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                Icons.pie_chart_rounded,
-                                                color: Colors.white,
-                                                size: 22,
-                                              ),
-                                            ),
-
-                                            const SizedBox(width: 12),
-
-                                            const Text(
-                                              "Summary",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      // SUMMARY BODY
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 18,
-                                          vertical: 8,
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            _summaryRow(
-                                              icon: Iconsax.calculator,
-                                              title: "Taxable Value",
-                                              value: totalTaxableValue
-                                                  .toStringAsFixed(2),
-                                            ),
-
-                                            _summaryRow(
-                                              icon: Iconsax.wallet_2,
-                                              title: "Bill Amount",
-                                              value: totalBillAmount
-                                                  .toStringAsFixed(2),
-                                              isLast: true,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
+                        ),
                       ),
                     SizedBox(height: 20),
                     if (widget.mode != FormMode.add)
@@ -1330,159 +1551,161 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         ),
                       ),
                     if (isAttachmentExpanded) ...[
-                      SizedBox(height: 15),
-                      Container(
-                        padding: const EdgeInsets.all(0),
-                        decoration: BoxDecoration(
-                          color: AppColors.bodyFillColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Builder(
-                          builder: (context) {
-                            final attachments = allAttachments;
+                      const SizedBox(height: 15),
 
-                            if (attachments.isEmpty) {
-                              return Container(
-                                alignment: Alignment.center,
-                                child: const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.image_not_supported_outlined,
-                                      size: 40,
-                                      color: AppColors.primaryPurple,
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      "No Attachments Found",
-                                      style: TextStyle(
-                                        color: AppColors.primaryPurple,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Attachments",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          if (existingUrls.isEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  "No Documents Uploaded",
+                                  style: TextStyle(color: Colors.grey),
                                 ),
-                              );
-                            }
-                            final totalCount = allAttachments.length;
+                              ),
+                            )
+                          else
+                            Column(
+                              children: List.generate(existingUrls.length, (
+                                index,
+                              ) {
+                                final imageUrl = existingUrls[index];
 
-                            return ListView.separated(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: totalCount,
-                              separatorBuilder: (context, index) {
-                                return SizedBox(height: 5);
-                              },
-                              itemBuilder: (context, index) {
-                                String fileName;
-                                String? imageUrl;
+                                final fileName =
+                                    existingFileNames.length > index &&
+                                        existingFileNames[index].isNotEmpty
+                                    ? existingFileNames[index]
+                                    : "Attachment ${index + 1}";
 
-                                bool isOldFile = index < existingUrls.length;
+                                final isPdf = fileName.toLowerCase().endsWith(
+                                  '.pdf',
+                                );
 
-                                if (isOldFile) {
-                                  imageUrl = existingUrls[index];
-
-                                  fileName = existingFileNames.length > index
-                                      ? existingFileNames[index]
-                                      : "Attachment ${index + 1}";
-                                } else {
-                                  final file =
-                                      newUploadedFiles[index -
-                                          existingUrls.length];
-                                  fileName = file.name;
-                                }
                                 return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,
-                                    vertical: 1,
+                                    vertical: 10,
                                   ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Row(
                                     children: [
+                                      // FILE ICON
+                                      Container(
+                                        height: 48,
+                                        width: 48,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF4F0FF),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          isPdf
+                                              ? Icons.picture_as_pdf_outlined
+                                              : Icons.image_outlined,
+                                          color: AppColors.primaryPurple,
+                                          size: 27,
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 12),
+
+                                      // FILE NAME
                                       Expanded(
                                         child: Text(
                                           fileName,
-                                          overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
                                           ),
                                         ),
                                       ),
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6,
+
+                                      // VIEW
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 38,
+                                          minHeight: 38,
                                         ),
-                                        child: IconButton(
-                                          onPressed: () async {
-                                            await viewAttachment(
-                                              imageUrl!,
-                                              fileName,
-                                            );
-                                          },
-                                          icon: Icon(Icons.remove_red_eye),
+                                        icon: const Icon(
+                                          Icons.remove_red_eye,
                                           color: Colors.blue,
+                                          size: 23,
                                         ),
-                                      ),
-                                      InkWell(
-                                        onTap: () async {
-                                          await launchUrl(
-                                            Uri.parse(imageUrl!),
-                                            mode:
-                                                LaunchMode.externalApplication,
+                                        onPressed: () async {
+                                          if (imageUrl.isEmpty) {
+                                            ScaffoldSnackBar.show(
+                                              context,
+                                              "Invalid document URL",
+                                            );
+                                            return;
+                                          }
+
+                                          await viewAttachment(
+                                            imageUrl,
+                                            fileName,
                                           );
                                         },
-                                        child: const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                          ),
-                                          child: Icon(
-                                            Icons.download,
-                                            color: Colors.green,
-                                          ),
-                                        ),
                                       ),
-                                      if (!isViewMode)
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.delete,
-                                            color: Colors.red,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              if (isOldFile) {
-                                                removedObjectKeys.add(
-                                                  existingObjectKeys[index],
-                                                );
-                                                existingObjectKeys.removeAt(
-                                                  index,
-                                                );
-                                                existingUrls.removeAt(index);
-                                                existingFileNames.removeAt(
-                                                  index,
-                                                );
-                                              } else {
-                                                final newIndex =
-                                                    index - existingUrls.length;
-                                                newUploadedFiles.removeAt(
-                                                  newIndex,
-                                                );
-                                              }
-                                            });
-                                          },
+
+                                      // DOWNLOAD
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 38,
+                                          minHeight: 38,
                                         ),
+                                        icon: const Icon(
+                                          Icons.download,
+                                          color: Colors.green,
+                                          size: 23,
+                                        ),
+                                        onPressed: () async {
+                                          if (imageUrl.isEmpty) {
+                                            ScaffoldSnackBar.show(
+                                              context,
+                                              "Download URL not available",
+                                            );
+                                            return;
+                                          }
+
+                                          await _downloadAttachment(
+                                            imageUrl,
+                                            fileName,
+                                          );
+                                        },
+                                      ),
                                     ],
                                   ),
                                 );
-                              },
-                            );
-                          },
-                        ),
+                              }),
+                            ),
+                        ],
                       ),
                     ],
                     if (widget.mode == FormMode.add) ...[
@@ -1526,7 +1749,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                               style: TextStyle(
                                                 color: AppColors.primaryPurple,
                                                 fontSize: 20,
-                                                fontWeight: FontWeight.w600,
                                               ),
                                             ),
                                           ),
@@ -1540,6 +1762,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
                             const SizedBox(width: 16),
                             // SAVE
+                            // SAVE
                             Expanded(
                               child: SizedBox(
                                 child: Material(
@@ -1547,7 +1770,17 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(5),
                                     onTap: () async {
-                                      if (!_formKey.currentState!.validate()) {
+                                      setState(() {
+                                        isExpanded = true;
+                                        isSupplierExpanded = true;
+                                        isCustomerExpanded = true;
+                                      });
+
+                                      final isValid =
+                                          _formKey.currentState?.validate() ??
+                                          false;
+
+                                      if (!isValid) {
                                         ScaffoldSnackBar.show(
                                           context,
                                           "Please fill all the required fields",
@@ -1556,47 +1789,43 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                       }
 
                                       if (billItems.isEmpty) {
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          "Please add at least one bill item",
-                                        );
-                                        return;
-                                      }
-
-                                      if (invoiceController.text.isEmpty ||
-                                          selectedSupplier == null ||
-                                          selectedCustomer == null) {
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          "Please fill all the required fields",
-                                        );
+                                        setState(() {
+                                          showBillItemError = true;
+                                        });
                                         return;
                                       }
 
                                       final payload = {
-                                        "date": dateController.text,
-                                        "receivedDate":
-                                            receivedDateController.text.isEmpty
-                                            ? null
-                                            : receivedDateController.text,
+                                        "date": _toApiDate(dateController.text),
+                                        "receivedDate": _toApiDate(
+                                            receivedDateController.text),
                                         "order": invoiceController.text,
                                         "supplierId": selectedSupplier?.id,
                                         "customerId": selectedCustomer?.id,
-                                        "transport": selectedTransport?.name,
+                                        "transportId": selectedTransport?.id,
+                                        "transportName":
+                                            selectedTransport?.name,
+                                        "transportCity":
+                                            selectedTransport?.city,
                                         "lrNumber": lrNumberController.text,
                                         "remarks": remarksController.text,
-                                        "taxableValue": billItems.fold(
+
+                                        "taxableValue": billItems.fold<double>(
                                           0.0,
                                           (sum, item) =>
                                               sum +
-                                              item.taxableValue!.toDouble(),
+                                              (item.taxableValue ?? 0)
+                                                  .toDouble(),
                                         ),
-                                        "billAmount": billItems.fold(
+
+                                        "billAmount": billItems.fold<double>(
                                           0.0,
                                           (sum, item) =>
                                               sum +
-                                              item.totalAmount!.toDouble(),
+                                              (item.totalAmount ?? 0)
+                                                  .toDouble(),
                                         ),
+
                                         "billItems": billItems
                                             .map(
                                               (item) => {
@@ -1621,20 +1850,17 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                           .toList();
 
                                       try {
-                                        final message = await provider.saveBill(
+                                        await provider.saveBill(
                                           payload: payload,
                                           images: images,
                                         );
 
                                         if (!context.mounted) return;
 
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          "Bill Saved Successfully",
-                                        );
-
                                         Navigator.pop(context, true);
                                       } catch (e) {
+                                        if (!context.mounted) return;
+
                                         ScaffoldSnackBar.show(
                                           context,
                                           e.toString(),
@@ -1642,32 +1868,19 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                       }
                                     },
                                     child: Container(
+                                      height: 52,
                                       decoration: BoxDecoration(
                                         color: AppColors.primaryPurple,
                                         borderRadius: BorderRadius.circular(5),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.save_outlined,
-                                            color: Colors.white,
-                                            size: 30,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: const Text(
-                                              "Save",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      alignment: Alignment.center,
+                                      child: const Text(
+                                        "Save",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -1698,10 +1911,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           }
 
                           if (billItems.isEmpty) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Please add at least one bill item",
-                            );
+                            setState(() {
+                              showBillItemError = true;
+                            });
                             return;
                           }
 
@@ -1776,14 +1988,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               images: images,
                             );
 
-                            if (!mounted) return;
+                            if (!context.mounted) return;
 
                             if (success) {
-                              ScaffoldSnackBar.show(
-                                context,
-                                "Bill updated successfully",
-                              );
-
                               Navigator.of(context).pop(true);
                             } else {
                               ScaffoldSnackBar.show(

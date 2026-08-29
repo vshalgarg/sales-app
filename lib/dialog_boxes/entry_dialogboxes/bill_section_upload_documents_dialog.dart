@@ -1,10 +1,12 @@
+import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../constants/colors_used.dart';
-import '../../customs/elevated_button.dart';
+import '../../constants/view_image_method.dart';
 import '../../entry_document_upload/entry_upload_files.dart';
 
 class BillEntryUploadDocuments extends StatefulWidget {
@@ -14,6 +16,7 @@ class BillEntryUploadDocuments extends StatefulWidget {
   final List<String> existingImageKeys;
   final bool isViewMode;
   final bool isEditMode;
+
   const BillEntryUploadDocuments({
     super.key,
     required this.files,
@@ -25,31 +28,31 @@ class BillEntryUploadDocuments extends StatefulWidget {
   });
 
   @override
-  State<BillEntryUploadDocuments> createState() => _BillEntryUploadDocumentsState();
+  State<BillEntryUploadDocuments> createState() =>
+      _BillEntryUploadDocumentsState();
 }
 
 class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
   List<PlatformFile> selectedFiles = [];
+
   @override
   void initState() {
     super.initState();
     selectedFiles = List<PlatformFile>.from(widget.files);
   }
+
   Future<void> selectFiles() async {
     final files = await pickFiles();
-
+    if (!mounted) return;
     if (files.isEmpty) return;
 
-    final totalFiles =
-        widget.existingFileNames.length + selectedFiles.length;
+    final totalFiles = widget.existingFileNames.length + selectedFiles.length;
 
     final remainingSlots = 3 - totalFiles;
 
     if (remainingSlots <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Maximum 3 files can be uploaded"),
-        ),
+        const SnackBar(content: Text("Maximum 3 files can be uploaded")),
       );
       return;
     }
@@ -67,263 +70,473 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
 
     setState(() {});
   }
-  // Future<void> selectFiles() async {
-  //   final files = await pickFiles();
-  //
-  //   if (files.isEmpty) return;
-  //
-  //   for (final file in files) {
-  //     if (!selectedFiles.any((e) => e.path == file.path)) {
-  //       selectedFiles.add(file);
-  //     }
-  //   }
-  //
-  //   if (selectedFiles.length > 3) {
-  //     selectedFiles = selectedFiles.take(3).toList();
-  //   }
-  //
-  //   setState(() {});
-  // }
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-        child: Padding(
-          padding: const EdgeInsets.only(left:15.0,right:15,top:15,bottom:10),
+  Widget _buildFileIcon(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
 
-          child: Column(mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Bill Upload Documents",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                if (widget.existingFileNames.isNotEmpty)
-                  Column(
-                    children: List.generate(
-                      widget.existingFileNames.length,
-                          (index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: InkWell(
-                            onTap: () async {
-                              final uri = Uri.parse(widget.existingUrls[index]);
+    IconData icon;
+    Color iconColor;
+    Color backgroundColor;
 
-                              await launchUrl(
-                                uri,
-                                mode: LaunchMode.externalApplication,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      widget.existingFileNames[index],
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
+    if (extension == 'pdf') {
+      icon = Icons.picture_as_pdf_outlined;
+      iconColor = Colors.redAccent;
+      backgroundColor = const Color(0xFFFFEEEE);
+    } else if (extension == 'jpg' ||
+        extension == 'jpeg' ||
+        extension == 'png') {
+      icon = Icons.image_outlined;
+      iconColor = AppColors.primaryPurple;
+      backgroundColor = AppColors.primaryPurpleLight;
+    } else {
+      icon = Icons.insert_drive_file_outlined;
+      iconColor = AppColors.primaryPurple;
+      backgroundColor = AppColors.primaryPurpleLight;
+    }
 
-                                  if (widget.isViewMode)
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.remove_red_eye,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () async {
-                                        final uri = Uri.parse(widget.existingUrls[index]);
+    return Container(
+      height: 48,
+      width: 48,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(
+        icon,
+        color: iconColor,
+        size: 27,
+      ),
+    );
+  }
+  Widget _buildFileCard({
+    required String fileName,
+    required String fileSize,
+    VoidCallback? onRemove,
+    VoidCallback? onTap,
+    Widget? trailing,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: const Color(0xFFE1DEED),
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            _buildFileIcon(fileName),
 
-                                        await launchUrl(
-                                          uri,
-                                          mode: LaunchMode.externalApplication,
-                                        );
-                                      },
-                                    ),
+            const SizedBox(width: 12),
 
-                                  if (widget.isViewMode)
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.download,
-                                        color: Colors.green,
-                                      ),
-                                      onPressed: () async {
-                                        final uri = Uri.parse(widget.existingUrls[index]);
-
-                                        await launchUrl(
-                                          uri,
-                                          mode: LaunchMode.externalApplication,
-                                        );
-                                      },
-                                    ),
-
-                                  if (widget.isEditMode)
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.close,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          widget.existingFileNames.removeAt(index);
-                                          widget.existingUrls.removeAt(index);
-                                          widget.existingImageKeys.removeAt(index);
-                                        });
-                                      },
-                                    ),
-                                ],
-                              )
-                            ),
-                          ),
-                        );
-                      },
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                if (selectedFiles.isNotEmpty)
-                  Column(
-                    children: selectedFiles.map((file) {
-
-                      return InkWell(
-                          onTap: () async {
-                            if (file.path != null) {
-                              final result = await OpenFilex.open(file.path!);
-                            }
-                          },
-                          child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.insert_drive_file,
-                              size: 35,
-                              color: Colors.blue,
-                            ),
-
-                            const SizedBox(width: 12),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    file.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "${(file.size / 1024).toStringAsFixed(2)} KB",
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                setState(() {
-                                  selectedFiles.remove(file);
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ));
-                    }).toList(),
-                  ),
-                SizedBox(height:10),
-                if (!widget.isViewMode &&
-                    selectedFiles.length +
-                        widget.existingFileNames.length <
-                        3)
-                GestureDetector(onTap:selectFiles,
-                  child: Container(
-                    decoration:BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color:AppColors.primaryPurple,
-                      )
-                    ),
-                    child:Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children:[
-                         Container(
-                        decoration: BoxDecoration(
-                        color: AppColors.primaryPurpleLight,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Center(
-                            child: Icon(
-                              Icons.cloud_download_rounded,
-                              color: AppColors.primaryPurple,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                                      ),
-                          Text("Drag & drop files here\n or browse here",style:TextStyle(fontWeight:FontWeight.bold)),
-                          Text("Supports JPG,PNG.JPEG & PDF ● Max 3 files ",style:TextStyle(color:Colors.grey)),
-
-                        ]
+                  if (fileSize.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      fileSize,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
                       ),
-                    )
-                  ),
-                ),
-                SizedBox(height:15),
-                Row(mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomElevatedButton(
-                      text: "Cancel",
-                      textStyle: TextStyle(color: Colors.black, fontSize: 20),
-                      onPressed: () async {
-                        Navigator.pop(context, {
-                          "files": selectedFiles,
-                          "existingImageKeys": widget.existingImageKeys,
-                          "existingFileNames": widget.existingFileNames,
-                          "existingUrls": widget.existingUrls,
-                        });
-                      },
-                      borderRadius: 10,
-                    ),
-                    SizedBox(width: 20),
-                    CustomElevatedButton(
-                      text: "Save",
-                      textStyle: TextStyle(color: Colors.white, fontSize: 20),
-                      onPressed: () async{
-                        Navigator.pop(context, {
-                          "files": selectedFiles,
-                          "existingImageKeys": widget.existingImageKeys,
-                          "existingFileNames": widget.existingFileNames,
-                          "existingUrls": widget.existingUrls,
-                        });
-                      },
-                      borderRadius: 10,
-                      color: AppColors.primaryPurple,
                     ),
                   ],
+                ],
+              ),
+            ),
+
+            if (trailing != null) trailing,
+
+            if (onRemove != null)
+              IconButton(
+                onPressed: onRemove,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 35,
+                  minHeight: 35,
+                ),
+                icon: const Icon(
+                  Icons.close,
+                  color: Colors.red,
+                  size: 25,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    final int totalFiles =
+        widget.existingFileNames.length + selectedFiles.length;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 20,
+      ),
+      child: Container(
+          width: MediaQuery.of(context).size.width > 700
+              ? 680
+              : MediaQuery.of(context).size.width * 0.92,
+        padding: const EdgeInsets.fromLTRB(
+          24,
+          20,
+          24,
+          20,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+        ),
+
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+        Row(
+        children: [
+        const Expanded(
+        child: Text(
+              "Bill Upload Documents",
+          textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20),
+            ),
+      ),
+        ],
+        ),
+
+            const SizedBox(height: 18),
+            // Existing Files
+            if (widget.existingFileNames.isNotEmpty)
+            ...List.generate(
+            widget.existingFileNames.length,
+            (index) {
+            return _buildFileCard(
+            fileName: widget.existingFileNames[index],
+            fileSize: "",
+
+            // Clicking the card opens the document
+
+            onTap: () async {
+            await viewAttachment(
+            widget.existingUrls[index],
+            widget.existingFileNames[index],
+            );
+            },
+
+            // VIEW MODE:
+            // Eye + Download
+            trailing: widget.isViewMode
+            ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+            IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+            minWidth: 35,
+            minHeight: 35,
+            ),
+            icon: const Icon(
+            Icons.remove_red_eye,
+            color: Colors.blue,
+            ),
+            onPressed: () async {
+            await viewAttachment(
+            widget.existingUrls[index],
+            widget.existingFileNames[index],
+            );
+            },
+            ),
+
+            IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+            minWidth: 35,
+            minHeight: 35,
+            ),
+            icon: const Icon(
+            Icons.download,
+            color: Colors.green,
+            ),
+            onPressed: () async {
+            final uri = Uri.parse(
+            widget.existingUrls[index],
+            );
+
+            await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication,
+            );
+            },
+            ),
+            ],
+            )
+
+            // EDIT MODE:
+            // Eye only
+                : widget.isEditMode
+            ? IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+            minWidth: 35,
+            minHeight: 35,
+            ),
+            icon: const Icon(
+            Icons.remove_red_eye,
+            color: Colors.blue,
+            ),
+            onPressed: () async {
+            await viewAttachment(
+            widget.existingUrls[index],
+            widget.existingFileNames[index],
+            );
+            },
+            )
+                : null,
+
+            // EDIT MODE:
+            // Red X for deleting existing document
+            onRemove: widget.isEditMode
+            ? () {
+            setState(() {
+            widget.existingFileNames.removeAt(index);
+            widget.existingUrls.removeAt(index);
+            widget.existingImageKeys.removeAt(index);
+            });
+            }
+                : null,
+            );
+            },
+            ),
+          if (selectedFiles.isNotEmpty)...selectedFiles.map(
+      (file) {
+      return _buildFileCard(
+      fileName: file.name,
+      fileSize:
+      "${(file.size / 1024).toStringAsFixed(2)} KB",
+      onTap: () async {
+      if (file.path != null) {
+      await OpenFilex.open(file.path!);
+      }
+      },
+      onRemove: widget.isViewMode
+      ? null
+          : () {
+      setState(() {
+      selectedFiles.remove(file);
+      });
+      },
+      );
+      },
+      ),
+      const SizedBox(height: 10),
+            if (!widget.isViewMode && totalFiles < 3)
+              GestureDetector(
+                onTap: selectFiles,
+
+    child: DottedBorder(
+    color: AppColors.primaryPurple.withValues(alpha: 0.35),
+    strokeWidth: 1.5,
+    dashPattern: const [6, 4],
+    borderType: BorderType.RRect,
+    radius: const Radius.circular(12),
+    padding: EdgeInsets.zero,
+    child: Container(
+    width: double.infinity,
+    padding: EdgeInsets.symmetric(
+    horizontal: 16,
+    vertical: totalFiles == 0 ? 18 : 14,
+    ),
+    decoration: BoxDecoration(
+    color: const Color(0xFFFAF9FF),
+    borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+    children: [
+                      // Upload icon
+                      Container(
+                        height: totalFiles == 0 ? 58 : 44,
+                        width: totalFiles == 0 ? 58 : 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryPurpleLight,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.cloud_upload_outlined,
+                          color: AppColors.primaryPurple,
+                          size: totalFiles == 0 ? 42 : 30,
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Main text
+                      Text(
+                        totalFiles == 0
+                            ? "Drag & drop files here"
+                            : "Add more files",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      // Browse text
+                      Text(
+                        totalFiles == 0
+                            ? "or browse files"
+                            : "Drag & drop or browse",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Supported formats
+                      const Text(
+                        "Supports JPG, PNG, JPEG & PDF",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 15,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      // Maximum files
+                      const Text(
+                        "Max 3 files",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ),
+      SizedBox(height: 15),
+            Row(
+              children: [
+                // ---------------- CANCEL ----------------
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        side: BorderSide(
+                          color: AppColors.primaryPurple.withValues(
+                            alpha: 0.35,
+                          ),
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: Color(0xFF111D5E),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
 
-              ]
-          ),
-        )
+                const SizedBox(width: 20),
+
+                // ---------------- SAVE ----------------
+                if (!widget.isViewMode)
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context, {
+                          "files": selectedFiles,
+                          "existingImageKeys":
+                          widget.existingImageKeys,
+                          "existingFileNames":
+                          widget.existingFileNames,
+                          "existingUrls":
+                          widget.existingUrls,
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryPurple,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.cloud_upload_outlined,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            "Save",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    ]
+    )
+      )
     );
   }
 }

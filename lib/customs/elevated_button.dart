@@ -32,6 +32,13 @@ class CustomElevatedButton extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
+        minimumSize: Size(
+          width ?? double.infinity,
+          height ?? 50,
+        ),
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.standard,
 
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),

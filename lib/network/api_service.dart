@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
+import '../utils/loading_service.dart';
 import 'api_provider.dart';
 import 'dio_exception.dart';
 import 'response_result.dart';
@@ -17,6 +18,7 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? headers,
     ResponseType responseType = ResponseType.json,
+    bool showLoader = false,
   }) async {
     return _request<T>(
       method: 'GET',
@@ -24,6 +26,7 @@ class ApiService {
       queryParameters: queryParameters,
       headers: headers,
       responseType: responseType,
+      showLoader: showLoader,
     );
   }
 
@@ -34,6 +37,7 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? headers,
     bool useFormData = false,
+    bool showLoader = true,
   }) async {
     return _request<T>(
       method: 'POST',
@@ -43,6 +47,7 @@ class ApiService {
           : data,
       queryParameters: queryParameters,
       headers: headers,
+      showLoader: showLoader,
     );
   }
 
@@ -52,12 +57,14 @@ class ApiService {
     required String path,
     dynamic data,
     Map<String, dynamic>? headers,
+    bool showLoader = true,
   }) async {
     return _request<T>(
       method: 'PUT',
       path: path,
       data: data,
       headers: headers,
+      showLoader: showLoader,
     );
   }
 
@@ -67,12 +74,14 @@ class ApiService {
     required String path,
     dynamic data,
     Map<String, dynamic>? headers,
+    bool showLoader = true,
   }) async {
     return _request<T>(
       method: 'PATCH',
       path: path,
       data: data,
       headers: headers,
+      showLoader: showLoader,
     );
   }
 
@@ -82,12 +91,14 @@ class ApiService {
     required String path,
     dynamic data,
     Map<String, dynamic>? headers,
+    bool showLoader = true,
   }) async {
     return _request<T>(
       method: 'DELETE',
       path: path,
       data: data,
       headers: headers,
+      showLoader: showLoader,
     );
   }
 
@@ -129,7 +140,12 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? headers,
     ResponseType responseType = ResponseType.json,
+    bool showLoader = false,
   }) async {
+    if (showLoader) {
+      LoadingService.show();
+    }
+
     try {
       final response = await _dio.request(
         path,
@@ -157,6 +173,10 @@ class ApiService {
       return ResponseResult.error(
         errorMessage: e.toString(),
       );
+    } finally {
+      if (showLoader) {
+        LoadingService.hide();
+      }
     }
   }
 }

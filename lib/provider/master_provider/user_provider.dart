@@ -10,17 +10,16 @@ class UserProvider extends ChangeNotifier {
   UserProvider(this._service);
 
   List<User> _users = [];
-  bool _loading = false;
   String? _errorMessage;
 
   List<User> get users => _users;
-  bool get loading => _loading;
   String? get errorMessage => _errorMessage;
+  String? _successMessage;
 
+  String? get successMessage => _successMessage;
   // GET USERS
 
   Future<bool> fetchUsers() async {
-    _loading = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -28,12 +27,10 @@ class UserProvider extends ChangeNotifier {
 
     if (result.isSuccess) {
       _users = result.data ?? [];
-      _loading = false;
       notifyListeners();
       return true;
     }
 
-    _loading = false;
     _errorMessage = result.errorMessage;
     notifyListeners();
     return false;
@@ -42,7 +39,6 @@ class UserProvider extends ChangeNotifier {
   // SEARCH USERS
 
   Future<bool> searchUsers(String keyword) async {
-    _loading = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -50,12 +46,10 @@ class UserProvider extends ChangeNotifier {
 
     if (result.isSuccess) {
       _users = result.data ?? [];
-      _loading = false;
       notifyListeners();
       return true;
     }
 
-    _loading = false;
     _errorMessage = result.errorMessage;
     notifyListeners();
     return false;
@@ -64,15 +58,22 @@ class UserProvider extends ChangeNotifier {
   // ADD USER
 
   Future<bool> addUser(AddUserRequest request) async {
+    _errorMessage = null;
+    _successMessage = null;
+
     final result = await _service.addUser(request);
 
     if (result.isSuccess) {
+      _successMessage = result.data?.message;
+
       await fetchUsers();
+
       return true;
     }
 
     _errorMessage = result.errorMessage;
     notifyListeners();
+
     return false;
   }
 
@@ -117,6 +118,7 @@ class UserProvider extends ChangeNotifier {
 
   void clearError() {
     _errorMessage = null;
+    _successMessage = null;
     notifyListeners();
   }
 }

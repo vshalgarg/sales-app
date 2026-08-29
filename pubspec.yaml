@@ -57,10 +57,14 @@ dependencies:
   jwt_decoder: ^2.0.1
   dio: ^5.11.0
   equatable: ^2.0.7
+  public_file_saver: ^1.1.0
+  android_intent_plus: ^6.0.0
+  dotted_border: ^2.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_native_splash: ^2.4.1
+  flutter_launcher_icons: ^0.14.4
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -76,21 +80,29 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/images/hisabio.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-flutter_native_splash:
-  color: "#FFFFFF"
 
+flutter_launcher_icons:
   android: true
   ios: true
+  image_path: "assets/images/logo.png"
 
-  android_12:
-   color: "#FFFFFF"
-   image: assets/images/hisabio1.png
-   icon_background_color: "#FFFFFF"
+#flutter_native_splash:
+#  color: "#FFFFFF"
+#
+#  android: true
+#  ios: true
+#
+#  android_12:
+#   color: "#FFFFFF"
+#   image: assets/images/hisabio_splash.png
+#   icon_background_color: "#FFFFFF"
+#   branding: assets/images/hisabio_branding.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

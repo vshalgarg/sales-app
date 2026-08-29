@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
@@ -33,11 +35,12 @@ class _AddSupplierState extends State<AddSupplier> {
   void initState() {
     super.initState();
     dateController.text = DateFormat("dd-MM-yyyy").format(DateTime.now());
-
+    final provider = context.read<EntriesProvider>();
+    final retailProvider = context.read<RetailProvider>();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<RetailProvider>().fetchRetailDetails(widget.retailId);
-      final provider = context.read<EntriesProvider>();
+      await retailProvider.fetchRetailDetails(widget.retailId);
 
+      if (!mounted) return;
       if (provider.entries.isEmpty) {
         provider.fetchSuppliers();
       }
@@ -152,6 +155,7 @@ class _AddSupplierState extends State<AddSupplier> {
                                           .map((e) => e.supplierName ?? '')
                                           .toList(),
                                       initialValue: selectedSupplierName,
+                                      autovalidateMode: AutovalidateMode.onUserInteraction,
                                       validator: (value) {
                                         if (value == null) {
                                           return "Select Supplier";
@@ -188,9 +192,14 @@ class _AddSupplierState extends State<AddSupplier> {
                                     TextFormField(
                                       controller: totalController,
                                       keyboardType: TextInputType.number,
+                                      autovalidateMode: AutovalidateMode.onUserInteraction,
                                       decoration: decoration("Total Amount"),
-                                      validator: (v) =>
-                                          v!.isEmpty ? "Enter amount" : null,
+                                      validator: (v) {
+                                        if (v == null || v.trim().isEmpty) {
+                                          return "Enter amount";
+                                        }
+                                        return null;
+                                      },
                                     ),
 
                                     const SizedBox(height: 15),
@@ -225,10 +234,10 @@ class _AddSupplierState extends State<AddSupplier> {
                                         ),
                                         onPressed: () async {
                                           if (!_formKey.currentState!
-                                              .validate())
+                                              .validate()) {
                                             return;
-                                          final retailProvider = context
-                                              .read<RetailProvider>();
+                                          }
+                                          final retailProvider = context.read<RetailProvider>();
                                           await retailProvider
                                               .fetchRetailDetails(
                                                 widget.retailId,
@@ -245,6 +254,7 @@ class _AddSupplierState extends State<AddSupplier> {
                                               false;
 
                                           if (alreadyAdded) {
+                                            if (!context.mounted) return;
                                             ScaffoldSnackBar.show(
                                               context,
                                               "Supplier already added",
@@ -269,22 +279,31 @@ class _AddSupplierState extends State<AddSupplier> {
                                                     .parse(dateController.text)
                                                     .toIso8601String(),
                                           };
-                                          print(body);
+                                          log(body.toString());
                                           try {
-                                            print("Calling API...");
-                                            final message = await context
-                                                .read<EntriesProvider>()
-                                                .addSupplier(body);
-                                            print("Calling API...");
-                                            if (!mounted) return;
+                                            log("Calling API...");
+                                            log(body.toString());
 
-                                            Navigator.pop(context, true);
+                                            final success = await retailProvider.addRetailSupplier(body);
 
-                                            ScaffoldSnackBar.show(
-                                              context,
-                                              "Supplier added successfully",
-                                            );
+                                            if (!context.mounted) return;
+
+                                            if (success) {
+                                              Navigator.pop(context, true);
+
+                                              ScaffoldSnackBar.show(
+                                                context,
+                                                "Supplier added successfully",
+                                              );
+                                            } else {
+                                              ScaffoldSnackBar.show(
+                                                context,
+                                                "Failed to add supplier",
+                                              );
+                                            }
                                           } catch (e) {
+                                            if (!context.mounted) return;
+
                                             ScaffoldSnackBar.show(
                                               context,
                                               e.toString(),

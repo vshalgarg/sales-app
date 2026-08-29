@@ -2,10 +2,11 @@ class RetailDetails {
   final int id;
   final String name;
   final DateTime date;
-  final int referredByCustomerId;
-  final String customerName;
+  final int? referredByCustomerId;
+  final String? customerName;
   final int? staffId;
   final String? staffName;
+  final String? commission;
   final List<RetailSupplier> suppliers;
 
   RetailDetails({
@@ -16,6 +17,7 @@ class RetailDetails {
     required this.customerName,
     this.staffId,
     this.staffName,
+    this.commission,
     required this.suppliers,
   });
 
@@ -24,10 +26,18 @@ class RetailDetails {
       id: json['id'],
       name: json['name'] ?? '',
       date: DateTime.parse(json['date']),
-      referredByCustomerId: json['referredByCustomerId'],
-      customerName: json['customerName'] ?? '',
-      staffId: json['staffId'],
-      staffName: json['staffName'],
+      referredByCustomerId:
+      json['referredByCustomerId'] as int?,
+
+      customerName:
+      json['customerName'] as String?,
+
+      staffId:
+      json['staffId'] as int?,
+
+      staffName:
+      json['staffName'] as String?,
+      commission: json["commission"]?.toString(),
       suppliers: (json['suppliers'] as List<dynamic>? ?? [])
           .map((e) => RetailSupplier.fromJson(e))
           .toList(),

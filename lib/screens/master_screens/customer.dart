@@ -34,10 +34,9 @@ class _CustomerScreenState extends State<CustomerScreen> {
   @override
   void initState() {
     super.initState();
+    final provider = context.read<CustomerProvider>();
 
     Future.microtask(() async{
-      final provider = context.read<CustomerProvider>();
-
       searchController.clear();
       await provider.clearSearch();
     });
@@ -53,11 +52,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final customerProvider = context.watch<CustomerProvider>();
-
-    final isSearching = searchController.text.trim().isNotEmpty;
-
-    final customers = customerProvider.data.items;
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -228,7 +222,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                         onRefresh: provider.refreshCustomers,
                         child: ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, _) =>
                           const SizedBox(height: 8),
                           itemCount: customers.length,
                           itemBuilder: (context, index) {
@@ -289,7 +283,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                   final provider = context.read<CustomerProvider>();
 
                                   await provider.fetchCustomerDetails(customer.id);
-
+                                  if (!context.mounted) return;
                                   final data = provider.customerDetails;
 
                                   if (data == null) return;
@@ -332,7 +326,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                   if (data.preferredTransports.isNotEmpty) {
                                     transportText = data.preferredTransports.map((t) {
                                       if (t is Map) {
-                                        return ['name'].toString() ?? "";
+                                        return ['name'].toString();
                                       }
 
                                       return t.name ?? "";
@@ -357,6 +351,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                   trashIconTap: () {
                                     ExitConfirmationDialog.show(
                                       context,
+                                      isDelete: true,
                                         body: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
@@ -394,8 +389,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                             ),
                                           ],
                                         ),
-                                      saveButtonText: "Yes",
-                                      discardButtonText: "No",
+                                      saveButtonText: "Delete",
+                                      discardButtonText: "Cancel",
                                       onSave: () async {
                                         Navigator.of(context).pop();
                                         final provider = context.read<CustomerProvider>();

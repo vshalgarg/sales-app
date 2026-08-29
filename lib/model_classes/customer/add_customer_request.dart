@@ -45,9 +45,9 @@ class AddCustomerRequest {
       customerName: json['customerName'] ?? '',
       email: json['email'],
       groupId: json['groupId'],
-      gstNo: json['gstNo'],
+      gstNo: json['customerGstNo'],
       referencedBy: json['referencedBy'],
-      msme: json['msme'],
+      msme: json['customerMsme'],
       remark: json['remark'],
       status: json['status'] ?? true,
       addressLine1: json['addressLine1'],
@@ -79,10 +79,10 @@ class AddCustomerRequest {
     return {
       'customerName': customerName,
       'email': email,
-      'groupId': groupId,
-      'gstNo': gstNo,
+      'customerGroup': groupId,
+      'customerGstNo': gstNo,
+      'customerMsme': msme,
       'referencedBy': referencedBy,
-      'msme': msme,
       'remark': remark,
       'status': status,
       'addressLine1': addressLine1,
@@ -93,6 +93,26 @@ class AddCustomerRequest {
       'bankDetails': bankDetails
           .map((bank) => bank.toJson())
           .toList(),
+      'contacts': contacts.map((e) => e.toJson()).toList(),
+      'preferredTransportIds': preferredTransportIds,
+    };
+  }
+  Map<String, dynamic> toUpdateJson() {
+    return {
+      'customerName': customerName,
+      'email': email,
+      'groupName': groupId,
+      'gstNo': gstNo,
+      'msme': msme,
+      'referencedBy': referencedBy,
+      'remark': remark,
+      'status': status,
+      'addressLine1': addressLine1,
+      'addressLine2': addressLine2,
+      'state': state,
+      'city': city,
+      'pinCode': pinCode,
+      'bankDetails': bankDetails.map((bank) => bank.toJson()).toList(),
       'contacts': contacts.map((e) => e.toJson()).toList(),
       'preferredTransportIds': preferredTransportIds,
     };
@@ -127,8 +147,8 @@ class AddCustomerRequest {
       status: status ?? this.status,
       addressLine1: addressLine1 ?? this.addressLine1,
       addressLine2: addressLine2 ?? this.addressLine2,
-      state: state ?? this.state,
-      city: city ?? this.city,
+      state: state ?? state,
+      city: city ?? city,
       pinCode: pinCode ?? this.pinCode,
       bankDetails: bankDetails ?? this.bankDetails,
       contacts: contacts ?? this.contacts,
@@ -136,6 +156,7 @@ class AddCustomerRequest {
       preferredTransportIds ?? this.preferredTransportIds,
     );
   }
+
 }
 
 class CustomerContactRequest {

@@ -190,7 +190,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
         continue;
       }
 
-      buffer.writeln("Bank Details ${i + 1}");
+      buffer.writeln("Bank Account ${i + 1}");
 
       if (_hasValue(bank.accountName)) {
         buffer.writeln(
@@ -251,13 +251,13 @@ class CustomCopyDetailsDialog extends StatelessWidget {
     }
 
     if (_hasValue(address)) {
-      buffer.writeln("Address");
+      buffer.writeln("Address : ");
       buffer.writeln(_clean(address));
       buffer.writeln();
     }
 
     if (_hasValue(contact)) {
-      buffer.writeln("Contacts");
+      buffer.writeln("Contacts : ");
       buffer.writeln(_clean(contact));
       buffer.writeln();
     }
@@ -283,54 +283,54 @@ class CustomCopyDetailsDialog extends StatelessWidget {
       buffer.writeln();
     }
 
-    if (hasBankDetails) {
-      buffer.writeln("Bank Details");
-      buffer.writeln();
+    // if (hasBankDetails) {
+    //   buffer.writeln("Bank Details");
+    //   buffer.writeln();
+    //
+    //   for (int i = 0; i < bankDetails.length; i++) {
+    //     final bank = bankDetails[i];
+    //
+    //     if (!_hasBankValue(bank)) {
+    //       continue;
+    //     }
+    //
+    //     buffer.writeln(
+    //       "Bank Details ${i + 1}",
+    //     );
+    //
+    //     if (_hasValue(bank.accountName)) {
+    //       buffer.writeln(
+    //         "Account Holder : ${_clean(bank.accountName)}",
+    //       );
+    //     }
+    //
+    //     if (_hasValue(bank.bankName)) {
+    //       buffer.writeln(
+    //         "Bank Name : ${_clean(bank.bankName)}",
+    //       );
+    //     }
+    //
+    //     if (_hasValue(bank.accountNumber)) {
+    //       buffer.writeln(
+    //         "Account Number : ${_clean(bank.accountNumber)}",
+    //       );
+    //     }
+    //
+    //     if (_hasValue(bank.ifscCode)) {
+    //       buffer.writeln(
+    //         "IFSC Code : ${_clean(bank.ifscCode)}",
+    //       );
+    //     }
+    //
+    //     if (_hasValue(bank.branchName)) {
+    //       buffer.writeln(
+    //         "Branch : ${_clean(bank.branchName)}",
+    //       );
+    //     }
 
-      for (int i = 0; i < bankDetails.length; i++) {
-        final bank = bankDetails[i];
-
-        if (!_hasBankValue(bank)) {
-          continue;
-        }
-
-        buffer.writeln(
-          "Bank Details ${i + 1}",
-        );
-
-        if (_hasValue(bank.accountName)) {
-          buffer.writeln(
-            "Account Holder : ${_clean(bank.accountName)}",
-          );
-        }
-
-        if (_hasValue(bank.bankName)) {
-          buffer.writeln(
-            "Bank Name : ${_clean(bank.bankName)}",
-          );
-        }
-
-        if (_hasValue(bank.accountNumber)) {
-          buffer.writeln(
-            "Account Number : ${_clean(bank.accountNumber)}",
-          );
-        }
-
-        if (_hasValue(bank.ifscCode)) {
-          buffer.writeln(
-            "IFSC Code : ${_clean(bank.ifscCode)}",
-          );
-        }
-
-        if (_hasValue(bank.branchName)) {
-          buffer.writeln(
-            "Branch : ${_clean(bank.branchName)}",
-          );
-        }
-
-        buffer.writeln();
-      }
-    }
+    //     buffer.writeln();
+    //   }
+    // }
 
     Clipboard.setData(
       ClipboardData(

@@ -1,71 +1,63 @@
-import 'dart:convert';
-
-import 'package:hisabio/model_classes/configuration_model.dart';
-import 'package:hisabio/shared_preferences/login_token.dart';
-import 'package:http/http.dart' as http;
+import '../../model_classes/configuration_model.dart';
+import '../../network/api_service.dart';
+import '../../network/response_result.dart';
 
 class ConfigurationService {
+  final ApiService _api;
 
-  Future<List<ConfigurationModel>> getConfiguration() async {
+  ConfigurationService(this._api);
+
+  static const String _configuration = "/admin/configurations";
+
+  // GET CONFIGURATION
+  Future<ResponseResult<List<ConfigurationModel>>> getConfiguration() async {
+    final response = await _api.get(
+      path: _configuration,
+      showLoader: true,
+    );
+
+    if (response.isFailure) {
+      return ResponseResult.error(
+        errorMessage: response.errorMessage ?? "Failed to fetch configuration",
+        dioErrorType: response.dioErrorType,
+        statusCode: response.statusCode,
+      );
+    }
+
     try {
-      final url = Uri.parse(
-        "http://192.168.1.100:8087/csm/api/v1/admin/configurations",
+      final List list = response.data["data"] ?? [];
+
+      final configurations = list
+          .map(
+            (e) => ConfigurationModel.fromJson(
+          e as Map<String, dynamic>,
+        ),
+      )
+          .toList();
+
+      return ResponseResult.success(
+        configurations,
+        response.statusCode,
       );
-
-      final token = await AppStorage.getToken();
-
-      final response = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        final List list = data["data"];
-
-        return list
-            .map((e) => ConfigurationModel.fromJson(e))
-            .toList();
-      } else {
-        throw Exception(data["message"] ?? "Failed to fetch configuration");
-      }
     } catch (e) {
-      throw Exception("Error: $e");
+      return ResponseResult.error(
+        errorMessage: "Failed to parse configuration: $e",
+        statusCode: response.statusCode,
+      );
     }
   }
 
-  Future<String> updateConfiguration(bool value) async {
-    try {
-      final url = Uri.parse(
-          "http://192.168.1.100:8087/csm/api/v1/admin/configurations/1"
-      );
-
-      final token = await AppStorage.getToken();
-
-      final response = await http.patch(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-        body: jsonEncode({
-          "value": value.toString(),
-        }),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        return data["message"];
-      } else {
-        throw Exception(data["message"] ?? "Failed to update configuration");
-      }
-    } catch (e) {
-      throw Exception("Error: $e");
-    }
+  // UPDATE CONFIGURATION
+  Future<ResponseResult<dynamic>> updateConfiguration({
+    required int id,
+    required bool value,
+  }) async {
+    return await _api.patch(
+      path: "$_configuration/$id",
+      data: {
+        "value": value,
+      },
+      showLoader: true,
+    );
   }
 }

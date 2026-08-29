@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 
 import '../constants/colors_used.dart';
 import '../constants/custom_icons.dart';
@@ -51,7 +52,16 @@ class ReportingCard extends StatelessWidget {
   });
 
   static const primary = Color(0xff4A4CCB);
+  String _formatDisplayDate(String value) {
+    if (value.trim().isEmpty) return value;
 
+    try {
+      final parsedDate = DateTime.parse(value);
+      return DateFormat("dd-MM-yyyy").format(parsedDate);
+    } catch (_) {
+      return value;
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -135,7 +145,9 @@ class ReportingCard extends StatelessWidget {
                                     Icon(chip.icon, size: 17, color: primary),
                                     const SizedBox(width: 2),
                                     Text(
-                                      chip.text,
+                                      chip.icon == Iconsax.calendar
+                                          ? _formatDisplayDate(chip.text)
+                                          : chip.text,
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,

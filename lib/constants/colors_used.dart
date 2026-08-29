@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const Color primaryPurple = Color(0xFF203A8F);
+  static const Color logoBackground = Color(0xFF9EA7F0);
   static const Color primaryPurpleLight=Color(0xFFDDE3F6);
   static const Color binRed=Color(0xFFFF4D4F);
   static const Color binRedLight=Color(0xFFFFE9E9);

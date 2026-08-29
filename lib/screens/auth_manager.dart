@@ -5,6 +5,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 
 import '../../shared_preferences/login_token.dart';
 import 'auth.dart';
+import 'login_screen.dart';
 
 class AuthManager with WidgetsBindingObserver {
   static final AuthManager _instance = AuthManager._internal();
@@ -22,7 +23,6 @@ class AuthManager with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addObserver(this);
 
-    checkToken();
   }
 
   Future<void> checkToken() async {
@@ -68,7 +68,6 @@ class AuthManager with WidgetsBindingObserver {
     _expiryTimer?.cancel();
     _expiryTimer = null;
 
-    // Use your actual AppStorage token delete method here.
     await AppStorage.clear();
 
     final navigator = _navigatorKey?.currentState;
@@ -77,8 +76,10 @@ class AuthManager with WidgetsBindingObserver {
       return;
     }
 
-    navigator.pushNamedAndRemoveUntil(
-      '/login',
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
           (route) => false,
     );
   }

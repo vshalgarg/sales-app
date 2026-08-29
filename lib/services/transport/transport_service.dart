@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
 import '../../../../network/response_result.dart';
@@ -11,7 +13,7 @@ class TransportService {
 
   TransportService(this._api);
 
-  static const String _transport = "/transport";
+ // static const String _transport = "/transport";
   static const String _transports = "/transports";
 
   // GET TRANSPORTS
@@ -94,8 +96,7 @@ class TransportService {
       path: "$_transports/$id",
     );
 
-    print("GET TRANSPORT DETAILS RESPONSE:");
-    print(result.data);
+    log("GET TRANSPORT DETAILS RESPONSE:");
 
     if (result.isFailure) {
       return ResponseResult.error(
@@ -105,8 +106,6 @@ class TransportService {
     }
 
     final json = result.data!;
-
-    // If API response is wrapped inside "data"
     final transportJson =
     json["data"] is Map<String, dynamic>
         ? json["data"] as Map<String, dynamic>
@@ -156,14 +155,14 @@ class TransportService {
     required int id,
     required AddTransportRequest request,
   }) async {
-    print("UPDATE REQUEST");
-    print(request.toJson());
+    log("UPDATE REQUEST");
+    log(request.toJson().toString());
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_transports/update/$id",
       data: request.toJson(),
     );
-    print("UPDATE RESPONSE");
-    print(result.data);
+    log("UPDATE RESPONSE");
+    log(request.toJson().toString());
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Something went wrong",
