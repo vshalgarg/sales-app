@@ -597,6 +597,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                           .toList(),
 
                       isMultiSelect: true,
+                      expandMultiSelect: true,
 
                       initialValues: List<String>.from(selectedTransportNames),
 
@@ -657,6 +658,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 final request = updateSupplier();
 
                 log("Update Request: ${request.toJson()}");
+
                 final message = await provider.updateSupplier(
                   id: widget.id!.toInt(),
                   request: request,
@@ -667,9 +669,21 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 if (message != null && message.isNotEmpty) {
                   ScaffoldSnackBar.show(context, message);
                   Navigator.pop(context, true);
+                } else {
+                  ScaffoldSnackBar.show(
+                    context,
+                    "Failed to update supplier",
+                  );
                 }
               } catch (e) {
                 log("Update supplier error: $e");
+
+                if (!context.mounted) return;
+
+                ScaffoldSnackBar.show(
+                  context,
+                  "Failed to update supplier: $e",
+                );
               }
             },
 

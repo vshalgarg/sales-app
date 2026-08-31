@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/master_widgets/address_details.dart';
@@ -94,7 +96,9 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       referencedBy: referenceController.text.isEmpty
           ? null
           : referenceController.text,
-      msme: msmeController.text.isEmpty ? null : msmeController.text,
+      msme: msmeController.text.isEmpty
+          ? null
+          : msmeController.text.trim().toUpperCase(),
       remark: remarksController.text.isEmpty ? null : remarksController.text,
       addressLine1: addressLine1Controller.text.isEmpty
           ? null
@@ -105,38 +109,52 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       state: stateController.text,
       city: cityController.text,
       pinCode: pinCodeController.text.isEmpty ? null : pinCodeController.text,
-      bankDetails: bankDetails.map((bank) {
-        return BankDetailRequest(
+      bankDetails: bankDetails
+          .map(
+            (bank) => BankDetailRequest(
           bankName: bank.bankName.text.trim().isEmpty
               ? null
               : bank.bankName.text.trim(),
-
           accountNumber: bank.accountNumber.text.trim().isEmpty
               ? null
               : bank.accountNumber.text.trim(),
-
           ifscCode: bank.ifscCode.text.trim().isEmpty
               ? null
               : bank.ifscCode.text.trim(),
-
           branchName: bank.branchName.text.trim().isEmpty
               ? null
               : bank.branchName.text.trim(),
-
           accountName: bank.accountName.text.trim().isEmpty
               ? null
               : bank.accountName.text.trim(),
-        );
-      }).toList(),
+        ),
+      )
+          .where(
+            (bank) =>
+        (bank.bankName?.isNotEmpty ?? false) ||
+            (bank.accountNumber?.isNotEmpty ?? false) ||
+            (bank.ifscCode?.isNotEmpty ?? false) ||
+            (bank.branchName?.isNotEmpty ?? false) ||
+            (bank.accountName?.isNotEmpty ?? false),
+      )
+          .toList(),
       preferredTransportIds: selectedTransportIds,
       contacts: contacts
           .map(
             (c) => CustomerContactRequest(
-              contactPerson: c.name.text,
-              mobileNumber: c.mobile.text,
-              type: c.type.text.isEmpty ? null : c.type.text,
-            ),
-          )
+          contactPerson: c.name.text.trim(),
+          mobileNumber: c.mobile.text.trim(),
+          type: c.type.text.trim().isEmpty
+              ? null
+              : c.type.text.trim(),
+        ),
+      )
+          .where(
+            (contact) =>
+        (contact.contactPerson?.isNotEmpty ?? false) ||
+            (contact.mobileNumber?.isNotEmpty ?? false) ||
+            (contact.type?.isNotEmpty ?? false),
+      )
           .toList(),
     );
   }
@@ -468,6 +486,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
                                 .toList(),
 
                             isMultiSelect: true,
+                            expandMultiSelect: true,
 
                             initialValues: selectedTransportNames,
 
@@ -524,28 +543,36 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
             mode: widget.mode,
 
             update: () async {
-              if (nameController.text.trim().isEmpty) {
-                ScaffoldSnackBar.show(context, "Please enter customer name");
-                return;
-              }
-
-              final success = await provider.updateCustomer(
-                id: widget.id!.toInt(),
-                request: _buildCustomerRequest(),
-              );
-
-              if (!context.mounted) return;
-
-              if (success) {
-                await provider.refreshCustomers();
+              try {
+                final success = await provider.updateCustomer(
+                  id: widget.id!.toInt(),
+                  request: _buildCustomerRequest(),
+                );
 
                 if (!context.mounted) return;
 
-                ScaffoldSnackBar.show(context, "Customer updated successfully");
+                if (success) {
+                  ScaffoldSnackBar.show(
+                    context,
+                    "Customer updated successfully",
+                  );
 
-                Navigator.pop(context, true);
-              } else {
-                ScaffoldSnackBar.show(context, "Unable to update customer");
+                  Navigator.pop(context, true);
+                } else {
+                  ScaffoldSnackBar.show(
+                    context,
+                    "Failed to update customer",
+                  );
+                }
+              } catch (e) {
+                log("Update customer error: $e");
+
+                if (!context.mounted) return;
+
+                ScaffoldSnackBar.show(
+                  context,
+                  "Failed to update customer",
+                );
               }
             },
 

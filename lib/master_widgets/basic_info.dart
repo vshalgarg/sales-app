@@ -111,7 +111,9 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
         if (isExpanded) ...[
           SizedBox(height: 15),
           Text(
-          widget.mode == FormMode.view ? "Name" : "Name ",
+            widget.mode == FormMode.view
+                ? "Name"
+                : "Name *",
           style: TextStyle(color: Colors.white, fontSize: 18),
           ),
           TextFormField(
@@ -128,7 +130,7 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               filled: true,
               fillColor: Colors.white,
 
-              hintText: "Name *",
+              hintText: "Name ",
               hintStyle: const TextStyle(
                 color: Colors.grey,
               ),

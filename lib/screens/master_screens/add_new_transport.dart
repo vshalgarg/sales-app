@@ -308,9 +308,10 @@ class _AddNewTransportState extends State<AddNewTransport> {
                     if (isExpanded) ...[
                       const SizedBox(height: 15),
 
-                      const Text(
-                        "Transport Name",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      Text(
+                        widget.mode == FormMode.view
+                            ? "Transport Name":"Transport Name * ",
+                        style: const TextStyle(color: Colors.white, fontSize: 18),
                       ),
 
                       TextFormField(
@@ -326,7 +327,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
-                          hintText: "Transport Name *",
+                          hintText: "Transport Name ",
                           hintStyle: const TextStyle(color: Colors.grey),
                           errorText: transportNameError,
                           border: OutlineInputBorder(

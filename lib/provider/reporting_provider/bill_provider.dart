@@ -146,6 +146,14 @@ class BillProvider extends PaginationProvider<Bill> {
     List<File> images = const [],
   }) async {
     try {
+      print("========== BILL PROVIDER UPDATE ==========");
+      print("Bill ID: $id");
+      print("Request supplierId: ${request.supplierId}");
+      print("Request customerId: ${request.customerId}");
+      print("Request transport: ${request.transport}");
+      print("Request items: ${request.items?.length}");
+      print("Request JSON: ${request.toJson()}");
+
       final result = await _service.updateBill(
         id: id,
         request: request,
@@ -159,6 +167,7 @@ class BillProvider extends PaginationProvider<Bill> {
 
       return false;
     } catch (e) {
+      print("Update bill error: $e");
       return false;
     }
   }

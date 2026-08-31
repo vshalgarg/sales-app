@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisabio/model_classes/retailers/retail_details.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/colors_used.dart';
@@ -436,7 +437,11 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    deposit.date,
+                                    deposit.date.isEmpty
+                                        ? "-"
+                                        : DateFormat("dd-MM-yyyy").format(
+                                      DateTime.parse(deposit.date),
+                                    ),
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ],

@@ -102,7 +102,9 @@ class SupplierProvider extends PaginationProvider<Supplier> {
       );
 
       if (result.isSuccess) {
-        return null;
+        await refresh();
+
+        return "Supplier updated successfully";
       }
 
       return result.errorMessage;

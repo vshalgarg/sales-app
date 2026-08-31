@@ -38,11 +38,22 @@ class UserProvider extends ChangeNotifier {
 
   // SEARCH USERS
 
+  int _searchRequestId = 0;
+
   Future<bool> searchUsers(String keyword) async {
+    final requestId = ++_searchRequestId;
+
     _errorMessage = null;
     notifyListeners();
 
-    final result = await _service.searchUsers(keyword: keyword);
+    final result = await _service.searchUsers(
+      keyword: keyword,
+    );
+
+    // Ignore an old response.
+    if (requestId != _searchRequestId) {
+      return false;
+    }
 
     if (result.isSuccess) {
       _users = result.data ?? [];

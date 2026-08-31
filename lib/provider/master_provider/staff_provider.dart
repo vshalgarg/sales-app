@@ -78,6 +78,10 @@ class StaffProvider extends PaginationProvider<Staff> {
     try {
       final result = await _service.addStaff(request);
 
+      print("ADD STAFF REQUEST: ${request.toJson()}");
+      print("ADD STAFF SUCCESS: ${result.isSuccess}");
+      print("ADD STAFF ERROR: ${result.errorMessage}");
+
       if (result.isSuccess) {
         await refreshStaffs();
         return true;
@@ -85,7 +89,6 @@ class StaffProvider extends PaginationProvider<Staff> {
 
       return false;
     } finally {
-
       notifyListeners();
     }
   }

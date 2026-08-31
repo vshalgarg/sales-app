@@ -135,6 +135,8 @@ class _StaffScreenState extends State<StaffScreen> {
             const SizedBox(height: 20),
 
             Expanded(
+              // child: Padding(
+              //   padding: const EdgeInsets.only(bottom: 50),
               child: PaginationWidget<Staff>(
                 pagination: provider.data.pagination,
                 items: staffs,
@@ -149,16 +151,21 @@ class _StaffScreenState extends State<StaffScreen> {
                     joiningDate: item.joiningDate ?? "-",
 
                     editIconTap: () async {
-                     // final refresh =
-                      await showDialog<bool>(
+                      final refresh = await showDialog<bool>(
                         context: context,
                         builder: (_) => AddStaffDialog(
                           id: item.id,
                           mode: StaffMode.edit,
+                          staff: item,
                         ),
                       );
-                    },
 
+                      if (!mounted) return;
+
+                      if (refresh == true) {
+                        await provider.refreshStaffs();
+                      }
+                    },
                     trashIconTap: () {
                       ExitConfirmationDialog.show(
                         context,
@@ -227,6 +234,7 @@ class _StaffScreenState extends State<StaffScreen> {
                 },
               ),
             ),
+            //)
           ],
         ),
       ),

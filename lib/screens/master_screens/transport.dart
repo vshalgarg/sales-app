@@ -174,6 +174,8 @@ class _TransportScreenState extends State<TransportScreen> {
             const SizedBox(height: 5),
 
             Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 50),
                 child: PaginationWidget<Transport>(
                     pagination: provider.data.pagination,
 
@@ -358,6 +360,7 @@ class _TransportScreenState extends State<TransportScreen> {
                     },
                 ),
             ),
+            )
               ],
             ),
         ),

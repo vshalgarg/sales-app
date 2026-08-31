@@ -26,7 +26,8 @@ class UpdateUserPassword extends StatefulWidget {
 class _UpdateUserPasswordState extends State<UpdateUserPassword> {
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
-
+  String? newPasswordError;
+  String? confirmPasswordError;
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -92,10 +93,29 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                         TextFormField(
                           controller: widget.newPasswordController,
                           obscureText: !isPasswordVisible,
+                          onChanged: (value) {
+                            setState(() {
+                              if (value.trim().isEmpty) {
+                                newPasswordError = "New Password is required";
+                              } else {
+                                newPasswordError = null;
+                              }
+
+                              final confirm =
+                                  widget.confirmPasswordController?.text.trim() ?? "";
+
+                              if (confirm.isNotEmpty && value.trim() != confirm) {
+                                confirmPasswordError = "Passwords do not match";
+                              } else if (confirm.isNotEmpty) {
+                                confirmPasswordError = null;
+                              }
+                            });
+                          },
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            labelText: "New Password",
+                            labelText: "New Password * ",
+                            errorText: newPasswordError,
                             hintStyle: TextStyle(
                                 color:Colors.grey),
                             border: OutlineInputBorder(
@@ -107,6 +127,21 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                               borderSide: BorderSide(
                                 color: Colors.grey,
                                 width: 0.5,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 1,
+                              ),
+                            ),
+
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 1,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
@@ -134,10 +169,28 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                         TextFormField(
                           controller: widget.confirmPasswordController,
                           obscureText: !isConfirmPasswordVisible,
+                          onChanged: (value) {
+                            final password =
+                                widget.newPasswordController?.text.trim() ?? "";
+                            final confirmPassword = value.trim();
+
+                            setState(() {
+                              if (confirmPassword.isEmpty) {
+                                confirmPasswordError =
+                                "Confirm Password is required";
+                              } else if (password != confirmPassword) {
+                                confirmPasswordError =
+                                "Passwords do not match";
+                              } else {
+                                confirmPasswordError = null;
+                              }
+                            });
+                          },
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            labelText: "Confirm Password",
+                            labelText: "Confirm Password * ",
+                            errorText: confirmPasswordError,
                             hintStyle: TextStyle(
                                 color:Colors.grey),
                             border: OutlineInputBorder(
@@ -149,6 +202,21 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                               borderSide: BorderSide(
                                 color: Colors.grey,
                                 width: 0.5,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 1,
+                              ),
+                            ),
+
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 1,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
@@ -192,7 +260,32 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                                 textStyle: const TextStyle(
                                   color: Colors.white,
                                 ),
-                                onPressed: widget.onUpdate,
+                                onPressed: () async {
+                                  final password =
+                                      widget.newPasswordController?.text.trim() ?? "";
+
+                                  final confirmPassword =
+                                      widget.confirmPasswordController?.text.trim() ?? "";
+
+                                  setState(() {
+                                    newPasswordError = password.isEmpty
+                                        ? "New Password is required"
+                                        : null;
+
+                                    confirmPasswordError = confirmPassword.isEmpty
+                                        ? "Confirm Password is required"
+                                        : password != confirmPassword
+                                        ? "Passwords do not match"
+                                        : null;
+                                  });
+
+                                  if (newPasswordError != null ||
+                                      confirmPasswordError != null) {
+                                    return;
+                                  }
+
+                                  await widget.onUpdate();
+                                },
                                 borderRadius: 5,
                               ),
                             ),

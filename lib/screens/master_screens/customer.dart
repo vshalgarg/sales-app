@@ -222,6 +222,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                         onRefresh: provider.refreshCustomers,
                         child: ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 100),
                           separatorBuilder: (_, _) =>
                           const SizedBox(height: 8),
                           itemCount: customers.length,

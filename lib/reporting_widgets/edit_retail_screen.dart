@@ -223,7 +223,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
         if (showRetailInfo) ...[
           const SizedBox(height: 10),
           buildField(
-            label: "Retailer * ",
+            label: "Retailer ",
             child: TextFormField(
               controller: retailerController,
               decoration: const InputDecoration(
@@ -415,7 +415,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               children: [
                 const SizedBox(height: 10),
                 Text(
-                  index == 0 ? "Supplier${index + 1} * " : "Supplier${index + 1}",
+                  "Supplier${index + 1}",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
                 TextFormField(
@@ -904,7 +904,11 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                                 SizedBox(
                                   width: 130,
                                   child: Text(
-                                    deposit.date.isEmpty ? "-" : deposit.date,
+                                    deposit.date.isEmpty
+                                        ? "-"
+                                        : DateFormat("dd-MM-yyyy").format(
+                                      DateTime.parse(deposit.date),
+                                    ),
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ),
@@ -918,25 +922,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                                 ),
 
                                 const SizedBox(width: 25),
-
-                                // Container(
-                                //   padding: const EdgeInsets.symmetric(
-                                //     horizontal: 12,
-                                //     vertical: 4,
-                                //   ),
-                                //   decoration: BoxDecoration(
-                                //     color: const Color(0xffE8F7EE),
-                                //     borderRadius: BorderRadius.circular(10),
-                                //   ),
-                                //   child: const Text(
-                                //     "Deposited",
-                                //     style: TextStyle(
-                                //       color: Colors.green,
-                                //       fontWeight: FontWeight.w600,
-                                //       fontSize: 10,
-                                //     ),
-                                //   ),
-                                // ),
                               ],
                             ),
                           ),

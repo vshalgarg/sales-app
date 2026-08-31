@@ -112,8 +112,16 @@ class CustomerProvider extends PaginationProvider<Customer> {
         request: request,
       );
 
+      log("Update customer success: ${result.isSuccess}");
+      log("Update customer error: ${result.errorMessage}");
+
       if (result.isSuccess) {
-        await refreshCustomers();
+        try {
+          await refreshCustomers();
+        } catch (e) {
+          log("Refresh customers after update failed: $e");
+        }
+
         return true;
       }
 

@@ -212,7 +212,7 @@ class _LedgerReportingState extends State<LedgerReporting> {
               const SizedBox(height: 5),
 
               CustomDropdown(
-                hintText: "Supplier * ",
+                hintText: "Supplier ",
                 initialValue: selectedSupplierName,
                 items: provider.entries
                     .map((e) {
@@ -255,7 +255,7 @@ class _LedgerReportingState extends State<LedgerReporting> {
                 style: TextStyle(color: Colors.white, fontSize: 18),
               ),
               CustomDropdown(
-                hintText: "Customer * ",
+                hintText: "Customer  ",
                 initialValue: selectedCustomerName,
                 items: provider.customerEntries
                     .map((e) {
@@ -307,7 +307,7 @@ class _LedgerReportingState extends State<LedgerReporting> {
               const SizedBox(height: 5),
 
               CustomDropdown(
-                hintText: "Generating for * ",
+                hintText: "Generating for ",
                 initialValue: generatingFor,
                 items: generatesList,
                 onChanged: (value) {

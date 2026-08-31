@@ -127,6 +127,8 @@ class _SupplierState extends State<SupplierScreen> {
             ),
             const SizedBox(height: 5),
             Expanded(
+              // child: Padding(
+              //   padding: const EdgeInsets.only(bottom: 50),
               child: PaginationWidget<Supplier>(
                 pagination: provider.data.pagination,
                 items: suppliers,
@@ -331,6 +333,7 @@ class _SupplierState extends State<SupplierScreen> {
                 },
               ),
             ),
+            //)
           ],
         ),
       ),

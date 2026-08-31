@@ -120,6 +120,8 @@ class _UsersScreenState extends State<UsersScreen> {
 
                         await context.read<UserProvider>().fetchUsers();
 
+                        if (!mounted) return;
+
                         setState(() {});
                       },
                     ),
@@ -153,6 +155,8 @@ class _UsersScreenState extends State<UsersScreen> {
             const SizedBox(height: 15),
 
             Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 50),
               child: LocalPaginationWidget<User>(
                 items: provider.users,
                 pageSize: 10,
@@ -243,6 +247,7 @@ class _UsersScreenState extends State<UsersScreen> {
                     editIconTap: () {
                       showDialog(
                         context: context,
+
                         builder: (_) => UpdateUserPassword(
                           name: user.username ?? "",
 
@@ -309,6 +314,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 },
               ),
             ),
+            )
           ],
         ),
       ),

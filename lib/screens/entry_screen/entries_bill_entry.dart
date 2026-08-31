@@ -920,19 +920,24 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 return null;
                               },
                               onChanged: (value) {
+                                final supplier = provider.entries.firstWhere(
+                                      (e) => e.supplierName == value,
+                                );
+
+                                debugPrint("========== SUPPLIER CHANGED ==========");
+                                debugPrint("Selected supplier name: $value");
+                                debugPrint("Selected supplier ID: ${supplier.id}");
+
                                 setState(() {
                                   selectedSupplierName = value;
-                                  selectedSupplier = provider.entries
-                                      .firstWhere(
-                                        (e) => e.supplierName == value,
-                                      );
+                                  selectedSupplier = supplier;
+
+                                  supplierGroupController.text =
+                                      supplier.supplierGroup ?? '';
+
+                                  supplierGstController.text =
+                                      supplier.supplierGstNo ?? '';
                                 });
-
-                                supplierGroupController.text =
-                                    selectedSupplier?.supplierGroup ?? '';
-
-                                supplierGstController.text =
-                                    selectedSupplier?.supplierGstNo ?? '';
                               },
                             ),
                             SizedBox(height: 10),
@@ -1918,10 +1923,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           }
 
                           final payload = {
-                            "date": dateController.text,
-                            "receivedDate": receivedDateController.text.isEmpty
-                                ? null
-                                : receivedDateController.text,
+                            "date": _toApiDate(dateController.text),
+                            "receivedDate": _toApiDate(
+                              receivedDateController.text,
+                            ),
+
                             "order": invoiceController.text,
                             "supplierId": selectedSupplier?.id,
                             "customerId": selectedCustomer?.id,
@@ -1982,6 +1988,12 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               .toList();
 
                           try {
+                            debugPrint("========== UPDATE BILL ==========");
+                            debugPrint("Bill ID: ${bill?.id}");
+                            debugPrint("Selected Supplier: ${selectedSupplier?.supplierName}");
+                            debugPrint("Selected Supplier ID: ${selectedSupplier?.id}");
+                            debugPrint("Payload Supplier ID: ${payload["supplierId"]}");
+                            debugPrint("Payload: $payload");
                             final success = await provider.updateBillEntry(
                               id: bill?.id?.toInt() ?? 0,
                               payload: payload,

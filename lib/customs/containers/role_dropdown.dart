@@ -165,7 +165,7 @@ class _RoleDropdownState extends State<RoleDropdown> {
         ),
 
         decoration: InputDecoration(
-          labelText: "Role",
+          labelText: "Role * ",
 
           hintStyle: const TextStyle(
             fontSize: 16,

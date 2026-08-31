@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
@@ -553,11 +554,14 @@ class _TransactionCard
               children: [
 
                 Text(
-                  item.date?.toString() ?? "",
+                  item.date == null || item.date.toString().isEmpty
+                      ? "-"
+                      : DateFormat("dd-MM-yyyy").format(
+                    DateTime.parse(item.date.toString()),
+                  ),
                   style: const TextStyle(
                     fontSize: 9,
-                    fontWeight:
-                    FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 

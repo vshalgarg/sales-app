@@ -36,6 +36,16 @@ class _LocalPaginationWidgetState<T>
 
     controller = PaginationController();
   }
+  @override
+  void didUpdateWidget(covariant LocalPaginationWidget<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.items != widget.items) {
+      setState(() {
+        currentPage = 0;
+      });
+    }
+  }
 
   @override
   void dispose() {

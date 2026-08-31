@@ -7,14 +7,21 @@ import 'package:provider/provider.dart';
 import '../../constants/colors_used.dart';
 import '../../enums/staff_mode.dart';
 import '../../model_classes/staff/add_staff_request.dart';
+import '../../model_classes/staff/staff.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/master_provider/staff_provider.dart';
 
 class AddStaffDialog extends StatefulWidget {
   final int? id;
   final StaffMode? mode;
+  final Staff? staff;
 
-  const AddStaffDialog({super.key, this.id, this.mode});
+  const AddStaffDialog({
+    super.key,
+    this.id,
+    this.mode,
+    this.staff,
+  });
 
   @override
   State<AddStaffDialog> createState() => _AddStaffDialogState();
@@ -41,7 +48,11 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
   AddStaffRequest get request => AddStaffRequest(
     staffName: nameController.text.trim(),
     phone: phoneController.text.trim(),
-    joiningDate: dateController.text.trim(),
+    joiningDate: dateController.text.trim().isEmpty
+        ? ""
+        : DateFormat('yyyy-MM-dd').format(
+      DateFormat('dd-MM-yyyy').parse(dateController.text.trim()),
+    ),
   );
 
   @override
@@ -51,22 +62,18 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
     if (widget.mode == StaffMode.add) {
       dateController.text =
           DateFormat('dd-MM-yyyy').format(DateTime.now());
-    } else if (widget.id != null) {
-      final provider = context.read<StaffProvider>();
+    } else if (widget.staff != null) {
+      final staff = widget.staff!;
 
-      Future.microtask(() async {
-        final success = await provider.fetchStaffDetails(widget.id!);
+      nameController.text = staff.staffName ?? "";
+      phoneController.text = staff.phone ?? "";
 
-        if (!mounted || !success) return;
-
-        final staff = provider.staffDetails;
-
-        if (staff != null) {
-          nameController.text = staff.staffName ?? "";
-          phoneController.text = staff.phone ?? "";
-          dateController.text = staff.joiningDate ?? "";
-        }
-      });
+      if (staff.joiningDate != null &&
+          staff.joiningDate!.trim().isNotEmpty) {
+        dateController.text = DateFormat('dd-MM-yyyy').format(
+          DateTime.parse(staff.joiningDate!),
+        );
+      }
     }
   }
 

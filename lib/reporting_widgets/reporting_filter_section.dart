@@ -18,7 +18,7 @@ class FilterDropdown {
   });
 }
 
-class ReportingFilterSection extends StatelessWidget {
+class ReportingFilterSection extends StatefulWidget {
   final TextEditingController fromDateController;
   final TextEditingController toDateController;
   final List<FilterDropdown> dropdowns;
@@ -33,10 +33,78 @@ class ReportingFilterSection extends StatelessWidget {
     required this.onApply,
     required this.onClear,
   });
+
+  @override
+  State<ReportingFilterSection> createState() =>
+      _ReportingFilterSectionState();
+}
+
+class _ReportingFilterSectionState
+    extends State<ReportingFilterSection>
+    with WidgetsBindingObserver {
+  final ScrollController _scrollController = ScrollController();
+  bool _keyboardWasOpen = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+
+    if (!mounted) return;
+
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final keyboardIsOpen = bottomInset > 0;
+
+    if (keyboardIsOpen && !_keyboardWasOpen) {
+      _keyboardWasOpen = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+
+    if (!keyboardIsOpen && _keyboardWasOpen) {
+      _keyboardWasOpen = false;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    return SingleChildScrollView(
+      controller: _scrollController,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(
+        28,
+        12,
+        24,
+        keyboardHeight + 20,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -80,7 +148,7 @@ class ReportingFilterSection extends StatelessWidget {
 
           _buildDateCard(
             context,
-            controller: fromDateController,
+            controller: widget.fromDateController,
             label: "From Date",
           ),
 
@@ -88,13 +156,13 @@ class ReportingFilterSection extends StatelessWidget {
 
           _buildDateCard(
             context,
-            controller: toDateController,
+            controller: widget.toDateController,
             label: "To Date",
           ),
 
           const SizedBox(height: 10),
 
-          ...dropdowns.map(
+          ...widget.dropdowns.map(
             (dropdown) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: CustomDropdown(
@@ -115,7 +183,7 @@ class ReportingFilterSection extends StatelessWidget {
                 child: SizedBox(
                   height: 52,
                   child: OutlinedButton.icon(
-                    onPressed: onClear,
+                    onPressed: widget.onClear,
                     icon: const Icon(Icons.refresh),
                     label: const Text("Clear Filters"),
                     style: OutlinedButton.styleFrom(
@@ -137,7 +205,7 @@ class ReportingFilterSection extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () {
 
-                      onApply();
+                      widget.onApply();
                     },
                     icon: const Icon(Icons.filter_alt_outlined),
                     label: const Text("Apply Filters"),

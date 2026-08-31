@@ -253,6 +253,8 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
 
     try {
+      debugPrint("========== UPDATE BILL ==========");
+      debugPrint("Payload supplierId: ${payload["supplierId"]}");
       final result = await _service.updateBill(
         id: id,
         payload: payload,

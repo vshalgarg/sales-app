@@ -124,7 +124,8 @@ class _AddressDetailsState extends State<AddressDetails> {
 
           SizedBox(height: 15),
           Text(
-            "Address Line2",
+            widget.mode == FormMode.view
+                ? "Address Line 2 ": "Address Line2 (optional) ",
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
           TextFormField(
@@ -135,7 +136,7 @@ class _AddressDetailsState extends State<AddressDetails> {
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
-              hintText: "Address Line2 (optional)",
+              hintText: "Address Line2",
               hintStyle: const TextStyle(
                   color: Colors.grey),
               border: OutlineInputBorder(

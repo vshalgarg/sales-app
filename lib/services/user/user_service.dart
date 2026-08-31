@@ -46,7 +46,7 @@ class UserService {
   Future<ResponseResult<List<User>>> searchUsers({
     required String keyword,
   }) async {
-    final result = await _api.get<List<dynamic>>(
+    final result = await _api.get<dynamic>(
       path: "$_users/search",
       queryParameters: {
         "keyword": keyword,
@@ -60,8 +60,18 @@ class UserService {
       );
     }
 
-    final List<User> users = result.data!
-        .map((e) => User.fromJson(e as Map<String, dynamic>))
+    final data = result.data;
+
+    if (data is! List) {
+      return ResponseResult.error(
+        errorMessage: "Invalid users search response",
+        statusCode: result.statusCode,
+      );
+    }
+
+    final List<User> users = data
+        .whereType<Map<String, dynamic>>()
+        .map(User.fromJson)
         .toList();
 
     return ResponseResult.success(
@@ -69,7 +79,6 @@ class UserService {
       result.statusCode,
     );
   }
-
   // ADD USER
 
   Future<ResponseResult<ApiResponse>> addUser(

@@ -11,21 +11,25 @@ import '../../provider/master_provider/user_provider.dart';
 
 class AddUserDialog extends StatefulWidget {
   final BuildContext scaffoldContext;
-
-  const AddUserDialog({super.key, required this.scaffoldContext});
+  const AddUserDialog({
+    super.key,
+    required this.scaffoldContext,
+  });
 
   @override
   State<AddUserDialog> createState() => _AddUserDialogState();
 }
 
 class _AddUserDialogState extends State<AddUserDialog> {
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController usernameController =
+  TextEditingController();
 
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordController =
+  TextEditingController();
 
   bool isPasswordVisible = false;
 
-  String? selectedRole;
+  String? selectedRole = "Agent";
   String? usernameError;
   String? passwordError;
   String? roleError;
@@ -85,7 +89,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
                         }
                       },
                       decoration: InputDecoration(
-                        labelText: "Username",
+                        labelText: "Username * ",
                         errorText: usernameError,
                         hintStyle: const TextStyle(
                           fontSize: 16,
@@ -121,6 +125,8 @@ class _AddUserDialogState extends State<AddUserDialog> {
 
                     const SizedBox(height: 12),
 
+                    const SizedBox(height: 12),
+
                     TextFormField(
                       controller: passwordController,
                       obscureText: !isPasswordVisible,
@@ -132,20 +138,13 @@ class _AddUserDialogState extends State<AddUserDialog> {
                         }
                       },
                       decoration: InputDecoration(
-                        labelText: "Password",
+                        labelText: "Password *",
                         errorText: passwordError,
-
-                        hintStyle: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
                         filled: true,
                         fillColor: Colors.white,
-
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
                         ),
-
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
                           borderSide: BorderSide(
@@ -155,7 +154,6 @@ class _AddUserDialogState extends State<AddUserDialog> {
                             width: passwordError != null ? 1 : 0.5,
                           ),
                         ),
-
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
                           borderSide: BorderSide(
@@ -165,7 +163,6 @@ class _AddUserDialogState extends State<AddUserDialog> {
                             width: 1,
                           ),
                         ),
-
                         suffixIcon: IconButton(
                           icon: Icon(
                             isPasswordVisible
@@ -229,30 +226,11 @@ class _AddUserDialogState extends State<AddUserDialog> {
                                     ? "Password is required"
                                     : null;
 
-                                // Role should NOT show inline validation.
                                 roleError = null;
                               });
 
-                              // Username/password errors stay inline.
                               if (usernameError != null ||
                                   passwordError != null) {
-                                return;
-                              }
-
-                              // Role error should be Scaffold only.
-                              if (selectedRole == null) {
-                                ScaffoldMessenger.of(
-                                  widget.scaffoldContext,
-                                ).hideCurrentSnackBar();
-
-                                ScaffoldMessenger.of(
-                                  widget.scaffoldContext,
-                                ).showSnackBar(
-                                  const SnackBar(content: Text("Invalid role",
-                                  ),
-                                    backgroundColor: Colors.red,),
-                                );
-
                                 return;
                               }
                               final request = AddUserRequest(
@@ -272,7 +250,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
 
                                 Navigator.pop(context);
 
-                                if (!widget.scaffoldContext.mounted) return;
+                                if (!context.mounted) return;
 
                                 if (message != null &&
                                     message.trim().isNotEmpty) {

@@ -7,6 +7,7 @@ class CustomDropdown extends StatefulWidget {
   final List<String> items;
   final String? initialValue;
   final ValueChanged<String?> onChanged;
+  final bool expandMultiSelect;
 
   final bool isDisabled;
   final bool isRequired;
@@ -34,6 +35,7 @@ class CustomDropdown extends StatefulWidget {
     this.initialValues,
     this.onMultiChanged,
     this.autovalidateMode,
+    this.expandMultiSelect = false,
   });
 
   @override
@@ -380,8 +382,11 @@ class _CustomDropdownState extends State<CustomDropdown> {
                       }
                     },
 
-                    child: Container(
-                      height: 58,
+                    child:Container(
+                      height: widget.expandMultiSelect ? null : 58,
+                      constraints: widget.expandMultiSelect
+                          ? const BoxConstraints(minHeight: 58)
+                          : null,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
