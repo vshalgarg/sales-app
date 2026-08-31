@@ -32,7 +32,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.code.monks.csm.enums.ResponseErrorCode.*;
@@ -118,7 +117,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .build();
     }
 
-    public PagedResponseDto<SearchPurchaseEntryResponse> searchPurchaseHistory(
+    public PagedResponseDto<PurchaseHistoryResponseDto> searchPurchaseHistory(
             LocalDate fromDate,
             LocalDate toDate,
             Integer supplierId,
@@ -156,7 +155,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         Page<PurchaseEntity> purchaseRecords =
                 purchaseEntryRepo.findAll(spec, pageable);
 
-        List<SearchPurchaseEntryResponse> content =
+        List<PurchaseHistoryResponseDto> content =
                 purchaseRecords.getContent()
                         .stream()
                         .map(entity -> {
@@ -484,5 +483,43 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         log.info("Returning {} unique suppliers", suppliers.size());
         return new CopySupplierDetailsResponseDTO(suppliers);
+    }
+
+    @Override
+    public List<PurchaseHistoryResponseDto> downloadPurchaseHistory(LocalDate fromDate, LocalDate toDate, Integer supplierId, Integer customerId, Integer staffId)
+    {
+
+        log.info("download Purchase called: fromDate={}, toDate={}, supplierId={}, customerId={}", fromDate, toDate, supplierId, customerId);
+
+        GenericSpecificationBuilder<PurchaseEntity> builder = new GenericSpecificationBuilder<>();
+
+        Specification<PurchaseEntity> spec = builder
+                .fromDate("date", fromDate)
+                .toDate("date", toDate)
+                .joinEqual("supplier", "id", supplierId)
+                .joinEqual("customer", "id", customerId)
+                .equal("staffId", staffId)
+                .build();
+
+        Sort sort = Sort.by(
+                Sort.Order.desc("date"),
+                Sort.Order.desc("createdAt"),
+                Sort.Order.desc("id")
+        );
+        List<PurchaseEntity> purchaseRecords = purchaseEntryRepo.findAll(spec, sort);
+
+        Set<Integer> staffIds = purchaseRecords.stream()
+                .map(PurchaseEntity::getStaffId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Integer, String> staffNames = staffRepo.findAllById(staffIds).stream()
+                .collect(Collectors.toMap(StaffEntity::getId, StaffEntity::getStaffName));
+
+        return purchaseRecords.stream()
+                .map(entity -> purchaseMapper.toSearch(
+                        entity,
+                        entity.getStaffId() != null ? staffNames.get(entity.getStaffId()) : null
+                ))
+                .toList();
     }
 }
