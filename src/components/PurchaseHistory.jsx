@@ -18,7 +18,6 @@ const PurchaseHistory = ({
   data,
   loading,
   page,
-  filterObject,
   totalItems,
   rowsPerPage,
   onPageChange,
@@ -46,7 +45,8 @@ const PurchaseHistory = ({
       setCopyLoadingId(row.id);
 
       const result = await getSupplierDataByCustomer({
-        ...filterObject,
+        fromDate: row.date,
+        toDate: row.date,
         customerId: row.customerId,
       });
       setCopyData(getSuppliersFormattedText(result));
