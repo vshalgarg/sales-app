@@ -13,3 +13,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Environment variables
+.env
+.env.*
