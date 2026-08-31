@@ -1,4 +1,4 @@
-package com.example.hisabio
+package com.codemonks.hisabio
 
 import android.content.Intent
 import android.net.Uri

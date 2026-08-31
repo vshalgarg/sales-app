@@ -169,7 +169,7 @@ class _UsersScreenState extends State<UsersScreen> {
 
                 itemBuilder: (context, user) {
                   return UserContainer(
-                    role: user.role ?? "",
+                    role: user.role,
                     name: user.username ?? "",
                     trashIconTap: () {
                       ExitConfirmationDialog.show(

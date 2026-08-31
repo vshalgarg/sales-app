@@ -39,6 +39,7 @@ class UserContainer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (role != null && role!.trim().isNotEmpty)
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(5),
@@ -52,13 +53,14 @@ class UserContainer extends StatelessWidget {
                           top: 3,
                         ),
                         child: Text(
-                          role ?? "",
+                          role!,
                           maxLines: 1,
                           style: TextStyle(fontSize: 12, color: Colors.white),
                         ),
                       ),
                     ),
-                    SizedBox(height: 5),
+                    if (role != null && role!.trim().isNotEmpty)
+                      const SizedBox(height: 5),
                     Text(
                       name ?? "",
                       maxLines: 3,

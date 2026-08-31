@@ -64,9 +64,11 @@ class _ReportingFilterSectionState
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_scrollController.hasClients) return;
 
+        final maxScroll = _scrollController.position.maxScrollExtent;
+
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          maxScroll,
+          duration: const Duration(milliseconds: 400),
           curve: Curves.easeOut,
         );
       });
@@ -80,7 +82,7 @@ class _ReportingFilterSectionState
 
         _scrollController.animateTo(
           0,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 400),
           curve: Curves.easeOut,
         );
       });
@@ -103,7 +105,7 @@ class _ReportingFilterSectionState
         28,
         12,
         24,
-        keyboardHeight + 20,
+        keyboardHeight + 70,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
