@@ -86,7 +86,7 @@ export const getSupplierDataByCustomer = async (payload) => {
 export const downloadPurchaseHistory = async (filterObject) => {
   const { fromDate, toDate, supplierId, customerId, staffId } = filterObject;
   try {
-    const response = await api.post(
+    const response = await api.get(
       "/purchase/entries/download",
       null,
       {
