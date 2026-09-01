@@ -25,8 +25,8 @@ public class PurchaseExcelServiceImpl implements PurchaseExcelService {
 
     private static final String DATE_FORMAT = "dd-MM-yyyy";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT);
-    private static final DateTimeFormatter PERIOD_FORMAT = DateTimeFormatter.ofPattern("MMMyy", Locale.ENGLISH);
-    private static final DateTimeFormatter GENERATED_AT_FORMAT = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm_ss");
+    private static final DateTimeFormatter PERIOD_FORMAT = DateTimeFormatter.ofPattern("dMMMyy", Locale.ENGLISH);
+    private static final DateTimeFormatter GENERATED_AT_FORMAT = DateTimeFormatter.ofPattern("h-mma", Locale.ENGLISH);
 
     private static final int DATA_LAST_COL = 4;
     private static final byte[] HEADER_BLUE = {(byte) 68, (byte) 114, (byte) 196};
