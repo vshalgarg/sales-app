@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import { MapPinned, Phone, Receipt, Plus } from "lucide-react";
+import { MapPinned, Phone, Plus } from "lucide-react";
 import { useSnackbar } from "../context/SnackbarContext";
 import CustomerService from "../service/CustomerService";
 import AddNewCustomer from "../modals/AddNewCustomer";
 import CustomerDetail from "../modals/CustomerDetail";
 import UniversalSearch from "../components/UniversalSearch";
 import EntityCardGrid from "./common/EntityCardGrid";
+import GstIcon from "./common/GstIcon";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import CopyDetailsModal from "./common/CopyDetailsModal";
@@ -15,7 +16,7 @@ import { getCustomerFormattedText } from "../utils/copyFormatter";
 import { IconButton, Tooltip } from "@mui/material";
 
 const CUSTOMER_CARD_FIELDS = [
-  { label: "GST", key: "customerGstNo", icon: Receipt },
+  { label: "GST", key: "customerGstNo", icon: GstIcon },
   {
     label: "Mobile",
     key: "mobile",

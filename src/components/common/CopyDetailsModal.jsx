@@ -25,6 +25,7 @@ import {
   convertHtmlToWhatsApp,
 } from "../../utils/copyFormatter";
 import AppButton from "./AppButton";
+import GstIcon from "./GstIcon";
 import { PAGE_TITLE_CLASS } from "../../theme/appTheme";
 
 const FIELD_ICONS = {
@@ -34,7 +35,7 @@ const FIELD_ICONS = {
   Address: MapPin,
   Contacts: Phone,
   Transports: Truck,
-  "GST No": FileText,
+  "GST No": GstIcon,
   "Bank Details": Landmark,
 };
 

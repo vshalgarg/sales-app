@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   MapPin,
   Phone,
-  Receipt,
   MapPinned,
   Plus,
 } from "lucide-react";
@@ -11,6 +10,7 @@ import AddNewTransport from "../modals/AddNewTransport";
 import { useSnackbar } from "../context/SnackbarContext";
 import UniversalSearch from "../components/UniversalSearch";
 import EntityCardGrid from "./common/EntityCardGrid";
+import GstIcon from "./common/GstIcon";
 import useResponsive from "../customHooks/useResponsive";
 import DeleteConfirmModal from "./common/DeleteConfirmModal";
 import { getTransportFormattedText } from "../utils/copyFormatter";
@@ -206,7 +206,7 @@ export default function TransportDashboard() {
       {
         label: "GST No.",
         key: "gstNo",
-        icon: Receipt,
+        icon: GstIcon,
         value: transport.gstNo,
         showLabel: false,
       },
