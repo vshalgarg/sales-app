@@ -83,3 +83,23 @@ export const getSupplierDataByCustomer = async (payload) => {
   }
 };
 
+export const downloadPurchaseHistory = async (filterObject) => {
+  const { fromDate, toDate, supplierId, customerId, staffId } = filterObject;
+  try {
+    const response = await api.get("/purchase/entries/download", {
+      params: {
+          fromDate,
+          toDate,
+          supplierId: supplierId ?? null,
+          customerId: customerId ?? null,
+          staffId: staffId ?? null,
+      },
+      responseType: "blob",
+      }
+    );
+    return response;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+

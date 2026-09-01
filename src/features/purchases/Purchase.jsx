@@ -4,7 +4,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useBillForm } from "@/hooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
-import { deletePurchaseApi, searchPurchaseHistory } from "@/services/PurchaseService";
+import { deletePurchaseApi, downloadPurchaseHistory, searchPurchaseHistory } from "@/services/PurchaseService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import SupplierService from "@/services/SupplierService";
 import CustomerService from "@/services/CustomerService";
@@ -14,7 +14,7 @@ import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import GenericAutocomplete from "@/components/GenericAutocomplete";
 import { getAllActiveStaffs } from "@/services/StaffService";
 import { IconButton, Tooltip } from "@mui/material";
-import { Check, RotateCcw, ShoppingCart } from "lucide-react";
+import { Check, Download, RotateCcw, ShoppingCart } from "lucide-react";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import {
   SECTION_ICON_CLASS,
@@ -30,6 +30,7 @@ const Purchase = () => {
 
   const [purchaseHistoryData, setPurchaseHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [filtersApplied, setFiltersApplied] = useState(false);
 
   const [allSuppliers, setAllSuppliers] = useState([]);
@@ -125,6 +126,41 @@ const Purchase = () => {
       setFiltersApplied(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      setDownloading(true);
+      const response = await downloadPurchaseHistory({
+        ...filterObject
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+
+      const disposition = response.headers["content-disposition"];
+      let fileName = "purchases.xlsx";
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          fileName = match[1];
+        }
+      }
+
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      showSnackbar(err.message || "Download failed, Please try again!", "error");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -291,7 +327,7 @@ const Purchase = () => {
               <span>
                 <IconButton
                   onClick={() => handlePurchaseHistory(1)}
-                  disabled={!isAnyFilterSelected || loading}
+                  disabled={!isAnyFilterSelected || loading || downloading}
                   size="medium"
                   aria-label="Apply filters"
                   className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
@@ -301,11 +337,25 @@ const Purchase = () => {
               </span>
             </Tooltip>
 
+            <Tooltip title="Download Excel">
+              <span>
+                <IconButton
+                  onClick={handleDownload}
+                  disabled={!isAnyFilterSelected || loading || downloading}
+                  size="medium"
+                  aria-label="Download Excel"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
+                >
+                  <Download className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
+
             <Tooltip title="Clear filters">
               <span>
                 <IconButton
                   onClick={clearFiltersAndResults}
-                  disabled={!isAnyFilterSelected || loading}
+                  disabled={!isAnyFilterSelected || loading || downloading}
                   size="medium"
                   aria-label="Clear filters"
                   className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg"
