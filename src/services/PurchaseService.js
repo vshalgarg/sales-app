@@ -1,0 +1,105 @@
+import api from "../api/api";
+import { checkLogicalError, handleApiError } from "../utils/errorHandler";
+
+export const addPurchaseEntry = async (formData) => {
+  try {
+    const response = await api.post(`/purchase/entry/add`, formData);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (err) {
+    throw new Error(handleApiError(err));
+  }
+};
+
+export const searchPurchaseHistory = async (
+  filterObject,
+  page,
+  rowsPerPage
+) => {
+  const { fromDate, toDate, supplierId, customerId , staffId} = filterObject;
+  try {
+    const response = await api.get("/purchase/entries/search", {
+      params: {
+        fromDate,
+        toDate,
+        supplierId: supplierId ?? null,
+        customerId: customerId ?? null,
+        staffId:  staffId ?? null,
+        page,
+        size: rowsPerPage,
+      },
+    });
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updatePurchaseApi = async (id, payload) => {
+  try {
+    const response = await api.patch(`/purchase/entry/update/${id}`, payload);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+
+export const deletePurchaseApi = async (id) => {
+  try {
+    const response = await api.delete(`/purchase/entry/delete/${id}`);
+    const result = checkLogicalError(response.data);
+    return result;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getPurchaseDetailsById = async (id) => {
+  try {
+    const response = await api.get(`/purchase/get/details/${id}`);
+
+    const result = checkLogicalError(response.data);
+
+    return result.data;
+
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getSupplierDataByCustomer = async (payload) => {
+  try {
+    const response = await api.post(`/purchase/copy-suppliers`,payload);
+
+    const result = checkLogicalError(response.data);
+
+    return result.data;
+
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const downloadPurchaseHistory = async (filterObject) => {
+  const { fromDate, toDate, supplierId, customerId, staffId } = filterObject;
+  try {
+    const response = await api.get("/purchase/entries/download", {
+      params: {
+          fromDate,
+          toDate,
+          supplierId: supplierId ?? null,
+          customerId: customerId ?? null,
+          staffId: staffId ?? null,
+      },
+      responseType: "blob",
+      }
+    );
+    return response;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
