@@ -2,15 +2,15 @@ import { BrowserRouter } from "react-router-dom";
 import "./App.css";
 import AppRoutes from "./routes/AppRoutes";
 
-import { SnackbarProvider } from "./context/SnackbarContext";
-import { AuthProvider } from "./context/AuthContext";
-import { UnsavedProvider } from "./context/UnsavedChangesContext";
-import { LoaderProvider, useLoader } from "./context/LoaderContext";
+import { SnackbarProvider } from "./contexts/SnackbarContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { UnsavedProvider } from "./contexts/UnsavedChangesContext";
+import { LoaderProvider, useLoader } from "./contexts/LoaderContext";
 
 import { setLoader } from "./api/api";
 import { useEffect } from "react";
-import GlobalLoader from "./components/common/GlobalLoader";
-import { ConfigProvider } from "./context/ConfigContext";
+import GlobalLoader from "./components/GlobalLoader";
+import { ConfigProvider } from "./contexts/ConfigContext";
 
 // handles loader + interceptor
 function AppInitializer({ children }) {
