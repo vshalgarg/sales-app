@@ -14,8 +14,5 @@ public class UserInfoDTO {
     private Long id;
     private String username;
     private Set<String> roles = new HashSet<>();
-    public UserInfoDTO(Long id, String username) {
-        this.id = id;
-        this.username = username;
-    }
+
 }
