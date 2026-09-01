@@ -489,7 +489,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     public List<PurchaseHistoryResponseDto> downloadPurchaseHistory(LocalDate fromDate, LocalDate toDate, Integer supplierId, Integer customerId, Integer staffId)
     {
 
-        log.info("download Purchase called: fromDate={}, toDate={}, supplierId={}, customerId={}", fromDate, toDate, supplierId, customerId);
+        log.info("download Purchase called: fromDate={}, toDate={}, supplierId={}, customerId={}, staffId={}", fromDate, toDate, supplierId, customerId, staffId);
 
         GenericSpecificationBuilder<PurchaseEntity> builder = new GenericSpecificationBuilder<>();
 

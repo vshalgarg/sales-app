@@ -112,7 +112,7 @@ public class PurchaseEntryController {
         );
     }
 
-    @PostMapping(DOWNLOAD_PURCHASE_HISTORY)
+    @GetMapping(DOWNLOAD_PURCHASE_HISTORY)
     public ResponseEntity<byte[]> downloadPurchaseHistory(
             @RequestParam(required = false)
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
@@ -124,8 +124,8 @@ public class PurchaseEntryController {
             @RequestParam(required = false) Integer customerId,
             @RequestParam(required = false) Integer staffId
     ) {
-        log.info("Purchase history download called: fromDate={}, toDate={}, supplierId={}, customerId={}",
-                fromDate, toDate, supplierId, customerId);
+        log.info("Purchase history download called: fromDate={}, toDate={}, supplierId={}, customerId={}, staffId={}",
+                fromDate, toDate, supplierId, customerId, staffId);
 
         List<PurchaseHistoryResponseDto> entries = purchaseService.downloadPurchaseHistory(
                 fromDate, toDate, supplierId, customerId, staffId
