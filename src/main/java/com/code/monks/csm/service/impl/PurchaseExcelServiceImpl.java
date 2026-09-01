@@ -24,8 +24,9 @@ import java.util.Locale;
 public class PurchaseExcelServiceImpl implements PurchaseExcelService {
 
     private static final String DATE_FORMAT = "dd-MM-yyyy";
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT);
     private static final DateTimeFormatter PERIOD_FORMAT = DateTimeFormatter.ofPattern("MMMyy", Locale.ENGLISH);
-    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    private static final DateTimeFormatter GENERATED_AT_FORMAT = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm_ss");
 
     private static final int DATA_LAST_COL = 4;
     private static final byte[] HEADER_BLUE = {(byte) 68, (byte) 114, (byte) 196};
@@ -40,7 +41,7 @@ public class PurchaseExcelServiceImpl implements PurchaseExcelService {
 
             Styles styles = createStyles(workbook);
             Sheet dataSheet = workbook.createSheet("Purchase Data");
-            writeDataSheet(dataSheet, rows, styles);
+            writeDataSheet(dataSheet, rows, resolveReportPeriod(rows, fromDate, toDate), styles);
 
             workbook.write(out);
             byte[] result = out.toByteArray();
@@ -55,9 +56,34 @@ public class PurchaseExcelServiceImpl implements PurchaseExcelService {
     @Override
     public String buildPurchaseExcelFilename(List<PurchaseHistoryResponseDto> entries, LocalDate fromDate, LocalDate toDate) {
         List<PurchaseHistoryResponseDto> rows = entries != null ? entries : List.of();
+        ReportPeriod period = resolveReportPeriod(rows, fromDate, toDate);
+        String generatedAt = LocalDateTime.now().format(GENERATED_AT_FORMAT);
+
+        if (period.fromDate() != null && period.toDate() != null) {
+            return String.format(
+                    "Purchases_%s_%s_%s.xlsx",
+                    period.fromDate().format(PERIOD_FORMAT),
+                    period.toDate().format(PERIOD_FORMAT),
+                    generatedAt
+            );
+        }
+        if (period.fromDate() != null) {
+            return String.format("Purchases_%s_%s.xlsx", period.fromDate().format(PERIOD_FORMAT), generatedAt);
+        }
+        if (period.toDate() != null) {
+            return String.format("Purchases_%s_%s.xlsx", period.toDate().format(PERIOD_FORMAT), generatedAt);
+        }
+        return "Purchases_" + generatedAt + ".xlsx";
+    }
+
+    private ReportPeriod resolveReportPeriod(
+            List<PurchaseHistoryResponseDto> entries,
+            LocalDate fromDate,
+            LocalDate toDate
+    ) {
         LocalDate minDate = null;
         LocalDate maxDate = null;
-        for (PurchaseHistoryResponseDto entry : rows) {
+        for (PurchaseHistoryResponseDto entry : entries) {
             LocalDate date = entry.getDate();
             if (date == null) {
                 continue;
@@ -69,31 +95,32 @@ public class PurchaseExcelServiceImpl implements PurchaseExcelService {
                 maxDate = date;
             }
         }
-
-        LocalDate periodFrom = fromDate != null ? fromDate : minDate;
-        LocalDate periodTo = toDate != null ? toDate : maxDate;
-        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
-
-        if (periodFrom != null && periodTo != null) {
-            return String.format(
-                    "Purchases_%s_%s_%s.xlsx",
-                    periodFrom.format(PERIOD_FORMAT),
-                    periodTo.format(PERIOD_FORMAT),
-                    timestamp
-            );
-        }
-        if (periodFrom != null) {
-            return String.format("Purchases_%s_%s.xlsx", periodFrom.format(PERIOD_FORMAT), timestamp);
-        }
-        if (periodTo != null) {
-            return String.format("Purchases_%s_%s.xlsx", periodTo.format(PERIOD_FORMAT), timestamp);
-        }
-        return "Purchases_" + timestamp + ".xlsx";
+        return new ReportPeriod(
+                fromDate != null ? fromDate : minDate,
+                toDate != null ? toDate : maxDate
+        );
     }
 
-    private void writeDataSheet(Sheet sheet, List<PurchaseHistoryResponseDto> rows, Styles styles) {
+    private String buildDataSheetTitle(ReportPeriod period) {
+        if (period.fromDate() != null && period.toDate() != null) {
+            return String.format(
+                    "PURCHASE DATA (%s to %s)",
+                    period.fromDate().format(DATE_FORMATTER),
+                    period.toDate().format(DATE_FORMATTER)
+            );
+        }
+        if (period.fromDate() != null) {
+            return "PURCHASE DATA (" + period.fromDate().format(DATE_FORMATTER) + ")";
+        }
+        if (period.toDate() != null) {
+            return "PURCHASE DATA (" + period.toDate().format(DATE_FORMATTER) + ")";
+        }
+        return "PURCHASE DATA";
+    }
+
+    private void writeDataSheet(Sheet sheet, List<PurchaseHistoryResponseDto> rows, ReportPeriod period, Styles styles) {
         int rowNum = 0;
-        writeSectionTitle(sheet, rowNum++, styles.titleStyle, "PURCHASE DATA (All Years)");
+        writeSectionTitle(sheet, rowNum++, styles.titleStyle, buildDataSheetTitle(period));
         writeDataHeader(sheet, rowNum++, styles.dataHeaderStyle);
         writeDataRows(sheet, rowNum, rows, styles);
         setDataColumnWidths(sheet);
@@ -218,6 +245,8 @@ public class PurchaseExcelServiceImpl implements PurchaseExcelService {
         sheet.setColumnWidth(3, 24 * 256);
         sheet.setColumnWidth(4, 32 * 256);
     }
+
+    private record ReportPeriod(LocalDate fromDate, LocalDate toDate) {}
 
     private record Styles(
             CellStyle titleStyle,
