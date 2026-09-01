@@ -6,9 +6,11 @@ import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
 import com.code.monks.csm.dto.request.CopySupplierDetailsRequest;
 import com.code.monks.csm.dto.request.UpdatePurchaseEntryReq;
 import com.code.monks.csm.dto.response.*;
+import com.code.monks.csm.service.PurchaseExcelService;
 import com.code.monks.csm.service.PurchaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,9 +30,11 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class PurchaseEntryController {
 
     private final PurchaseService purchaseService;
+    private final PurchaseExcelService purchaseExcelService;
 
-    public PurchaseEntryController(PurchaseService purchaseService) {
+    public PurchaseEntryController(PurchaseService purchaseService, PurchaseExcelService purchaseExcelService) {
         this.purchaseService = purchaseService;
+        this.purchaseExcelService = purchaseExcelService;
     }
 
     @PostMapping(
@@ -46,7 +50,7 @@ public class PurchaseEntryController {
     }
 
     @GetMapping(SEARCH_PURCHASE_ENTRIES)
-    public ResponseEntity<PagedResponseDto<SearchPurchaseEntryResponse>> getPurchaseHistory(
+    public ResponseEntity<PagedResponseDto<PurchaseHistoryResponseDto>> getPurchaseHistory(
             @RequestParam(required = false)
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
 
@@ -106,6 +110,33 @@ public class PurchaseEntryController {
         return ResponseEntity.ok(
                 ApiResponse.success("Copy Supplier Details PerCustomer fetched successfully", response)
         );
+    }
+
+    @GetMapping(DOWNLOAD_PURCHASE_HISTORY)
+    public ResponseEntity<byte[]> downloadPurchaseHistory(
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
+
+            @RequestParam(required = false) Integer supplierId,
+            @RequestParam(required = false) Integer customerId,
+            @RequestParam(required = false) Integer staffId
+    ) {
+        log.info("Purchase history download called: fromDate={}, toDate={}, supplierId={}, customerId={}, staffId={}",
+                fromDate, toDate, supplierId, customerId, staffId);
+
+        List<PurchaseHistoryResponseDto> entries = purchaseService.downloadPurchaseHistory(
+                fromDate, toDate, supplierId, customerId, staffId
+        );
+        byte[] excel = purchaseExcelService.generateExcel(entries, fromDate, toDate);
+        String filename = purchaseExcelService.buildPurchaseExcelFilename(entries, fromDate, toDate);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excel);
     }
 
 }

@@ -5,7 +5,7 @@ import com.code.monks.csm.dto.purchase.PurchaseImageDto;
 import com.code.monks.csm.dto.purchase.SupplierPurchaseDetailDto;
 import com.code.monks.csm.dto.response.BankDetailResponseDto;
 import com.code.monks.csm.dto.response.CopySupplierDTO;
-import com.code.monks.csm.dto.response.SearchPurchaseEntryResponse;
+import com.code.monks.csm.dto.response.PurchaseHistoryResponseDto;
 import com.code.monks.csm.entity.PurchaseEntity;
 import com.code.monks.csm.entity.PurchaseImageEntity;
 import com.code.monks.csm.entity.SupplierEntity;
@@ -76,9 +76,9 @@ public class PurchaseMapper {
                 .build();
     }
 
-    public SearchPurchaseEntryResponse toSearch(PurchaseEntity entity, String staffName) {
+    public PurchaseHistoryResponseDto toSearch(PurchaseEntity entity, String staffName) {
 
-        return SearchPurchaseEntryResponse.builder()
+        return PurchaseHistoryResponseDto.builder()
                 .id(entity.getId())
                 .date(entity.getDate())
                 .staffName(staffName)
