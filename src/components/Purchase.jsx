@@ -20,19 +20,16 @@ import {
   SECTION_ICON_CLASS,
   SECTION_ICON_WRAPPER_CLASS,
 } from "../theme/cardTheme";
+import { downloadFile } from "../utils/downloadFile";
+
+const rowsPerPage = 10;
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const rowsPerPage = 10;
-
   const [purchaseHistoryData, setPurchaseHistoryData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
   const [filtersApplied, setFiltersApplied] = useState(false);
-
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
@@ -103,7 +100,6 @@ const Purchase = () => {
   /* ================= SEARCH ================= */
   const handlePurchaseHistory = async (page = 1) => {
     try {
-      setLoading(true);
       setFiltersApplied(true);
 
       const data = await searchPurchaseHistory(
@@ -124,44 +120,24 @@ const Purchase = () => {
       setTotalItems(0);
       setCurrentPage(1);
       setFiltersApplied(true);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   const handleDownload = async () => {
     try {
-      setDownloading(true);
       const response = await downloadPurchaseHistory({
         ...filterObject
       });
-
-      const blob = new Blob([response.data], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-
-      const disposition = response.headers["content-disposition"];
-      let fileName = "purchases.xlsx";
-      if (disposition) {
-        const match = disposition.match(/filename="?([^"]+)"?/);
-        if (match) {
-          fileName = match[1];
-        }
+      const downloadOptions = {
+        data:response.data,
+        type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers:response.headers,
+        defaultFileName:"purchases.xlsx"
       }
-
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      downloadFile(downloadOptions)
     } catch (err) {
       showSnackbar(err.message || "Download failed, Please try again!", "error");
-    } finally {
-      setDownloading(false);
-    }
+    } 
   };
 
   /* ================= CLEAR ================= */
@@ -327,7 +303,7 @@ const Purchase = () => {
               <span>
                 <IconButton
                   onClick={() => handlePurchaseHistory(1)}
-                  disabled={!isAnyFilterSelected || loading || downloading}
+                  disabled={!isAnyFilterSelected}
                   size="medium"
                   aria-label="Apply filters"
                   className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
@@ -341,7 +317,7 @@ const Purchase = () => {
               <span>
                 <IconButton
                   onClick={handleDownload}
-                  disabled={!isAnyFilterSelected || loading || downloading}
+                  disabled={!isAnyFilterSelected}
                   size="medium"
                   aria-label="Download Excel"
                   className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
@@ -355,7 +331,7 @@ const Purchase = () => {
               <span>
                 <IconButton
                   onClick={clearFiltersAndResults}
-                  disabled={!isAnyFilterSelected || loading || downloading}
+                  disabled={!isAnyFilterSelected}
                   size="medium"
                   aria-label="Clear filters"
                   className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg"
