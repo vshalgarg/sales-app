@@ -4,7 +4,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useBillForm } from "@/hooks/useBillForm";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
-import { deletePurchaseApi, searchPurchaseHistory } from "@/services/PurchaseService";
+import { deletePurchaseApi, downloadPurchaseHistory, searchPurchaseHistory } from "@/services/PurchaseService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import SupplierService from "@/services/SupplierService";
 import CustomerService from "@/services/CustomerService";
@@ -14,24 +14,22 @@ import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import GenericAutocomplete from "@/components/GenericAutocomplete";
 import { getAllActiveStaffs } from "@/services/StaffService";
 import { IconButton, Tooltip } from "@mui/material";
-import { Check, RotateCcw, ShoppingCart } from "lucide-react";
+import { Check, Download, RotateCcw, ShoppingCart } from "lucide-react";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import {
   SECTION_ICON_CLASS,
   SECTION_ICON_WRAPPER_CLASS,
 } from "@/theme/cardTheme";
+import { downloadFile } from "@/utils/downloadFile";
+
+const rowsPerPage = 10;
 
 const Purchase = () => {
   const { showSnackbar } = useSnackbar();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const rowsPerPage = 10;
-
   const [purchaseHistoryData, setPurchaseHistoryData] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [filtersApplied, setFiltersApplied] = useState(false);
-
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
@@ -102,7 +100,6 @@ const Purchase = () => {
   /* ================= SEARCH ================= */
   const handlePurchaseHistory = async (page = 1) => {
     try {
-      setLoading(true);
       setFiltersApplied(true);
 
       const data = await searchPurchaseHistory(
@@ -123,9 +120,24 @@ const Purchase = () => {
       setTotalItems(0);
       setCurrentPage(1);
       setFiltersApplied(true);
-    } finally {
-      setLoading(false);
-    }
+    } 
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await downloadPurchaseHistory({
+        ...filterObject
+      });
+      const downloadOptions = {
+        data:response.data,
+        type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers:response.headers,
+        defaultFileName:"purchases.xlsx"
+      }
+      downloadFile(downloadOptions)
+    } catch (err) {
+      showSnackbar(err.message || "Download failed, Please try again!", "error");
+    } 
   };
 
   /* ================= CLEAR ================= */
@@ -291,7 +303,7 @@ const Purchase = () => {
               <span>
                 <IconButton
                   onClick={() => handlePurchaseHistory(1)}
-                  disabled={!isAnyFilterSelected || loading}
+                  disabled={!isAnyFilterSelected}
                   size="medium"
                   aria-label="Apply filters"
                   className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
@@ -301,11 +313,25 @@ const Purchase = () => {
               </span>
             </Tooltip>
 
+            <Tooltip title="Download Excel">
+              <span>
+                <IconButton
+                  onClick={handleDownload}
+                  disabled={!isAnyFilterSelected}
+                  size="medium"
+                  aria-label="Download Excel"
+                  className="!bg-brand-primary hover:!bg-brand-primary-dark !rounded-lg disabled:!opacity-40"
+                >
+                  <Download className="h-5 w-5 text-white" />
+                </IconButton>
+              </span>
+            </Tooltip>
+
             <Tooltip title="Clear filters">
               <span>
                 <IconButton
                   onClick={clearFiltersAndResults}
-                  disabled={!isAnyFilterSelected || loading}
+                  disabled={!isAnyFilterSelected}
                   size="medium"
                   aria-label="Clear filters"
                   className="!bg-gray-200 hover:!bg-gray-300 !border !border-brand-surface-border !rounded-lg"

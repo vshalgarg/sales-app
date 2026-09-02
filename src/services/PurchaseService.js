@@ -1,4 +1,5 @@
 import api from "../api/api";
+import { DOWNLOAD_PURCHASE_HISTORY } from "../constants/apiPaths";
 import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export const addPurchaseEntry = async (formData) => {
@@ -78,6 +79,26 @@ export const getSupplierDataByCustomer = async (payload) => {
 
     return result.data;
 
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const downloadPurchaseHistory = async (filterObject) => {
+  const { fromDate, toDate, supplierId, customerId, staffId } = filterObject;
+  try {
+    const response = await api.get(DOWNLOAD_PURCHASE_HISTORY, {
+      params: {
+          fromDate,
+          toDate,
+          supplierId: supplierId ?? null,
+          customerId: customerId ?? null,
+          staffId: staffId ?? null,
+      },
+      responseType: "blob",
+      }
+    );
+    return response;
   } catch (error) {
     throw new Error(handleApiError(error));
   }
