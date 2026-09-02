@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, MapPinned, Phone, Receipt } from "lucide-react";
+import { Plus, MapPinned, Phone } from "lucide-react";
 import SupplierService from "@/services/SupplierService";
 import AddNewSupplier from "./components/AddNewSupplier";
 import SupplierDetail from "./components/SupplierDetail";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import UniversalSearch from "@/components/UniversalSearch";
 import EntityCardGrid from "@/components/EntityCardGrid";
+import GstIcon from "@/components/GstIcon";
 import useResponsive from "@/hooks/useResponsive";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import UpdateSupplierModal from "./components/UpdateSupplierModal";
@@ -15,7 +16,7 @@ import { getSupplierFormattedText } from "@/utils/copyFormatter";
 import { IconButton, Tooltip } from "@mui/material";
 
 const SUPPLIER_CARD_FIELDS = [
-  { label: "GST", key: "supplierGstNo", icon: Receipt },
+  { label: "GST", key: "supplierGstNo", icon: GstIcon },
   { label: "Mobile", key: "mobile", icon: Phone },
   { label: "Address", key: "address", icon: MapPinned },
 ];
