@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.analytics.projection.StaffAnalyticsView;
 import com.code.monks.csm.entity.PurchaseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,4 +54,7 @@ public interface PurchaseEntryRepo extends
     List<PurchaseEntity> findAll(
             Specification<PurchaseEntity> specification
     );
+
+    @EntityGraph(attributePaths = {"supplier", "customer"})
+    List<PurchaseEntity> findAll(Specification<PurchaseEntity> spec, Sort sort);
 }
