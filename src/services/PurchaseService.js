@@ -1,4 +1,5 @@
 import api from "../api/api";
+import { DOWNLOAD_PURCHASE_HISTORY } from "../constants/apiPaths";
 import { checkLogicalError, handleApiError } from "../utils/errorHandler";
 
 export const addPurchaseEntry = async (formData) => {
@@ -86,7 +87,7 @@ export const getSupplierDataByCustomer = async (payload) => {
 export const downloadPurchaseHistory = async (filterObject) => {
   const { fromDate, toDate, supplierId, customerId, staffId } = filterObject;
   try {
-    const response = await api.get("/purchase/entries/download", {
+    const response = await api.get(DOWNLOAD_PURCHASE_HISTORY, {
       params: {
           fromDate,
           toDate,

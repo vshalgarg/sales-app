@@ -16,6 +16,7 @@ import {
   SECTION_ICON_CLASS,
   SECTION_ICON_WRAPPER_CLASS,
 } from "@/theme/cardTheme";
+import { downloadFile } from "@/utils/downloadFile";
 
 const forOptions = [
   {
@@ -133,38 +134,13 @@ const handleDownload = async () => {
     };
 
     const response = await downloadLedger(payload);
-
-    const blob = new Blob([response.data]);
-
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-
-    link.href = url;
-
-  
-    const disposition = response.headers["content-disposition"];
-
-    let fileName = "ledger.xlsx";
-
-    if (disposition) {
-      const match = disposition.match(/filename="?(.+)"?/);
-
-      if (match) {
-        fileName = match[1];
-      }
+    const downloadOptions = {
+      data:response.data,
+      type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      headers:response.headers,
+      defaultFileName:"ledger.xlsx"
     }
-
-    link.download = fileName;
-
-    document.body.appendChild(link);
-
-    link.click();
-
-    link.remove();
-
-    window.URL.revokeObjectURL(url);
-
+    downloadFile(downloadOptions)
   } catch (err) {
     showSnackbar(err.message || "Download failed", "error");
   }
