@@ -21,7 +21,6 @@ class PaginationState {
     return totalPages - 1;
   }
   void update<T>(PaginatedResponse<T> response) {
-   // currentPage = response.page - 1;
     pageSize = response.size;
     totalPages = response.totalPages;
     totalElements = response.totalElements;

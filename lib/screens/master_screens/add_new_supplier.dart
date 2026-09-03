@@ -213,19 +213,15 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   }
 
   void _populateFormFromSupplier(SupplierDetails s) {
-    //  BASIC INFO
     nameController.text = s.supplierName ?? "";
     emailController.text = s.email ?? "";
     groupController.text = s.groupName ?? "";
     gstController.text = s.gstNo ?? "";
-    log("API GST: ${s.gstNo}");
-    log("GST Controller: ${gstController.text}");
     msmeController.text = s.msme?.toUpperCase() ?? "";
     commissionSchemeController.text = s.commissionScheme ?? "";
     commissionRateController.text = s.commissionRate?.toString() ?? "";
     referenceController.text = s.referenceBy ?? "";
 
-    //  BANK DETAILS
     for (final bank in bankDetails) {
       bank.dispose();
     }
@@ -248,17 +244,14 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       bankDetails.add(BankControllers());
     }
 
-    //  ADDRESS DETAILS
     addressLine1Controller.text = s.addressLine1 ?? "";
     addressLine2Controller.text = s.addressLine2 ?? "";
     stateController.text = (s.state ?? "").trim();
     cityController.text = s.city ?? "";
     pinCodeController.text = s.pinCode ?? "";
 
-    //  REMARKS
     remarksController.text = s.remark ?? "";
 
-    //  PREFERRED TRANSPORTS
     selectedTransportIds.clear();
     selectedTransportNames.clear();
 
@@ -278,7 +271,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       }
     }
 
-    // CONTACT DETAILS
     for (final contact in contacts) {
       contact.dispose();
     }
@@ -302,7 +294,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         type = c.type?.toString().trim() ?? "";
       }
 
-      // Add only contacts that actually contain data
       if (name.isNotEmpty || mobile.isNotEmpty || type.isNotEmpty) {
         hasContactData = true;
 
@@ -316,7 +307,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       }
     }
 
-// Add an empty contact only in Add/Edit mode
     if (!hasContactData && widget.mode != FormMode.view) {
       contacts.add(ContactControllers());
     }
@@ -334,8 +324,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
         if (s == null || !mounted) return;
 
         _populateFormFromSupplier(s);
-        log("API pinCode: ${s.pinCode}");
-        log("Controller pinCode: ${pinCodeController.text}");
         setState(() {});
       });
     }
@@ -656,8 +644,6 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
             update: () async {
               try {
                 final request = updateSupplier();
-
-                log("Update Request: ${request.toJson()}");
 
                 final message = await provider.updateSupplier(
                   id: widget.id!.toInt(),

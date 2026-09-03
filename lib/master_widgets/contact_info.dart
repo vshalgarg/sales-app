@@ -155,7 +155,6 @@ class _ContactInfoState extends State<ContactInfo> {
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        //maxLength: 10,
                         enabled: widget.mode != FormMode.view,
                         controller: contact.mobile,
                         decoration: InputDecoration(
@@ -190,7 +189,6 @@ class _ContactInfoState extends State<ContactInfo> {
                               color: Colors.grey),
                         ),
                       ),
-                      // SizedBox(height: 5),
                     ],
                   ),
                 ),

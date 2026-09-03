@@ -311,7 +311,6 @@ class _PurchasesState extends State<Purchases> {
     final fromDate = formatter.format(tenDaysAgo);
     final toDate = formatter.format(now);
 
-    // Reset screen filter values
     selectedSupplier = null;
     selectedCustomer = null;
     selectedSupplierId = null;
@@ -321,7 +320,6 @@ class _PurchasesState extends State<Purchases> {
     fromDateController.text = fromDate;
     toDateController.text = toDate;
 
-    // Reset provider filter values
     provider.setFromDate(_toApiDate(fromDate));
     provider.setToDate(_toApiDate(toDate));
     provider.setSupplierId(null);
@@ -395,12 +393,10 @@ class _PurchasesState extends State<Purchases> {
                       builder: (_) => const PurchaseEntryScreen(),
                     ),
                   );
-                  log("Navigator returned: $refresh");
                   if (!context.mounted) {
                     return;
                   }
                   if (refresh == true) {
-                    log("Navigator returned: $refresh");
                     await context.read<PurchaseProvider>().refresh();
                   }
 

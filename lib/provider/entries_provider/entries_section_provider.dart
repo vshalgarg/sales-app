@@ -59,11 +59,9 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  // FETCH SUPPLIERS
-
   Future<void> fetchSuppliers({bool forceRefresh = false}) async {
     if (!forceRefresh && _entries.isNotEmpty) {
-      return; // Already loaded
+      return;
     }
 
     final result = await _service.fetchSuppliers();
@@ -78,11 +76,9 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
   }
 
-  // FETCH CUSTOMERS
-
   Future<void> fetchCustomer({bool forceRefresh = false}) async {
     if (!forceRefresh && _customerEntries.isNotEmpty) {
-      return; // Already loaded
+      return;
     }
 
     final result = await _service.fetchCustomers();
@@ -96,8 +92,6 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
-
-  // FETCH TRANSPORT
 
   Future<void> fetchTransport() async {
     final result =
@@ -113,8 +107,6 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
   }
 
-  // FETCH STAFF
-
   Future<void> fetchStaff() async {
     final result =
     await _service.fetchStaff();
@@ -128,7 +120,6 @@ class EntriesProvider extends ChangeNotifier {
 
     safeNotify();
   }
-  // ADD SUPPLIER
 
   Future<bool> addSupplier(
       Map<String, dynamic> body,
@@ -155,8 +146,6 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  // ADD CREDIT ENTRY
-
   Future<AddNewSupplier?> addCreditEntry(
       Map<String, dynamic> body,
       ) async {
@@ -180,8 +169,6 @@ class EntriesProvider extends ChangeNotifier {
       safeNotify();
     }
   }
-
-  // ADD RETAIL ENTRY
 
   Future<bool> addRetailEntry(
       Map<String, dynamic> body,
@@ -207,13 +194,10 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  // CLEAR
-
   void clear() {
     _error = null;
     safeNotify();
   }
-  // SAVE BILL
 
   Future<bool> saveBill({
     required Map<String, dynamic> payload,
@@ -240,8 +224,6 @@ class EntriesProvider extends ChangeNotifier {
       safeNotify();
     }
   }
-
-  // UPDATE BILL
 
   Future<bool> updateBillEntry({
     required int id,
@@ -273,8 +255,6 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  // SAVE PURCHASE
-
   Future<bool> savePurchase({
     required Map<String, dynamic> payload,
     required List<List<PlatformFile>> uploadedFiles,
@@ -302,7 +282,6 @@ class EntriesProvider extends ChangeNotifier {
       safeNotify();
     }
   }
-  // GET CREDIT DETAILS
 
   Future<bool> getCreditDetailsById(int id) async {
     _loading = true;
@@ -325,8 +304,6 @@ class EntriesProvider extends ChangeNotifier {
       safeNotify();
     }
   }
-
-  // UPDATE CREDIT DETAILS
 
   Future<AddNewSupplier?> updateCreditDetails({
     required Map<String, dynamic> body,
@@ -354,8 +331,6 @@ class EntriesProvider extends ChangeNotifier {
       safeNotify();
     }
   }
-
-  // LOAD INITIAL DATA
 
   Future<void> loadInitialData() async {
     _loading = true;

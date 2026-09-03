@@ -38,7 +38,7 @@ class _StaffScreenState extends State<StaffScreen> {
       await staffProvider.clearSearch();
 
       if (!mounted) return;
-
+      await staffProvider.fetchPage(0);
       staffProvider.fetchInitial();
     });
   }
@@ -135,8 +135,6 @@ class _StaffScreenState extends State<StaffScreen> {
             const SizedBox(height: 20),
 
             Expanded(
-              // child: Padding(
-              //   padding: const EdgeInsets.only(bottom: 50),
               child: PaginationWidget<Staff>(
                 pagination: provider.data.pagination,
                 items: staffs,
@@ -234,7 +232,6 @@ class _StaffScreenState extends State<StaffScreen> {
                 },
               ),
             ),
-            //)
           ],
         ),
       ),

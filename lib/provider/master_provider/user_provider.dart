@@ -17,7 +17,6 @@ class UserProvider extends ChangeNotifier {
   String? _successMessage;
 
   String? get successMessage => _successMessage;
-  // GET USERS
 
   Future<bool> fetchUsers() async {
     _errorMessage = null;
@@ -36,8 +35,6 @@ class UserProvider extends ChangeNotifier {
     return false;
   }
 
-  // SEARCH USERS
-
   int _searchRequestId = 0;
 
   Future<bool> searchUsers(String keyword) async {
@@ -49,8 +46,6 @@ class UserProvider extends ChangeNotifier {
     final result = await _service.searchUsers(
       keyword: keyword,
     );
-
-    // Ignore an old response.
     if (requestId != _searchRequestId) {
       return false;
     }
@@ -65,8 +60,6 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
     return false;
   }
-
-  // ADD USER
 
   Future<bool> addUser(AddUserRequest request) async {
     _errorMessage = null;
@@ -88,8 +81,6 @@ class UserProvider extends ChangeNotifier {
     return false;
   }
 
-  // DELETE USER
-
   Future<bool> deleteUser(int id) async {
     final result = await _service.deleteUser(id);
 
@@ -102,8 +93,6 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
     return false;
   }
-
-  // UPDATE PASSWORD
 
   Future<bool> updatePassword({
     required Map<String, dynamic> body,
@@ -119,13 +108,9 @@ class UserProvider extends ChangeNotifier {
     return false;
   }
 
-  // REFRESH
-
   Future<void> refresh() async {
     await fetchUsers();
   }
-
-  // CLEAR ERROR
 
   void clearError() {
     _errorMessage = null;

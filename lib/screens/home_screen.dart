@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadUserData() async {
     final emailValue = await AppStorage.getEmail();
     final roleValue = await AppStorage.getRole();
-    log("Stored Role = $roleValue");
+
 
     setState(() {
       if (emailValue != null && emailValue.contains("@")) {

@@ -50,10 +50,6 @@ class TransportProvider extends PaginationProvider {
     return result.data!;
   }
 
-
-  // LOAD ALL TRANSPORTS
-
-
   Future<void> fetchAllTransports() async {
     data.isLoading = true;
     data.error = null;

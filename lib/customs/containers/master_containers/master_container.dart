@@ -126,8 +126,6 @@ class MasterContainer extends StatelessWidget {
                   ],
                 ),
               ),
-
-             // VerticalDivider(color: Colors.grey.shade300, thickness: 0.5),
               Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   GestureDetector(

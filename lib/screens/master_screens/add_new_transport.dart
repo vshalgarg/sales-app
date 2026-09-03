@@ -120,7 +120,6 @@ class _AddNewTransportState extends State<AddNewTransport> {
           }
         }
 
-// Add one empty contact for Add/Edit only
         if (!hasContactData && widget.mode != FormMode.view) {
           contacts.add(ContactControllers());
         }
@@ -445,7 +444,7 @@ class _AddNewTransportState extends State<AddNewTransport> {
           final message = provider.message;
 
           if (!success) {
-            // Backend error — stay on this screen and show message
+
             ScaffoldSnackBar.show(
               context,
               message ?? "Something went wrong",
@@ -453,7 +452,6 @@ class _AddNewTransportState extends State<AddNewTransport> {
             return;
           }
 
-          // Success — show message before leaving
           ScaffoldSnackBar.show(
             context,
             message ?? "Transport Added Successfully",
@@ -482,7 +480,6 @@ class _AddNewTransportState extends State<AddNewTransport> {
           final message = provider.message;
 
           if (!success) {
-            // Backend error — stay on this screen and show message
             ScaffoldSnackBar.show(
               context,
               message ?? "Something went wrong",
@@ -490,7 +487,6 @@ class _AddNewTransportState extends State<AddNewTransport> {
             return;
           }
 
-          // Success — show message before leaving
           ScaffoldSnackBar.show(
             context,
             message ?? "Transport Updated Successfully",

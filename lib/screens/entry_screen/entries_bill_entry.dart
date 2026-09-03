@@ -47,7 +47,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   List<bool> billItemExpanded = [];
   List<GlobalKey> billItemKeys = [];
   bool showBillItemError = false;
-  // bool isSaving = false;
 
   bool get isViewMode => widget.mode == FormMode.view;
   bool isExpanded = true;
@@ -189,8 +188,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       debugPrint('Downloaded URI: ${result.uri}');
       debugPrint('Downloaded path: ${result.path}');
       if (!mounted) return;
-
-      // First show success message
       ScaffoldSnackBar.show(context, 'File downloaded successfully');
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
@@ -273,7 +270,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     Future.microtask(() async {
       if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-        // Fetch bill details immediately
         final success = await billsProvider.fetchBillDetails(widget.id!);
 
         if (!mounted || !success) return;
@@ -283,7 +279,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
           fillBillData(bill);
         }
 
-        // Load dropdown data in the background
         entriesProvider.loadInitialData().then((_) {
           if (!mounted) return;
 
@@ -293,7 +288,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
           }
         });
       } else {
-        // Add mode only
+
         await entriesProvider.loadInitialData();
         if (!mounted) return;
         setState(() {});
@@ -311,7 +306,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Header
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(10),
@@ -531,7 +526,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
               const SizedBox(width: 18),
 
-              // TITLE + SUBTITLE
+              // TITLE
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -668,26 +663,23 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     lrNumberController.clear();
     supplierController.clear();
     showBillItemError = false;
-    // Reset date back to today's date
+
     dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
     setState(() {
-      // Reset bill items
+
       billItems = [];
       billItemExpanded = [];
       billItemKeys = [];
 
-      // Reset supplier/customer
       selectedSupplier = null;
       selectedSupplierName = null;
       selectedCustomer = null;
       selectedCustomerName = null;
 
-      // Reset transport
       selectedTransport = null;
       selectedTransportName = null;
 
-      // Reset ALL uploaded files/images
       uploadedFiles = [];
       newUploadedFiles = [];
       existingUrls = [];
@@ -1297,9 +1289,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         ),
                       ),
                     ],
-
-                    // BILL ITEMS
-
                     // EXISTING BILL ITEMS
                     if (billItems.isNotEmpty) ...[
                       const SizedBox(height: 15),
@@ -1313,7 +1302,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         }),
                       ),
 
-                      // ADD BILL ITEM BUTTON BELOW LAST ITEM
                       if (!isViewMode) ...[
                         const SizedBox(height: 2),
 
@@ -1447,7 +1435,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                       ),
                     ]
                     // NO ITEMS YET
-                    // Add/Edit: show only Add Bill Item
                     else if (!isViewMode) ...[
                       const SizedBox(height: 15),
 
@@ -1766,7 +1753,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             ),
 
                             const SizedBox(width: 16),
-                            // SAVE
                             // SAVE
                             Expanded(
                               child: SizedBox(

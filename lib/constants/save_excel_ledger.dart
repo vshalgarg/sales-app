@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:open_filex/open_filex.dart';
+import 'package:open_app_file/open_app_file.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<void> saveExcel(Uint8List bytes) async {
@@ -13,5 +12,5 @@ Future<void> saveExcel(Uint8List bytes) async {
 
   await file.writeAsBytes(bytes);
 
-  await OpenFilex.open(file.path);
+  await OpenAppFile.open(file.path);
 }

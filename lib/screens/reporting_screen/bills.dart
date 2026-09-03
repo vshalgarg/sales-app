@@ -102,7 +102,6 @@ class _BillsState extends State<Bills> {
     final defaultFromDate = formatter.format(tenDaysAgo);
     final defaultToDate = formatter.format(now);
 
-    // Keep filter UI blank.
     fromDateController.clear();
     toDateController.clear();
 
@@ -116,16 +115,14 @@ class _BillsState extends State<Bills> {
 
       billProvider.setSupplierId(null);
       billProvider.setCustomerId(null);
-
-      // Load Bills immediately.
       billProvider.fetchInitialBills();
 
-      // Load filter data in background.
       final entriesProvider = context.read<EntriesProvider>();
 
       Future.wait([
         entriesProvider.fetchSuppliers(),
         entriesProvider.fetchCustomer(),
+      billProvider.fetchPage(0),
       ]);
     });
   }
@@ -315,7 +312,6 @@ class _BillsState extends State<Bills> {
     final fromDate = formatter.format(tenDaysAgo);
     final toDate = formatter.format(now);
 
-    // Reset screen filter values
     selectedSupplier = null;
     selectedCustomer = null;
     selectedSupplierId = null;
@@ -324,13 +320,12 @@ class _BillsState extends State<Bills> {
 
     fromDateController.clear();
     toDateController.clear();
-    // Reset provider filter values
+
     provider.setFromDate(_toApiDate(fromDate));
     provider.setToDate(_toApiDate(toDate));
     provider.setSupplierId(null);
     provider.setCustomerId(null);
 
-    // Remove the currently filtered cards
     provider.clear();
   }
 

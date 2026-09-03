@@ -53,15 +53,11 @@ class ExitConfirmationDialog {
                   ),
                 ),
 
-                // BUTTONS
                 Positioned(
                   bottom: -22,
                   child: Row(
                     children: [
-                      // =========================
                       // DELETE POPUP
-                      // CANCEL LEFT / DELETE RIGHT
-                      // =========================
                       if (isDelete) ...[
                         SizedBox(
                           width: 125,
@@ -112,7 +108,6 @@ class ExitConfirmationDialog {
                         ),
 
                         // LOGOUT POPUP
-                        // CANCEL LEFT / LOGOUT RIGHT
                       ] else if (isLogout) ...[
                         SizedBox(
                           width: 125,
@@ -162,8 +157,6 @@ class ExitConfirmationDialog {
                           ),
                         ),
 
-                        // NORMAL EXIT POPUP
-                        // SAVE & EXIT LEFT / DISCARD RIGHT
                       ] else ...[
                         SizedBox(
                           width: 125,
@@ -217,7 +210,6 @@ class ExitConfirmationDialog {
                   ),
                 ),
 
-                // ICON
                 Positioned(
                   top: -35,
                   child: Container(

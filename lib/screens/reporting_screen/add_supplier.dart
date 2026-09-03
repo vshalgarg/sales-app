@@ -279,10 +279,7 @@ class _AddSupplierState extends State<AddSupplier> {
                                                     .parse(dateController.text)
                                                     .toIso8601String(),
                                           };
-                                          log(body.toString());
                                           try {
-                                            log("Calling API...");
-                                            log(body.toString());
 
                                             final success = await retailProvider.addRetailSupplier(body);
 

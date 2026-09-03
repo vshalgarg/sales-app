@@ -122,7 +122,6 @@ class _CreditEntryState extends State<CreditEntry> {
         'dd-MM-yyyy',
       ).format(DateTime.now());
     }
-    log("1. Credit screen opened: ${DateTime.now()}");
   }
 
   @override
@@ -135,19 +134,14 @@ class _CreditEntryState extends State<CreditEntry> {
     final provider = context.read<EntriesProvider>();
 
     Future.microtask(() async {
-      log("2. Before fetch: ${DateTime.now()}");
 
       await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
-
-      log("3. After fetch: ${DateTime.now()}");
 
       if (!mounted) return;
 
       if (widget.credit != null) {
         _fillData(provider);
       }
-
-      log("4. After fillData: ${DateTime.now()}");
 
       setState(() {});
     });
@@ -701,7 +695,6 @@ class _CreditEntryState extends State<CreditEntry> {
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(5),
                                   onTap: () async {
-                                    log("SAVE BUTTON CLICKED");
 
                                     setState(() {
                                       isExpanded = true;
@@ -719,7 +712,6 @@ class _CreditEntryState extends State<CreditEntry> {
                                             false;
 
                                     if (!isValid) {
-                                      log("FORM VALIDATION FAILED");
 
                                       ScaffoldSnackBar.show(
                                         context,
@@ -728,8 +720,6 @@ class _CreditEntryState extends State<CreditEntry> {
 
                                       return;
                                     }
-
-                                    log("FORM VALIDATION PASSED");
 
                                     final body = _creditBody();
                                     try {
@@ -747,8 +737,7 @@ class _CreditEntryState extends State<CreditEntry> {
                                         Navigator.pop(context, true);
                                       }
                                     } catch (e, stackTrace) {
-                                      log(
-                                        "ADD CREDIT ERROR: $e",
+                                      log("ADD CREDIT ERROR: $e",
                                         stackTrace: stackTrace,
                                       );
 
@@ -803,9 +792,7 @@ class _CreditEntryState extends State<CreditEntry> {
                         color: AppColors.primaryPurple,
                         textStyle: TextStyle(color: Colors.white, fontSize: 20),
                         onPressed: () async {
-                          log("SAVE BUTTON CLICKED");
                           if (!_formKey.currentState!.validate()) {
-                            log("FORM INVALID");
                             ScaffoldSnackBar.show(
                               context,
                               "Credit entry successfully added."
@@ -815,7 +802,6 @@ class _CreditEntryState extends State<CreditEntry> {
                           }
 
                           try {
-                            log("FORM VALID");
                             final body = _creditBody();
 
                             final response = await context

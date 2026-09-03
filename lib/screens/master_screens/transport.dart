@@ -41,7 +41,7 @@ class _TransportScreenState extends State<TransportScreen> {
       await transportProvider.clearSearch();
 
       if (!mounted) return;
-
+      await transportProvider.fetchPage(0);
       transportProvider.fetchInitial();
     });
   }

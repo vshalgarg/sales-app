@@ -22,7 +22,6 @@ class ScaffoldSnackBar {
             lower.contains("already") ||
             lower.contains("required");
 
-    // Remove previous message
     _currentEntry?.remove();
     _currentEntry = null;
 

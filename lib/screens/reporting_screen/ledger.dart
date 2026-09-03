@@ -200,7 +200,6 @@ class _LedgerReportingState extends State<LedgerReporting> {
 
               const SizedBox(height: 10),
 
-              // SUPPLIER
               const Text(
                 "Supplier * ",
                 style: TextStyle(
@@ -295,7 +294,6 @@ class _LedgerReportingState extends State<LedgerReporting> {
 
               const SizedBox(height: 15),
 
-              // GENERATING FOR
               const Text(
                 "Generating for * ",
                 style: TextStyle(
@@ -319,7 +317,6 @@ class _LedgerReportingState extends State<LedgerReporting> {
 
               const SizedBox(height: 20),
 
-              // SUBMIT + DOWNLOAD
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

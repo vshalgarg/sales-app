@@ -27,7 +27,6 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     required int page,
     required int size,
   }) async {
-    log("Search keyword = '$_searchKeyword'");
     final result = _searchKeyword.isEmpty
         ? await _service.getSuppliers(
       page: page,
@@ -76,7 +75,6 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     notifyListeners();
 
     try {
-      log("Supplier Request: ${request.toJson()}");
 
       final result = await _service.addSupplier(request);
 

@@ -94,9 +94,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // --------------------------------
               // ICON
-              // --------------------------------
               Container(
                 width: iconBoxSize,
                 height: iconBoxSize,
@@ -117,9 +115,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                 width: smallScreen ? 12 : 16,
               ),
 
-              // --------------------------------
               // TITLE
-              // --------------------------------
               Expanded(
                 child: Text(
                   title,
@@ -136,10 +132,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
               SizedBox(
                 width: smallScreen ? 8 : 12,
               ),
-
-              // --------------------------------
               // VALUE
-              // --------------------------------
               Flexible(
                 child: Text(
                   value,

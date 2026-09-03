@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:hisabio/model_classes/common/api_response.dart';
 import 'package:hisabio/model_classes/user/add_user_request.dart';
 import 'package:hisabio/model_classes/user/user.dart';
@@ -13,8 +11,6 @@ class UserService {
 
   static const String _user = "/user";
   static const String _users = "/users";
-
-  // GET USERS
 
   Future<ResponseResult<List<User>>> getUsers() async {
     final result = await _api.get<Map<String, dynamic>>(
@@ -33,15 +29,12 @@ class UserService {
         .map((e) => User.fromJson(e))
         .toList();
     for (final user in users) {
-      log("${user.username} -> ${user.role}");
     }
     return ResponseResult.success(
       users,
       result.statusCode,
     );
   }
-
-  // SEARCH USERS
 
   Future<ResponseResult<List<User>>> searchUsers({
     required String keyword,
@@ -79,7 +72,6 @@ class UserService {
       result.statusCode,
     );
   }
-  // ADD USER
 
   Future<ResponseResult<ApiResponse>> addUser(
       AddUserRequest request,
@@ -111,8 +103,6 @@ class UserService {
     );
   }
 
-  // UPDATE PASSWORD
-
   Future<ResponseResult<ApiResponse>> updatePassword({
     required Map<String, dynamic> body,
   }) async {
@@ -142,8 +132,6 @@ class UserService {
       result.statusCode,
     );
   }
-
-  // DELETE USER
 
   Future<ResponseResult<ApiResponse>> deleteUser(int id) async {
     final result = await _api.post<Map<String, dynamic>>(

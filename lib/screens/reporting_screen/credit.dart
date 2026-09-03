@@ -80,6 +80,7 @@ class _CreditScreenState extends State<CreditScreen> {
       await Future.wait([
         entriesProvider.fetchSuppliers(),
         entriesProvider.fetchCustomer(),
+        creditProvider.fetchPage(0),
       ]);
 
       supplierItems = entriesProvider.entries
@@ -334,7 +335,6 @@ class _CreditScreenState extends State<CreditScreen> {
     final fromDate = formatter.format(tenDaysAgo);
     final toDate = formatter.format(now);
 
-    // Reset screen filter values
     selectedSupplier = null;
     selectedCustomer = null;
     selectedSupplier = null;
@@ -344,13 +344,11 @@ class _CreditScreenState extends State<CreditScreen> {
     fromDateController.text = fromDate;
     toDateController.text = toDate;
 
-    // Reset provider filter values
     provider.setFromDate(_toApiDate(fromDate));
     provider.setToDate(_toApiDate(toDate));
     provider.setSupplierId(null);
     provider.setCustomerId(null);
 
-    // Remove the currently filtered cards
     provider.clear();
   }
 
@@ -446,18 +444,9 @@ class _CreditScreenState extends State<CreditScreen> {
                   if (refresh == true && mounted) {
                     final creditProvider = context.read<CreditProvider>();
 
-                    log("========== CREDIT AUTO REFRESH ==========");
-                    log("Before refresh: ${creditProvider.data.items.length}");
-
                     await creditProvider.refreshCredits();
 
                     if (!mounted) return;
-
-                    log("After refresh: ${creditProvider.data.items.length}");
-                    log(
-                      "Cards: ${creditProvider.data.items.map((e) => e.billNumber).toList()}",
-                    );
-                    log("==========================================");
                   }
                 } finally {
                   if (mounted) {

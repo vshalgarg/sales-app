@@ -27,7 +27,6 @@ class CustomerProvider extends PaginationProvider<Customer> {
     required int page,
     required int size,
   }) async {
-    log("Search keyword = '$_searchKeyword'");
 
     final result = _searchKeyword.isEmpty
         ? await _service.getCustomers(
@@ -79,16 +78,9 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
   Future<bool> addCustomer(AddCustomerRequest request) async {
     try {
-      log("========== ADD CUSTOMER ==========");
-      log("Customer Request: ${request.toJson()}");
 
       final result = await _service.addCustomer(request);
-
-      log("Status: ${result.statusCode}");
-      log("Success: ${result.isSuccess}");
-      log("Failure: ${result.isFailure}");
       log("Error: ${result.errorMessage}");
-      log("Data: ${result.data}");
 
       if (result.isSuccess) {
         await refreshCustomers();
@@ -112,14 +104,12 @@ class CustomerProvider extends PaginationProvider<Customer> {
         request: request,
       );
 
-      log("Update customer success: ${result.isSuccess}");
       log("Update customer error: ${result.errorMessage}");
 
       if (result.isSuccess) {
         try {
           await refreshCustomers();
         } catch (e) {
-          log("Refresh customers after update failed: $e");
         }
 
         return true;
@@ -134,11 +124,8 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
   Future<bool> deleteCustomer(String code) async {
     try {
-      log("Deleting customer: $code");
 
       final result = await _service.deleteCustomer(code);
-
-      log("Delete success: ${result.isSuccess}");
       log("Delete error: ${result.errorMessage}");
 
       if (result.isSuccess) {

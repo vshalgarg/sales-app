@@ -28,12 +28,9 @@ class EntriesService {
   static const String _purchase = "/purchase";
   static const String _retail = "/retail";
 
-  // FETCH SUPPLIERS
-
   Future<ResponseResult<List<EntriesModel>>> fetchSuppliers() async {
     final sw = Stopwatch()..start();
     final result = await _api.get<List<dynamic>>(path: "$_suppliers/get/all");
-    log("Supplier API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch suppliers",
@@ -53,7 +50,6 @@ class EntriesService {
   Future<ResponseResult<List<EntriesCustomerModel>>> fetchCustomers() async {
     final sw = Stopwatch()..start();
     final result = await _api.get<List<dynamic>>(path: "$_customers/get/all");
-    log("Customer API: ${sw.elapsedMilliseconds} ms");
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch customers",
@@ -218,15 +214,10 @@ class EntriesService {
       );
     }
 
-    log("=========== BILL PAYLOAD ===========");
-    log(jsonEncode(payload));
-
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_bill/entry/add",
       data: formData,
     );
-
-    log(result.data.toString());
 
     if (result.isFailure) {
       return ResponseResult.error(
@@ -273,16 +264,10 @@ class EntriesService {
       );
     }
 
-    log("========== UPDATE BILL ==========");
-    log(jsonEncode(payload));
-
     final result = await _api.patch<Map<String, dynamic>>(
       path: "$_bill/entry/update/$id",
       data: formData,
     );
-
-    log("Status : ${result.statusCode}");
-    log("Response : ${result.data}");
     log("Error : ${result.errorMessage}");
 
     if (result.isFailure) {

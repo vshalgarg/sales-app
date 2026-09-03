@@ -55,12 +55,10 @@ class RetailCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // LEFT
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // DATE CHIP
                       if (date.value.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.all(5),
@@ -170,7 +168,6 @@ class RetailCard extends StatelessWidget {
 
                 const SizedBox(width: 5),
 
-                // RIGHT SIDE
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [

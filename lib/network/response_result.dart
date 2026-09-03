@@ -4,13 +4,10 @@ class ResponseResult<T> {
   // Data returned from API
   final T? data;
 
-  // HTTP Status Code
   final int? statusCode;
 
-  // Error Message
   final String? errorMessage;
 
-  // Dio Error Type
   final DioExceptionType? dioErrorType;
 
   const ResponseResult._({
@@ -20,7 +17,6 @@ class ResponseResult<T> {
     this.dioErrorType,
   });
 
-  // Success Factory
   factory ResponseResult.success(
       T? data,
       int? statusCode,
@@ -31,7 +27,6 @@ class ResponseResult<T> {
     );
   }
 
-  // Error Factory
   factory ResponseResult.error({
     required String errorMessage,
     DioExceptionType? dioErrorType,
@@ -44,7 +39,6 @@ class ResponseResult<T> {
     );
   }
 
-  // Convenience Getter
   bool get isSuccess => errorMessage == null;
   bool get isFailure => !isSuccess;
 

@@ -15,7 +15,6 @@ class CustomDropdown extends StatefulWidget {
   final String? Function(String?)? validator;
   final bool isEmbedded;
 
-  // Multi-select support
   final bool isMultiSelect;
   final List<String>? initialValues;
   final ValueChanged<List<String>>? onMultiChanged;
@@ -54,7 +53,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
   String? selectedValue;
   List<String> selectedValues = [];
 
-  // Search directly inside the dropdown field
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
@@ -84,7 +82,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
 
         fieldState?.didChange(selectedValue);
 
-        // Clear old validation error after a real value exists.
         if (selectedValue != null &&
             selectedValue!.trim().isNotEmpty) {
           fieldState?.reset();
@@ -172,7 +169,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
 
     final size = renderBox.size;
 
-    // Start with an empty search every time it opens.
     _searchController.clear();
 
     setState(() {
@@ -195,7 +191,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
 
         return Stack(
           children: [
-            // Close dropdown when clicking outside
             Positioned.fill(
               child: GestureDetector(
                 onTap: _removeOverlay,
@@ -371,9 +366,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
                   link: _layerLink,
                   child: GestureDetector(
                     key: _fieldKey,
-
-                    // When closed -> open dropdown
-                    // When already open -> keep TextField focused
                     onTap: () {
                       if (_isSearching) {
                         _searchFocusNode.requestFocus();
@@ -446,8 +438,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
   }
 
   Widget _buildSearchOrValue(FormFieldState<String> field) {
-    // Dropdown is open:
-    // show SEARCH TEXT FIELD in the SAME Supplier/Customer field.
     if (_isSearching) {
       return TextField(
         controller: _searchController,
@@ -476,8 +466,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
       );
     }
 
-    // Dropdown closed:
-    // show selected value normally.
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(

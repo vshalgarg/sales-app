@@ -13,7 +13,6 @@ class CustomCopyDetailsDialog extends StatelessWidget {
   final String? gstNo;
   final String? heading;
 
-  // NEW: multiple bank details
   final List<BankDetailRequest> bankDetails;
 
   final String? transport;
@@ -171,7 +170,6 @@ class CustomCopyDetailsDialog extends StatelessWidget {
     );
   }
 
-  // COPY ONLY BANK DETAILS
   void _copyBankDetails(BuildContext context) {
     if (!hasBankDetails) {
       ScaffoldSnackBar.show(
@@ -239,7 +237,6 @@ class CustomCopyDetailsDialog extends StatelessWidget {
     );
   }
 
-  // COPY EVERYTHING
   void _copyAllDetails(BuildContext context) {
     final buffer = StringBuffer();
 
@@ -282,56 +279,6 @@ class CustomCopyDetailsDialog extends StatelessWidget {
       );
       buffer.writeln();
     }
-
-    // if (hasBankDetails) {
-    //   buffer.writeln("Bank Details");
-    //   buffer.writeln();
-    //
-    //   for (int i = 0; i < bankDetails.length; i++) {
-    //     final bank = bankDetails[i];
-    //
-    //     if (!_hasBankValue(bank)) {
-    //       continue;
-    //     }
-    //
-    //     buffer.writeln(
-    //       "Bank Details ${i + 1}",
-    //     );
-    //
-    //     if (_hasValue(bank.accountName)) {
-    //       buffer.writeln(
-    //         "Account Holder : ${_clean(bank.accountName)}",
-    //       );
-    //     }
-    //
-    //     if (_hasValue(bank.bankName)) {
-    //       buffer.writeln(
-    //         "Bank Name : ${_clean(bank.bankName)}",
-    //       );
-    //     }
-    //
-    //     if (_hasValue(bank.accountNumber)) {
-    //       buffer.writeln(
-    //         "Account Number : ${_clean(bank.accountNumber)}",
-    //       );
-    //     }
-    //
-    //     if (_hasValue(bank.ifscCode)) {
-    //       buffer.writeln(
-    //         "IFSC Code : ${_clean(bank.ifscCode)}",
-    //       );
-    //     }
-    //
-    //     if (_hasValue(bank.branchName)) {
-    //       buffer.writeln(
-    //         "Branch : ${_clean(bank.branchName)}",
-    //       );
-    //     }
-
-    //     buffer.writeln();
-    //   }
-    // }
-
     Clipboard.setData(
       ClipboardData(
         text: buffer.toString().trim(),
@@ -444,7 +391,6 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                                     value: _clean(gstNo),
                                   ),
 
-                                // ALL BANK DETAILS
 
                                 if (hasBankDetails) ...[
                                   const SizedBox(height: 10),

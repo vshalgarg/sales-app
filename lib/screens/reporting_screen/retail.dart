@@ -176,7 +176,6 @@ class _RetailState extends State<Retail> {
 
     provider.clearFilters();
 
-    // Restore automatic last 10 days.
     provider.applyFilters(
       fromDate: formatter.format(tenDaysAgo),
       toDate: formatter.format(now),
@@ -335,7 +334,6 @@ class _RetailState extends State<Retail> {
     fromDateController.text = fromDate;
     toDateController.text = toDate;
 
-    // Reset provider filter values
     provider.applyFilters(
       fromDate: fromDate,
       toDate: toDate,
@@ -343,7 +341,7 @@ class _RetailState extends State<Retail> {
       customerId: null,
       staffId: null,
     );
-    // Remove the currently filtered cards
+
     provider.clear();
   }
 

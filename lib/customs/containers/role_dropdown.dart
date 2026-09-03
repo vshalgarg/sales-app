@@ -49,7 +49,6 @@ class _RoleDropdownState extends State<RoleDropdown> {
       builder: (context) {
         return Stack(
           children: [
-            // Close dropdown when tapping outside.
             Positioned.fill(
               child: GestureDetector(
                 onTap: _removeDropdown,

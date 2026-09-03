@@ -5,8 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:public_file_saver/public_file_saver.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -127,7 +125,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
   void _fillData(PurchaseDetails purchase, EntriesProvider entriesProvider) {
     transactionController.text = _formatDisplayDate(purchase.date);
 
-    // Customer
     selectedCustomer = null;
 
     for (final customer in entriesProvider.customerEntries) {
@@ -137,7 +134,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       }
     }
 
-    // Staff
     selectedStaff = null;
 
     for (final staff in entriesProvider.staffList) {
@@ -147,7 +143,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       }
     }
 
-    // Clear old supplier data
     for (final controller in remarksControllers) {
       controller.dispose();
     }
@@ -156,10 +151,8 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
     selectedSuppliers = [];
     uploadedFiles = [];
 
-    // Remarks
     remarksControllers.add(TextEditingController(text: purchase.remarks));
 
-    // Existing documents
     existingImageKeys = purchase.supplier.images
         .map((e) => e.key)
         .where((e) => e.isNotEmpty)
@@ -171,7 +164,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
         .map((e) => e.fileName)
         .toList();
 
-    // Supplier
     EntriesModel? supplier;
 
     for (final entry in entriesProvider.entries) {
@@ -271,7 +263,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
         throw Exception('Downloaded file is empty');
       }
 
-      // Save to public Downloads
       final fileSaver = PublicFileSaver();
 
       final result = await fileSaver.saveBytes(
@@ -290,13 +281,11 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
       if (!mounted) return;
 
-      // Show success message
       ScaffoldSnackBar.show(
         context,
         'File downloaded successfully',
       );
 
-      // Give the SnackBar a moment to appear
       await Future.delayed(
         const Duration(milliseconds: 500),
       );
@@ -313,7 +302,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
         return;
       }
 
-      // Native Android "Open with"
       await _channel.invokeMethod(
         'openFile',
         {
@@ -333,7 +321,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
     }
   }
   Future<bool> _validatePurchaseForm() async {
-    // Open sections containing required fields
+
     setState(() {
       isInformationExpanded = true;
       isSupplierExpanded = true;
@@ -868,7 +856,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                                     files:
                                                         uploadedFiles[index],
 
-                                                    // Existing documents are only needed in Edit mode
                                                     existingImageKeys:
                                                         isEditMode
                                                         ? existingImageKeys
@@ -900,7 +887,6 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                                         result["files"] ?? [],
                                                       );
 
-                                                  // Existing files are only relevant for Edit mode
                                                   if (isEditMode) {
                                                     existingImageKeys =
                                                         List<String>.from(

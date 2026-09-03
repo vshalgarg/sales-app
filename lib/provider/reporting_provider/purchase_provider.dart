@@ -22,9 +22,6 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
 
   bool get detailsLoading => _detailsLoading;
 
-
-  //String _searchKeyword = "";
-
   String? _fromDate;
   String? _toDate;
   int? _supplierId;
@@ -45,8 +42,6 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
     required int page,
     required int size,
   }) async {
-    log(" PURCHASE ");
-    log("Requested page = $page");
     final result = await _service.searchPurchases(
       page: page,
       size: size,
@@ -62,10 +57,6 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
         result.errorMessage ?? "Failed to load purchases",
       );
     }
-    log("API page = ${result.data!.page}");
-    log("Total pages = ${result.data!.totalPages}");
-    log("Last = ${result.data!.last}");
-    log("Items = ${result.data!.content.length}");
     return result.data!;
   }
 

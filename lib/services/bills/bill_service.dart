@@ -20,10 +20,6 @@ class BillService {
   static const String _billEntry = "/bill/entry";
   static const String _billEntries = "/bill/entries";
 
-
-  // GET BILLS
-
-
   Future<ResponseResult<PaginatedResponse<Bill>>> getBills({
     required int page,
     required int size,
@@ -72,9 +68,6 @@ class BillService {
       result.statusCode,
     );
   }
-
-  // SEARCH BILLS
-
 
   Future<ResponseResult<PaginatedResponse<Bill>>> searchBills({
     required String keyword,
@@ -127,10 +120,6 @@ class BillService {
     );
   }
 
-
-  // GET BILL DETAILS
-
-
   Future<ResponseResult<BillDetails>> getBillById(
       String billNumber,
       ) async {
@@ -157,9 +146,6 @@ class BillService {
       result.statusCode,
     );
   }
-
-  // ADD BILL
-
 
   Future<ResponseResult<ApiResponse>> addBill({
     required AddBillRequest request,
@@ -218,10 +204,7 @@ class BillService {
     );
   }
 
-  // UPDATE BILL
-
-
-  Future<ResponseResult<ApiResponse>> updateBill({
+ Future<ResponseResult<ApiResponse>> updateBill({
     required int id,
     required AddBillRequest request,
     List<String> existingImageKeys = const [],
@@ -282,11 +265,7 @@ class BillService {
     );
   }
 
-
-  // DELETE BILL
-
-
-  Future<ResponseResult<ApiResponse>> deleteBill(
+Future<ResponseResult<ApiResponse>> deleteBill(
       String billNumber,
       ) async {
     final result = await _api.delete<Map<String, dynamic>>(

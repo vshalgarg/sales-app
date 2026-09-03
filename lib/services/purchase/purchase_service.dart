@@ -20,10 +20,6 @@ class PurchaseService {
 
   static const String _purchase = "/purchase";
 
-
-  // SEARCH PURCHASES
-
-
   Future<ResponseResult<PaginatedResponse<Purchase>>> searchPurchases({
     String? fromDate,
     String? toDate,
@@ -64,10 +60,7 @@ class PurchaseService {
     );
   }
 
-
   // PURCHASE DETAILS
-
-
   Future<ResponseResult<ApiResponse>> getPurchaseDetails(num id) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_purchase/get/details/$id",
@@ -135,26 +128,12 @@ class PurchaseService {
       }
     }
 
-    log("========== ADD PURCHASE ==========");
-    log("Payload : ${jsonEncode(request.toJson())}");
-    log("========== FILES ==========");
-
     for (int i = 0; i < uploadedFiles.length; i++) {
-      final supplierId = selectedSuppliers[i]?.id;
-
-      log("Supplier: $supplierId");
-
-      for (final file in uploadedFiles[i]) {
-        log("Field: supplier_${supplierId}_images  File: ${file.name}");
-      }
     }
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_purchase/entry/add",
       data: formData,
     );
-
-    log("Status : ${result.statusCode}");
-    log("Response : ${result.data}");
     log("Error : ${result.errorMessage}");
 
     if (result.isFailure) {
@@ -217,20 +196,10 @@ class PurchaseService {
       );
     }
 
-    log("========== UPDATE PURCHASE ==========");
-    log(jsonEncode(payload));
-
     final result = await _api.patch<Map<String, dynamic>>(
       path: "$_purchase/entry/update/$id",
       data: formData,
     );
-    log("========== UPDATE PURCHASE ==========");
-    log("Payload: ${jsonEncode(payload)}");
-    for (final image in supplierImages) {
-      log("Image: ${image.path}");
-    }
-    log("Status : ${result.statusCode}");
-    log("Response : ${result.data}");
     log("Error : ${result.errorMessage}");
 
     if (result.isFailure) {
@@ -245,10 +214,6 @@ class PurchaseService {
       result.statusCode,
     );
   }
-
-
-  // DELETE PURCHASE
-
 
   Future<ResponseResult<ApiResponse>> deletePurchase(num id) async {
     final result = await _api.delete<Map<String, dynamic>>(

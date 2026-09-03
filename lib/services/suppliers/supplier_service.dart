@@ -57,7 +57,6 @@ class SupplierService {
     required int page,
     required int size,
   }) async {
-    log("Searching: $keyword");
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_suppliers/search/v2",
       queryParameters: {

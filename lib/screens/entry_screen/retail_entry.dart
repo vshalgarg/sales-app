@@ -296,8 +296,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
           Column(
           children: [
 
-          // ALL SUPPLIERS
-
           ...List.generate(
             suppliers.length,
                 (index) {
@@ -305,12 +303,11 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                 children: [
                   const SizedBox(height: 15),
 
-                  // Supplier title
                   Row(
                     mainAxisAlignment:
                     MainAxisAlignment.spaceBetween,
                     children: [
-                  // Supplier
+
                   Text(
                     index == 0 ? "Supplier${index + 1} * " : "Supplier ${index + 1}",
                     style: const TextStyle(
@@ -370,7 +367,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
                   const SizedBox(height: 15),
 
-                  // Total Amount
                   Text(
                     "Total Amount",
                     style: const TextStyle(
@@ -390,7 +386,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
                   const SizedBox(height: 15),
 
-                  // Deposit Amount
                   Text(
                     "Deposit Amount",
                     style: const TextStyle(
@@ -410,7 +405,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
                   const SizedBox(height: 15),
 
-                  // Balance Amount
                   Text(
                     "Balance Amount",
                     style: const TextStyle(
@@ -430,8 +424,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
             },
           ),
 
-
-          // ADD MORE SUPPLIER
 
           const SizedBox(height: 15),
 
@@ -471,7 +463,6 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 0),
                         child: Row(
-                          // mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Expanded(
                               child: Material(
@@ -522,18 +513,16 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(5),
                                   onTap: () async {
-                                    // Open sections containing required fields
                                     setState(() {
                                       isExpanded = true;
                                       isSupplierExpanded = true;
                                     });
 
-                                    // Wait for the expanded sections to rebuild
+
                                     await Future<void>.delayed(Duration.zero);
 
                                     if (!mounted) return;
 
-                                    // Validate after the fields are visible
                                     final isValid = _formKey.currentState?.validate() ?? false;
 
                                     if (!isValid) {

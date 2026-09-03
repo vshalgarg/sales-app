@@ -15,8 +15,6 @@ class CustomerService {
   static const String _customer = "/customer";
   static const String _customers = "/customers";
 
-  // GET CUSTOMERS
-
   Future<ResponseResult<PaginatedResponse<Customer>>> getCustomers({
     required int page,
     required int size,
@@ -47,14 +45,11 @@ class CustomerService {
     );
   }
 
-  // SEARCH CUSTOMERS
-
   Future<ResponseResult<PaginatedResponse<Customer>>> searchCustomers({
     required String keyword,
     required int page,
     required int size,
   }) async {
-    log("Searching: $keyword");
 
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_customers/search",
@@ -92,8 +87,6 @@ class CustomerService {
     );
   }
 
-  // GET CUSTOMER DETAILS
-
   Future<ResponseResult<CustomerDetailsResponse>> getCustomerById(
       int id) async {
     final result = await _api.get<Map<String, dynamic>>(
@@ -112,9 +105,6 @@ class CustomerService {
       result.statusCode,
     );
   }
-
-  // ADD CUSTOMER
-
   Future<ResponseResult<ApiResponse>> addCustomer(
       AddCustomerRequest request) async {
     final result = await _api.post<Map<String, dynamic>>(
@@ -145,8 +135,6 @@ class CustomerService {
       result.statusCode,
     );
   }
-
-  // UPDATE CUSTOMER
 
   Future<ResponseResult<ApiResponse>> updateCustomer({
     required int id,
@@ -179,22 +167,15 @@ class CustomerService {
     );
   }
 
-  // DELETE CUSTOMER
-
   Future<ResponseResult<ApiResponse>> deleteCustomer(String code) async {
-    log("DELETE CUSTOMER");
-    log("URL: $_customer/delete");
-    log("BODY: {code: $code}");
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_customer/delete",
       data: {
         "customerCode": code,
       },
     );
-    log("STATUS: ${result.statusCode}");
-    log("SUCCESS: ${result.isSuccess}");
     log("ERROR: ${result.errorMessage}");
-    log("DATA: ${result.data}");
+
 
     if (result.isFailure) {
       return ResponseResult.error(

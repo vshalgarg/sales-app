@@ -158,7 +158,6 @@ class TransportContainer extends StatelessWidget {
                         bgColor: AppColors.binRedLight,
                       ),
                     ),
-                   // SizedBox(width: 10),
                     GestureDetector(
                       onTap: copyIconTap,
                       child: customIcon(
@@ -167,7 +166,6 @@ class TransportContainer extends StatelessWidget {
                         bgColor: AppColors.blueLightCopy,
                       ),
                     ),
-                    //SizedBox(width: 10),
                     GestureDetector(
                       onTap: editIconTap,
                       child: customIcon(

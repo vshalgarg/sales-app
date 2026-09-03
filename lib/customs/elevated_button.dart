@@ -8,7 +8,6 @@ class CustomElevatedButton extends StatelessWidget {
   final double? height;
   final double? width;
   final double borderRadius;
- // final VoidCallback onPressed;
   final IconData? icons;
   final double? iconSize;
   final Color? iconColor;

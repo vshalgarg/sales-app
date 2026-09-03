@@ -47,20 +47,17 @@ class _PaginationWidgetState<T>
   }
 
   Future<void> _nextPage() async {
-    log("NEXT: currentPage = ${widget.pagination.currentPage}");
 
     if (widget.pagination.currentPage >= widget.pagination.lastValidPage) {
       return;
     }
 
     await controller.execute(
-      direction: SwipeDirection.left,
+      direction: SwipeDirection.right,
       callback: () async {
-        log("Fetching page ${widget.pagination.currentPage + 1}");
         await widget.fetchPage(
           widget.pagination.currentPage + 1,
         );
-
       },
     );
   }
@@ -71,7 +68,7 @@ class _PaginationWidgetState<T>
     }
 
     await controller.execute(
-      direction: SwipeDirection.right,
+      direction: SwipeDirection.left,
       callback: () async {
         await widget.fetchPage(
           widget.pagination.currentPage - 1,

@@ -23,7 +23,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
   bool showRetailInfo = true;
   bool showHistory = true;
   final Map<int, GlobalKey> _historyKeys = {};
- // final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
     super.initState();
@@ -37,7 +36,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
   }
   @override
   void dispose() {
-  //  _scrollController.dispose();
     super.dispose();
   }
   @override
@@ -78,7 +76,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
 
           body: SafeArea(
             child: SingleChildScrollView(
-              //controller: _scrollController,
               padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 10),
@@ -87,7 +84,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
-                  // Retail Information
+
                   _sectionHeader(
                     title: "Retail Information",
                     expanded: showRetailInfo,
@@ -128,7 +125,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                   ],
 
                   const SizedBox(height: 24),
-                  //History
+
                   _sectionHeader(
                     title: "History",
                     expanded: showHistory,
@@ -201,7 +198,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            // Header
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -232,44 +229,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                           height: 2,
                         ),
                       ),
-
-                     // const SizedBox(height: 3),
-
-                      // Text.rich(
-                      //   TextSpan(
-                      //     children: [
-                      //       const TextSpan(
-                      //         text: "Referred By : ",
-                      //         style: TextStyle(fontWeight: FontWeight.w600),
-                      //       ),
-                      //       TextSpan(text: customerName),
-                      //     ],
-                      //   ),
-                      //   maxLines: 1,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   style: TextStyle(
-                      //     color: Colors.grey[700],
-                      //     fontSize: 12,
-                      //   ),
-                      // ),
-                      //
-                      // Text.rich(
-                      //   TextSpan(
-                      //     children: [
-                      //       const TextSpan(
-                      //         text: "Staff : ",
-                      //         style: TextStyle(fontWeight: FontWeight.w600),
-                      //       ),
-                      //       TextSpan(text: staffName ?? "-"),
-                      //     ],
-                      //   ),
-                      //   maxLines: 1,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   style: TextStyle(
-                      //     color: Colors.grey[700],
-                      //     fontSize: 12,
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
@@ -306,7 +265,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
             Divider(color: Colors.grey.shade300, thickness: 1, height: 2),
             const SizedBox(height: 10),
 
-            // Amount Cards
             Padding(
               padding: const EdgeInsets.only(bottom: 1),
               child: Row(
@@ -363,7 +321,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                         expandedSupplierIndex = index;
                       });
 
-                      // Wait until the expanded content has been laid out.
                       await WidgetsBinding.instance.endOfFrame;
 
                       if (!mounted) return;
@@ -462,28 +419,6 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                                 ),
                               ),
                             ),
-
-                            // Status
-                            // SizedBox(
-                            //   width: 70,
-                            //   child: Align(
-                            //     alignment: Alignment.centerRight,
-                            //     child: Container(
-                            //       decoration: BoxDecoration(
-                            //         color: const Color(0xffE8F7EE),
-                            //         borderRadius: BorderRadius.circular(10),
-                            //       ),
-                            //       child: const Text(
-                            //         "Deposited",
-                            //         style: TextStyle(
-                            //           color: Colors.green,
-                            //           fontWeight: FontWeight.w600,
-                            //           fontSize: 10,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),

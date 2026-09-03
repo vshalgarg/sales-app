@@ -48,8 +48,6 @@ void main() async {
   } catch (e) {
     debugPrint('Failed to load .env: $e');
   }
-
-  //AuthManager().initialize(navigatorKey);
   LoadingService.initialize();
   final apiProvider = ApiProvider();
   final apiService = ApiService(apiProvider);

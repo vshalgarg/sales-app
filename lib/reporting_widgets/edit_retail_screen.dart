@@ -33,12 +33,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
   final List<TextEditingController> depositDateControllers = [];
 
-  // Dropdowns
-
   int? selectedCustomerId;
   int? selectedStaffId;
-
-  // Expand / Collapse
 
   bool showRetailInfo = true;
 
@@ -48,11 +44,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
   int? expandedSupplierIndex;
 
-  // Loading
-
   bool initialized = false;
-
-  // Init
 
   @override
   void initState() {
@@ -107,8 +99,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     });
   }
 
-  // Dispose
-
   @override
   void dispose() {
     retailerController.dispose();
@@ -125,8 +115,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
     super.dispose();
   }
-
-  // Pick Date
 
   Future<void> pickDate() async {
     final picked = await showDatePicker(
@@ -586,7 +574,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                   if (result["success"]) {
                     if (!mounted) return;
 
-                    // Clear deposit inputs after successful save.
                     for (final controller in depositAmountControllers) {
                       controller.clear();
                     }
@@ -595,7 +582,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                       controller.clear();
                     }
 
-                    // Rebuild immediately with refreshed supplier balances/history.
                     setState(() {});
 
                     ScaffoldSnackBar.show(
@@ -637,7 +623,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             });
 
             if (showHistory) {
-              // Always fetch the latest history when History is opened.
+
               await provider.fetchDepositHistory(widget.retailId);
 
               if (!mounted) return;
@@ -714,7 +700,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            // Header
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -779,7 +764,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             Divider(color: Colors.grey.shade300, thickness: 1, height: 2),
             const SizedBox(height: 10),
 
-            // Amount Cards
             Padding(
               padding: const EdgeInsets.only(bottom: 1),
               child: Row(

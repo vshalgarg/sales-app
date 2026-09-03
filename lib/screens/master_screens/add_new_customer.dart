@@ -175,7 +175,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
     referenceController.text = s.referencedBy ?? "";
 
-    // BANK DETAILS
     for (final bank in bankDetails) {
       bank.dispose();
     }
@@ -190,7 +189,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
           (bank.accountName ?? "").trim().isNotEmpty ||
           (bank.accountNumber ?? "").trim().isNotEmpty;
 
-      // Ignore empty bank objects returned by API
       if (!hasBankData) {
         continue;
       }
@@ -209,7 +207,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       bankDetails.add(BankControllers());
     }
 
-    // ADDRESS
     addressLine1Controller.text = s.addressLine1 ?? "";
     addressLine2Controller.text = s.addressLine2 ?? "";
     stateController.text = (s.state ?? "").trim();
@@ -217,7 +214,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
     pinCodeController.text = s.pinCode ?? "";
     remarksController.text = s.remark ?? "";
 
-    // TRANSPORT
     selectedTransportIds.clear();
     selectedTransportNames.clear();
 
@@ -228,7 +224,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       }
     }
 
-    // CONTACTS
     for (final contact in contacts) {
       contact.dispose();
     }
@@ -242,7 +237,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       final mobile = c.mobileNumber?.toString().trim() ?? "";
       final type = c.type?.toString().trim() ?? "";
 
-      // Ignore contact objects where all fields are empty/null
       if (name.isNotEmpty || mobile.isNotEmpty || type.isNotEmpty) {
         hasContactData = true;
 
@@ -311,7 +305,6 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    //  final customerProvider = context.watch<CustomerProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(

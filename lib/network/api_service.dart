@@ -12,7 +12,6 @@ class ApiService {
 
   ApiService(ApiProvider provider) : _dio = provider.getClient();
 
-  // GET
   Future<ResponseResult<T>> get<T>({
     required String path,
     Map<String, dynamic>? queryParameters,
@@ -30,7 +29,6 @@ class ApiService {
     );
   }
 
-  // POST
   Future<ResponseResult<T>> post<T>({
     required String path,
     dynamic data,
@@ -51,8 +49,6 @@ class ApiService {
     );
   }
 
-  //PUT
-
   Future<ResponseResult<T>> put<T>({
     required String path,
     dynamic data,
@@ -67,8 +63,6 @@ class ApiService {
       showLoader: showLoader,
     );
   }
-
-  //PATCH
 
   Future<ResponseResult<T>> patch<T>({
     required String path,
@@ -85,8 +79,6 @@ class ApiService {
     );
   }
 
-  //DELETE
-
   Future<ResponseResult<T>> delete<T>({
     required String path,
     dynamic data,
@@ -101,8 +93,6 @@ class ApiService {
       showLoader: showLoader,
     );
   }
-
-  //DOWNLOAD
 
   Future<ResponseResult<Uint8List>> downloadBytes({
     required String path,
@@ -130,8 +120,6 @@ class ApiService {
       );
     }
   }
-
-  //COMMON REQUEST
 
   Future<ResponseResult<T>> _request<T>({
     required String method,

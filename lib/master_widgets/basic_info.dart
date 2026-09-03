@@ -282,7 +282,6 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
                       return newValue;
                     }
 
-                    // Do not remove existing text
                     return oldValue;
                   },
                 ),

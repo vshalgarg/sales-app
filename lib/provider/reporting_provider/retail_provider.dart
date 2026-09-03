@@ -149,7 +149,6 @@ class RetailProvider extends PaginationProvider<Retail> {
       final result = await _service.addDeposit(request);
 
       if (result.isSuccess) {
-        // Refresh both supplier summary and deposit history immediately.
         if (_retailDetails != null) {
           await fetchRetailDetails(_retailDetails!.id);
           await fetchDepositHistory(_retailDetails!.id);
@@ -192,7 +191,6 @@ class RetailProvider extends PaginationProvider<Retail> {
     _depositHistory.clear();
     notifyListeners();
   }
-  // CREATE RETAIL
 
   Future<bool> createRetail(
       Map<String, dynamic> body,
@@ -212,8 +210,6 @@ class RetailProvider extends PaginationProvider<Retail> {
       notifyListeners();
     }
   }
-
-// ADD RETAIL SUPPLIER
 
   Future<bool> addRetailSupplier(
       Map<String, dynamic> body,
@@ -235,8 +231,6 @@ class RetailProvider extends PaginationProvider<Retail> {
       notifyListeners();
     }
   }
-
-// UPDATE RETAIL SUPPLIER
 
   Future<bool> updateRetailSupplier({
     required int retailSupplierId,
@@ -262,8 +256,6 @@ class RetailProvider extends PaginationProvider<Retail> {
       notifyListeners();
     }
   }
-
-// DELETE RETAIL SUPPLIER
 
   Future<bool> deleteRetailSupplier(
       int retailSupplierId,

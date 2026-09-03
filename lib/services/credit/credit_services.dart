@@ -13,8 +13,6 @@ class CreditService {
   static const String _creditEntry = "/credit/entry";
   static const String _creditEntries = "/credit/entries";
 
-  // GET CREDITS
-
   Future<ResponseResult<PaginatedResponse<Credit>>> getCredits({
     required int page,
     required int size,
@@ -62,8 +60,6 @@ class CreditService {
       result.statusCode,
     );
   }
-
-// SEARCH CREDITS
 
 Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
   required String keyword,
@@ -115,8 +111,6 @@ Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
   );
 }
 
-// UPDATE CREDIT
-
   Future<ResponseResult<ApiResponse>> updateCredit({
     required int id,
     required AddCreditRequest request,
@@ -148,8 +142,6 @@ Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
     );
   }
 
-  // ADD CREDIT
-
   Future<ResponseResult<ApiResponse>> addCredit({
     required AddCreditRequest request,
   }) async {
@@ -180,8 +172,6 @@ Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
       result.statusCode,
     );
   }
-
-// DELETE CREDIT
 
 Future<ResponseResult<ApiResponse>> deleteCredit(
     int id,

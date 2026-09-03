@@ -136,7 +136,6 @@ class LedgerDetailsScreen extends StatelessWidget {
 
                   const SizedBox(height: 10),
 
-                  // Name + Mobile
                   Row(
                     crossAxisAlignment:
                     CrossAxisAlignment.start,
@@ -162,7 +161,6 @@ class LedgerDetailsScreen extends StatelessWidget {
                     ],
                   ),
 
-                  // Email
                   if (ledger.party?.email != null &&
                       ledger.party!.email!
                           .trim()
@@ -179,7 +177,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                       ),
                     ),
                 SizedBox(height:5),
-                  // GST
+
                   if (ledger.party?.gstNo != null &&
                       ledger.party!.gstNo!
                           .trim()
@@ -196,7 +194,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                       ),
                     ),
                   SizedBox(height:5),
-                  // Address
+
                   if (ledger.party?.address != null &&
                       ledger.party!.address!
                           .trim()
@@ -438,8 +436,6 @@ class LedgerDetailsScreen extends StatelessWidget {
   }
 }
 
-  // INFO ITEM
-
 class _InfoItem extends StatelessWidget {
   final String title;
   final String value;
@@ -484,9 +480,6 @@ class _InfoItem extends StatelessWidget {
   }
 }
 
-
-// TRANSACTION CARD
-
 class _TransactionCard
     extends StatelessWidget {
   final dynamic item;
@@ -524,7 +517,6 @@ class _TransactionCard
         CrossAxisAlignment.center,
         children: [
 
-          // Calendar icon
           Container(
             padding:
             const EdgeInsets.all(6),

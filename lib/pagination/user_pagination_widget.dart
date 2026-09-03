@@ -154,7 +154,6 @@ class _LocalPaginationWidgetState<T>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // ================= PAGINATION HEADER =================
 
         Row(
           children: [
@@ -168,7 +167,6 @@ class _LocalPaginationWidgetState<T>
 
             const Spacer(),
 
-            // FIRST PAGE
             IconButton(
               onPressed:
               currentPage == 0 ? null : _firstPage,
@@ -180,7 +178,6 @@ class _LocalPaginationWidgetState<T>
               ),
             ),
 
-            // COUNT
             Text(
               "$currentCount of ${widget.items.length}",
               style: const TextStyle(
@@ -189,7 +186,6 @@ class _LocalPaginationWidgetState<T>
               ),
             ),
 
-            // LAST PAGE
             IconButton(
               onPressed:
               currentPage >= totalPages - 1
@@ -207,22 +203,18 @@ class _LocalPaginationWidgetState<T>
 
         const SizedBox(height: 5),
 
-        // ================= LIST =================
-
         Expanded(
           child: GestureDetector(
             onHorizontalDragEnd: (details) async {
               final velocity =
                   details.primaryVelocity ?? 0;
 
-              // Swipe LEFT
               if (velocity < -250) {
-                await _nextPage();
-              }
-
-              // Swipe RIGHT
-              if (velocity > 250) {
                 await _previousPage();
+              }
+              
+              if (velocity > 250) {
+                await _nextPage();
               }
             },
 

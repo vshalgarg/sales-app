@@ -95,9 +95,6 @@ class TransportService {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_transports/$id",
     );
-
-    log("GET TRANSPORT DETAILS RESPONSE:");
-
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Something went wrong",
@@ -155,14 +152,10 @@ class TransportService {
     required int id,
     required AddTransportRequest request,
   }) async {
-    log("UPDATE REQUEST");
-    log(request.toJson().toString());
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_transports/update/$id",
       data: request.toJson(),
     );
-    log("UPDATE RESPONSE");
-    log(request.toJson().toString());
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Something went wrong",
