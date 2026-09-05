@@ -37,7 +37,7 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
         backgroundColor: Colors.white,
-
+      automaticallyImplyLeading: false,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

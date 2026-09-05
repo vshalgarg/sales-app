@@ -38,7 +38,7 @@ class MasterContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-        padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.all(15),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -66,23 +66,23 @@ class MasterContainer extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Text(
-                        name ?? "",
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: true,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: AppColors.primaryPurple,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      name ?? "",
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: AppColors.primaryPurple,
+                        fontWeight: FontWeight.w500,
                       ),
+                    ),
 
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
-                         const Text( "City: ",
+                        const Text( "City: ",
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
                           maxLines: 3,
@@ -105,7 +105,7 @@ class MasterContainer extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
                         Text(
@@ -136,7 +136,7 @@ class MasterContainer extends StatelessWidget {
                       bgColor: AppColors.binRedLight,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   GestureDetector(
                     onTap: copyIconTap,
                     child: customIcon(
@@ -145,13 +145,13 @@ class MasterContainer extends StatelessWidget {
                       bgColor: AppColors.blueLightCopy,
                     ),
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   GestureDetector(
                     onTap: editIconTap,
                     child: customIcon(
-                      icon: Iconsax.edit,
-                      iconColor: AppColors.editGreen,
-                      bgColor: AppColors.editGreenLight
+                        icon: Iconsax.edit,
+                        iconColor: AppColors.editGreen,
+                        bgColor: AppColors.editGreenLight
                     ),
                   ),
                 ],

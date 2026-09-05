@@ -5,7 +5,6 @@ import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/containers/master_containers/master_container.dart';
 import 'package:hisabio/dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/screens/home_screen.dart';
 import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
@@ -35,36 +34,30 @@ class _SupplierState extends State<SupplierScreen> {
 
     supplierProvider = context.read<SupplierProvider>();
 
-    Future.microtask(() async {
-      searchController.clear();
-      await supplierProvider.clearSearch();
-      await supplierProvider.fetchPage(0);
-    });
+    searchController.clear();
+    supplierProvider.resetSearchKeyword();
+
+    // Fetch the first page exactly once. clearSearch() also refreshes,
+    // so calling both on startup would make two API requests.
+    Future.microtask(() => supplierProvider.fetchPage(0));
   }
 
   @override
   void dispose() {
-    supplierProvider.clearSearch();
-    searchController.dispose();
     _debounce?.cancel();
+    searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<SupplierProvider>();
-
-    final suppliers = provider.data.items;
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => HomeScreen()),
-            );
+            Navigator.pop(context);
           },
         ),
         title: "Suppliers",
@@ -86,248 +79,274 @@ class _SupplierState extends State<SupplierScreen> {
               ),
               height: 40,
               width: double.infinity,
-              child: SearchBar(
-                shape: WidgetStatePropertyAll(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                controller: searchController,
-                elevation: WidgetStatePropertyAll(2),
-                hintText: "Search suppliers...",
-                leading: Icon(Icons.search, size: 30),
-                backgroundColor: WidgetStatePropertyAll(Colors.white),
-                trailing: [
-                  if (searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () async {
-                        searchController.clear();
-                        await context.read<SupplierProvider>().clearSearch();
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      },
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: searchController,
+                builder: (context, value, _) {
+                  return SearchBar(
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
                     ),
-                ],
-                onChanged: (value) {
-                  if (_debounce?.isActive ?? false) {
-                    _debounce!.cancel();
-                  }
+                    controller: searchController,
+                    elevation: WidgetStatePropertyAll(2),
+                    hintText: "Search suppliers...",
+                    leading: const Icon(Icons.search, size: 30),
+                    backgroundColor: const WidgetStatePropertyAll(Colors.white),
+                    trailing: [
+                      if (value.text.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () async {
+                            searchController.clear();
+                            await context
+                                .read<SupplierProvider>()
+                                .clearSearch();
+                          },
+                        ),
+                    ],
+                    onChanged: (value) {
+                      _debounce?.cancel();
 
-                  _debounce = Timer(const Duration(milliseconds: 500), () {
-                    if (value.trim().isEmpty) {
-                      context.read<SupplierProvider>().clearSearch();
-                      if (mounted) setState(() {});
-                      return;
-                    }
-                    context.read<SupplierProvider>().search(value);
-                  });
+                      _debounce = Timer(const Duration(milliseconds: 350), () {
+                        if (!mounted) return;
+
+                        final keyword = value.trim();
+
+                        if (keyword.isEmpty) {
+                          context.read<SupplierProvider>().clearSearch();
+                          return;
+                        }
+
+                        context.read<SupplierProvider>().search(keyword);
+                      });
+                    },
+                  );
                 },
               ),
             ),
             const SizedBox(height: 5),
             Expanded(
-              child: PaginationWidget<Supplier>(
-                pagination: provider.data.pagination,
-                items: suppliers,
-                loading: provider.data.isLoading,
-                fetchPage: provider.fetchPage,
-                refresh: provider.refreshSuppliers,
-                itemBuilder: (context, item) {
-                  return GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              AddNewSupplier(
-                                  id: item.id, mode: FormMode.view),
+              child: Consumer<SupplierProvider>(
+                builder: (context, provider, _) {
+                  return PaginationWidget<Supplier>(
+                    pagination: provider.data.pagination,
+                    items: provider.data.items,
+                    loading: provider.data.isLoading,
+                    fetchPage: provider.fetchPage,
+                    refresh: provider.refreshSuppliers,
+                    itemBuilder: (context, item) {
+                      return GestureDetector(
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddNewSupplier(
+                                id: item.id,
+                                mode: FormMode.view,
+                              ),
+                            ),
+                          );
+                        },
+                        child: MasterContainer(
+                          elevation: 1,
+                          name: item.supplierName,
+                          mobile: item.mobile ?? "-",
+                          code: item.code,
+                          city: item.city ?? "-",
+                          trashIconTap: () {
+                            ExitConfirmationDialog.show(
+                              context,
+                              isDelete: true,
+                              body: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RichText(
+                                    textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                                      children: [
+                                        const TextSpan(
+                                          text:
+                                              "Are you sure you want to permanently delete ",
+                                        ),
+                                        TextSpan(
+                                          text: item.supplierName,
+                                          style: const TextStyle(
+                                            color: AppColors.orangeColor,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(text: "?"),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  const Text(
+                                    "This action cannot be undone.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              saveButtonText: "Delete",
+                              discardButtonText: "Cancel",
+                              onSave: () async {
+                                Navigator.of(context).pop();
+                                final provider = context
+                                    .read<SupplierProvider>();
+
+                                final success = await provider.deleteSupplier(
+                                  item.code,
+                                );
+
+                                if (!context.mounted) return;
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  success
+                                      ? "Supplier deleted successfully"
+                                      : "Failed to delete supplier",
+                                );
+                              },
+                              onDiscard: () {
+                                Navigator.pop(context);
+                              },
+                            );
+                          },
+                          copyIconTap: () async {
+                            if (_isOpeningCopyDialog) return;
+
+                            _isOpeningCopyDialog = true;
+                            try {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                              final provider = context.read<SupplierProvider>();
+
+                              final loaded = await provider
+                                  .fetchSupplierDetails(item.id);
+
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
+
+                              if (!context.mounted) return;
+
+                              if (!loaded) {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  "Failed to load supplier details",
+                                );
+                                return;
+                              }
+
+                              final data = provider.supplierDetails;
+
+                              if (data == null) {
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  "Supplier details are unavailable",
+                                );
+                                return;
+                              }
+
+                              String fullAddress =
+                                  [
+                                        data.addressLine1,
+                                        data.addressLine2,
+                                        data.city,
+                                        data.state,
+                                        data.pinCode,
+                                      ]
+                                      .where((e) => (e ?? "").trim().isNotEmpty)
+                                      .join(", ");
+
+                              String contactsText = "";
+
+                              if (data.contacts.isNotEmpty) {
+                                contactsText = data.contacts
+                                    .map((c) {
+                                      if (c is Map) {
+                                        return "${c['contactPerson'] ?? ""} - ${c['mobileNumber'] ?? ""}";
+                                      }
+
+                                      return "${c.contactPerson ?? ""} - ${c.mobileNumber ?? ""}";
+                                    })
+                                    .join("\n");
+                              }
+
+                              String transportText = "";
+
+                              if (data.preferredTransports.isNotEmpty) {
+                                transportText = data.preferredTransports
+                                    .map((t) {
+                                      if (t is Map) {
+                                        return t['name']?.toString() ?? "";
+                                      }
+
+                                      return t.name ?? "";
+                                    })
+                                    .join("\n");
+                              }
+
+                              await showDialog(
+                                context: context,
+                                builder: (_) => CustomCopyDetailsDialog(
+                                  firmName: data.supplierName ?? "",
+                                  contact: contactsText,
+                                  address: fullAddress,
+                                  gstNo: data.gstNo ?? "",
+                                  emails: data.email ?? "",
+                                  transport: transportText,
+                                  bankDetails: data.bankDetails,
+                                ),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
+
+                              ScaffoldSnackBar.show(
+                                context,
+                                "Something went wrong",
+                              );
+                            } finally {
+                              _isOpeningCopyDialog = false;
+                            }
+                          },
+                          editIconTap: () async {
+                            final supplierProvider = context
+                                .read<SupplierProvider>();
+
+                            final refresh = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AddNewSupplier(
+                                  id: item.id,
+                                  mode: FormMode.edit,
+                                ),
+                              ),
+                            );
+                            if (!mounted) return;
+
+                            if (refresh == true) {
+                              await supplierProvider.refreshSuppliers();
+                            }
+                          },
                         ),
                       );
                     },
-                    child: MasterContainer(
-                      elevation: 1,
-                      name: item.supplierName,
-                      mobile: item.mobile ?? "-",
-                      code: item.code,
-                      city: item.city ?? "-",
-                      trashIconTap: () {
-                        ExitConfirmationDialog.show(
-                          context,
-                          isDelete: true,
-                          body: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              RichText(
-                                textAlign: TextAlign.center,
-                                text: TextSpan(
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
-                                  children: [
-                                    const TextSpan(
-                                      text:
-                                          "Are you sure you want to permanently delete ",
-                                    ),
-                                    TextSpan(
-                                      text: item.supplierName,
-                                      style: const TextStyle(
-                                        color: AppColors.orangeColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    TextSpan(text: "?"),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              const Text(
-                                "This action cannot be undone.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          saveButtonText: "Delete",
-                          discardButtonText: "Cancel",
-                          onSave: () async {
-                            Navigator.of(context).pop();
-                            final provider = context.read<SupplierProvider>();
-
-                            final success = await provider.deleteSupplier(
-                              item.code,
-                            );
-
-                            if (!context.mounted) return;
-                            ScaffoldSnackBar.show(
-                              context,
-                              success
-                                  ? "Supplier deleted successfully"
-                                  : "Failed to delete supplier",
-                            );
-                          },
-                          onDiscard: () {
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
-                      copyIconTap: () async {
-                        if (_isOpeningCopyDialog) return;
-
-                        _isOpeningCopyDialog = true;
-                        try {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (_) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                          final provider = context.read<SupplierProvider>();
-
-                          await provider.fetchSupplierDetails(item.id.toInt());
-
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                          }
-
-                          if (!context.mounted) return;
-
-                          final data = provider.supplierDetails;
-
-                          if (data == null) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Failed to load supplier details",
-                            );
-                            return;
-                          }
-
-                          String fullAddress = [
-                            data.addressLine1,
-                            data.addressLine2,
-                            data.city,
-                            data.state,
-                            data.pinCode,
-                          ]
-                              .where((e) => (e ?? "").trim().isNotEmpty)
-                              .join(", ");
-
-                          String contactsText = "";
-
-                          if (data.contacts.isNotEmpty) {
-                            contactsText = data.contacts.map((c) {
-                              if (c is Map) {
-                                return "${c['contactPerson'] ?? ""} - ${c['mobileNumber'] ?? ""}";
-                              }
-
-                              return "${c.contactPerson ?? ""} - ${c.mobileNumber ?? ""}";
-                            }).join("\n");
-                          }
-
-                          String transportText = "";
-
-                          if (data.preferredTransports.isNotEmpty) {
-                            transportText = data.preferredTransports.map((t) {
-                              if (t is Map) {
-                                return t['name']?.toString() ?? "";
-                              }
-
-                              return t.name ?? "";
-                            }).join("\n");
-                          }
-
-                          await showDialog(
-                            context: context,
-                            builder: (_) => CustomCopyDetailsDialog(
-                              firmName: data.supplierName ?? "",
-                              contact: contactsText,
-                              address: fullAddress,
-                              gstNo: data.gstNo ?? "",
-                              emails: data.email ?? "",
-                              transport: transportText,
-                              bankDetails: data.bankDetails,
-                            ),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          }
-
-                          ScaffoldSnackBar.show(
-                            context,
-                            "Something went wrong",
-                          );
-                        } finally {
-                          _isOpeningCopyDialog = false;
-                        }
-                      },
-                      editIconTap: () async {
-                        final supplierProvider = context
-                            .read<SupplierProvider>();
-
-                        final refresh = await Navigator.push<bool>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AddNewSupplier(
-                              id: item.id,
-                              mode: FormMode.edit,
-                            ),
-                          ),
-                        );
-                        if (!mounted) return;
-
-                        if (refresh == true) {
-                          await supplierProvider.refreshSuppliers();
-                        }
-                      },
-                    ),
                   );
                 },
               ),
@@ -335,38 +354,27 @@ class _SupplierState extends State<SupplierScreen> {
           ],
         ),
       ),
-        floatingActionButton: FloatingActionButton(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AddNewSupplier(),
-                ),
-              );
+      floatingActionButton: FloatingActionButton(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddNewSupplier()),
+          );
 
-              if (!mounted) return;
+          if (!mounted) return;
 
-              if (result != null) {
-                await context.read<SupplierProvider>().refresh();
+          if (result != null) {
+            await context.read<SupplierProvider>().refresh();
 
-                if (!mounted) return;
+            if (!mounted) return;
 
-                ScaffoldSnackBar.show(
-                  context,
-                  result.toString(),
-                );
-            }
-          },
-          backgroundColor: AppColors.primaryPurple,
-          child: Icon(
-            Iconsax.add,
-            color: Colors.white,
-            size: 40,
-          ),
-        ),
+            ScaffoldSnackBar.show(context, result.toString());
+          }
+        },
+        backgroundColor: AppColors.primaryPurple,
+        child: Icon(Iconsax.add, color: Colors.white, size: 40),
+      ),
     );
   }
 }

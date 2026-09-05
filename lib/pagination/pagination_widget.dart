@@ -38,6 +38,7 @@ class _PaginationWidgetState<T>
     with SingleTickerProviderStateMixin {
 
   late final PaginationController controller;
+  bool _pageRequestInProgress = false;
 
   @override
   void initState() {
@@ -47,19 +48,25 @@ class _PaginationWidgetState<T>
   }
 
   Future<void> _nextPage() async {
-
-    if (widget.pagination.currentPage >= widget.pagination.lastValidPage) {
+    if (_pageRequestInProgress ||
+        widget.loading ||
+        widget.pagination.currentPage >= widget.pagination.lastValidPage) {
       return;
     }
 
-    await controller.execute(
-      direction: SwipeDirection.right,
-      callback: () async {
-        await widget.fetchPage(
-          widget.pagination.currentPage + 1,
-        );
-      },
-    );
+    _pageRequestInProgress = true;
+    try {
+      await controller.execute(
+        direction: SwipeDirection.right,
+        callback: () async {
+          await widget.fetchPage(
+            widget.pagination.currentPage + 1,
+          );
+        },
+      );
+    } finally {
+      _pageRequestInProgress = false;
+    }
   }
 
   Future<void> _previousPage() async {
@@ -99,11 +106,21 @@ class _PaginationWidgetState<T>
             const Spacer(),
 
             IconButton(
-              onPressed:
-              widget.pagination.currentPage == 0
+              onPressed: _pageRequestInProgress ||
+                  widget.loading ||
+                  widget.pagination.currentPage == 0
                   ? null
-                  : () {
-                widget.fetchPage(0);
+                  : () async {
+                _pageRequestInProgress = true;
+                try {
+                  await widget.fetchPage(0);
+                } finally {
+                  if (mounted) {
+                    setState(() => _pageRequestInProgress = false);
+                  } else {
+                    _pageRequestInProgress = false;
+                  }
+                }
               },
               icon: const Icon(
                 Icons.keyboard_double_arrow_left,
@@ -119,11 +136,24 @@ class _PaginationWidgetState<T>
             ),
 
             IconButton(
-              onPressed: widget.pagination.currentPage >=
-                  widget.pagination.lastValidPage
+              onPressed: _pageRequestInProgress ||
+                  widget.loading ||
+                  widget.pagination.currentPage >=
+                      widget.pagination.lastValidPage
                   ? null
                   : () async {
-                await widget.fetchPage(widget.pagination.lastValidPage);
+                _pageRequestInProgress = true;
+                try {
+                  await widget.fetchPage(
+                    widget.pagination.lastValidPage,
+                  );
+                } finally {
+                  if (mounted) {
+                    setState(() => _pageRequestInProgress = false);
+                  } else {
+                    _pageRequestInProgress = false;
+                  }
+                }
               },
               icon: const Icon(Icons.keyboard_double_arrow_right),
             ),

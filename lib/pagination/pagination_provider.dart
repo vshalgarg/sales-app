@@ -7,24 +7,29 @@ import '../model_classes/common/pagination_state.dart';
 abstract class PaginationProvider<T> extends ChangeNotifier {
   final PaginatedList<T> data = PaginatedList<T>();
 
+  bool _requestInProgress = false;
+  int _requestVersion = 0;
+
   bool get loading => data.isLoading;
-
   String? get error => data.error;
-
   PaginationState get pagination => data.pagination;
-
   bool get hasNextPage => pagination.hasMore;
+
   Future<PaginatedResponse<T>> requestPage({
     required int page,
     required int size,
   });
 
   Future<void> fetchInitial() async {
-    await refresh();
+    await fetchPage(0);
   }
 
   Future<void> fetchPage(int page) async {
-    if (data.isLoading) return;
+    if (_requestInProgress) return;
+    if (page < 0) return;
+
+    final requestVersion = ++_requestVersion;
+    _requestInProgress = true;
 
     data.isLoading = true;
     data.error = null;
@@ -36,28 +41,36 @@ abstract class PaginationProvider<T> extends ChangeNotifier {
         size: data.pagination.pageSize,
       );
 
-      data.update(response);
+      // Ignore a response if a newer request has been started.
+      if (requestVersion != _requestVersion) return;
 
+      data.update(response);
       data.pagination.currentPage = page;
     } catch (e) {
-      data.error = e.toString();
+      if (requestVersion == _requestVersion) {
+        data.error = e.toString();
+      }
     } finally {
-      data.isLoading = false;
-      notifyListeners();
+      if (requestVersion == _requestVersion) {
+        data.isLoading = false;
+        notifyListeners();
+      }
+      _requestInProgress = false;
     }
   }
+
   Future<void> fetchNextPage() async {
     if (loading || !hasNextPage) return;
 
-    await fetchPage(
-      pagination.currentPage + 1,
-    );
+    await fetchPage(pagination.currentPage + 1);
   }
 
   Future<void> refresh() async {
-    await fetchPage(data.pagination.currentPage);
+    await fetchPage(pagination.currentPage);
   }
+
   void clear() {
+    ++_requestVersion;
     data.clear();
     notifyListeners();
   }

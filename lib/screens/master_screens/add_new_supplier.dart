@@ -95,41 +95,48 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   List<BankControllers> bankDetails = [];
   List<int> selectedTransportIds = [];
   List<String> selectedTransportNames = [];
+  bool _isSubmitting = false;
+
   String? nullableText(String value) {
     final text = value.trim();
     return text.isEmpty ? null : text;
   }
-  AddSupplierRequest submitSupplier() {
-    final List<Map<String, dynamic>> contactList = contacts
-        .map((c) => {
-      "contactPerson": c.name.text.trim(),
-      "mobileNumber": c.mobile.text.trim(),
-      "type": c.type.text.trim(),
-    })
-        .where((contact) =>
-    (contact["contactPerson"] as String).isNotEmpty ||
-        (contact["mobileNumber"] as String).isNotEmpty ||
-        (contact["type"] as String).isNotEmpty)
+  AddSupplierRequest _buildSupplierRequest({required bool isUpdate}) {
+    final contactList = contacts
+        .map(
+          (c) => {
+        "contactPerson": c.name.text.trim(),
+        "mobileNumber": c.mobile.text.trim(),
+        "type": c.type.text.trim(),
+      },
+    )
+        .where(
+          (contact) =>
+      (contact["contactPerson"] as String).isNotEmpty ||
+          (contact["mobileNumber"] as String).isNotEmpty ||
+          (contact["type"] as String).isNotEmpty,
+    )
         .toList();
-    final List<BankDetailRequest> bankDetailList = bankDetails
+
+    final bankDetailList = bankDetails
         .map(
           (bank) => BankDetailRequest(
-            id: bank.id,
-            bankName: bank.bankName.text.trim(),
-            accountNumber: bank.accountNumber.text.trim(),
-            ifscCode: bank.ifscCode.text.trim(),
-            branchName: bank.branchName.text.trim(),
-            accountName: bank.accountName.text.trim(),
-          ),
-        )
+        id: isUpdate ? null : bank.id,
+        bankName: bank.bankName.text.trim(),
+        accountNumber: bank.accountNumber.text.trim(),
+        ifscCode: bank.ifscCode.text.trim(),
+        branchName: bank.branchName.text.trim(),
+        accountName: bank.accountName.text.trim(),
+      ),
+    )
         .where(
           (bank) =>
-              (bank.bankName?.isNotEmpty ?? false) ||
-              (bank.accountNumber?.isNotEmpty ?? false) ||
-              (bank.ifscCode?.isNotEmpty ?? false) ||
-              (bank.branchName?.isNotEmpty ?? false) ||
-              (bank.accountName?.isNotEmpty ?? false),
-        )
+      (bank.bankName?.isNotEmpty ?? false) ||
+          (bank.accountNumber?.isNotEmpty ?? false) ||
+          (bank.ifscCode?.isNotEmpty ?? false) ||
+          (bank.branchName?.isNotEmpty ?? false) ||
+          (bank.accountName?.isNotEmpty ?? false),
+    )
         .toList();
 
     return AddSupplierRequest(
@@ -137,78 +144,19 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       email: nullableText(emailController.text),
       supplierGroup: nullableText(groupController.text),
       gstNo: nullableText(gstController.text),
-
       msme: nullableText(msmeController.text),
-
-      commissionScheme: nullableText(
-        commissionSchemeController.text,
-      ),
+      commissionScheme: nullableText(commissionSchemeController.text),
       commissionRate: num.tryParse(commissionRateController.text.trim()),
       referenceBy: nullableText(referenceController.text),
-
       addressLine1: nullableText(addressLine1Controller.text),
       addressLine2: nullableText(addressLine2Controller.text),
       state: nullableText(stateController.text),
       city: nullableText(cityController.text),
       pinCode: nullableText(pinCodeController.text),
-
       bankDetails: bankDetailList,
       contacts: contactList,
-      preferredTransportIds: selectedTransportIds,
-
+      preferredTransportIds: List<int>.from(selectedTransportIds),
       remark: nullableText(remarksController.text),
-    );
-  }
-
-  AddSupplierRequest updateSupplier() {
-    final List<Map<String, dynamic>> contactList = contacts.map((c) {
-      return {
-        "contactPerson": c.name.text.trim(),
-        "mobileNumber": c.mobile.text.trim(),
-        "type": c.type.text.trim(),
-      };
-    }).toList();
-
-    final List<BankDetailRequest> bankDetailList = bankDetails
-        .map(
-          (bank) => BankDetailRequest(
-            bankName: bank.bankName.text.trim(),
-            accountNumber: bank.accountNumber.text.trim(),
-            ifscCode: bank.ifscCode.text.trim(),
-            branchName: bank.branchName.text.trim(),
-            accountName: bank.accountName.text.trim(),
-          ),
-        )
-        .where(
-          (bank) =>
-              (bank.bankName?.isNotEmpty ?? false) ||
-              (bank.accountNumber?.isNotEmpty ?? false) ||
-              (bank.ifscCode?.isNotEmpty ?? false) ||
-              (bank.branchName?.isNotEmpty ?? false) ||
-              (bank.accountName?.isNotEmpty ?? false),
-        )
-        .toList();
-
-    return AddSupplierRequest(
-      supplierName: nameController.text.trim(),
-      email: emailController.text.trim(),
-      supplierGroup: groupController.text.trim(),
-      gstNo: gstController.text.trim(),
-      msme: msmeController.text.trim(),
-      commissionScheme: commissionSchemeController.text.trim(),
-      commissionRate: num.tryParse(commissionRateController.text.trim()),
-      referenceBy: referenceController.text.trim(),
-
-      bankDetails: bankDetailList,
-
-      addressLine1: addressLine1Controller.text.trim(),
-      addressLine2: addressLine2Controller.text.trim(),
-      state: stateController.text.trim(),
-      city: cityController.text.trim(),
-      pinCode: pinCodeController.text.trim(),
-      remark: remarksController.text.trim(),
-      contacts: contactList,
-      preferredTransportIds: selectedTransportIds,
     );
   }
 
@@ -315,32 +263,33 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   void initState() {
     super.initState();
 
-    if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-      final provider = context.read<SupplierProvider>();
-      Future.microtask(() async {
-        await provider.fetchSupplierDetails(widget.id!.toInt());
-
-        final s = provider.supplierDetails;
-        if (s == null || !mounted) return;
-
-        _populateFormFromSupplier(s);
-        setState(() {});
-      });
-    }
-
     if (widget.mode == FormMode.add) {
       contacts.add(ContactControllers());
       bankDetails.add(BankControllers());
     }
 
-    final transportProvider = Provider.of<TransportProvider>(
-      context,
-      listen: false,
-    );
+    _initialize();
+  }
 
-    Future.microtask(() {
-      transportProvider.fetchAllTransports();
-    });
+  Future<void> _initialize() async {
+    if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
+      final provider = context.read<SupplierProvider>();
+      final loaded = await provider.fetchSupplierDetails(widget.id!.toInt());
+
+      if (mounted && loaded) {
+        final supplier = provider.supplierDetails;
+
+        if (supplier != null) {
+          _populateFormFromSupplier(supplier);
+          setState(() {});
+        }
+      }
+    }
+
+    if (!mounted) return;
+
+    final transportProvider = context.read<TransportProvider>();
+    await transportProvider.fetchAllTransports();
   }
 
   void deleteContact(int index) {
@@ -379,27 +328,28 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     commissionSchemeController.clear();
     commissionRateController.clear();
     referenceController.clear();
-    for (final bank in bankDetails) {
-      bank.dispose();
-    }
-
-    setState(() {
-      bankDetails = [BankControllers()];
-      selectedTransportIds.clear();
-      selectedTransportNames.clear();
-      contacts = [ContactControllers()];
-    });
     addressLine1Controller.clear();
     addressLine2Controller.clear();
     stateController.clear();
     cityController.clear();
     pinCodeController.clear();
     remarksController.clear();
-    for (var c in contacts) {
-      c.name.clear();
-      c.mobile.clear();
-      c.type.clear();
+
+    for (final bank in bankDetails) {
+      bank.dispose();
     }
+
+    for (final contact in contacts) {
+      contact.dispose();
+    }
+
+    setState(() {
+      bankDetails = [BankControllers()];
+      contacts = [ContactControllers()];
+      selectedTransportIds.clear();
+      selectedTransportNames.clear();
+      isExpanded = false;
+    });
   }
 
   @override
@@ -439,11 +389,11 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       appBar: CustomAppBar(
         leading: widget.mode == FormMode.view
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              )
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        )
             : null,
         actions: [
           if (widget.mode != FormMode.view)
@@ -483,228 +433,246 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
           padding: const EdgeInsets.all(15.0),
           child: Form(
             key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SupplierBasicInfo(
-                partyType: "Supplier",
-                showCommissionScheme: true,
-                showCommissionRate: true,
-                mode: widget.mode,
-                nameController: nameController,
-                emailController: emailController,
-                groupController: groupController,
-                gstNoController: gstController,
-                msmeController: msmeController,
-                commissionSchemeController: commissionSchemeController,
-                commissionRateController: commissionRateController,
-                referenceController: referenceController,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SupplierBasicInfo(
+                  partyType: "Supplier",
+                  showCommissionScheme: true,
+                  showCommissionRate: true,
+                  mode: widget.mode,
+                  nameController: nameController,
+                  emailController: emailController,
+                  groupController: groupController,
+                  gstNoController: gstController,
+                  msmeController: msmeController,
+                  commissionSchemeController: commissionSchemeController,
+                  commissionRateController: commissionRateController,
+                  referenceController: referenceController,
+                ),
 
-              SizedBox(height: 15),
+                SizedBox(height: 15),
 
-              BankDetailsSection(
-                mode: widget.mode,
-                banks: bankDetails,
-                onAdd: addBankDetails,
-                onDelete: deleteBankDetails,
-                scrollController: _scrollController,
-              ),
-              SizedBox(height: 15),
-              AddressDetails(
-                mode: widget.mode,
-                addressLine1: addressLine1Controller,
-                addressLine2: addressLine2Controller,
-                state: stateController,
-                city: cityController,
-                pinCode: pinCodeController,
-              ),
-              SizedBox(height: 15),
-              ContactInfo(
-                mode: widget.mode,
-                contacts: contacts,
-                onAdd: addContact,
-                onDelete: deleteContact,
-                scrollController: _scrollController,
-              ),
-              SizedBox(height: 15),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isExpanded = !isExpanded;
-                  });
-                  if (isExpanded) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _scrollController.animateTo(
-                        _scrollController.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
+                BankDetailsSection(
+                  mode: widget.mode,
+                  banks: bankDetails,
+                  onAdd: addBankDetails,
+                  onDelete: deleteBankDetails,
+                  scrollController: _scrollController,
+                ),
+                SizedBox(height: 15),
+                AddressDetails(
+                  mode: widget.mode,
+                  addressLine1: addressLine1Controller,
+                  addressLine2: addressLine2Controller,
+                  state: stateController,
+                  city: cityController,
+                  pinCode: pinCodeController,
+                ),
+                SizedBox(height: 15),
+                ContactInfo(
+                  mode: widget.mode,
+                  contacts: contacts,
+                  onAdd: addContact,
+                  onDelete: deleteContact,
+                  scrollController: _scrollController,
+                ),
+                SizedBox(height: 15),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isExpanded = !isExpanded;
                     });
-                  }
-                },
-                child: TextFormField(
-                  enabled: false,
-                  decoration: InputDecoration(
-                    suffixIcon: Icon(
-                      isExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: Colors.white,
-                    ),
-                    iconColor: Colors.white,
-                    filled: true,
-                    fillColor: AppColors.primaryPurple,
-                    hintText: "Preferred Transports",
-                    hintStyle: TextStyle(color: Colors.white),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-              if (isExpanded) ...[
-                SizedBox(height: 15),
-                Text(
-                  "Preferred Transport",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                Consumer<TransportProvider>(
-                  builder: (context, transportProvider, child) {
-
-                    final List<Transport> transports = transportProvider
-                        .data.items.cast<Transport>();
-
-                    return CustomDropdown(
-                      hintText: "Preferred Transports",
-
-                      items: transports
-                          .map<String>((e) => e.name ?? "")
-                          .where((name) => name.isNotEmpty)
-                          .toList(),
-
-                      isMultiSelect: true,
-                      expandMultiSelect: true,
-
-                      initialValues: List<String>.from(selectedTransportNames),
-
-                      isDisabled: widget.mode == FormMode.view,
-
-                      onChanged: (_) {},
-
-                      onMultiChanged: (values) {
-                        final List<String> names = List<String>.from(values);
-
-                        setState(() {
-                          selectedTransportNames = names;
-
-                          selectedTransportIds = names.map<int>((name) {
-                            final transport = transports.firstWhere(
-                              (e) => e.name == name,
-                            );
-
-                            return transport.id!.toInt();
-                          }).toList();
-                        });
-                      },
-                    );
+                    if (isExpanded) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      });
+                    }
                   },
-                ),
-                SizedBox(height: 15),
-                Text(
-                  "Remarks (Optional)",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                TextFormField(
-                  enabled: widget.mode != FormMode.view,
-                  controller: remarksController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    hintText: "Remarks (optional)",
-                    hintStyle: const TextStyle(color: Colors.grey),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
+                  child: TextFormField(
+                    enabled: false,
+                    decoration: InputDecoration(
+                      suffixIcon: Icon(
+                        isExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                      ),
+                      iconColor: Colors.white,
+                      filled: true,
+                      fillColor: AppColors.primaryPurple,
+                      hintText: "Preferred Transports",
+                      hintStyle: TextStyle(color: Colors.white),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
+                if (isExpanded) ...[
+                  SizedBox(height: 15),
+                  Text(
+                    "Preferred Transport",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Consumer<TransportProvider>(
+                    builder: (context, transportProvider, child) {
+
+                      final List<Transport> transports = transportProvider
+                          .data.items.cast<Transport>();
+
+                      return CustomDropdown(
+                        hintText: "Preferred Transports",
+
+                        items: transports
+                            .map<String>((e) => e.name ?? "")
+                            .where((name) => name.isNotEmpty)
+                            .toList(),
+
+                        isMultiSelect: true,
+                        expandMultiSelect: true,
+
+                        initialValues: List<String>.from(selectedTransportNames),
+
+                        isDisabled: widget.mode == FormMode.view,
+
+                        onChanged: (_) {},
+
+                        onMultiChanged: (values) {
+                          final List<String> names = List<String>.from(values);
+
+                          setState(() {
+                            selectedTransportNames = names;
+
+                            selectedTransportIds = names.map<int>((name) {
+                              final transport = transports.firstWhere(
+                                    (e) => e.name == name,
+                              );
+
+                              return transport.id!.toInt();
+                            }).toList();
+                          });
+                        },
+                      );
+                    },
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    "Remarks (Optional)",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  TextFormField(
+                    enabled: widget.mode != FormMode.view,
+                    controller: remarksController,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: "Remarks (optional)",
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
-      ),
-      bottomNavigationBar: Consumer<SupplierProvider>(
-        builder: (context, provider, child) {
-          return BottomNavigationButton(
-            mode: widget.mode,
+      bottomNavigationBar: BottomNavigationButton(
+        mode: widget.mode,
 
-            update: () async {
-              try {
-                final request = updateSupplier();
+        update: () async {
+          if (_isSubmitting) return;
 
-                final message = await provider.updateSupplier(
-                  id: widget.id!.toInt(),
-                  request: request,
-                );
+          setState(() => _isSubmitting = true);
 
-                if (!context.mounted) return;
+          try {
+            final request = _buildSupplierRequest(isUpdate: true);
 
-                if (message != null && message.isNotEmpty) {
-                  ScaffoldSnackBar.show(context, message);
-                  Navigator.pop(context, true);
-                } else {
-                  ScaffoldSnackBar.show(
-                    context,
-                    "Failed to update supplier",
-                  );
-                }
-              } catch (e) {
-                log("Update supplier error: $e");
+            final message =
+            await context.read<SupplierProvider>().updateSupplier(
+              id: widget.id!.toInt(),
+              request: request,
+            );
 
-                if (!context.mounted) return;
+            if (!context.mounted) return;
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Failed to update supplier: $e",
-                );
-              }
-            },
+            if (message != null && message.isNotEmpty) {
+              ScaffoldSnackBar.show(context, message);
+              Navigator.pop(context, true);
+            } else {
+              ScaffoldSnackBar.show(
+                context,
+                "Failed to update supplier",
+              );
+            }
+          } catch (e) {
+            log("Update supplier error: $e");
 
-            saveSupplier: () async {
-              try {
-                final isValid = _formKey.currentState!.validate();
+            if (!context.mounted) return;
 
-                if (!isValid) {
-                  ScaffoldSnackBar.show(
-                    context,
-                    " Name is required.",
-                  );
-                  return;
-                }
+            ScaffoldSnackBar.show(
+              context,
+              "Failed to update supplier: $e",
+            );
+          } finally {
+            if (mounted) {
+              setState(() => _isSubmitting = false);
+            }
+          }
+        },
 
+        saveSupplier: () async {
+          if (_isSubmitting) return;
 
-                final request = submitSupplier();
+          final isValid = _formKey.currentState!.validate();
 
-                final message = await provider.addSupplier(request);
+          if (!isValid) {
+            ScaffoldSnackBar.show(
+              context,
+              "Name is required.",
+            );
+            return;
+          }
 
-                if (!context.mounted) return;
+          setState(() => _isSubmitting = true);
 
-                if (message != null && message.isNotEmpty) {
-                  Navigator.pop(context, message);
-                }
-              } catch (e) {
-                if (!context.mounted) return;
+          try {
+            final request = _buildSupplierRequest(isUpdate: false);
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Something went wrong: $e",
-                );
-              }
-            },
-          );
+            final message =
+            await context.read<SupplierProvider>().addSupplier(request);
+
+            if (!context.mounted) return;
+
+            if (message != null && message.isNotEmpty) {
+              Navigator.pop(context, message);
+            } else {
+              ScaffoldSnackBar.show(
+                context,
+                "Failed to add supplier",
+              );
+            }
+          } catch (e) {
+            if (!context.mounted) return;
+
+            ScaffoldSnackBar.show(
+              context,
+              "Something went wrong: $e",
+            );
+          } finally {
+            if (mounted) {
+              setState(() => _isSubmitting = false);
+            }
+          }
         },
       ),
     );
