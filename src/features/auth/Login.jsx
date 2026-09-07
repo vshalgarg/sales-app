@@ -58,9 +58,13 @@ const Login = () => {
           <div className="text-center mb-8">
             <div className="flex justify-center">
               <img
-                src="/logo.png"
+                src="/logo.webp"
                 alt="Hisabio Logo"
+                width="800"
+                height="450"
                 className="w-36 md:w-64 h-auto object-contain"
+                fetchPriority="high"
+                loading="eager"
               />
             </div>
           </div>
