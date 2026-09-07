@@ -1,4 +1,5 @@
 import { Bar } from "react-chartjs-2";
+import "@/chartConfig";
 
 const CHART_HEIGHT = 600;
 const SCROLL_THRESHOLD = 10;
