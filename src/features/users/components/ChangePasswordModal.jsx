@@ -6,6 +6,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import AppButton from "@/components/AppButton";
 import AdminService from "@/services/AdminService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
+import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
 
 const ChangePasswordModal = ({ open, onClose, user }) => {
   const { showSnackbar } = useSnackbar();
@@ -20,7 +21,8 @@ const ChangePasswordModal = ({ open, onClose, user }) => {
 
   const togglePassword = () => setShowPassword((prev) => !prev);
 
-  const handleChangePassword = async () => {
+  const handleChangePassword = async (e) => {
+    e?.preventDefault();
     if (!passwordForm.password || !passwordForm.confirmPassword) {
       showSnackbar("All fields are required", "error");
       return;
@@ -54,58 +56,65 @@ const ChangePasswordModal = ({ open, onClose, user }) => {
           </h2>
         </div>
 
-        <div className="px-6 py-4 space-y-3">
-          <CustomTextField
-            label="New Password"
-            type={showPassword ? "text" : "password"}
-            value={passwordForm.password}
-            onChange={(e) =>
-              setPasswordForm({ ...passwordForm, password: e.target.value })
-            }
-            InputProps={{
-              endAdornment: (
-                <IconButton onClick={togglePassword} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              ),
-            }}
-          />
+        <form autoComplete="off" onSubmit={handleChangePassword}>
+          <div className="px-6 py-4 space-y-3">
+            <CustomTextField
+              label="New Password"
+              name="new-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={AUTOCOMPLETE.changePassword.password}
+              value={passwordForm.password}
+              onChange={(e) =>
+                setPasswordForm({ ...passwordForm, password: e.target.value })
+              }
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={togglePassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
+            />
 
-          <CustomTextField
-            label="Confirm Password"
-            type={showPassword ? "text" : "password"}
-            value={passwordForm.confirmPassword}
-            onChange={(e) =>
-              setPasswordForm({
-                ...passwordForm,
-                confirmPassword: e.target.value,
-              })
-            }
-            InputProps={{
-              endAdornment: (
-                <IconButton onClick={togglePassword} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              ),
-            }}
-          />
-        </div>
+            <CustomTextField
+              label="Confirm Password"
+              name="confirm-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={AUTOCOMPLETE.changePassword.confirm}
+              value={passwordForm.confirmPassword}
+              onChange={(e) =>
+                setPasswordForm({
+                  ...passwordForm,
+                  confirmPassword: e.target.value,
+                })
+              }
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={togglePassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
+            />
+          </div>
 
-        <div className="px-6 py-3 border-t flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-3 py-2 border rounded"
-          >
-            Cancel
-          </button>
+          <div className="px-6 py-3 border-t flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-2 border rounded"
+            >
+              Cancel
+            </button>
 
-          <AppButton
-            onClick={handleChangePassword}
-            variant="primary"
-          >
-            Update Password
-          </AppButton>
-        </div>
+            <AppButton
+              onClick={handleChangePassword}
+              variant="primary"
+            >
+              Update Password
+            </AppButton>
+          </div>
+        </form>
       </div>
     </div>
   );
