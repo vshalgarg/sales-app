@@ -31,6 +31,7 @@ const CustomTextField = forwardRef(
       margin = "none",
       autoFocus = false,
       hideErrorUI = false, // 🔹 New prop to hide red border/helperText
+      autoComplete,
       slotProps,
       InputLabelProps,
       inputProps,
@@ -57,6 +58,7 @@ const CustomTextField = forwardRef(
         disabled={disabled}
         helperText={hideErrorUI ? "" : helperText || ""} // 🔹 hide helperText
         autoFocus={autoFocus}
+        autoComplete={autoComplete}
         fullWidth
         inputRef={ref}
         InputLabelProps={{
@@ -72,6 +74,7 @@ const CustomTextField = forwardRef(
             ...InputLabelProps,
           },
           htmlInput: {
+            autoComplete,
             ...slotProps?.htmlInput,
             ...inputProps,
           },

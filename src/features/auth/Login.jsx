@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { loginUser } from "@/services/LoginService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,7 +14,7 @@ const Login = () => {
 
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
-  const { login, auth, setAuth } = useAuth();
+  const { login, auth } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,6 +73,8 @@ const Login = () => {
               </label>
               <input
                 type="text"
+                name="username"
+                autoComplete={AUTOCOMPLETE.login.username}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your username"
@@ -90,6 +93,8 @@ const Login = () => {
               </label>
               <input
                 type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete={AUTOCOMPLETE.login.password}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"

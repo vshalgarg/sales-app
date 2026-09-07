@@ -24,3 +24,16 @@ select {
   background-color: white;
 }
 
+/* Neutralize Chrome/Edge autofill paint for native and MUI inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #111827;
+  caret-color: #111827;
+  box-shadow: 0 0 0 1000px #fff inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
+

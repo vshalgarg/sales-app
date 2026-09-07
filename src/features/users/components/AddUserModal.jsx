@@ -13,6 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import AppButton from "@/components/AppButton";
+import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
 
 
 const AddUserModal = ({ open, onClose, onSuccess }) => {
@@ -100,84 +101,87 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
           <h2 className="text-lg font-bold">Add New User</h2>
         </div>
 
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-3">
-          <CustomTextField
-            name="username"
-            label="Username"
-            value={form.username}
-            onChange={handleFormChange}
-            error={!!errors.username}
-            helperText={errors.username || ""}
-          />
-
-          <CustomTextField
-            name="password"
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            value={form.password}
-            onChange={handleFormChange}
-            error={!!errors.password}
-            helperText={errors.password || ""}
-            InputProps={{
-              endAdornment: (
-                <IconButton onClick={togglePassword} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              ),
-            }}
-          />
-          <FormControl
-            fullWidth
-            size="small"
-            margin="dense"
-            variant="outlined"
-            error={!!errors.role}
-          >
-            <InputLabel id="role-label">Role</InputLabel>
-
-            <Select
-              labelId="role-label"
-              name="role"
-              value={form.role}
-              label="Role"
+        <form autoComplete="off" onSubmit={handleAddUser} className="flex flex-col min-h-0 flex-1">
+          <div className="px-6 py-4 overflow-y-auto flex-1 space-y-3">
+            <CustomTextField
+              name="username"
+              label="Username"
+              autoComplete={AUTOCOMPLETE.createCredentials.username}
+              value={form.username}
               onChange={handleFormChange}
+              error={!!errors.username}
+              helperText={errors.username || ""}
+            />
+
+            <CustomTextField
+              name="password"
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={AUTOCOMPLETE.createCredentials.password}
+              value={form.password}
+              onChange={handleFormChange}
+              error={!!errors.password}
+              helperText={errors.password || ""}
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={togglePassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
+            />
+            <FormControl
+              fullWidth
+              size="small"
+              margin="dense"
+              variant="outlined"
+              error={!!errors.role}
             >
-              <MenuItem value="">
-                <em>Select role</em>
-              </MenuItem>
+              <InputLabel id="role-label">Role</InputLabel>
 
-              {ROLE_OPTIONS.map((role) => (
-                <MenuItem key={role} value={role}>
-                  {role}
+              <Select
+                labelId="role-label"
+                name="role"
+                value={form.role}
+                label="Role"
+                onChange={handleFormChange}
+              >
+                <MenuItem value="">
+                  <em>Select role</em>
                 </MenuItem>
-              ))}
-            </Select>
 
-            {errors.role && (
-              <p className="text-xs text-red-500 mt-1">{errors.role}</p>
-            )}
-          </FormControl>
+                {ROLE_OPTIONS.map((role) => (
+                  <MenuItem key={role} value={role}>
+                    {role}
+                  </MenuItem>
+                ))}
+              </Select>
 
+              {errors.role && (
+                <p className="text-xs text-red-500 mt-1">{errors.role}</p>
+              )}
+            </FormControl>
+          </div>
 
-        </div>
-
-        <div className="px-6 py-2 border-t flex justify-end space-x-2">
-          <button
-            onClick={() => {
-              resetForm();
-              onClose();
-            }}
-            className="px-3 py-2 border rounded-lg hover:bg-gray-200 text-sm"
-          >
-            Cancel
-          </button>
-          <AppButton
-            onClick={handleAddUser}
-            variant="primary"
-          >
-            Save User
-          </AppButton>
-        </div>
+          <div className="px-6 py-2 border-t flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                onClose();
+              }}
+              className="px-3 py-2 border rounded-lg hover:bg-gray-200 text-sm"
+            >
+              Cancel
+            </button>
+            <AppButton
+              onClick={handleAddUser}
+              variant="primary"
+            >
+              Save User
+            </AppButton>
+          </div>
+        </form>
       </div>
     </div>
   );
