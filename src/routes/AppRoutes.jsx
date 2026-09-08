@@ -4,7 +4,7 @@ import PublicLayout from "../layouts/PublicLayout";
 import AppLayout from "../layouts/AppLayout";
 import PrivateRoute from "./PrivateRoute";
 
-const Login = lazy(() => import("@/features/auth/Login"));
+import Login from "@/features/auth/Login";
 const SupplierDashboard = lazy(() => import("@/features/suppliers/SupplierDashboard"));
 const CustomerDashboard = lazy(() => import("@/features/customers/CustomerDashboard"));
 const StaffDashboard = lazy(() => import("@/features/staff/StaffDashboard"));
