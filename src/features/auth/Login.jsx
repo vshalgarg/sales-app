@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
 
 const LEGAL_LINK_CLASS =
-  "font-bold text-gray-500 hover:text-[#6c63ff] underline underline-offset-2 transition-colors";
+  "font-bold text-gray-500 hover:text-[#6c63ff] underline underline-offset-2 transition-colors whitespace-nowrap";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -186,15 +186,17 @@ const Login = () => {
                 Terms &amp; Conditions
               </a>{" "}
               and{" "}
-              <a
-                href="/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LEGAL_LINK_CLASS}
-              >
-                Privacy Policy
-              </a>
-              .
+              <span className="whitespace-nowrap">
+                <a
+                  href="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={LEGAL_LINK_CLASS}
+                >
+                  Privacy Policy
+                </a>
+                .
+              </span>
             </p>
           </form>
         </div>
