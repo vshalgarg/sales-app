@@ -5,6 +5,9 @@ import { useSnackbar } from "@/contexts/SnackbarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
 
+const LEGAL_LINK_CLASS =
+  "font-bold text-gray-500 hover:text-[#6c63ff] underline underline-offset-2 transition-colors";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,9 +56,9 @@ const Login = () => {
       </div>
 
       {/* Right - Form */}
-      <div className="flex-1 flex items-center justify-center bg-gray-50 px-6 py-10 md:px-12">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 md:p-10">
-          <div className="text-center mb-8">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 px-6 py-4 md:px-12">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-5 md:p-6">
+          <div className="text-center mb-4">
             <div className="flex justify-center">
               <img
                 src="/logo.webp"
@@ -69,7 +72,7 @@ const Login = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -171,6 +174,28 @@ const Login = () => {
             >
               {isLoading ? "Signing in..." : "Login →"}
             </button>
+
+            <p className="text-xs text-center text-gray-500 leading-relaxed">
+              By continuing, you agree to our{" "}
+              <a
+                href="/terms-and-conditions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={LEGAL_LINK_CLASS}
+              >
+                Terms &amp; Conditions
+              </a>{" "}
+              and{" "}
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={LEGAL_LINK_CLASS}
+              >
+                Privacy Policy
+              </a>
+              .
+            </p>
           </form>
         </div>
       </div>
