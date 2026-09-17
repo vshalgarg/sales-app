@@ -42,6 +42,7 @@ class ReportingFilterSection extends StatefulWidget {
 class _ReportingFilterSectionState
     extends State<ReportingFilterSection>
     with WidgetsBindingObserver {
+  double _keyboardHeight = 0;
   final ScrollController _scrollController = ScrollController();
   bool _keyboardWasOpen = false;
   @override
@@ -54,9 +55,12 @@ class _ReportingFilterSectionState
     super.didChangeMetrics();
 
     if (!mounted) return;
-
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final view = View.of(context);
+    final bottomInset = view.viewInsets.bottom / view.devicePixelRatio;
     final keyboardIsOpen = bottomInset > 0;
+    setState(() {
+      _keyboardHeight = bottomInset;
+    });
 
     if (keyboardIsOpen && !_keyboardWasOpen) {
       _keyboardWasOpen = true;
@@ -96,7 +100,6 @@ class _ReportingFilterSectionState
   }
   @override
   Widget build(BuildContext context) {
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return SingleChildScrollView(
       controller: _scrollController,
@@ -105,7 +108,7 @@ class _ReportingFilterSectionState
         28,
         12,
         24,
-        keyboardHeight + 70,
+        _keyboardHeight + 70,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

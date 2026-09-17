@@ -19,6 +19,7 @@ import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/reporting_provider/credit_provider.dart';
+import '../../widgets/entry_bottom_action_bar.dart';
 
 class CreditEntry extends StatefulWidget {
   final FormMode mode;
@@ -218,7 +219,148 @@ class _CreditEntryState extends State<CreditEntry> {
       _validationMode = AutovalidateMode.disabled;
     });
   }
+  Future<void> _saveCredit() async {
+    setState(() {
+      isExpanded = true;
+      isTransactionExpanded = true;
+      isAdditionalExpanded = true;
+      _validationMode = AutovalidateMode.always;
+    });
 
+    await Future<void>.delayed(Duration.zero);
+
+    if (!mounted) return;
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      ScaffoldSnackBar.show(
+        context,
+        "Please fill all required fields",
+      );
+      return;
+    }
+
+    final body = _creditBody();
+
+    try {
+      final request = AddCreditRequest.fromJson(body);
+
+      final success = await context
+          .read<CreditProvider>()
+          .addCredit(request: request);
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.pop(context, true);
+      }
+    } catch (e, stackTrace) {
+      log(
+        "ADD CREDIT ERROR: $e",
+        stackTrace: stackTrace,
+      );
+
+      if (!mounted) return;
+
+      final message = e
+          .toString()
+          .replaceFirst("Exception: ", "")
+          .trim();
+
+      ScaffoldSnackBar.show(context, message);
+    }
+  }
+  Future<void> _updateCredit() async {
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldSnackBar.show(
+        context,
+        "Please fill all required fields",
+      );
+      return;
+    }
+
+    try {
+      final body = _creditBody();
+
+      await context.read<EntriesProvider>().updateCreditDetails(
+        id: widget.credit!.id!.toInt(),
+        body: body,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldSnackBar.show(
+        context,
+        e.toString(),
+      );
+    }
+  }
+  Widget _buildBottomActionBar() {
+    // VIEW
+    if (widget.mode == FormMode.view) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+          color: AppColors.bodyFillColor,
+          child: SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                side: BorderSide.none,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              child: const Text(
+                "Close",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // EDIT
+    if (widget.mode == FormMode.edit) {
+      return EntryBottomActionBar(
+        secondaryText: "Cancel",
+        secondaryIcon: Icons.close_rounded,
+        onSecondaryPressed: () {
+          Navigator.pop(context);
+        },
+        primaryText: "Update",
+        primaryIcon: Icons.save_outlined,
+        onPrimaryPressed: _updateCredit,
+      );
+    }
+
+    // ADD
+    return EntryBottomActionBar(
+      secondaryText: "Reset",
+      secondaryIcon: Icons.refresh_rounded,
+      onSecondaryPressed: clearFields,
+      primaryText: "Save",
+      primaryIcon: Icons.save_rounded,
+      onPrimaryPressed: _saveCredit,
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<EntriesProvider>();
@@ -264,6 +406,7 @@ class _CreditEntryState extends State<CreditEntry> {
             ),
         ],
       ),
+      bottomNavigationBar: _buildBottomActionBar(),
       body: Stack(
         children: [
           Padding(
@@ -584,9 +727,21 @@ class _CreditEntryState extends State<CreditEntry> {
                                 ),
                                 IconButton(
                                   onPressed: () {
+                                    final willExpand = !isAdditionalExpanded;
                                     setState(() {
                                       isAdditionalExpanded = !isAdditionalExpanded;
                                     });
+                                    if (willExpand) {
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        if (!_scrollController.hasClients) return;
+
+                                        _scrollController.animateTo(
+                                          _scrollController.position.maxScrollExtent,
+                                          duration: const Duration(milliseconds: 300),
+                                          curve: Curves.easeOut,
+                                        );
+                                      });
+                                    }
                                   },
                                   icon: Icon(
                                     isAdditionalExpanded
@@ -636,193 +791,6 @@ class _CreditEntryState extends State<CreditEntry> {
                         ],
                       ),
                     SizedBox(height: 15),
-                    if (widget.mode == FormMode.add)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2, bottom: 10),
-                        child: Row(
-                          children: [
-                            // RESET
-                            Expanded(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(5),
-                                  onTap: () {
-                                    clearFields();
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(
-                                        color: const Color(0xFFE5E2EE),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.refresh_rounded,
-                                          color: AppColors.primaryPurple,
-                                          size: 30,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Text(
-                                            "Reset",
-                                            style: TextStyle(
-                                              color: AppColors.primaryPurple,
-                                              fontSize: 20,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 16),
-
-                            // SAVE
-                            Expanded(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(5),
-                                  onTap: () async {
-
-                                    setState(() {
-                                      isExpanded = true;
-                                      isTransactionExpanded = true;
-                                      isAdditionalExpanded = true;
-                                      _validationMode = AutovalidateMode.always;
-                                    });
-
-                                    await Future<void>.delayed(Duration.zero);
-
-                                    if (!mounted) return;
-
-                                    final isValid =
-                                        _formKey.currentState?.validate() ??
-                                            false;
-
-                                    if (!isValid) {
-
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        "Please fill all required fields",
-                                      );
-
-                                      return;
-                                    }
-
-                                    final body = _creditBody();
-                                    try {
-                                      final request = AddCreditRequest.fromJson(
-                                        body,
-                                      );
-
-                                      final success = await context
-                                          .read<CreditProvider>()
-                                          .addCredit(request: request);
-
-                                      if (!mounted) return;
-
-                                      if (success) {
-                                        Navigator.pop(context, true);
-                                      }
-                                    } catch (e, stackTrace) {
-                                      log("ADD CREDIT ERROR: $e",
-                                        stackTrace: stackTrace,
-                                      );
-
-                                      if (!mounted) return;
-
-                                      final message = e
-                                          .toString()
-                                          .replaceFirst("Exception: ", "")
-                                          .trim();
-
-                                      ScaffoldSnackBar.show(context, message);
-                                    }
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryPurple,
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.save_rounded,
-                                          color: Colors.white,
-                                          size: 30,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Text(
-                                            "Save",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 20,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    if (widget.mode == FormMode.edit)
-                      CustomElevatedButton(
-                        text: "Update",
-                        color: AppColors.primaryPurple,
-                        textStyle: TextStyle(color: Colors.white, fontSize: 20),
-                        onPressed: () async {
-                          if (!_formKey.currentState!.validate()) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Credit entry successfully added."
-                              "Failed to add credit entry",
-                            );
-                            return;
-                          }
-
-                          try {
-                            final body = _creditBody();
-
-                            final response = await context
-                                .read<EntriesProvider>()
-                                .updateCreditDetails(
-                                  id: widget.credit!.id!.toInt(),
-                                  body: body,
-                                );
-
-                            if (!context.mounted) return;
-
-                            Navigator.pop(context, true);
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldSnackBar.show(context, e.toString());
-                          }
-                        },
-                        borderRadius: 5,
-                      ),
-
-                    SizedBox(height: 40),
                   ],
                 ),
               ),

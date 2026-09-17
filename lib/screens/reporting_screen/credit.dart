@@ -55,9 +55,15 @@ class _CreditScreenState extends State<CreditScreen> {
     super.initState();
 
     final now = DateTime.now();
-    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final oneMonthAgo = DateTime(
+      now.year,
+      now.month - 1,
+      now.day,
+    );
+
     final formatter = DateFormat("dd-MM-yyyy");
-    final defaultFromDate = formatter.format(tenDaysAgo);
+
+    final defaultFromDate = formatter.format(oneMonthAgo);
     final defaultToDate = formatter.format(now);
 
     fromDateController.clear();
@@ -354,276 +360,285 @@ class _CreditScreenState extends State<CreditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
-    final height = size.height;
+    return LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) async {
+              if (didPop) return;
 
-        await _resetCreditsBeforeExit();
+              await _resetCreditsBeforeExit();
 
-        if (!context.mounted) return;
+              if (!context.mounted) return;
 
-        Navigator.pop(context);
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.bodyFillColor,
-
-        appBar: CustomAppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => HomeScreen()),
-              );
+              Navigator.pop(context);
             },
-          ),
-          title: "Credits",
-          textStyle: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 25,
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.filter_alt_outlined, color: Colors.white),
-              onPressed: _showFilterBottomSheet,
-            ),
-          ],
-        ),
+            child: Scaffold(
+              backgroundColor: AppColors.bodyFillColor,
 
-        floatingActionButton: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (_showGoToTop)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: FloatingActionButton.small(
-                  heroTag: "top",
-                  backgroundColor: AppColors.primaryPurple,
+              appBar: CustomAppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
                   onPressed: () {
-                    _scrollController.animateTo(
-                      0,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => HomeScreen()),
                     );
                   },
-                  child: const Icon(
-                    Icons.keyboard_arrow_up,
-                    color: Colors.white,
-                  ),
                 ),
+                title: "Credits",
+                textStyle: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 25,
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(
+                        Icons.filter_alt_outlined, color: Colors.white),
+                    onPressed: _showFilterBottomSheet,
+                  ),
+                ],
               ),
 
-            FloatingActionButton(
-              heroTag: "add",
-              backgroundColor: AppColors.primaryPurple,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
-              ),
-              onPressed: () async {
-                if (isOpening) return;
-
-                setState(() {
-                  isOpening = true;
-                });
-
-                try {
-                  final refresh = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CreditEntry(),
+              floatingActionButton: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (_showGoToTop)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: FloatingActionButton.small(
+                        heroTag: "top",
+                        backgroundColor: AppColors.primaryPurple,
+                        onPressed: () {
+                          _scrollController.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        child: const Icon(
+                          Icons.keyboard_arrow_up,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  );
 
-                  if (refresh == true && mounted) {
-                    final creditProvider = context.read<CreditProvider>();
+                  FloatingActionButton(
+                    heroTag: "add",
+                    backgroundColor: AppColors.primaryPurple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    onPressed: () async {
+                      if (isOpening) return;
 
-                    await creditProvider.refreshCredits();
+                      setState(() {
+                        isOpening = true;
+                      });
 
-                    if (!mounted) return;
-                  }
-                } finally {
-                  if (mounted) {
-                    setState(() {
-                      isOpening = false;
-                    });
-                  }
-                }
-              },
-              child: isOpening
-                  ? const SizedBox(
+                      try {
+                        final refresh = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CreditEntry(),
+                          ),
+                        );
+
+                        if (refresh == true && mounted) {
+                          final creditProvider = context.read<CreditProvider>();
+
+                          await creditProvider.refreshCredits();
+
+                          if (!mounted) return;
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            isOpening = false;
+                          });
+                        }
+                      }
+                    },
+                    child: isOpening
+                        ? const SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Iconsax.add, color: Colors.white, size: 40),
-            ),
-          ],
-        ),
+                        : const Icon(
+                        Iconsax.add, color: Colors.white, size: 40),
+                  ),
+                ],
+              ),
 
-        body: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.04,
-            vertical: height * 0.015,
-          ),
-          child: Consumer<CreditProvider>(
-            builder: (context, provider, child) {
-              return PaginationWidget<Credit>(
-                pagination: provider.pagination,
+              body: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.04,
+                  vertical: height * 0.015,
+                ),
+                child: Consumer<CreditProvider>(
+                  builder: (context, provider, child) {
+                    return PaginationWidget<Credit>(
+                      pagination: provider.pagination,
 
-                items: provider.data.items,
+                      items: provider.data.items,
 
-                loading: provider.loading,
+                      loading: provider.loading,
 
-                fetchPage: (page) async {
-                  await provider.fetchPage(page);
-                },
-
-                refresh: () async {
-                  await provider.refresh();
-                },
-
-                itemBuilder: (context, credit) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: ReportingCard(
-                      leadingIcon: Iconsax.card,
-
-                      title: "Invoice :",
-
-                      value: credit.billNumber ?? "",
-
-                      chips: [
-                        ReportChip(
-                          icon: Iconsax.calendar,
-                          text: credit.date ?? "",
-                        ),
-                      ],
-
-                      fields: [
-                        ReportField(
-                          icon: Iconsax.shop,
-                          label: "Supplier",
-                          value: credit.supplierName ?? "",
-                        ),
-                        ReportField(
-                          icon: Iconsax.user,
-                          label: "Customer",
-                          value: credit.customerName ?? "",
-                        ),
-                      ],
-
-                      amount: credit.receivedAmount.toString(),
-
-                      deleteWithAmount: true,
-
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CreditEntry(
-                              mode: FormMode.view,
-                              credit: credit,
-                            ),
-                          ),
-                        );
+                      fetchPage: (page) async {
+                        await provider.fetchPage(page);
                       },
 
-                      onEdit: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CreditEntry(
-                              mode: FormMode.edit,
-                              credit: credit,
-                            ),
-                          ),
-                        );
-                        if (context.mounted) {
-                          await context.read<CreditProvider>().refreshCredits();
-                        }
+                      refresh: () async {
+                        await provider.refresh();
                       },
 
-                      onDelete: () async {
-                        ExitConfirmationDialog.show(
-                          context,
-                          isDelete: true,
-                          body: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (credit.billNumber != null &&
-                                  credit.billNumber!.trim().isNotEmpty)
-                                RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
-                                    children: [
-                                      const TextSpan(
-                                        text:
-                                            "Are you sure you want to delete Credit :  ",
+                      itemBuilder: (context, credit) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ReportingCard(
+                            leadingIcon: Iconsax.card,
+
+                            title: "Invoice :",
+
+                            value: credit.billNumber ?? "",
+
+                            chips: [
+                              ReportChip(
+                                icon: Iconsax.calendar,
+                                text: credit.date ?? "",
+                              ),
+                            ],
+
+                            fields: [
+                              ReportField(
+                                icon: Iconsax.shop,
+                                label: "Supplier",
+                                value: credit.supplierName ?? "",
+                              ),
+                              ReportField(
+                                icon: Iconsax.user,
+                                label: "Customer",
+                                value: credit.customerName ?? "",
+                              ),
+                            ],
+
+                            amount: credit.receivedAmount.toString(),
+
+                            deleteWithAmount: true,
+
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CreditEntry(
+                                        mode: FormMode.view,
+                                        credit: credit,
                                       ),
-                                      TextSpan(
-                                        text: credit.billNumber,
-                                        style: const TextStyle(
-                                          color: AppColors.orangeColor,
-                                          fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            },
+
+                            onEdit: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CreditEntry(
+                                        mode: FormMode.edit,
+                                        credit: credit,
+                                      ),
+                                ),
+                              );
+                              if (context.mounted) {
+                                await context
+                                    .read<CreditProvider>()
+                                    .refreshCredits();
+                              }
+                            },
+
+                            onDelete: () async {
+                              ExitConfirmationDialog.show(
+                                context,
+                                isDelete: true,
+                                body: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (credit.billNumber != null &&
+                                        credit.billNumber!.trim().isNotEmpty)
+                                      RichText(
+                                        textAlign: TextAlign.center,
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text:
+                                              "Are you sure you want to delete Credit :  ",
+                                            ),
+                                            TextSpan(
+                                              text: credit.billNumber,
+                                              style: const TextStyle(
+                                                color: AppColors.orangeColor,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const TextSpan(text: "?"),
+                                          ],
+                                        ),
+                                      )
+                                    else
+                                      const Text(
+                                        "Are you sure you want to delete this credit?",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black,
                                         ),
                                       ),
-                                      const TextSpan(text: "?"),
-                                    ],
-                                  ),
-                                )
-                              else
-                                const Text(
-                                  "Are you sure you want to delete this credit?",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
+                                  ],
                                 ),
-                            ],
+                                saveButtonText: "Delete",
+                                discardButtonText: "Cancel",
+                                onDiscard: () {
+                                  Navigator.pop(context);
+                                },
+                                onSave: () async {
+                                  Navigator.pop(context);
+
+                                  final success = await provider.deleteCredit(
+                                    credit.id!.toInt(),
+                                  );
+
+                                  if (!context.mounted) return;
+
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    success
+                                        ? "Credit deleted successfully"
+                                        : "Failed to delete credit",
+                                  );
+                                },
+                              );
+                            },
                           ),
-                          saveButtonText: "Delete",
-                          discardButtonText: "Cancel",
-                          onDiscard: () {
-                            Navigator.pop(context);
-                          },
-                          onSave: () async {
-                            Navigator.pop(context);
-
-                            final success = await provider.deleteCredit(
-                              credit.id!.toInt(),
-                            );
-
-                            if (!context.mounted) return;
-
-                            ScaffoldSnackBar.show(
-                              context,
-                              success
-                                  ? "Credit deleted successfully"
-                                  : "Failed to delete credit",
-                            );
-                          },
                         );
                       },
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        }
     );
   }
 }

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-
+import 'package:http_parser/http_parser.dart';
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
 import '../../../../network/response_result.dart';
@@ -219,10 +219,14 @@ class BillService {
 
     final formData = FormData();
 
-    formData.fields.add(
+    formData.files.add(
       MapEntry(
-        "payload",
-        jsonEncode(payload),
+        "data",
+        MultipartFile.fromString(
+          jsonEncode(payload),
+          filename: "data.json",
+          contentType: MediaType("application", "json"),
+        ),
       ),
     );
 
@@ -237,7 +241,6 @@ class BillService {
         ),
       );
     }
-
     final result = await _api.patch<Map<String, dynamic>>(
       path: "$_billEntry/update/$id",
       data: formData,

@@ -117,211 +117,236 @@ class _AddSupplierState extends State<AddSupplier> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.60,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 35,
-                      left: 15,
-                      right: 15,
-                      bottom: 15,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.headingText ?? "Add Suppliers",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryPurple,
-                          ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: constraints.maxHeight * 0.60,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 35,
+                          left: 15,
+                          right: 15,
+                          bottom: 15,
                         ),
-                        SizedBox(height: 15),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Form(
-                              key: _formKey,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomDropdown(
-                                      hintText: "Supplier",
-                                      items: provider.entries
-                                          .map((e) => e.supplierName ?? '')
-                                          .toList(),
-                                      initialValue: selectedSupplierName,
-                                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                                      validator: (value) {
-                                        if (value == null) {
-                                          return "Select Supplier";
-                                        }
-                                        return null;
-                                      },
-                                      onChanged: (value) {
-                                        setState(() {
-                                          selectedSupplierName = value;
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              widget.headingText ?? "Add Suppliers",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryPurple,
+                              ),
+                            ),
+                            SizedBox(height: 15),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Form(
+                                  key: _formKey,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        CustomDropdown(
+                                          hintText: "Supplier",
+                                          items: provider.entries
+                                              .map((e) => e.supplierName ?? '')
+                                              .toList(),
+                                          initialValue: selectedSupplierName,
+                                          autovalidateMode: AutovalidateMode
+                                              .onUserInteraction,
+                                          validator: (value) {
+                                            if (value == null) {
+                                              return "Select Supplier";
+                                            }
+                                            return null;
+                                          },
+                                          onChanged: (value) {
+                                            setState(() {
+                                              selectedSupplierName = value;
 
-                                          selectedSupplier = provider.entries
-                                              .firstWhere(
-                                                (e) => e.supplierName == value,
-                                              );
-                                        });
-                                      },
-                                    ),
-
-                                    const SizedBox(height: 15),
-
-                                    TextFormField(
-                                      controller: dateController,
-                                      readOnly: true,
-                                      decoration: decoration("Date").copyWith(
-                                        suffixIcon: const Icon(
-                                          Icons.calendar_today_outlined,
+                                              selectedSupplier = provider
+                                                  .entries
+                                                  .firstWhere(
+                                                    (e) =>
+                                                        e.supplierName == value,
+                                                  );
+                                            });
+                                          },
                                         ),
-                                      ),
-                                      onTap: pickDate,
-                                    ),
 
-                                    const SizedBox(height: 15),
+                                        const SizedBox(height: 15),
 
-                                    TextFormField(
-                                      controller: totalController,
-                                      keyboardType: TextInputType.number,
-                                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                                      decoration: decoration("Total Amount"),
-                                      validator: (v) {
-                                        if (v == null || v.trim().isEmpty) {
-                                          return "Enter amount";
-                                        }
-                                        return null;
-                                      },
-                                    ),
+                                        TextFormField(
+                                          controller: dateController,
+                                          readOnly: true,
+                                          decoration: decoration("Date")
+                                              .copyWith(
+                                                suffixIcon: const Icon(
+                                                  Icons.calendar_today_outlined,
+                                                ),
+                                              ),
+                                          onTap: pickDate,
+                                        ),
 
-                                    const SizedBox(height: 15),
+                                        const SizedBox(height: 15),
 
-                                    TextFormField(
-                                      controller: depositController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: decoration("Deposit Amount"),
-                                    ),
+                                        TextFormField(
+                                          controller: totalController,
+                                          keyboardType: TextInputType.number,
+                                          autovalidateMode: AutovalidateMode
+                                              .onUserInteraction,
+                                          decoration: decoration(
+                                            "Total Amount",
+                                          ),
+                                          validator: (v) {
+                                            if (v == null || v.trim().isEmpty) {
+                                              return "Enter amount";
+                                            }
+                                            return null;
+                                          },
+                                        ),
 
-                                    const SizedBox(height: 15),
+                                        const SizedBox(height: 15),
 
-                                    TextFormField(
-                                      controller: balanceController,
-                                      readOnly: true,
-                                      decoration: decoration("Balance Amount"),
-                                    ),
+                                        TextFormField(
+                                          controller: depositController,
+                                          keyboardType: TextInputType.number,
+                                          decoration: decoration(
+                                            "Deposit Amount",
+                                          ),
+                                        ),
 
-                                    const SizedBox(height: 20),
+                                        const SizedBox(height: 15),
 
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              AppColors.primaryPurple,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              5,
+                                        TextFormField(
+                                          controller: balanceController,
+                                          readOnly: true,
+                                          decoration: decoration(
+                                            "Balance Amount",
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 20),
+
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  AppColors.primaryPurple,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              if (!_formKey.currentState!
+                                                  .validate()) {
+                                                return;
+                                              }
+                                              final retailProvider = context
+                                                  .read<RetailProvider>();
+                                              await retailProvider
+                                                  .fetchRetailDetails(
+                                                    widget.retailId,
+                                                  );
+                                              final alreadyAdded =
+                                                  retailProvider
+                                                      .retailDetails
+                                                      ?.suppliers
+                                                      .any(
+                                                        (e) =>
+                                                            e.supplierId ==
+                                                            selectedSupplier
+                                                                ?.id,
+                                                      ) ??
+                                                  false;
+
+                                              if (alreadyAdded) {
+                                                if (!context.mounted) return;
+                                                ScaffoldSnackBar.show(
+                                                  context,
+                                                  "Supplier already added",
+                                                );
+                                                return;
+                                              }
+                                              final body = {
+                                                "retailId": widget.retailId,
+                                                "supplierId":
+                                                    selectedSupplier!.id,
+                                                "totalAmount":
+                                                    double.tryParse(
+                                                      totalController.text,
+                                                    ) ??
+                                                    0,
+                                                "depositAmount":
+                                                    double.tryParse(
+                                                      depositController.text,
+                                                    ) ??
+                                                    0,
+                                                "depositDate":
+                                                    DateFormat("dd-MM-yyyy")
+                                                        .parse(
+                                                          dateController.text,
+                                                        )
+                                                        .toIso8601String(),
+                                              };
+                                              try {
+                                                final success =
+                                                    await retailProvider
+                                                        .addRetailSupplier(
+                                                          body,
+                                                        );
+
+                                                if (!context.mounted) return;
+
+                                                if (success) {
+                                                  Navigator.pop(context, true);
+
+                                                  ScaffoldSnackBar.show(
+                                                    context,
+                                                    "Supplier added successfully",
+                                                  );
+                                                } else {
+                                                  ScaffoldSnackBar.show(
+                                                    context,
+                                                    "Failed to add supplier",
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                if (!context.mounted) return;
+
+                                                ScaffoldSnackBar.show(
+                                                  context,
+                                                  e.toString(),
+                                                );
+                                              }
+                                            },
+                                            child: const Text(
+                                              "ADD SUPPLIER",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          if (!_formKey.currentState!
-                                              .validate()) {
-                                            return;
-                                          }
-                                          final retailProvider = context.read<RetailProvider>();
-                                          await retailProvider
-                                              .fetchRetailDetails(
-                                                widget.retailId,
-                                              );
-                                          final alreadyAdded =
-                                              retailProvider
-                                                  .retailDetails
-                                                  ?.suppliers
-                                                  .any(
-                                                    (e) =>
-                                                        e.supplierId ==
-                                                        selectedSupplier?.id,
-                                                  ) ??
-                                              false;
-
-                                          if (alreadyAdded) {
-                                            if (!context.mounted) return;
-                                            ScaffoldSnackBar.show(
-                                              context,
-                                              "Supplier already added",
-                                            );
-                                            return;
-                                          }
-                                          final body = {
-                                            "retailId": widget.retailId,
-                                            "supplierId": selectedSupplier!.id,
-                                            "totalAmount":
-                                                double.tryParse(
-                                                  totalController.text,
-                                                ) ??
-                                                0,
-                                            "depositAmount":
-                                                double.tryParse(
-                                                  depositController.text,
-                                                ) ??
-                                                0,
-                                            "depositDate":
-                                                DateFormat("dd-MM-yyyy")
-                                                    .parse(dateController.text)
-                                                    .toIso8601String(),
-                                          };
-                                          try {
-
-                                            final success = await retailProvider.addRetailSupplier(body);
-
-                                            if (!context.mounted) return;
-
-                                            if (success) {
-                                              Navigator.pop(context, true);
-
-                                              ScaffoldSnackBar.show(
-                                                context,
-                                                "Supplier added successfully",
-                                              );
-                                            } else {
-                                              ScaffoldSnackBar.show(
-                                                context,
-                                                "Failed to add supplier",
-                                              );
-                                            }
-                                          } catch (e) {
-                                            if (!context.mounted) return;
-
-                                            ScaffoldSnackBar.show(
-                                              context,
-                                              e.toString(),
-                                            );
-                                          }
-                                        },
-                                        child: const Text(
-                                          "ADD SUPPLIER",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
               Positioned(

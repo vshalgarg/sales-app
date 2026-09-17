@@ -132,51 +132,26 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     refresh: provider.refreshCustomers,
                     itemBuilder: (context, customer) {
                       return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          final provider = context.read<CustomerProvider>();
+
+                          final details = await provider.fetchCustomerDetails(
+                            customer.id,
+                          );
+
+                          if (!context.mounted || details == null) return;
+
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  AddNewCustomer(
-                                    mode: FormMode.view,
-                                    id: customer.id,
-                                  ),
+                              builder: (_) => AddNewCustomer(
+                                mode: FormMode.view,
+                                id: customer.id,
+                                customerDetails: details,
+                              ),
                             ),
                           );
                         },
-
-                        // return PageView.builder(
-                        //   controller: _pageController,
-                        //   itemCount: provider.data.pagination.totalPages,
-                        //   onPageChanged: (page) async {
-                        //     if (page != provider.data.pagination.currentPage) {
-                        //       await provider.fetchPage(page);
-                        //     }
-                        //   },
-                        //   itemBuilder: (context, pageIndex) {
-                        //     return RefreshIndicator(
-                        //       onRefresh: provider.refreshCustomers,
-                        //       child: ListView.separated(
-                        //         physics: const AlwaysScrollableScrollPhysics(),
-                        //         padding: const EdgeInsets.only(bottom: 100),
-                        //         separatorBuilder: (_, _) =>
-                        //         const SizedBox(height: 8),
-                        //         itemCount: customers.length,
-                        //         itemBuilder: (context, index) {
-                        //           final customer = customers[index];
-                        //
-                        //           return GestureDetector(
-                        //             onTap: () {
-                        //               Navigator.push(
-                        //                 context,
-                        //                 MaterialPageRoute(
-                        //                   builder: (_) => AddNewCustomer(
-                        //                     mode: FormMode.view,
-                        //                     id: customer.id,
-                        //                   ),
-                        //                 ),
-                        //               );
-                        //             },
                         child: MasterContainer(
                           elevation: 1,
 
@@ -192,30 +167,52 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
                           city: displayValue(customer.city),
 
-                          eyeIconTap: () {
-                            Navigator.push(
+                          eyeIconTap: () async {
+                            final provider = context.read<CustomerProvider>();
+
+                            final details = await provider.fetchCustomerDetails(
+                              customer.id,
+                            );
+
+                            if (!context.mounted || details == null) return;
+
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    AddNewCustomer(
-                                      mode: FormMode.view,
-                                      id: customer.id,
-                                    ),
+                                builder: (_) => AddNewCustomer(
+                                  mode: FormMode.view,
+                                  id: customer.id,
+                                  customerDetails: details,
+                                ),
                               ),
                             );
                           },
 
-                          editIconTap: () {
-                            Navigator.push(
+                          editIconTap: () async {
+                            final provider = context.read<CustomerProvider>();
+
+                            final details = await provider.fetchCustomerDetails(
+                              customer.id,
+                            );
+
+                            if (!context.mounted || details == null) return;
+
+                            final refresh = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    AddNewCustomer(
-                                      mode: FormMode.edit,
-                                      id: customer.id,
-                                    ),
+                                builder: (_) => AddNewCustomer(
+                                  mode: FormMode.edit,
+                                  id: customer.id,
+                                  customerDetails: details,
+                                ),
                               ),
                             );
+
+                            if (!context.mounted) return;
+
+                            if (refresh == true) {
+                              await provider.refreshCustomers();
+                            }
                           },
 
                           copyIconTap: () async {

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +25,7 @@ import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/reporting_provider/purchase_provider.dart';
+import '../../widgets/entry_bottom_action_bar.dart';
 
 class PurchaseEntryScreen extends StatefulWidget {
   final FormMode mode;
@@ -359,6 +359,156 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
     return true;
   }
+  Future<void> _savePurchase() async {
+    final isValid = await _validatePurchaseForm();
+
+    if (!isValid) return;
+
+    final request = AddPurchaseRequest(
+      date: _toApiDate(transactionController.text),
+      staffId: selectedStaff?.staffId,
+      customerId: selectedCustomer!.id!,
+      suppliers: List.generate(
+        selectedSuppliers.length,
+            (index) => index,
+      )
+          .where(
+            (index) => selectedSuppliers[index] != null,
+      )
+          .map(
+            (index) => PurchaseSupplierRequest(
+          supplierId: selectedSuppliers[index]!.id!,
+          remarks: remarksControllers[index]
+              .text
+              .trim(),
+        ),
+      )
+          .toList(),
+    );
+
+    final purchaseProvider =
+    context.read<PurchaseProvider>();
+
+    final success = await purchaseProvider.addPurchase(
+      request: request,
+      uploadedFiles: uploadedFiles,
+      selectedSuppliers: selectedSuppliers,
+    );
+
+    if (!context.mounted) return;
+
+    if (success) {
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldSnackBar.show(
+        context,
+        "Failed to add purchase",
+      );
+    }
+  }
+  Future<void> _updatePurchase() async {
+    final isValid = await _validatePurchaseForm();
+
+    if (!isValid) return;
+
+    final purchaseProvider = context.read<PurchaseProvider>();
+
+    final success = await purchaseProvider.updatePurchase(
+      id: widget.id!,
+      date: _toApiDate(transactionController.text),
+      customerId: selectedCustomer!.id!,
+      supplierId: selectedSuppliers.first!.id!,
+      staffId: selectedStaff?.staffId ?? 0,
+      remarks: remarksControllers.first.text,
+      existingImageKeys: existingImageKeys,
+      supplierImages: uploadedFiles.first
+          .where((e) => e.path != null)
+          .map((e) => File(e.path!))
+          .toList(),
+    );
+
+    if (!success) {
+      if (!context.mounted) return;
+
+      ScaffoldSnackBar.show(
+        context,
+        "Failed to update purchase",
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    ScaffoldSnackBar.show(
+      context,
+      "Purchase updated successfully",
+    );
+
+    await purchaseProvider.refreshPurchases();
+
+    if (!context.mounted) return;
+
+    Navigator.pop(context, true);
+  }
+  Widget _buildBottomActionBar() {
+    if (isViewMode) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+          color: AppColors.bodyFillColor,
+          child: SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                side: BorderSide.none,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              child: const Text(
+                "Close",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
+          ),
+        ),
+      );
+    }
+
+    if (isEditMode) {
+      return EntryBottomActionBar(
+        secondaryText: "Cancel",
+        secondaryIcon: Icons.close_rounded,
+        onSecondaryPressed: () {
+          Navigator.pop(context);
+        },
+        primaryText: "Update",
+        primaryIcon: Icons.save_outlined,
+        onPrimaryPressed: _updatePurchase,
+      );
+    }
+
+    return EntryBottomActionBar(
+      secondaryText: "Reset",
+      secondaryIcon: Icons.refresh_rounded,
+      onSecondaryPressed: clearFields,
+      primaryText: "Save",
+      primaryIcon: Icons.save_rounded,
+      onPrimaryPressed: _savePurchase,
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final purchaseProvider = context.watch<PurchaseProvider>();
@@ -405,6 +555,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
             ),
         ],
       ),
+      bottomNavigationBar: _buildBottomActionBar(),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -1036,235 +1187,8 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                           },
                         ),
                     ],
-                    if (isAddMode) ...[
-                      const SizedBox(height: 15),
-
-                      SafeArea(
-                        top: false,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(5),
-                                    onTap: () {
-                                      clearFields();
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(
-                                          5,
-                                        ),
-                                        border: Border.all(
-                                          color: const Color(0xFFE5E2EE),
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.refresh_rounded,
-                                            color: AppColors.primaryPurple,
-                                            size: 30,
-                                          ),
-                                          SizedBox(width: 10),
-                                          Text(
-                                            "Reset",
-                                            style: TextStyle(
-                                              color: AppColors.primaryPurple,
-                                              fontSize: 20,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 16),
-
-                              Expanded(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(5),
-                                    onTap: () async {
-                                      final isValid = await _validatePurchaseForm();
-
-                                      if (!isValid) return;
-
-                                      final request = AddPurchaseRequest(
-                                        date: _toApiDate(transactionController.text),
-                                        staffId: selectedStaff?.staffId,
-                                        customerId: selectedCustomer!.id!,
-                                        suppliers: List.generate(
-                                          selectedSuppliers.length,
-                                              (index) => index,
-                                        )
-                                            .where((index) => selectedSuppliers[index] != null)
-                                            .map(
-                                              (index) => PurchaseSupplierRequest(
-                                            supplierId: selectedSuppliers[index]!.id!,
-                                            remarks: remarksControllers[index].text.trim(),
-                                          ),
-                                        )
-                                            .toList(),
-                                      );
-
-                                      final purchaseProvider = context.read<PurchaseProvider>();
-
-                                      final success = await purchaseProvider.addPurchase(
-                                        request: request,
-                                        uploadedFiles: uploadedFiles,
-                                        selectedSuppliers: selectedSuppliers,
-                                      );
-
-                                      if (!context.mounted) return;
-
-                                      if (success) {
-                                        Navigator.pop(context, true);
-                                      } else {
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          "Failed to add purchase",
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primaryPurple,
-                                        borderRadius: BorderRadius.circular(
-                                          5,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.save_rounded,
-                                            color: Colors.white,
-                                            size: 30,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          const Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Text(
-                                              "Save",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+    ]
                 ),
-                SizedBox(height:20),
-                if (isEditMode)
-                  SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 0,
-                      ),
-                      child: CustomElevatedButton(
-                        color: AppColors.primaryPurple,
-                        text: "Update",
-                        textStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
-                        borderRadius: 5,
-                        onPressed: () async {
-                          if (!_formKey.currentState!
-                              .validate()) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Please fill all the required fields",
-                            );
-                            return;
-                          }
-
-                          final success = await context
-                              .read<PurchaseProvider>()
-                              .updatePurchase(
-                            id: widget.id!,
-                            date: _toApiDate(transactionController.text),
-                            customerId:
-                            selectedCustomer!.id!,
-                            supplierId:
-                            selectedSuppliers
-                                .first!
-                                .id!,
-                            staffId:
-                            selectedStaff
-                                ?.staffId ??
-                                0,
-                            remarks: remarksControllers
-                                .first
-                                .text,
-                            existingImageKeys:
-                            existingImageKeys,
-                            supplierImages:
-                            uploadedFiles.first
-                                .where(
-                                  (e) =>
-                              e.path !=
-                                  null,
-                            )
-                                .map(
-                                  (e) =>
-                                  File(e.path!),
-                            )
-                                .toList(),
-                          );
-
-                          if (!success) {
-                            if (!context.mounted) return;
-
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Failed to update purchase",
-                            );
-                            return;
-                          }
-
-                          if (!context.mounted) return;
-
-                          ScaffoldSnackBar.show(
-                            context,
-                            "Purchase updated successfully",
-                          );
-                          await purchaseProvider
-                              .refreshPurchases();
-
-                          if (!context.mounted) return;
-
-                          Navigator.pop(context, true);
-                        },
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),

@@ -60,6 +60,7 @@ dependencies:
   public_file_saver: ^1.1.0
   android_intent_plus: ^6.0.0
   dotted_border: ^2.1.0
+  page_turn_animation: ^0.1.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -136,16 +136,26 @@ class _SupplierState extends State<SupplierScreen> {
                 refresh: provider.refreshSuppliers,
                 itemBuilder: (context, item) {
                   return GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              AddNewSupplier(
-                                  id: item.id, mode: FormMode.view),
-                        ),
-                      );
-                    },
+                      onTap: () async {
+                        final supplierProvider = context.read<SupplierProvider>();
+
+                        final details = await supplierProvider.fetchSupplierDetails(
+                          item.id.toInt(),
+                        );
+
+                        if (!context.mounted || details == null) return;
+
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddNewSupplier(
+                              id: item.id,
+                              mode: FormMode.view,
+                              supplierDetails: details,
+                            ),
+                          ),
+                        );
+                      },
                     child: MasterContainer(
                       elevation: 1,
                       name: item.supplierName,
@@ -309,8 +319,13 @@ class _SupplierState extends State<SupplierScreen> {
                         }
                       },
                       editIconTap: () async {
-                        final supplierProvider = context
-                            .read<SupplierProvider>();
+                        final supplierProvider = context.read<SupplierProvider>();
+
+                        final details = await supplierProvider.fetchSupplierDetails(
+                          item.id.toInt(),
+                        );
+
+                        if (!context.mounted || details == null) return;
 
                         final refresh = await Navigator.push<bool>(
                           context,
@@ -318,9 +333,11 @@ class _SupplierState extends State<SupplierScreen> {
                             builder: (_) => AddNewSupplier(
                               id: item.id,
                               mode: FormMode.edit,
+                              supplierDetails: details,
                             ),
                           ),
                         );
+
                         if (!mounted) return;
 
                         if (refresh == true) {

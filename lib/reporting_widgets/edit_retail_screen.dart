@@ -981,20 +981,22 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   @override
   Widget build(BuildContext context) {
     final retailProvider = context.watch<RetailProvider>();
-
     final entriesProvider = context.read<EntriesProvider>();
-
     final staffProvider = context.read<StaffProvider>();
 
     if (retailProvider.detailsLoading || !initialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
-    final retail = retailProvider.retailDetails!;
+    final retail = retailProvider.retailDetails;
 
-    return Scaffold(
-      backgroundColor: AppColors.bodyFillColor,
-      body: Scaffold(
+    // Retail details failed to load / retailer does not exist.
+    if (retail == null) {
+      return Scaffold(
         backgroundColor: AppColors.bodyFillColor,
         appBar: CustomAppBar(
           title: "Edit Retail",
@@ -1003,11 +1005,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             fontSize: 25,
             fontWeight: FontWeight.w600,
           ),
-
           actions: [
             IconButton(
               icon: const Icon(Icons.close),
-
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
@@ -1025,33 +1025,84 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             ),
           ],
         ),
-
-        body: SafeArea(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(15),
-
-            child: Column(
-              children: [
-                buildRetailInformation(
-                  retail,
-                  retailProvider,
-                  entriesProvider,
-                  staffProvider,
+        body: const SafeArea(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                "Retailer not found",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
-
-                const SizedBox(height: 5),
-                buildDepositSection(retail),
-                const SizedBox(height: 5),
-                buildHistorySection(retailProvider, retail),
-              ],
+              ),
             ),
+          ),
+        ),
+      );
+    }
+
+    // Retail details successfully loaded.
+    return Scaffold(
+      backgroundColor: AppColors.bodyFillColor,
+      appBar: CustomAppBar(
+        title: "Edit Retail",
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 25,
+          fontWeight: FontWeight.w600,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              ExitConfirmationDialog.show(
+                context,
+                saveButtonText: "Stay",
+                discardButtonText: "Leave",
+                onSave: () async {
+                  Navigator.pop(context);
+                },
+                onDiscard: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context, false);
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            children: [
+              buildRetailInformation(
+                retail,
+                retailProvider,
+                entriesProvider,
+                staffProvider,
+              ),
+
+              const SizedBox(height: 5),
+
+              buildDepositSection(retail),
+
+              const SizedBox(height: 5),
+
+              buildHistorySection(
+                retailProvider,
+                retail,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-}
+  }
 
 class DashedDivider extends StatelessWidget {
   final double height; // Thickness of the line

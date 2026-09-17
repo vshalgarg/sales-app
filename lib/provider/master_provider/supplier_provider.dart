@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
@@ -54,21 +53,25 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     _searchKeyword = "";
     await refreshSuppliers();
   }
-
-  Future<bool> fetchSupplierDetails(int id) async {
+  Future<SupplierDetails?> fetchSupplierDetails(int id) async {
     _detailsLoading = true;
     notifyListeners();
 
-    final result = await _service.getSupplierById(id);
+    try {
+      final result = await _service.getSupplierById(id);
 
-    _detailsLoading = false;
+      if (result.isSuccess && result.data != null) {
+        _supplierDetails = result.data!.data;
+        return _supplierDetails;
+      }
 
-    if (result.isSuccess && result.data != null) {
-      _supplierDetails = result.data!.data;
+      return null;
+    } catch (e) {
+      return null;
+    } finally {
+      _detailsLoading = false;
+      notifyListeners();
     }
-
-    notifyListeners();
-    return result.isSuccess && result.data != null;
   }
 
   Future<String?> addSupplier(AddSupplierRequest request) async {

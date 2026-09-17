@@ -41,10 +41,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
 
     final lower = text.toLowerCase();
 
-    if (lower == "null" ||
-        lower == "n/a" ||
-        lower == "na" ||
-        text == "-") {
+    if (lower == "null" || lower == "n/a" || lower == "na" || text == "-") {
       return "";
     }
 
@@ -83,11 +80,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
               color: AppColors.containerFillColor,
               borderRadius: BorderRadius.circular(5),
             ),
-            child: Icon(
-              icon,
-              color: AppColors.primaryPurple,
-              size: 22,
-            ),
+            child: Icon(icon, color: AppColors.primaryPurple, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -104,10 +97,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   _clean(value),
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ],
             ),
@@ -121,13 +111,10 @@ class CustomCopyDetailsDialog extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height:5),
+        SizedBox(height: 5),
         Text(
           "Bank Account ${index + 1}",
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 10),
@@ -172,10 +159,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
 
   void _copyBankDetails(BuildContext context) {
     if (!hasBankDetails) {
-      ScaffoldSnackBar.show(
-        context,
-        "No bank details found",
-      );
+      ScaffoldSnackBar.show(context, "No bank details found");
       return;
     }
 
@@ -191,59 +175,40 @@ class CustomCopyDetailsDialog extends StatelessWidget {
       buffer.writeln("Bank Account ${i + 1}");
 
       if (_hasValue(bank.accountName)) {
-        buffer.writeln(
-          "Account Holder : ${_clean(bank.accountName)}",
-        );
+        buffer.writeln("Account Holder : ${_clean(bank.accountName)}");
       }
 
       if (_hasValue(bank.bankName)) {
-        buffer.writeln(
-          "Bank Name : ${_clean(bank.bankName)}",
-        );
+        buffer.writeln("Bank Name : ${_clean(bank.bankName)}");
       }
 
       if (_hasValue(bank.accountNumber)) {
-        buffer.writeln(
-          "Account Number : ${_clean(bank.accountNumber)}",
-        );
+        buffer.writeln("Account Number : ${_clean(bank.accountNumber)}");
       }
 
       if (_hasValue(bank.ifscCode)) {
-        buffer.writeln(
-          "IFSC Code : ${_clean(bank.ifscCode)}",
-        );
+        buffer.writeln("IFSC Code : ${_clean(bank.ifscCode)}");
       }
 
       if (_hasValue(bank.branchName)) {
-        buffer.writeln(
-          "Branch : ${_clean(bank.branchName)}",
-        );
+        buffer.writeln("Branch : ${_clean(bank.branchName)}");
       }
 
       buffer.writeln();
     }
 
-    Clipboard.setData(
-      ClipboardData(
-        text: buffer.toString().trim(),
-      ),
-    );
+    Clipboard.setData(ClipboardData(text: buffer.toString().trim()));
 
     Navigator.pop(context);
 
-    ScaffoldSnackBar.show(
-      context,
-      "Bank details copied successfully",
-    );
+    ScaffoldSnackBar.show(context, "Bank details copied successfully");
   }
 
   void _copyAllDetails(BuildContext context) {
     final buffer = StringBuffer();
 
     if (_hasValue(firmName)) {
-      buffer.writeln(
-        "Firm Name : ${_clean(firmName)}",
-      );
+      buffer.writeln("Firm Name : ${_clean(firmName)}");
       buffer.writeln();
     }
 
@@ -260,37 +225,24 @@ class CustomCopyDetailsDialog extends StatelessWidget {
     }
 
     if (_hasValue(transport)) {
-      buffer.writeln(
-        "Transport : ${_clean(transport)}",
-      );
+      buffer.writeln("Transport : ${_clean(transport)}");
       buffer.writeln();
     }
 
     if (_hasValue(emails)) {
-      buffer.writeln(
-        "Email : ${_clean(emails)}",
-      );
+      buffer.writeln("Email : ${_clean(emails)}");
       buffer.writeln();
     }
 
     if (_hasValue(gstNo)) {
-      buffer.writeln(
-        "GST : ${_clean(gstNo)}",
-      );
+      buffer.writeln("GST : ${_clean(gstNo)}");
       buffer.writeln();
     }
-    Clipboard.setData(
-      ClipboardData(
-        text: buffer.toString().trim(),
-      ),
-    );
+    Clipboard.setData(ClipboardData(text: buffer.toString().trim()));
 
     Navigator.pop(context);
 
-    ScaffoldSnackBar.show(
-      context,
-      "Copied successfully",
-    );
+    ScaffoldSnackBar.show(context, "Copied successfully");
   }
 
   @override
@@ -309,205 +261,188 @@ class CustomCopyDetailsDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                36,
-                16,
-                16,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight:
-                  MediaQuery.of(context).size.height * .75,
-                  maxWidth: 650,
-                ),
-                child: IntrinsicHeight(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+              padding: const EdgeInsets.fromLTRB(16, 36, 16, 16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight > 600
+                          ? 600
+                          : constraints.maxHeight * 0.9,
+                      maxWidth: 650,
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          heading ?? "Copy Supplier Details",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryPurple,
-                          ),
+                    child: IntrinsicHeight(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
                         ),
-
-                        const SizedBox(height: 18),
-
-                        Flexible(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                if (_hasValue(firmName))
-                                  _buildInfoTile(
-                                    icon: Icons.business,
-                                    title: "Firm Name",
-                                    value: _clean(firmName),
-                                  ),
-
-                                if (_hasValue(address))
-                                  _buildInfoTile(
-                                    icon:
-                                    Icons.location_on_outlined,
-                                    title: "Address",
-                                    value: _clean(address),
-                                  ),
-
-                                if (_hasValue(contact))
-                                  _buildInfoTile(
-                                    icon: Icons.phone,
-                                    title: "Contacts",
-                                    value: _clean(contact),
-                                  ),
-
-                                if (_hasValue(transport))
-                                  _buildInfoTile(
-                                    icon:
-                                    Icons.local_shipping_outlined,
-                                    title: "Transport",
-                                    value: _clean(transport),
-                                  ),
-
-                                if (_hasValue(emails))
-                                  _buildInfoTile(
-                                    icon: Icons.email_outlined,
-                                    title: "Email",
-                                    value: _clean(emails),
-                                  ),
-
-                                if (_hasValue(gstNo))
-                                  _buildInfoTile(
-                                    icon:
-                                    Icons.receipt_long_outlined,
-                                    title: "GST",
-                                    value: _clean(gstNo),
-                                  ),
-
-
-                                if (hasBankDetails) ...[
-                                  const SizedBox(height: 10),
-
-                                  const Text(
-                                    "Bank Details",
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 10),
-
-                                  ...List.generate(
-                                    bankDetails.length,
-                                        (index) {
-                                      final bank =
-                                      bankDetails[index];
-
-                                      if (!_hasBankValue(bank)) {
-                                        return const SizedBox();
-                                      }
-
-                                      return _buildBankDetails(
-                                        bank,
-                                        index,
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        Row(
+                        child: Column(
                           children: [
-                            Expanded(
-                              flex: 3,
-                              child: SizedBox(
-                                height: 48,
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    if (showCopyBankButton) {
-                                      _copyBankDetails(context);
-                                    } else {
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  style:
-                                  OutlinedButton.styleFrom(
-                                    shape:
-                                    RoundedRectangleBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(5),
-                                    ),
-                                  ),
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      showCopyBankButton
-                                          ? "Copy Bank Details"
-                                          : "Cancel",
-                                      maxLines: 1,
-                                      style:
-                                      const TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                            Text(
+                              heading ?? "Copy Supplier Details",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryPurple,
                               ),
                             ),
 
-                            const SizedBox(width: 10),
+                            const SizedBox(height: 18),
 
                             Flexible(
-                              flex: 2,
-                              child: SizedBox(
-                                height: 48,
-                                child: ElevatedButton(
-                                  onPressed: () =>
-                                      _copyAllDetails(context),
-                                  style:
-                                  ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                    AppColors.primaryPurple,
-                                    shape:
-                                    RoundedRectangleBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(5),
-                                    ),
-                                  ),
-                                  child: const FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      "Copy",
-                                      maxLines: 1,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight:
-                                        FontWeight.w600,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (_hasValue(firmName))
+                                      _buildInfoTile(
+                                        icon: Icons.business,
+                                        title: "Firm Name",
+                                        value: _clean(firmName),
+                                      ),
+
+                                    if (_hasValue(address))
+                                      _buildInfoTile(
+                                        icon: Icons.location_on_outlined,
+                                        title: "Address",
+                                        value: _clean(address),
+                                      ),
+
+                                    if (_hasValue(contact))
+                                      _buildInfoTile(
+                                        icon: Icons.phone,
+                                        title: "Contacts",
+                                        value: _clean(contact),
+                                      ),
+
+                                    if (_hasValue(transport))
+                                      _buildInfoTile(
+                                        icon: Icons.local_shipping_outlined,
+                                        title: "Transport",
+                                        value: _clean(transport),
+                                      ),
+
+                                    if (_hasValue(emails))
+                                      _buildInfoTile(
+                                        icon: Icons.email_outlined,
+                                        title: "Email",
+                                        value: _clean(emails),
+                                      ),
+
+                                    if (_hasValue(gstNo))
+                                      _buildInfoTile(
+                                        icon: Icons.receipt_long_outlined,
+                                        title: "GST",
+                                        value: _clean(gstNo),
+                                      ),
+
+                                    if (hasBankDetails) ...[
+                                      const SizedBox(height: 10),
+
+                                      const Text(
+                                        "Bank Details",
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 10),
+
+                                      ...List.generate(bankDetails.length, (
+                                        index,
+                                      ) {
+                                        final bank = bankDetails[index];
+
+                                        if (!_hasBankValue(bank)) {
+                                          return const SizedBox();
+                                        }
+
+                                        return _buildBankDetails(bank, index);
+                                      }),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: OutlinedButton(
+                                      onPressed: () {
+                                        if (showCopyBankButton) {
+                                          _copyBankDetails(context);
+                                        } else {
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            5,
+                                          ),
+                                        ),
+                                      ),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          showCopyBankButton
+                                              ? "Copy Bank Details"
+                                              : "Cancel",
+                                          maxLines: 1,
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
+
+                                const SizedBox(width: 10),
+
+                                Flexible(
+                                  flex: 2,
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: ElevatedButton(
+                                      onPressed: () => _copyAllDetails(context),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            AppColors.primaryPurple,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            5,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          "Copy",
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -525,17 +460,10 @@ class CustomCopyDetailsDialog extends StatelessWidget {
                     color: Colors.red,
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(
-                        blurRadius: 8,
-                        color: Colors.black26,
-                      ),
+                      BoxShadow(blurRadius: 8, color: Colors.black26),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 22),
                 ),
               ),
             ),
@@ -548,10 +476,7 @@ class CustomCopyDetailsDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: const Color(0xFFF3F0FF),
-                border: Border.all(
-                  color: Colors.white,
-                  width: 4,
-                ),
+                border: Border.all(color: Colors.white, width: 4),
               ),
               child: const Icon(
                 Icons.copy,

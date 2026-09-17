@@ -53,8 +53,14 @@ class BankControllers {
 class AddNewSupplier extends StatefulWidget {
   final num? id;
   final FormMode mode;
+  final SupplierDetails? supplierDetails;
 
-  const AddNewSupplier({super.key, this.id, this.mode = FormMode.add});
+  const AddNewSupplier({
+    super.key,
+    this.id,
+    this.mode = FormMode.add,
+    this.supplierDetails,
+  });
 
   @override
   State<AddNewSupplier> createState() => _AddNewSupplierState();
@@ -114,22 +120,22 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     final List<BankDetailRequest> bankDetailList = bankDetails
         .map(
           (bank) => BankDetailRequest(
-            id: bank.id,
-            bankName: bank.bankName.text.trim(),
-            accountNumber: bank.accountNumber.text.trim(),
-            ifscCode: bank.ifscCode.text.trim(),
-            branchName: bank.branchName.text.trim(),
-            accountName: bank.accountName.text.trim(),
-          ),
-        )
+        id: bank.id,
+        bankName: bank.bankName.text.trim(),
+        accountNumber: bank.accountNumber.text.trim(),
+        ifscCode: bank.ifscCode.text.trim(),
+        branchName: bank.branchName.text.trim(),
+        accountName: bank.accountName.text.trim(),
+      ),
+    )
         .where(
           (bank) =>
-              (bank.bankName?.isNotEmpty ?? false) ||
-              (bank.accountNumber?.isNotEmpty ?? false) ||
-              (bank.ifscCode?.isNotEmpty ?? false) ||
-              (bank.branchName?.isNotEmpty ?? false) ||
-              (bank.accountName?.isNotEmpty ?? false),
-        )
+      (bank.bankName?.isNotEmpty ?? false) ||
+          (bank.accountNumber?.isNotEmpty ?? false) ||
+          (bank.ifscCode?.isNotEmpty ?? false) ||
+          (bank.branchName?.isNotEmpty ?? false) ||
+          (bank.accountName?.isNotEmpty ?? false),
+    )
         .toList();
 
     return AddSupplierRequest(
@@ -172,21 +178,21 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     final List<BankDetailRequest> bankDetailList = bankDetails
         .map(
           (bank) => BankDetailRequest(
-            bankName: bank.bankName.text.trim(),
-            accountNumber: bank.accountNumber.text.trim(),
-            ifscCode: bank.ifscCode.text.trim(),
-            branchName: bank.branchName.text.trim(),
-            accountName: bank.accountName.text.trim(),
-          ),
-        )
+        bankName: bank.bankName.text.trim(),
+        accountNumber: bank.accountNumber.text.trim(),
+        ifscCode: bank.ifscCode.text.trim(),
+        branchName: bank.branchName.text.trim(),
+        accountName: bank.accountName.text.trim(),
+      ),
+    )
         .where(
           (bank) =>
-              (bank.bankName?.isNotEmpty ?? false) ||
-              (bank.accountNumber?.isNotEmpty ?? false) ||
-              (bank.ifscCode?.isNotEmpty ?? false) ||
-              (bank.branchName?.isNotEmpty ?? false) ||
-              (bank.accountName?.isNotEmpty ?? false),
-        )
+      (bank.bankName?.isNotEmpty ?? false) ||
+          (bank.accountNumber?.isNotEmpty ?? false) ||
+          (bank.ifscCode?.isNotEmpty ?? false) ||
+          (bank.branchName?.isNotEmpty ?? false) ||
+          (bank.accountName?.isNotEmpty ?? false),
+    )
         .toList();
 
     return AddSupplierRequest(
@@ -315,17 +321,8 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   void initState() {
     super.initState();
 
-    if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-      final provider = context.read<SupplierProvider>();
-      Future.microtask(() async {
-        await provider.fetchSupplierDetails(widget.id!.toInt());
-
-        final s = provider.supplierDetails;
-        if (s == null || !mounted) return;
-
-        _populateFormFromSupplier(s);
-        setState(() {});
-      });
+    if (widget.supplierDetails != null) {
+      _populateFormFromSupplier(widget.supplierDetails!);
     }
 
     if (widget.mode == FormMode.add) {
@@ -439,11 +436,11 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       appBar: CustomAppBar(
         leading: widget.mode == FormMode.view
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              )
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        )
             : null,
         actions: [
           if (widget.mode != FormMode.view)
@@ -483,158 +480,158 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
           padding: const EdgeInsets.all(15.0),
           child: Form(
             key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SupplierBasicInfo(
-                partyType: "Supplier",
-                showCommissionScheme: true,
-                showCommissionRate: true,
-                mode: widget.mode,
-                nameController: nameController,
-                emailController: emailController,
-                groupController: groupController,
-                gstNoController: gstController,
-                msmeController: msmeController,
-                commissionSchemeController: commissionSchemeController,
-                commissionRateController: commissionRateController,
-                referenceController: referenceController,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SupplierBasicInfo(
+                  partyType: "Supplier",
+                  showCommissionScheme: true,
+                  showCommissionRate: true,
+                  mode: widget.mode,
+                  nameController: nameController,
+                  emailController: emailController,
+                  groupController: groupController,
+                  gstNoController: gstController,
+                  msmeController: msmeController,
+                  commissionSchemeController: commissionSchemeController,
+                  commissionRateController: commissionRateController,
+                  referenceController: referenceController,
+                ),
 
-              SizedBox(height: 15),
+                SizedBox(height: 15),
 
-              BankDetailsSection(
-                mode: widget.mode,
-                banks: bankDetails,
-                onAdd: addBankDetails,
-                onDelete: deleteBankDetails,
-                scrollController: _scrollController,
-              ),
-              SizedBox(height: 15),
-              AddressDetails(
-                mode: widget.mode,
-                addressLine1: addressLine1Controller,
-                addressLine2: addressLine2Controller,
-                state: stateController,
-                city: cityController,
-                pinCode: pinCodeController,
-              ),
-              SizedBox(height: 15),
-              ContactInfo(
-                mode: widget.mode,
-                contacts: contacts,
-                onAdd: addContact,
-                onDelete: deleteContact,
-                scrollController: _scrollController,
-              ),
-              SizedBox(height: 15),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isExpanded = !isExpanded;
-                  });
-                  if (isExpanded) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _scrollController.animateTo(
-                        _scrollController.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
+                BankDetailsSection(
+                  mode: widget.mode,
+                  banks: bankDetails,
+                  onAdd: addBankDetails,
+                  onDelete: deleteBankDetails,
+                  scrollController: _scrollController,
+                ),
+                SizedBox(height: 15),
+                AddressDetails(
+                  mode: widget.mode,
+                  addressLine1: addressLine1Controller,
+                  addressLine2: addressLine2Controller,
+                  state: stateController,
+                  city: cityController,
+                  pinCode: pinCodeController,
+                ),
+                SizedBox(height: 15),
+                ContactInfo(
+                  mode: widget.mode,
+                  contacts: contacts,
+                  onAdd: addContact,
+                  onDelete: deleteContact,
+                  scrollController: _scrollController,
+                ),
+                SizedBox(height: 15),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isExpanded = !isExpanded;
                     });
-                  }
-                },
-                child: TextFormField(
-                  enabled: false,
-                  decoration: InputDecoration(
-                    suffixIcon: Icon(
-                      isExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: Colors.white,
-                    ),
-                    iconColor: Colors.white,
-                    filled: true,
-                    fillColor: AppColors.primaryPurple,
-                    hintText: "Preferred Transports",
-                    hintStyle: TextStyle(color: Colors.white),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-              if (isExpanded) ...[
-                SizedBox(height: 15),
-                Text(
-                  "Preferred Transport",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                Consumer<TransportProvider>(
-                  builder: (context, transportProvider, child) {
-
-                    final List<Transport> transports = transportProvider
-                        .data.items.cast<Transport>();
-
-                    return CustomDropdown(
-                      hintText: "Preferred Transports",
-
-                      items: transports
-                          .map<String>((e) => e.name ?? "")
-                          .where((name) => name.isNotEmpty)
-                          .toList(),
-
-                      isMultiSelect: true,
-                      expandMultiSelect: true,
-
-                      initialValues: List<String>.from(selectedTransportNames),
-
-                      isDisabled: widget.mode == FormMode.view,
-
-                      onChanged: (_) {},
-
-                      onMultiChanged: (values) {
-                        final List<String> names = List<String>.from(values);
-
-                        setState(() {
-                          selectedTransportNames = names;
-
-                          selectedTransportIds = names.map<int>((name) {
-                            final transport = transports.firstWhere(
-                              (e) => e.name == name,
-                            );
-
-                            return transport.id!.toInt();
-                          }).toList();
-                        });
-                      },
-                    );
+                    if (isExpanded) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      });
+                    }
                   },
-                ),
-                SizedBox(height: 15),
-                Text(
-                  "Remarks (Optional)",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                TextFormField(
-                  enabled: widget.mode != FormMode.view,
-                  controller: remarksController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    hintText: "Remarks (optional)",
-                    hintStyle: const TextStyle(color: Colors.grey),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
+                  child: TextFormField(
+                    enabled: false,
+                    decoration: InputDecoration(
+                      suffixIcon: Icon(
+                        isExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                      ),
+                      iconColor: Colors.white,
+                      filled: true,
+                      fillColor: AppColors.primaryPurple,
+                      hintText: "Preferred Transports",
+                      hintStyle: TextStyle(color: Colors.white),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
+                if (isExpanded) ...[
+                  SizedBox(height: 15),
+                  Text(
+                    "Preferred Transport",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Consumer<TransportProvider>(
+                    builder: (context, transportProvider, child) {
+
+                      final List<Transport> transports = transportProvider
+                          .data.items.cast<Transport>();
+
+                      return CustomDropdown(
+                        hintText: "Preferred Transports",
+
+                        items: transports
+                            .map<String>((e) => e.name ?? "")
+                            .where((name) => name.isNotEmpty)
+                            .toList(),
+
+                        isMultiSelect: true,
+                        expandMultiSelect: true,
+
+                        initialValues: List<String>.from(selectedTransportNames),
+
+                        isDisabled: widget.mode == FormMode.view,
+
+                        onChanged: (_) {},
+
+                        onMultiChanged: (values) {
+                          final List<String> names = List<String>.from(values);
+
+                          setState(() {
+                            selectedTransportNames = names;
+
+                            selectedTransportIds = names.map<int>((name) {
+                              final transport = transports.firstWhere(
+                                    (e) => e.name == name,
+                              );
+
+                              return transport.id!.toInt();
+                            }).toList();
+                          });
+                        },
+                      );
+                    },
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    "Remarks (Optional)",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  TextFormField(
+                    enabled: widget.mode != FormMode.view,
+                    controller: remarksController,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: "Remarks (optional)",
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
       ),
       bottomNavigationBar: Consumer<SupplierProvider>(
         builder: (context, provider, child) {

@@ -102,8 +102,36 @@ class RetailService {
       );
     }
 
+    final response = result.data;
+
+    if (response == null) {
+      return ResponseResult.error(
+        errorMessage: "Retail response is empty",
+        statusCode: result.statusCode,
+      );
+    }
+
+    // Backend can return HTTP 200 with an application-level error.
+    if (response["code"] != null && response["code"] != 200) {
+      return ResponseResult.error(
+        errorMessage:
+        response["message"]?.toString() ?? "Failed to load retail details",
+        statusCode: response["code"] as int?,
+      );
+    }
+
+    final data = response["data"];
+
+    if (data == null || data is! Map<String, dynamic>) {
+      return ResponseResult.error(
+        errorMessage:
+        response["message"]?.toString() ?? "Retail details not found",
+        statusCode: result.statusCode,
+      );
+    }
+
     return ResponseResult.success(
-      RetailDetails.fromJson(result.data!["data"]),
+      RetailDetails.fromJson(data),
       result.statusCode,
     );
   }

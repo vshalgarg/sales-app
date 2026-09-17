@@ -58,7 +58,7 @@ class CustomerProvider extends PaginationProvider<Customer> {
     await refreshCustomers();
   }
 
-  Future<bool> fetchCustomerDetails(int id) async {
+  Future<CustomerDetails?> fetchCustomerDetails(int id) async {
     _detailsLoading = true;
     notifyListeners();
 
@@ -67,9 +67,13 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
       if (result.isSuccess && result.data != null) {
         _customerDetails = result.data!.data;
+        return _customerDetails;
       }
 
-      return result.isSuccess && result.data != null;
+      return null;
+    } catch (e) {
+      log("Fetch customer details error: $e");
+      return null;
     } finally {
       _detailsLoading = false;
       notifyListeners();
@@ -110,6 +114,7 @@ class CustomerProvider extends PaginationProvider<Customer> {
         try {
           await refreshCustomers();
         } catch (e) {
+
         }
 
         return true;

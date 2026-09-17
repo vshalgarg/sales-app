@@ -85,11 +85,8 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
             border: isLast
                 ? null
                 : const Border(
-              bottom: BorderSide(
-                color: Color(0xFFE5E3EC),
-                width: 1,
-              ),
-            ),
+                    bottom: BorderSide(color: Color(0xFFE5E3EC), width: 1),
+                  ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -100,9 +97,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                 height: iconBoxSize,
                 decoration: BoxDecoration(
                   color: AppColors.primaryPurple.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(
-                    smallScreen ? 12 : 14,
-                  ),
+                  borderRadius: BorderRadius.circular(smallScreen ? 12 : 14),
                 ),
                 child: Icon(
                   icon,
@@ -111,9 +106,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                 ),
               ),
 
-              SizedBox(
-                width: smallScreen ? 12 : 16,
-              ),
+              SizedBox(width: smallScreen ? 12 : 16),
 
               // TITLE
               Expanded(
@@ -129,9 +122,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                 ),
               ),
 
-              SizedBox(
-                width: smallScreen ? 8 : 12,
-              ),
+              SizedBox(width: smallScreen ? 8 : 12),
               // VALUE
               Flexible(
                 child: Text(
@@ -242,7 +233,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                   height: width < 360 ? 42 : 48,
                   width: width < 360 ? 42 : 48,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha:0.18),
+                    color: Colors.white.withValues(alpha: 0.18),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -324,7 +315,7 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
                 height: iconContainer,
                 width: iconContainer,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPurple.withValues(alpha:0.10),
+                  color: AppColors.primaryPurple.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -466,409 +457,430 @@ class _AddNewBillItemState extends State<AddNewBillItem> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width < 360 ? 8 : 12,
-                vertical: 12,
-              ),
-              child: Column(
-                children: [
-                  // BILL DETAILS
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha:0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(
-                          icon: Icons.receipt_long,
-                          title: "Bill Details",
-                          isExpanded: showBillDetails,
-                          onTap: () {
-                            setState(() {
-                              showBillDetails = !showBillDetails;
-                            });
-                          },
-                        ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isSmallScreen = constraints.maxWidth < 360;
 
-                        if (showBillDetails) ...[
-                          _billItemInput(
-                            icon: Icons.inventory_2_outlined,
-                            title: "Pieces * ",
-                            subtitle: "Enter number of pieces",
-                            controller: piecesController,
-                            integerOnly: true,
-                          ),
-
-                          _billItemInput(
-                            icon: Icons.currency_rupee,
-                            title: "Gross Amount * ",
-                            subtitle: "Enter gross amount",
-                            controller: grossAmountController,
-                            integerOnly: true,
-                            onChanged: calculateValues,
-                            isLast: true,
-                          ),
-                        ],
-                      ],
-                    ),
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 8 : 12,
+                    vertical: 12,
                   ),
-                  // DISCOUNT DETAILS
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha:0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                  child: Column(
+                    children: [
+                      // BILL DETAILS
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(
-                          icon: Icons.percent,
-                          title: "Discount Details",
-                          isExpanded: showDiscountDetails,
-                          onTap: () {
-                            setState(() {
-                              showDiscountDetails = !showDiscountDetails;
-                            });
-                          },
-                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            _buildSectionHeader(
+                              icon: Icons.receipt_long,
+                              title: "Bill Details",
+                              isExpanded: showBillDetails,
+                              onTap: () {
+                                setState(() {
+                                  showBillDetails = !showBillDetails;
+                                });
+                              },
+                            ),
 
-                        if (showDiscountDetails) ...[
-                          _billItemInput(
-                            icon: Icons.percent,
-                            title: "Discount %",
-                            subtitle: "Enter discount percentage",
-                            controller: discountPercentageController,
-                            decimalAllowed: true,
-                            onChanged: calculateValues,
-                          ),
-
-                          _billItemInput(
-                            icon: Icons.discount_outlined,
-                            title: "Discount Amount",
-                            subtitle: "Auto calculated",
-                            controller: discountAmountController,
-                            enabled: false,
-                            isLast: true,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // ADD ON CHARGES
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha:0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(
-                          icon: Icons.add_box_outlined,
-                          title: "Add On Charges",
-                          isExpanded: showAddOnCharges,
-                          onTap: () {
-                            setState(() {
-                              showAddOnCharges = !showAddOnCharges;
-                            });
-                          },
-                        ),
-
-                        if (showAddOnCharges) ...[
-                          _billItemInput(
-                            icon: Icons.currency_rupee,
-                            title: "Add-On Amount",
-                            subtitle: "Enter add-on amount",
-                            controller: addAmountController,
-                            decimalAllowed: true,
-                            onChanged: calculateValues,
-                          ),
-
-                          _billItemInput(
-                            icon: Icons.credit_card_outlined,
-                            title: "ECR Amount",
-                            subtitle: "Enter ECR amount",
-                            controller: ecrAmountController,
-                            decimalAllowed: true,
-                            onChanged: calculateValues,
-                            isLast: true,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // GST DETAILS
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha:0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        _buildSectionHeader(
-                          icon: Icons.percent,
-                          title: "GST Details",
-                          isExpanded: showGstDetails,
-                          onTap: () {
-                            setState(() {
-                              showGstDetails = !showGstDetails;
-                            });
-                          },
-                        ),
-
-                        if (showGstDetails) ...[
-                          _billItemInput(
-                            icon: Icons.percent,
-                            title: "GST %",
-                            subtitle: "Enter GST percentage",
-                            controller: gstPercentageController,
-                            decimalAllowed: true,
-                            onChanged: calculateValues,
-                          ),
-
-                          _billItemInput(
-                            icon: Icons.calculate_outlined,
-                            title: "GST Amount",
-                            subtitle: "Auto calculated",
-                            controller: gstAmountController,
-                            enabled: false,
-                            isLast: true,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // TOTAL SUMMARY
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(
-                      bottom: 18,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha:0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        // PURPLE HEADER
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final width = constraints.maxWidth;
-                            final smallScreen = width < 360;
-
-                            return Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: smallScreen ? 14 : 20,
-                                vertical: smallScreen ? 11 : 12,
-                              ),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primaryPurple,
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: smallScreen ? 44 : 48,
-                                    height: smallScreen ? 44 : 48,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha:0.18),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.pie_chart,
-                                      color: Colors.white,
-                                      size: smallScreen ? 25 : 28,
-                                    ),
-                                  ),
-
-                                  SizedBox(
-                                    width: smallScreen ? 12 : 15,
-                                  ),
-
-                                  Expanded(
-                                    child: Text(
-                                      "Total Summary",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: smallScreen ? 18 : 20,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-
-                        // SUMMARY ROWS
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                          ),
-                          child: Column(
-                            children: [
-                              _summaryRow(
-                                icon: Icons.calculate_outlined,
-                                title: "Taxable Value",
-                                value: provider.taxableValue.toStringAsFixed(2),
+                            if (showBillDetails) ...[
+                              _billItemInput(
+                                icon: Icons.inventory_2_outlined,
+                                title: "Pieces * ",
+                                subtitle: "Enter number of pieces",
+                                controller: piecesController,
+                                integerOnly: true,
                               ),
 
-                              _summaryRow(
-                                icon: Icons.percent,
-                                title: "GST Amount",
-                                value: provider.gstValue.toStringAsFixed(2),
-                              ),
-
-                              _summaryRow(
-                                icon: Icons.account_balance_wallet_outlined,
-                                title: "Bill Amount",
-                                value: provider.billValue.toStringAsFixed(2),
+                              _billItemInput(
+                                icon: Icons.currency_rupee,
+                                title: "Gross Amount * ",
+                                subtitle: "Enter gross amount",
+                                controller: grossAmountController,
+                                integerOnly: true,
+                                onChanged: calculateValues,
                                 isLast: true,
                               ),
                             ],
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      // DISCOUNT DETAILS
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            _buildSectionHeader(
+                              icon: Icons.percent,
+                              title: "Discount Details",
+                              isExpanded: showDiscountDetails,
+                              onTap: () {
+                                setState(() {
+                                  showDiscountDetails = !showDiscountDetails;
+                                });
+                              },
+                            ),
+
+                            if (showDiscountDetails) ...[
+                              _billItemInput(
+                                icon: Icons.percent,
+                                title: "Discount %",
+                                subtitle: "Enter discount percentage",
+                                controller: discountPercentageController,
+                                decimalAllowed: true,
+                                onChanged: calculateValues,
+                              ),
+
+                              _billItemInput(
+                                icon: Icons.discount_outlined,
+                                title: "Discount Amount",
+                                subtitle: "Auto calculated",
+                                controller: discountAmountController,
+                                enabled: false,
+                                isLast: true,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      // ADD ON CHARGES
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            _buildSectionHeader(
+                              icon: Icons.add_box_outlined,
+                              title: "Add On Charges",
+                              isExpanded: showAddOnCharges,
+                              onTap: () {
+                                setState(() {
+                                  showAddOnCharges = !showAddOnCharges;
+                                });
+                              },
+                            ),
+
+                            if (showAddOnCharges) ...[
+                              _billItemInput(
+                                icon: Icons.currency_rupee,
+                                title: "Add-On Amount",
+                                subtitle: "Enter add-on amount",
+                                controller: addAmountController,
+                                decimalAllowed: true,
+                                onChanged: calculateValues,
+                              ),
+
+                              _billItemInput(
+                                icon: Icons.credit_card_outlined,
+                                title: "ECR Amount",
+                                subtitle: "Enter ECR amount",
+                                controller: ecrAmountController,
+                                decimalAllowed: true,
+                                onChanged: calculateValues,
+                                isLast: true,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      // GST DETAILS
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            _buildSectionHeader(
+                              icon: Icons.percent,
+                              title: "GST Details",
+                              isExpanded: showGstDetails,
+                              onTap: () {
+                                setState(() {
+                                  showGstDetails = !showGstDetails;
+                                });
+                              },
+                            ),
+
+                            if (showGstDetails) ...[
+                              _billItemInput(
+                                icon: Icons.percent,
+                                title: "GST %",
+                                subtitle: "Enter GST percentage",
+                                controller: gstPercentageController,
+                                decimalAllowed: true,
+                                onChanged: calculateValues,
+                              ),
+
+                              _billItemInput(
+                                icon: Icons.calculate_outlined,
+                                title: "GST Amount",
+                                subtitle: "Auto calculated",
+                                controller: gstAmountController,
+                                enabled: false,
+                                isLast: true,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // TOTAL SUMMARY
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            // PURPLE HEADER
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final width = constraints.maxWidth;
+                                final smallScreen = width < 360;
+
+                                return Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: smallScreen ? 14 : 20,
+                                    vertical: smallScreen ? 11 : 12,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primaryPurple,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: smallScreen ? 44 : 48,
+                                        height: smallScreen ? 44 : 48,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.18,
+                                          ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.pie_chart,
+                                          color: Colors.white,
+                                          size: smallScreen ? 25 : 28,
+                                        ),
+                                      ),
+
+                                      SizedBox(width: smallScreen ? 12 : 15),
+
+                                      Expanded(
+                                        child: Text(
+                                          "Total Summary",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: smallScreen ? 18 : 20,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+
+                            // SUMMARY ROWS
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              child: Column(
+                                children: [
+                                  _summaryRow(
+                                    icon: Icons.calculate_outlined,
+                                    title: "Taxable Value",
+                                    value: provider.taxableValue
+                                        .toStringAsFixed(2),
+                                  ),
+
+                                  _summaryRow(
+                                    icon: Icons.percent,
+                                    title: "GST Amount",
+                                    value: provider.gstValue.toStringAsFixed(2),
+                                  ),
+
+                                  _summaryRow(
+                                    icon: Icons.account_balance_wallet_outlined,
+                                    title: "Bill Amount",
+                                    value: provider.billValue.toStringAsFixed(
+                                      2,
+                                    ),
+                                    isLast: true,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // RESET + SAVE
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Row(
+                          children: [
+                            _buildBottomButton(
+                              icon: Icons.refresh,
+                              title: "Reset",
+                              isPrimary: false,
+                              onTap: () {
+                                clearFields();
+                              },
+                            ),
+
+                            const SizedBox(width: 16),
+
+                            _buildBottomButton(
+                              icon: Icons.save_outlined,
+                              title: "Save",
+                              isPrimary: true,
+                              onTap: () async {
+                                final pieces = int.tryParse(
+                                  piecesController.text.trim(),
+                                );
+                                final grossAmount = double.tryParse(
+                                  grossAmountController.text.trim(),
+                                );
+
+                                if (grossAmount == null || grossAmount <= 0) {
+                                  return ScaffoldSnackBar.show(
+                                    context,
+                                    "Gross Amount is required and must be greater than zero",
+                                  );
+                                }
+                                if (pieces == null || pieces <= 0) {
+                                  return ScaffoldSnackBar.show(
+                                    context,
+                                    "Please enter at least 1 piece",
+                                  );
+                                }
+                                final provider = context
+                                    .read<BillItemProvider>();
+
+                                final item = BillItem(
+                                  pieces:
+                                      int.tryParse(piecesController.text) ?? 0,
+
+                                  grossAmount:
+                                      double.tryParse(
+                                        grossAmountController.text,
+                                      ) ??
+                                      0,
+
+                                  discountPercent:
+                                      double.tryParse(
+                                        discountPercentageController.text,
+                                      ) ??
+                                      0,
+
+                                  discountAmount:
+                                      double.tryParse(
+                                        discountAmountController.text,
+                                      ) ??
+                                      0,
+
+                                  addOnAmount:
+                                      double.tryParse(
+                                        addAmountController.text,
+                                      ) ??
+                                      0,
+
+                                  ecrAmount:
+                                      double.tryParse(
+                                        ecrAmountController.text,
+                                      ) ??
+                                      0,
+
+                                  gstPercent:
+                                      double.tryParse(
+                                        gstPercentageController.text,
+                                      ) ??
+                                      0,
+
+                                  gstAmount:
+                                      double.tryParse(
+                                        gstAmountController.text,
+                                      ) ??
+                                      0,
+
+                                  taxableValue: provider.taxableValue,
+                                  totalAmount: provider.billValue,
+                                );
+
+                                Navigator.pop(context, item);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
                   ),
-
-                  // RESET + SAVE
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Row(
-                      children: [
-                        _buildBottomButton(
-                          icon: Icons.refresh,
-                          title: "Reset",
-                          isPrimary: false,
-                          onTap: () {
-                            clearFields();
-                          },
-                        ),
-
-                        const SizedBox(width: 16),
-
-                        _buildBottomButton(
-                          icon: Icons.save_outlined,
-                          title: "Save",
-                          isPrimary: true,
-                          onTap: () async {
-                            final pieces = int.tryParse(piecesController.text.trim());
-                            final grossAmount = double.tryParse(grossAmountController.text.trim());
-
-                            if (grossAmount == null || grossAmount <= 0) {
-                              return ScaffoldSnackBar.show(
-                                context,
-                                "Gross Amount is required and must be greater than zero",
-                              );
-                            }
-                            if (pieces == null || pieces<=0) {
-                              return ScaffoldSnackBar.show(
-                                context,
-                                "Please enter at least 1 piece",
-                              );
-                            }
-                            final provider = context.read<BillItemProvider>();
-
-                            final item = BillItem(
-                              pieces: int.tryParse(piecesController.text) ?? 0,
-
-                              grossAmount:
-                                  double.tryParse(grossAmountController.text) ??
-                                  0,
-
-                              discountPercent:
-                                  double.tryParse(
-                                    discountPercentageController.text,
-                                  ) ??
-                                  0,
-
-                              discountAmount:
-                                  double.tryParse(
-                                    discountAmountController.text,
-                                  ) ??
-                                  0,
-
-                              addOnAmount:
-                                  double.tryParse(addAmountController.text) ??
-                                  0,
-
-                              ecrAmount:
-                                  double.tryParse(ecrAmountController.text) ??
-                                  0,
-
-                              gstPercent:
-                                  double.tryParse(
-                                    gstPercentageController.text,
-                                  ) ??
-                                  0,
-
-                              gstAmount:
-                                  double.tryParse(gstAmountController.text) ??
-                                  0,
-
-                              taxableValue: provider.taxableValue,
-                              totalAmount: provider.billValue,
-                            );
-
-                            Navigator.pop(context, item);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),

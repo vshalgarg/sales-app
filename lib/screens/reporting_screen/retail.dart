@@ -83,12 +83,15 @@ class _RetailState extends State<Retail> {
     super.initState();
 
     final now = DateTime.now();
-
-    final tenDaysAgo = now.subtract(const Duration(days: 10));
+    final oneMonthAgo = DateTime(
+      now.year,
+      now.month - 1,
+      now.day,
+    );
 
     final formatter = DateFormat("dd-MM-yyyy");
 
-    final defaultFromDate = formatter.format(tenDaysAgo);
+    final defaultFromDate = formatter.format(oneMonthAgo);
     final defaultToDate = formatter.format(now);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -347,58 +350,58 @@ class _RetailState extends State<Retail> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    return LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) async {
+              if (didPop) return;
 
-    final width = size.width;
-    final height = size.height;
-
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-
-        await _resetRetailBeforeExit();
-
-        if (!context.mounted) return;
-
-        Navigator.pop(context);
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.bodyFillColor,
-
-        appBar: CustomAppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
               await _resetRetailBeforeExit();
 
               if (!context.mounted) return;
 
               Navigator.pop(context);
             },
-          ),
-          title: "Retailers",
-          textStyle: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 25,
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.filter_alt_outlined, color: Colors.white),
-              onPressed: _showFilterBottomSheet,
-            ),
-          ],
-        ),
+            child: Scaffold(
+              backgroundColor: AppColors.bodyFillColor,
 
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AppColors.primaryPurple,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          onPressed: isOpening
-              ? null
-              : () async {
+              appBar: CustomAppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () async {
+                    await _resetRetailBeforeExit();
+
+                    if (!context.mounted) return;
+
+                    Navigator.pop(context);
+                  },
+                ),
+                title: "Retailers",
+                textStyle: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 25,
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(
+                        Icons.filter_alt_outlined, color: Colors.white),
+                    onPressed: _showFilterBottomSheet,
+                  ),
+                ],
+              ),
+
+              floatingActionButton: FloatingActionButton(
+                backgroundColor: AppColors.primaryPurple,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                onPressed: isOpening
+                    ? null
+                    : () async {
                   setState(() {
                     isOpening = true;
                   });
@@ -420,8 +423,8 @@ class _RetailState extends State<Retail> {
                     isOpening = false;
                   });
                 },
-          child: isOpening
-              ? const SizedBox(
+                child: isOpening
+                    ? const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
@@ -429,163 +432,166 @@ class _RetailState extends State<Retail> {
                     color: Colors.white,
                   ),
                 )
-              : const Icon(Iconsax.add, color: Colors.white, size: 34),
-        ),
+                    : const Icon(Iconsax.add, color: Colors.white, size: 34),
+              ),
 
-        body: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.04,
-            vertical: height * 0.015,
-          ),
-          child: Consumer<RetailProvider>(
-            builder: (context, provider, child) {
-              return PaginationWidget<retail_model.Retail>(
-                pagination: provider.pagination,
+              body: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: width * 0.04,
+                  vertical: height * 0.015,
+                ),
+                child: Consumer<RetailProvider>(
+                  builder: (context, provider, child) {
+                    return PaginationWidget<retail_model.Retail>(
+                      pagination: provider.pagination,
 
-                items: provider.data.items,
+                      items: provider.data.items,
 
-                loading: provider.loading,
+                      loading: provider.loading,
 
-                fetchPage: (page) async {
-                  await provider.fetchPage(page);
-                },
-
-                refresh: () async {
-                  await provider.refresh();
-                },
-
-                itemBuilder: (context, retail) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: height * 0.015),
-                    child: RetailCard(
-                      fields: [
-                        MapEntry(
-                          "Date",
-                          DateFormat("dd-MM-yyyy").format(retail.date),
-                        ),
-
-                        MapEntry("Retailer", retail.name),
-
-                        MapEntry("Referred By", retail.customerName),
-
-                        MapEntry("Staff", retail.staffName ?? "-"),
-                      ],
-                      onTap: () async {
-                        final refresh = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                RetailDetailsScreen(retailId: retail.id),
-                          ),
-                        );
-
-                        if (!mounted) return;
-
-                        if (refresh == true) {
-                          await provider.refresh();
-                        }
+                      fetchPage: (page) async {
+                        await provider.fetchPage(page);
                       },
 
-                      onEdit: () async {
-                        final refresh = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                EditRetailScreen(retailId: retail.id),
-                          ),
-                        );
-
-                        if (!mounted) return;
-
-                        if (refresh == true) {
-                          await provider.refresh();
-                        }
+                      refresh: () async {
+                        await provider.refresh();
                       },
 
-                      onAdd: () async {
-                        final refresh = await showDialog<bool>(
-                          context: context,
-                          builder: (_) => AddSupplier(retailId: retail.id),
-                        );
+                      itemBuilder: (context, retail) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: height * 0.015),
+                          child: RetailCard(
+                            fields: [
+                              MapEntry(
+                                "Date",
+                                DateFormat("dd-MM-yyyy").format(retail.date),
+                              ),
 
-                        if (!mounted) return;
+                              MapEntry("Retailer", retail.name),
 
-                        if (refresh == true) {
-                          await provider.refresh();
-                        }
-                      },
+                              MapEntry("Referred By", retail.customerName),
 
-                      onDelete: () async {
-                        ExitConfirmationDialog.show(
-                          context,
-                          isDelete: true,
-                          body: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
+                              MapEntry("Staff", retail.staffName ?? "-"),
+                            ],
+                            onTap: () async {
+                              final refresh = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      RetailDetailsScreen(retailId: retail.id),
+                                ),
+                              );
+
+                              if (!mounted) return;
+
+                              if (refresh == true) {
+                                await provider.refresh();
+                              }
+                            },
+
+                            onEdit: () async {
+                              final refresh = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      EditRetailScreen(retailId: retail.id),
+                                ),
+                              );
+
+                              if (!mounted) return;
+
+                              if (refresh == true) {
+                                await provider.refresh();
+                              }
+                            },
+
+                            onAdd: () async {
+                              final refresh = await showDialog<bool>(
+                                context: context,
+                                builder: (_) =>
+                                    AddSupplier(retailId: retail.id),
+                              );
+
+                              if (!mounted) return;
+
+                              if (refresh == true) {
+                                await provider.refresh();
+                              }
+                            },
+
+                            onDelete: () async {
+                              ExitConfirmationDialog.show(
+                                context,
+                                isDelete: true,
+                                body: Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const TextSpan(
-                                        text:
-                                        "Are you sure you want to delete Retailer :  ",
-                                      ),
-                                      TextSpan(
-                                        text: retail.name,
-                                        style: const TextStyle(
-                                          color: AppColors.orangeColor,
-                                          fontWeight: FontWeight.bold,
+                                      RichText(
+                                        textAlign: TextAlign.center,
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text:
+                                              "Are you sure you want to delete Retailer :  ",
+                                            ),
+                                            TextSpan(
+                                              text: retail.name,
+                                              style: const TextStyle(
+                                                color: AppColors.orangeColor,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextSpan(text: "?"),
+                                          ],
                                         ),
                                       ),
-                                      TextSpan(text: "?"),
-                                    ],
-                                  ),
+                                    ]
                                 ),
-                              ]
+
+                                saveButtonText: "Delete",
+
+                                discardButtonText: "Cancel",
+
+                                onDiscard: () {
+                                  Navigator.pop(context);
+                                },
+
+                                onSave: () async {
+                                  Navigator.pop(context);
+
+                                  final success = await provider.deleteRetail(
+                                    retail.id,
+                                  );
+
+                                  if (success) {
+                                    await provider.refresh();
+                                  }
+
+                                  if (!context.mounted) return;
+
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    success
+                                        ? "Retail deleted successfully"
+                                        : "Failed to delete retail",
+                                  );
+                                },
+                              );
+                            },
                           ),
-
-                          saveButtonText: "Delete",
-
-                          discardButtonText: "Cancel",
-
-                          onDiscard: () {
-                            Navigator.pop(context);
-                          },
-
-                          onSave: () async {
-                            Navigator.pop(context);
-
-                            final success = await provider.deleteRetail(
-                              retail.id,
-                            );
-
-                            if (success) {
-                              await provider.refresh();
-                            }
-
-                            if (!context.mounted) return;
-
-                            ScaffoldSnackBar.show(
-                              context,
-                              success
-                                  ? "Retail deleted successfully"
-                                  : "Failed to delete retail",
-                            );
-                          },
                         );
                       },
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        }
     );
   }
 }

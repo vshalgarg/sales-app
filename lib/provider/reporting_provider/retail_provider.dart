@@ -81,18 +81,24 @@ class RetailProvider extends PaginationProvider<Retail> {
   }
   Future<bool> fetchRetailDetails(int retailId) async {
     _detailsLoading = true;
+    _retailDetails = null;
     notifyListeners();
 
-    final result = await _service.getRetailDetails(retailId);
+    try {
+      final result = await _service.getRetailDetails(retailId);
 
-    _detailsLoading = false;
+      if (result.isSuccess && result.data != null) {
+        _retailDetails = result.data!;
+        return true;
+      }
 
-    if (result.isSuccess && result.data != null) {
-      _retailDetails = result.data!;
+      return false;
+    } catch (e) {
+      return false;
+    } finally {
+      _detailsLoading = false;
+      notifyListeners();
     }
-
-    notifyListeners();
-    return result.isSuccess && result.data != null;
   }
 
   Future<bool> deleteRetail(int retailId) async {

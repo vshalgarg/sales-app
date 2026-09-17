@@ -24,8 +24,14 @@ import 'add_new_supplier.dart';
 class AddNewCustomer extends StatefulWidget {
   final num? id;
   final FormMode mode;
+  final CustomerDetails? customerDetails;
 
-  const AddNewCustomer({super.key, this.id, this.mode = FormMode.add});
+  const AddNewCustomer({
+    super.key,
+    this.id,
+    this.mode = FormMode.add,
+    this.customerDetails,
+  });
 
   @override
   State<AddNewCustomer> createState() => _AddNewCustomerState();
@@ -257,26 +263,16 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   Future<void> loadData() async {
     final transportProvider = context.read<TransportProvider>();
-    final customerProvider = context.read<CustomerProvider>();
 
-    await transportProvider.fetchAllTransports();
-
-    if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-      final success = await customerProvider.fetchCustomerDetails(
-        widget.id!.toInt(),
-      );
-
-      if (success && customerProvider.customerDetails != null) {
-        _populateFormFromCustomer(customerProvider.customerDetails!);
-      }
-    } else {
+    if (widget.customerDetails != null) {
+      _populateFormFromCustomer(widget.customerDetails!);
+    } else if (widget.mode == FormMode.add) {
       contacts.add(ContactControllers());
       addInitialBank();
     }
 
-    if (mounted) {
-      setState(() {});
-    }
+    // Load transports independently.
+    transportProvider.fetchAllTransports();
   }
 
   @override

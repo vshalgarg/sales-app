@@ -176,312 +176,325 @@ class _BillEntryUploadDocumentsState extends State<BillEntryUploadDocuments> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
-      child: Container(
-        width: MediaQuery.of(context).size.width > 700
-            ? 680
-            : MediaQuery.of(context).size.width * 0.92,
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-        ),
-
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    "Bill Upload Documents",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 18),
-            // Existing Files
-            if (widget.existingFileNames.isNotEmpty)
-              ...List.generate(widget.existingFileNames.length, (index) {
-                return _buildFileCard(
-                  fileName: widget.existingFileNames[index],
-                  fileSize: "",
-
-                  onTap: () async {
-                    await viewAttachment(
-                      widget.existingUrls[index],
-                      widget.existingFileNames[index],
-                    );
-                  },
-                  trailing: widget.isViewMode
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 35,
-                                minHeight: 35,
-                              ),
-                              icon: const Icon(
-                                Icons.remove_red_eye,
-                                color: Colors.blue,
-                              ),
-                              onPressed: () async {
-                                await viewAttachment(
-                                  widget.existingUrls[index],
-                                  widget.existingFileNames[index],
-                                );
-                              },
-                            ),
-
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 35,
-                                minHeight: 35,
-                              ),
-                              icon: const Icon(
-                                Icons.download,
-                                color: Colors.green,
-                              ),
-                              onPressed: () async {
-                                final uri = Uri.parse(
-                                  widget.existingUrls[index],
-                                );
-
-                                await launchUrl(
-                                  uri,
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              },
-                            ),
-                          ],
-                        )
-                      : widget.isEditMode
-                      ? IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 35,
-                            minHeight: 35,
-                          ),
-                          icon: const Icon(
-                            Icons.remove_red_eye,
-                            color: Colors.blue,
-                          ),
-                          onPressed: () async {
-                            await viewAttachment(
-                              widget.existingUrls[index],
-                              widget.existingFileNames[index],
-                            );
-                          },
-                        )
-                      : null,
-                  onRemove: widget.isEditMode
-                      ? () {
-                          setState(() {
-                            widget.existingFileNames.removeAt(index);
-                            widget.existingUrls.removeAt(index);
-                            widget.existingImageKeys.removeAt(index);
-                          });
-                        }
-                      : null,
-                );
-              }),
-            if (selectedFiles.isNotEmpty)
-              ...selectedFiles.map((file) {
-                return _buildFileCard(
-                  fileName: file.name,
-                  fileSize: "${(file.size / 1024).toStringAsFixed(2)} KB",
-                  onTap: () async {
-                    if (file.path != null) {
-                      await OpenAppFile.open(file.path!);
-                    }
-                  },
-                  onRemove: widget.isViewMode
-                      ? null
-                      : () {
-                          setState(() {
-                            selectedFiles.remove(file);
-                          });
-                        },
-                );
-              }),
-            const SizedBox(height: 10),
-            if (!widget.isViewMode && totalFiles < 3)
-              GestureDetector(
-                onTap: selectFiles,
-
-                child: DottedBorder(
-                  color: AppColors.primaryPurple.withValues(alpha: 0.35),
-                  strokeWidth: 1.5,
-                  dashPattern: const [6, 4],
-                  borderType: BorderType.RRect,
-                  radius: const Radius.circular(12),
-                  padding: EdgeInsets.zero,
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: totalFiles == 0 ? 18 : 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFAF9FF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        // Upload icon
-                        Container(
-                          height: totalFiles == 0 ? 58 : 44,
-                          width: totalFiles == 0 ? 58 : 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryPurpleLight,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.cloud_upload_outlined,
-                            color: AppColors.primaryPurple,
-                            size: totalFiles == 0 ? 42 : 30,
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        Text(
-                          totalFiles == 0
-                              ? "Drag & drop files here"
-                              : "Add more files",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.primaryPurple,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-
-                        const SizedBox(height: 3),
-
-                        Text(
-                          totalFiles == 0
-                              ? "or browse files"
-                              : "Drag & drop or browse",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.primaryPurple,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        // Supported formats
-                        const Text(
-                          "Supports JPG, PNG, JPEG & PDF",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey, fontSize: 15),
-                        ),
-
-                        const SizedBox(height: 3),
-
-                        const Text(
-                          "Max 3 files",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey, fontSize: 15),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
               ),
-            SizedBox(height: 15),
-            Row(
-              children: [
-                // CANCEL
-                Expanded(
-                  child: SizedBox(
-                    height: 44,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        side: BorderSide(
-                          color: AppColors.primaryPurple.withValues(
-                            alpha: 0.35,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          "Bill Upload Documents",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20,
                           ),
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text(
-                        "Cancel",
-                        style: TextStyle(
-                          color: Color(0xFF111D5E),
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
+                    ],
+                  ),
+
+                  const SizedBox(height: 18),
+                  // Existing Files
+                  if (widget.existingFileNames.isNotEmpty)
+                    ...List.generate(widget.existingFileNames.length, (index) {
+                      return _buildFileCard(
+                        fileName: widget.existingFileNames[index],
+                        fileSize: "",
+
+                        onTap: () async {
+                          await viewAttachment(
+                            widget.existingUrls[index],
+                            widget.existingFileNames[index],
+                          );
+                        },
+                        trailing: widget.isViewMode
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 35,
+                                      minHeight: 35,
+                                    ),
+                                    icon: const Icon(
+                                      Icons.remove_red_eye,
+                                      color: Colors.blue,
+                                    ),
+                                    onPressed: () async {
+                                      await viewAttachment(
+                                        widget.existingUrls[index],
+                                        widget.existingFileNames[index],
+                                      );
+                                    },
+                                  ),
+
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 35,
+                                      minHeight: 35,
+                                    ),
+                                    icon: const Icon(
+                                      Icons.download,
+                                      color: Colors.green,
+                                    ),
+                                    onPressed: () async {
+                                      final uri = Uri.parse(
+                                        widget.existingUrls[index],
+                                      );
+
+                                      await launchUrl(
+                                        uri,
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              )
+                            : widget.isEditMode
+                            ? IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 35,
+                                  minHeight: 35,
+                                ),
+                                icon: const Icon(
+                                  Icons.remove_red_eye,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () async {
+                                  await viewAttachment(
+                                    widget.existingUrls[index],
+                                    widget.existingFileNames[index],
+                                  );
+                                },
+                              )
+                            : null,
+                        onRemove: widget.isEditMode
+                            ? () {
+                                setState(() {
+                                  widget.existingFileNames.removeAt(index);
+                                  widget.existingUrls.removeAt(index);
+                                  widget.existingImageKeys.removeAt(index);
+                                });
+                              }
+                            : null,
+                      );
+                    }),
+                  if (selectedFiles.isNotEmpty)
+                    ...selectedFiles.map((file) {
+                      return _buildFileCard(
+                        fileName: file.name,
+                        fileSize: "${(file.size / 1024).toStringAsFixed(2)} KB",
+                        onTap: () async {
+                          if (file.path != null) {
+                            await OpenAppFile.open(file.path!);
+                          }
+                        },
+                        onRemove: widget.isViewMode
+                            ? null
+                            : () {
+                                setState(() {
+                                  selectedFiles.remove(file);
+                                });
+                              },
+                      );
+                    }),
+                  const SizedBox(height: 10),
+                  if (!widget.isViewMode && totalFiles < 3)
+                    GestureDetector(
+                      onTap: selectFiles,
+
+                      child: DottedBorder(
+                        color: AppColors.primaryPurple.withValues(alpha: 0.35),
+                        strokeWidth: 1.5,
+                        dashPattern: const [6, 4],
+                        borderType: BorderType.RRect,
+                        radius: const Radius.circular(12),
+                        padding: EdgeInsets.zero,
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: totalFiles == 0 ? 18 : 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAF9FF),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              // Upload icon
+                              Container(
+                                height: totalFiles == 0 ? 58 : 44,
+                                width: totalFiles == 0 ? 58 : 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryPurpleLight,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.cloud_upload_outlined,
+                                  color: AppColors.primaryPurple,
+                                  size: totalFiles == 0 ? 42 : 30,
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              Text(
+                                totalFiles == 0
+                                    ? "Drag & drop files here"
+                                    : "Add more files",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: AppColors.primaryPurple,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+
+                              const SizedBox(height: 3),
+
+                              Text(
+                                totalFiles == 0
+                                    ? "or browse files"
+                                    : "Drag & drop or browse",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: AppColors.primaryPurple,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              // Supported formats
+                              const Text(
+                                "Supports JPG, PNG, JPEG & PDF",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 15,
+                                ),
+                              ),
+
+                              const SizedBox(height: 3),
+
+                              const Text(
+                                "Max 3 files",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-
-                const SizedBox(width: 20),
-
-                // SAVE
-                if (!widget.isViewMode)
-                  Expanded(
-                    child: SizedBox(
-                      height: 44,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context, {
-                            "files": selectedFiles,
-                            "existingImageKeys": widget.existingImageKeys,
-                            "existingFileNames": widget.existingFileNames,
-                            "existingUrls": widget.existingUrls,
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryPurple,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.cloud_upload_outlined,
-                              color: Colors.white,
-                              size: 26,
+                  SizedBox(height: 15),
+                  Row(
+                    children: [
+                      // CANCEL
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: AppColors.primaryPurple.withValues(
+                                  alpha: 0.35,
+                                ),
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                            SizedBox(width: 10),
-                            Text(
-                              "Save",
+                            child: const Text(
+                              "Cancel",
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Color(0xFF111D5E),
                                 fontSize: 20,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+
+                      const SizedBox(width: 20),
+
+                      // SAVE
+                      if (!widget.isViewMode)
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context, {
+                                  "files": selectedFiles,
+                                  "existingImageKeys": widget.existingImageKeys,
+                                  "existingFileNames": widget.existingFileNames,
+                                  "existingUrls": widget.existingUrls,
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryPurple,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.cloud_upload_outlined,
+                                    color: Colors.white,
+                                    size: 26,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    "Save",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-              ],
+                ],
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
