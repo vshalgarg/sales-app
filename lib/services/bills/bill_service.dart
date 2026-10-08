@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../../model_classes/common/paginated_response.dart';
@@ -15,6 +16,38 @@ class BillService {
   final ApiService _api;
 
   BillService(this._api);
+
+ MediaType _getMediaType(String path) {
+  final extension = path.split('.').last.toLowerCase();
+
+  switch (extension) {
+    case 'jpg':
+    case 'jpeg':
+      return MediaType('image', 'jpeg');
+
+    case 'png':
+      return MediaType('image', 'png');
+
+    case 'webp':
+      return MediaType('image', 'webp');
+
+    case 'heic':
+      return MediaType('image', 'heic');
+
+    case 'heif':
+      return MediaType('image', 'heif');
+
+    case 'pdf':
+      return MediaType('application', 'pdf');
+
+    case 'svg':
+      return MediaType('image', 'svg+xml');
+
+    default:
+      return MediaType('application', 'octet-stream');
+  }
+}
+
 
   static const String _bill = "/bill";
   static const String _billEntry = "/bill/entry";
@@ -148,61 +181,100 @@ class BillService {
   }
 
   Future<ResponseResult<ApiResponse>> addBill({
-    required AddBillRequest request,
-    List<File> images = const [],
-  }) async {
-    final payload = request.toJson();
+  required AddBillRequest request,
+  List<File> images = const [],
+}) async {
+  debugPrint("🔥🔥🔥 ADD BILL SERVICE RUNNING 🔥🔥🔥");
 
-    payload["billItems"] =
-        request.items?.map((e) => e.toJson()).toList() ?? [];
+  final formData = FormData();
 
-    final formData = FormData();
+  final billPayload = request.toJson();
 
-    formData.fields.add(
-      MapEntry(
-        "payload",
-        jsonEncode(payload),
+  billPayload["billItems"] =
+      request.items?.map((e) => e.toJson()).toList() ?? [];
+
+
+  debugPrint("========== BILL PAYLOAD ==========");
+     debugPrint(jsonEncode(billPayload));
+  debugPrint("==================================");
+
+formData.files.add(
+  MapEntry(
+    "payload",
+    MultipartFile.fromString(
+      jsonEncode(billPayload),
+      filename: "blob",
+      contentType: MediaType(
+        "application",
+        "json",
       ),
-    );
+    ),
+  ),
+);
+debugPrint("========== BILL IMAGES ==========");
+debugPrint("Number of images: ${images.length}");
 
-    for (final image in images) {
-      formData.files.add(
-        MapEntry(
-          "images",
-          await MultipartFile.fromFile(
-            image.path,
-            filename: image.path.split('/').last,
-          ),
-        ),
-      );
-    }
+for (final image in images) {
+  final file = File(image.path);
 
-    final result = await _api.post<Map<String, dynamic>>(
-      path: "$_billEntry/add",
-      data: formData,
-    );
+  debugPrint("========== BILL IMAGE DEBUG ==========");
+  debugPrint("IMAGE PATH: ${image.path}");
+  debugPrint("IMAGE EXISTS: ${await file.exists()}");
 
-    if (result.isFailure) {
-      return ResponseResult.error(
-        errorMessage: result.errorMessage ?? "Something went wrong",
-        statusCode: result.statusCode,
-      );
-    }
+  if (await file.exists()) {
+    debugPrint("IMAGE SIZE: ${await file.length()} bytes");
+  }
 
-    final response = ApiResponse.fromJson(result.data!);
+  debugPrint(
+    "IMAGE EXTENSION: ${image.path.split('.').last.toLowerCase()}",
+  );
+  debugPrint("======================================");
 
-    if (!response.success) {
-      return ResponseResult.error(
-        errorMessage: response.message,
-        statusCode: result.statusCode,
-      );
-    }
+  if (!await file.exists()) {
+    debugPrint("❌ iOS IMAGE FILE DOES NOT EXIST");
+    continue;
+  }
 
-    return ResponseResult.success(
-      response,
-      result.statusCode,
+  final fileName = image.path.split(RegExp(r'[/\\\\]')).last;
+
+  formData.files.add(
+    MapEntry(
+      "images",
+      await MultipartFile.fromFile(
+        image.path,
+        filename: fileName,
+        contentType: _getMediaType(image.path),
+      ),
+    ),
+  );
+}
+
+  final result = await _api.post<Map<String, dynamic>>(
+    path: "$_billEntry/add",
+    data: formData,
+  );
+
+  if (result.isFailure) {
+    return ResponseResult.error(
+      errorMessage: result.errorMessage ?? "Something went wrong",
+      statusCode: result.statusCode,
     );
   }
+
+  final response = ApiResponse.fromJson(result.data!);
+
+  if (!response.success) {
+    return ResponseResult.error(
+      errorMessage: response.message,
+      statusCode: result.statusCode,
+    );
+  }
+
+  return ResponseResult.success(
+    response,
+    result.statusCode,
+  );
+}
 
  Future<ResponseResult<ApiResponse>> updateBill({
     required int id,
@@ -210,41 +282,84 @@ class BillService {
     List<String> existingImageKeys = const [],
     List<File> images = const [],
   }) async {
-    final payload = request.toJson();
+    final billPayload = request.toJson();
 
-    payload["billItems"] =
+    billPayload["billItems"] =
         request.items?.map((e) => e.toJson()).toList() ?? [];
 
-    payload["existingImageKeys"] = existingImageKeys;
+    billPayload["existingImageKeys"] = existingImageKeys;
 
     final formData = FormData();
 
-    formData.files.add(
-      MapEntry(
-        "data",
-        MultipartFile.fromString(
-          jsonEncode(payload),
-          filename: "data.json",
-          contentType: MediaType("application", "json"),
-        ),
+formData.files.add(
+  MapEntry(
+    "payload",
+    MultipartFile.fromString(
+      jsonEncode(billPayload),
+      filename: "blob",
+      contentType: MediaType(
+        "application",
+        "json",
       ),
-    );
+    ),
+  ),
+);
 
-    for (final image in images) {
-      formData.files.add(
-        MapEntry(
-          "images",
-          await MultipartFile.fromFile(
-            image.path,
-            filename: image.path.split('/').last,
-          ),
-        ),
-      );
-    }
-    final result = await _api.patch<Map<String, dynamic>>(
-      path: "$_billEntry/update/$id",
-      data: formData,
-    );
+debugPrint("========== UPDATE BILL IMAGES ==========");
+debugPrint("Number of images: ${images.length}");
+
+for (final image in images) {
+  final file = File(image.path);
+
+  debugPrint("========== UPDATE BILL IMAGE DEBUG ==========");
+  debugPrint("IMAGE PATH: ${image.path}");
+  debugPrint("IMAGE EXISTS: ${await file.exists()}");
+
+  if (await file.exists()) {
+    debugPrint("IMAGE SIZE: ${await file.length()} bytes");
+  }
+
+  final extension = image.path.split('.').last.toLowerCase();
+
+  debugPrint("IMAGE EXTENSION: $extension");
+  debugPrint("IMAGE MIME TYPE: ${_getMediaType(image.path)}");
+  debugPrint("============================================");
+
+  if (!await file.exists()) {
+    debugPrint("❌ iOS IMAGE FILE DOES NOT EXIST");
+    continue;
+  }
+
+  final fileName =
+      image.path.split(RegExp(r'[/\\\\]')).last;
+
+  final multipartFile = await MultipartFile.fromFile(
+    image.path,
+    filename: fileName,
+    contentType: _getMediaType(image.path),
+  );
+
+  debugPrint("MULTIPART FILE NAME: $fileName");
+  debugPrint(
+    "MULTIPART CONTENT TYPE: ${multipartFile.contentType}",
+  );
+
+  formData.files.add(
+    MapEntry(
+      "images",
+      multipartFile,
+    ),
+  );
+}
+
+debugPrint(
+  "TOTAL FORM DATA FILES: ${formData.files.length}",
+);
+
+final result = await _api.post<Map<String, dynamic>>(
+  path: "$_billEntry/add",
+  data: formData,
+);
 
     if (result.isFailure) {
       return ResponseResult.error(

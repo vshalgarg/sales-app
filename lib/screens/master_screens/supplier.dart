@@ -28,7 +28,6 @@ class _SupplierState extends State<SupplierScreen> {
   bool _isOpeningCopyDialog = false;
   final searchController = TextEditingController();
   Timer? _debounce;
-
   @override
   void initState() {
     super.initState();
@@ -61,11 +60,8 @@ class _SupplierState extends State<SupplierScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => HomeScreen()),
-            );
-          },
+      Navigator.pop(context);
+    },
         ),
         title: "Suppliers",
         textStyle: TextStyle(

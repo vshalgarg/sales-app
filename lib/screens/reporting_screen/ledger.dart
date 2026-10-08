@@ -168,16 +168,10 @@ class _LedgerReportingState extends State<LedgerReporting> {
       appBar: CustomAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.read<LedgerProvider>().clearLedger();
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => HomeScreen(),
-              ),
-            );
-          },
+         onPressed: () {
+  context.read<LedgerProvider>().clearLedger();
+  Navigator.pop(context);
+},
         ),
         title: "Ledger",
         textStyle: const TextStyle(

@@ -382,12 +382,9 @@ class _CreditScreenState extends State<CreditScreen> {
               appBar: CustomAppBar(
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => HomeScreen()),
-                    );
-                  },
+                 onPressed: () {
+  Navigator.pop(context);
+},
                 ),
                 title: "Credits",
                 textStyle: const TextStyle(

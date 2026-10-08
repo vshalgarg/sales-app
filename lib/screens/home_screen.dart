@@ -19,6 +19,16 @@ import 'master_screens/supplier.dart';
 import 'master_screens/transport.dart';
 import 'master_screens/users.dart';
 
+class NoSwipePageRoute<T> extends MaterialPageRoute<T> {
+  NoSwipePageRoute({
+    required super.builder,
+    super.settings,
+  });
+
+  @override
+  bool get popGestureEnabled => false;
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -63,7 +73,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<ConfigProvider>();
     return Scaffold(
-      appBar: NewCustomAppBar(),
+      appBar: NewCustomAppBar(
+
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -102,12 +114,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         imagePath: "assets/images/supplier 1.png",
                         title: "Suppliers",
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SupplierScreen(),
-                            ),
-                          );
+                         Navigator.push(
+                       context,
+                   NoSwipePageRoute(
+                builder: (_) => const SupplierScreen(),
+                     ),
+                     );
                         },
                       ),
                       menuItemCard(
@@ -116,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            NoSwipePageRoute(
                               builder: (context) => CustomerScreen(),
                             ),
                           );
@@ -128,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            NoSwipePageRoute(
                               builder: (context) => StaffScreen(),
                             ),
                           );
@@ -140,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            NoSwipePageRoute(
                               builder: (context) => UsersScreen(),
                             ),
                           );
@@ -152,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            NoSwipePageRoute(
                               builder: (context) => TransportScreen(),
                             ),
                           );
@@ -165,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            NoSwipePageRoute(
                               builder: (context) => ConfigurationScreen(),
                             ),
                           );
@@ -177,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            NoSwipePageRoute(
                                 builder: (context) =>  Bills()));
                         },
                       ),
@@ -187,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => CreditScreen()),
+                            NoSwipePageRoute(builder: (context) => CreditScreen()),
                           );
                         },
                       ),
@@ -198,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            NoSwipePageRoute(
                                 builder: (context) => Purchases()));
                         },
                       ),
@@ -209,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: () {
                             Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                               NoSwipePageRoute(
                                     builder: (context) => Retail()));
                           },
                         ),
@@ -219,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                           NoSwipePageRoute(
                                 builder: (context) => LedgerReporting()));
                         },
                       ),

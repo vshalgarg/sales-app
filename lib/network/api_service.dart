@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+
 
 import 'package:dio/dio.dart';
 
@@ -122,49 +124,77 @@ class ApiService {
   }
 
   Future<ResponseResult<T>> _request<T>({
-    required String method,
-    required String path,
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Map<String, dynamic>? headers,
-    ResponseType responseType = ResponseType.json,
-    bool showLoader = false,
-  }) async {
-    if (showLoader) {
-      LoadingService.show();
+  required String method,
+  required String path,
+  dynamic data,
+  Map<String, dynamic>? queryParameters,
+  Map<String, dynamic>? headers,
+  ResponseType responseType = ResponseType.json,
+  bool showLoader = false,
+}) async {
+  if (showLoader) {
+    LoadingService.show();
+  }
+
+  try {
+    final isMultipart = data is FormData;
+
+    final requestHeaders = <String, dynamic>{
+      ...?headers,
+    };
+
+    // IMPORTANT:
+    // Never send application/json when the body is FormData.
+    if (isMultipart) {
+      requestHeaders.remove('Content-Type');
+      requestHeaders.remove('content-type');
     }
 
-    try {
-      final response = await _dio.request(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(
-          method: method,
-          headers: headers,
-          responseType: responseType,
-        ),
-      );
+    final options = Options(
+      method: method,
+      headers: requestHeaders,
+      responseType: responseType,
+    );
 
-      return ResponseResult.success(
-        response.data,
-        response.statusCode,
-      );
-    } on DioException catch (e) {
-      return ResponseResult.error(
-        errorMessage:
-        DioExceptions.fromDioError(dioError: e).errorMessage(),
-        dioErrorType: e.type,
-        statusCode: e.response?.statusCode,
-      );
-    } catch (e) {
-      return ResponseResult.error(
-        errorMessage: e.toString(),
-      );
-    } finally {
-      if (showLoader) {
-        LoadingService.hide();
-      }
+    if (isMultipart) {
+      options.contentType = Headers.multipartFormDataContentType;
+    }
+
+    debugPrint('========== FINAL DIO REQUEST ==========');
+    debugPrint('PATH: $path');
+    debugPrint('METHOD: $method');
+    debugPrint('DATA TYPE: ${data.runtimeType}');
+    debugPrint('IS MULTIPART: $isMultipart');
+    debugPrint('HEADERS: ${options.headers}');
+    debugPrint('CONTENT TYPE: ${options.contentType}');
+    debugPrint('========================================');
+
+    final response = await _dio.request(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
+
+    return ResponseResult.success(
+      response.data,
+      response.statusCode,
+    );
+  } on DioException catch (e) {
+    return ResponseResult.error(
+      errorMessage:
+          DioExceptions.fromDioError(dioError: e).errorMessage(),
+      dioErrorType: e.type,
+      statusCode: e.response?.statusCode,
+    );
+  } catch (e) {
+    return ResponseResult.error(
+      errorMessage: e.toString(),
+    );
+  } finally {
+    if (showLoader) {
+      LoadingService.hide();
     }
   }
+}
 }

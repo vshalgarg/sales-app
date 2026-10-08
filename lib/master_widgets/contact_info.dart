@@ -152,14 +152,17 @@ class _ContactInfoState extends State<ContactInfo> {
                       ),
                       TextFormField(
                         keyboardType: TextInputType.number,
+                  
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
+                        maxLength:15,
                         enabled: widget.mode != FormMode.view,
                         controller: contact.mobile,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
+                          counterText: widget.mode == FormMode.view ? '' : null,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(5),
                             borderSide: BorderSide.none,

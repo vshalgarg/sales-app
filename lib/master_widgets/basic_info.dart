@@ -266,26 +266,10 @@ class _SupplierBasicInfoState extends State<SupplierBasicInfo> {
               controller: widget.commissionRateController,
 
               inputFormatters: [
-                TextInputFormatter.withFunction(
-                      (oldValue, newValue) {
-                    if (newValue.text.isEmpty) {
-                      return newValue;
-                    }
-                    final validFormat = RegExp(r'^\d+(\.\d{0,2})?$');
-                    if (!validFormat.hasMatch(newValue.text)) {
-                      return oldValue;
-                    }
-
-                    final value = double.tryParse(newValue.text);
-
-                    if (value != null && value <= 100) {
-                      return newValue;
-                    }
-
-                    return oldValue;
-                  },
-                ),
-              ],
+    FilteringTextInputFormatter.allow(
+      RegExp(r'^\d{0,3}(\.\d{0,2})?$'),
+    ),
+  ],
 
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {

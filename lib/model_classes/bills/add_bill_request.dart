@@ -5,7 +5,7 @@ class AddBillRequest {
   final String? billNumber;
   final String? date;
   final String? receivedDate;
-  final String? invoiceNo;
+  final String? order;
 
   final num? supplierId;
   final num? customerId;
@@ -24,7 +24,7 @@ class AddBillRequest {
     this.billNumber,
     this.date,
     this.receivedDate,
-    this.invoiceNo,
+    this.order,
     this.supplierId,
     this.customerId,
     this.transport,
@@ -41,7 +41,7 @@ class AddBillRequest {
       'billNumber': billNumber,
       'date': date,
       'receivedDate': receivedDate,
-      'invoiceNo': invoiceNo,
+      'order': order,
       'supplierId': supplierId,
       'customerId': customerId,
       'transport': transport,
@@ -59,7 +59,7 @@ class AddBillRequest {
       billNumber: json['billNumber'],
       date: json['date'],
       receivedDate: json['receivedDate'],
-      invoiceNo: json['invoiceNo'],
+      order: json['order'],
       supplierId: json['supplierId'],
       customerId: json['customerId'],
       transport: json['transport'],
@@ -74,11 +74,11 @@ class AddBillRequest {
   }
 
   AddBillRequest copyWith({
-    num? id,
-    String? billNumber,
-    String? date,
-    String? receivedDate,
-    String? invoiceNo,
+  num? id,
+  String? billNumber,
+  String? date,
+  String? receivedDate,
+  String? order,
     num? supplierId,
     num? customerId,
     String? transport,
@@ -93,7 +93,7 @@ class AddBillRequest {
       billNumber: billNumber ?? this.billNumber,
       date: date ?? this.date,
       receivedDate: receivedDate ?? this.receivedDate,
-      invoiceNo: invoiceNo ?? this.invoiceNo,
+      order: order ?? this.order,
       supplierId: supplierId ?? this.supplierId,
       customerId: customerId ?? this.customerId,
       transport: transport ?? this.transport,

@@ -67,13 +67,8 @@ class _TransportScreenState extends State<TransportScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => HomeScreen(),
-                ),
-              );
-            },
+              Navigator.pop(context);
+    },
           ),
           title: "Transport Overview",
           textStyle: const TextStyle(

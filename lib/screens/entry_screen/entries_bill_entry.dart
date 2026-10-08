@@ -763,7 +763,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       receivedDate: receivedDateController.text.isEmpty
           ? null
           : _toApiDate(receivedDateController.text),
-      invoiceNo: invoiceController.text,
+     order: invoiceController.text,
       supplierId: selectedSupplier?.id,
       customerId: selectedCustomer?.id,
       transport: selectedTransport?.name,
@@ -846,8 +846,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       receivedDate: receivedDateController.text.isEmpty
           ? null
           : _toApiDate(receivedDateController.text),
-      invoiceNo: invoiceController.text,
-      supplierId: selectedSupplier?.id,
+      order: invoiceController.text,  
+    supplierId: selectedSupplier?.id,
       customerId: selectedCustomer?.id,
       transport: selectedTransportName,
       lrNumber: lrNumberController.text.isEmpty
