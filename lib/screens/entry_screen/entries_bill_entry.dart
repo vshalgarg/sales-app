@@ -763,7 +763,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       receivedDate: receivedDateController.text.isEmpty
           ? null
           : _toApiDate(receivedDateController.text),
-      invoiceNo: invoiceController.text,
+      order: invoiceController.text,
       supplierId: selectedSupplier?.id,
       customerId: selectedCustomer?.id,
       transport: selectedTransport?.name,
@@ -800,7 +800,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
         Navigator.pop(context, true);
       } else {
-        ScaffoldSnackBar.show(context, "Failed to save bill");
+      //  ScaffoldSnackBar.show(context, "Failed to save bill");
       }
     } catch (e) {
       if (!context.mounted) return;
@@ -846,7 +846,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       receivedDate: receivedDateController.text.isEmpty
           ? null
           : _toApiDate(receivedDateController.text),
-      invoiceNo: invoiceController.text,
+      order: invoiceController.text,
       supplierId: selectedSupplier?.id,
       customerId: selectedCustomer?.id,
       transport: selectedTransportName,
@@ -856,13 +856,47 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       remarks: remarksController.text.isEmpty ? null : remarksController.text,
       taxableValue: billItems.fold<double>(
         0.0,
-        (sum, item) => sum + (item.taxableValue ?? 0),
+            (sum, item) {
+          final taxable = item.taxableValue ??
+              ((item.grossAmount ?? 0) -
+                  (item.discountAmount ?? 0) +
+                  (item.addOnAmount ?? 0) +
+                  (item.ecrAmount ?? 0));
+
+          return sum + taxable;
+        },
       ),
+
       billAmount: billItems.fold<double>(
         0.0,
-        (sum, item) => sum + (item.totalAmount ?? 0),
+            (sum, item) {
+          final taxable = item.taxableValue ??
+              ((item.grossAmount ?? 0) -
+                  (item.discountAmount ?? 0) +
+                  (item.addOnAmount ?? 0) +
+                  (item.ecrAmount ?? 0));
+
+          final total =
+              item.totalAmount ?? (taxable + (item.gstAmount ?? 0));
+
+          return sum + total;
+        },
       ),
-      items: billItems,
+      items: billItems.map((item) {
+        final taxable = item.taxableValue ??
+            ((item.grossAmount ?? 0) -
+                (item.discountAmount ?? 0) +
+                (item.addOnAmount ?? 0) +
+                (item.ecrAmount ?? 0));
+
+        final total =
+            item.totalAmount ?? (taxable + (item.gstAmount ?? 0));
+
+        return item.copyWith(
+          taxableValue: taxable,
+          totalAmount: total,
+        );
+      }).toList(),
     );
 
     final images = newUploadedFiles
