@@ -111,4 +111,12 @@ public class ApiPaths {
     public static final String ANALYTICS_SUPPLIER_AMOUNT = "/analytics/supplier/amount";
     public static final String ANALYTICS_CUSTOMER_AMOUNT = "/analytics/customer/amount";
 
+    //roles
+    public static final class ROLE {
+        public static final String ROLE_BASE = BASE + "/role";
+        public static final String CREATE_ROLE = "/create";
+        public static final String GET_ALL_ROLES = "/get/all";
+        public static final String GET_ROLE_DETAIL = "/detail/get/{roleId}";
+        public static final String UPDATE_ROLE = "/update/{roleId}";
+    }
 }
