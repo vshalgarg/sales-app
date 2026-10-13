@@ -4,13 +4,8 @@ import com.code.monks.csm.client.AuthRestClient;
 import com.code.monks.csm.dto.auth.request.AuthCreateRoleRequestDto;
 import com.code.monks.csm.dto.auth.request.AuthUpdateRoleRequestDto;
 import com.code.monks.csm.dto.auth.request.CreateRoleRequestDto;
-import com.code.monks.csm.dto.auth.response.AuthGetAllRolesDTO;
-import com.code.monks.csm.dto.auth.response.AuthGetRoleDetailDto;
-import com.code.monks.csm.dto.auth.response.AuthMessageResponseDto;
-import com.code.monks.csm.dto.auth.response.MessageResponseDTO;
-import com.code.monks.csm.dto.response.GetAllRolesDTO;
-import com.code.monks.csm.dto.response.GetRoleDetailDto;
-import com.code.monks.csm.dto.response.UpdateRoleRequestDto;
+import com.code.monks.csm.dto.auth.response.*;
+import com.code.monks.csm.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -90,5 +85,79 @@ public class RoleService {
         AuthMessageResponseDto response = authRestClient.callUpdateRole(authRequestDto, roleId);
         log.info("Successfully updated role for roleName={} | message={}", requestDto.getRoleName(), response.getMessage());
         return MessageResponseDTO.builder().message(response.getMessage()).build();
+    }
+
+    public List<GetAllPermissionsDto> getAllPermissions() {
+        log.info("Fetching all permissions from Auth Service");
+        List<AuthGetAllPermissionsDto> authResponse = authRestClient.callGetAllPermissions();
+        if (authResponse == null || authResponse.isEmpty()) {
+            log.warn("Auth Service returned empty/null permission list for GetAllPermissions");
+            return Collections.emptyList();
+        }
+        log.debug("Mapping {} permissions from Auth Service response", authResponse.size());
+        List<GetAllPermissionsDto> response = authResponse.stream()
+                .map(dto -> GetAllPermissionsDto.builder()
+                        .id(dto.getId())
+                        .name(dto.getName())
+                        .desc(dto.getDesc())
+                        .build()
+                )
+                .toList();
+        log.info("Fetched all permissions successfully | count={}", response.size());
+        return response;
+    }
+
+    public GetPermissionsByRoleTemplateDto getPermissionsByRoleTemplate(int roleTemplateId) {
+        log.info("Fetching role permissions for roleTemplateId={}", roleTemplateId);
+        AuthGetPermissionsByRoleTemplateDto authResponse = authRestClient.callGetPermissionsByRoleTemplate(roleTemplateId);
+        log.debug("Auth service returned permissions assigned={}, remaining={}",
+                authResponse.getAssigned(),
+                authResponse.getRemaining());
+        List<Permission> assigned = authResponse.getAssigned().stream()
+                        .map(p -> {
+                            Permission permission = new Permission();
+                            permission.setId(p.getId());
+                            permission.setName(p.getName());
+                            permission.setDesc(p.getDesc());
+                            return permission;
+                        })
+                        .toList();
+        List<Permission> remaining = authResponse.getRemaining().stream()
+                        .map(p -> {
+                            Permission permission = new Permission();
+                            permission.setId(p.getId());
+                            permission.setName(p.getName());
+                            permission.setDesc(p.getDesc());
+                            return permission;
+                        })
+                        .toList();
+        GetPermissionsByRoleTemplateDto response = new GetPermissionsByRoleTemplateDto();
+        response.setAssigned(assigned);
+        response.setRemaining(remaining);
+        log.info("Successfully prepared GetPermissionsByRoleTemplateDto for roleTemplateId={}", roleTemplateId);
+        return response;
+    }
+
+    public List<RoleTemplateDto> getAllRoleTemplate() {
+        log.info("Fetching role templates from Auth service");
+        List<AuthRoleTemplateDto> authResponse = authRestClient.callGetAllRoleTemplate();
+        log.debug("Role templates received from Auth service | count={}", authResponse.size());
+        List<RoleTemplateDto> response = authResponse.stream()
+                .map(rt -> RoleTemplateDto.builder()
+                        .id(rt.getId())
+                        .name(rt.getName())
+                        .build())
+                .toList();
+        log.info("Mapped {} role templates to RoleTemplateDto", response.size());
+        return response;
+    }
+
+    public MessageResponseDTO deleteRole(int roleId) {
+        log.debug("Calling Auth Service to delete role | roleId={}", roleId);
+        AuthMessageResponseDto authResponse = authRestClient.callDeleteRole(roleId);
+        log.info("Auth Service delete role success | roleId={}, message={}", roleId, authResponse.getMessage());
+        return MessageResponseDTO.builder()
+                .message(authResponse.getMessage())
+                .build();
     }
 }

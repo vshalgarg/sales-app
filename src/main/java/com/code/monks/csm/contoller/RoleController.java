@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.auth.request.CreateRoleRequestDto;
 import com.code.monks.csm.dto.auth.response.MessageResponseDTO;
 import com.code.monks.csm.dto.response.GetAllRolesDTO;
 import com.code.monks.csm.dto.response.GetRoleDetailDto;
+import com.code.monks.csm.dto.response.RoleTemplateDto;
 import com.code.monks.csm.dto.response.UpdateRoleRequestDto;
 import com.code.monks.csm.service.RoleService;
 import com.code.monks.csm.validation.HasPermission;
@@ -66,6 +67,25 @@ public class RoleController {
                 requestDto.getPermissionIds());
         MessageResponseDTO response = rollService.updateRole(requestDto, roleId);
         log.info("API SUCCESS: Role updated successfully | roleId={} | roleName={}", roleId, requestDto.getRoleName());
+        return ResponseEntity.ok(response);
+    }
+
+    @HasPermission("PERM_ROLE_CRUD")
+    @GetMapping(GET_ALL_ROLE_TEMPLATE)
+    public ResponseEntity<List<RoleTemplateDto>> getAllRoleTemplate()
+    {
+        log.info("API START: Get all role templates request received");
+        List<RoleTemplateDto> response = rollService.getAllRoleTemplate();
+        log.info("API SUCCESS: Role templates fetched successfully | totalTemplates={}", response != null ? response.size() : 0);
+        return ResponseEntity.ok(response);
+    }
+
+    @HasPermission("PERM_ROLE_CRUD")
+    @DeleteMapping(DELETE_ROLE)
+    public ResponseEntity<MessageResponseDTO> deleteRole(@PathVariable int roleId) {
+        log.info("API START: Delete role request received | roleId={}", roleId);
+        MessageResponseDTO response = rollService.deleteRole(roleId);
+        log.info("API SUCCESS: Role deleted successfully | roleId={} | message={}", roleId, response.getMessage());
         return ResponseEntity.ok(response);
     }
 }

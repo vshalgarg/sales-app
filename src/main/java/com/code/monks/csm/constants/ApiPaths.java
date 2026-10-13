@@ -118,5 +118,14 @@ public class ApiPaths {
         public static final String GET_ALL_ROLES = "/get/all";
         public static final String GET_ROLE_DETAIL = "/detail/get/{roleId}";
         public static final String UPDATE_ROLE = "/update/{roleId}";
+        public static final String GET_ALL_ROLE_TEMPLATE = "/template/get/all";
+        public static final String DELETE_ROLE = "/delete/{roleId}";
+    }
+
+    //permission
+    public static final class PERMISSION{
+        public static final String PERMISSION_BASE = BASE + "/permission";
+        public static final String GET_PERMISSIONS_BY_ROLE_TEMPLATE = "/role-templates/{roleTemplateId}";
+        public static final String GET_ALL_PERMISSIONS = "/all";
     }
 }
