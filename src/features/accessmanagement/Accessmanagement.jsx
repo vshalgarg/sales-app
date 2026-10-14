@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Pencil, Plus, ShieldCheck, X } from "lucide-react";
 import CustomTable from "../../components/CustomTable";
+import { getAllRoles, getRoleData, deleteUser } from "@/services/roleService";
+import { useSnackbar } from "@/contexts/SnackbarContext";
+
 
 const DetailField = ({ label, value }) => (
   <div className="flex flex-col gap-1">
@@ -14,19 +17,58 @@ const DetailField = ({ label, value }) => (
   </div>
 );
 
-function AccessManagement() {
+const AccessManagement = () => { 
   const navigate = useNavigate();
+  const { showSnackbar } = useSnackbar();
 
-  // Connect this state to your roles API.
-  const [roles] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [deleteRole, setDeleteRole] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);  
   const [selectedRole, setSelectedRole] = useState(null);
   const [openViewModal, setOpenViewModal] = useState(false);
 
-  const handleView = (role) => {
-    // Replace with getRoleDetails(role.id) when
-    // the roles service is connected.
-    setSelectedRole(role);
-    setOpenViewModal(true);
+  useEffect(() => {
+    const allRoles = async () => {
+      try {
+        const res = await getAllRoles();
+        setRoles(res);
+      } catch (err) {
+          showSnackbar(err?.message, 'error');
+        }
+    };
+    allRoles();
+  }, []);
+
+  const handleViewMode = async (role) => {
+    try {
+      if (!role?.id) {
+        showSnackbar('Role ID missing', 'error');
+        return;
+      }
+      const res = await getRoleData(role.id);
+      setSelectedRole(res);
+      setOpenViewModal(true);
+    } catch (err) {
+        showSnackbar(err?.message, 'error');
+      }
+  };
+
+  const handleRoleDelete = async () => {
+    if (!deleteRole) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteUser(deleteRole.id);
+      setRoles((prevRoles) => prevRoles.filter((role) => role.id !== deleteRole.id));
+
+      showSnackbar("Role deleted successfully", "success");
+      setDeleteRole(null);
+
+    } catch (error) {
+      showSnackbar(error?.message || "Failed to delete role", "error");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const columns = [
@@ -45,11 +87,11 @@ function AccessManagement() {
       actions: (row) => [
         {
           label: "View",
-          onClick: () => handleView(row),
+          onClick: () => handleViewMode(row),
         },
         {
           label: "Delete",
-          onClick: () => handleView(row),
+          onClick: () => setDeleteRole(row),
         },
         {
           label: "Edit",
@@ -97,9 +139,67 @@ function AccessManagement() {
         />
       </div>
 
+      {deleteRole && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => !isDeleting && setDeleteRole(null)} >
+          <div role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl sm:p-6"
+            onClick={(event) => event.stopPropagation()} >
+
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center
+                rounded-full bg-red-100 text-red-600">
+                <ShieldCheck size={22} />
+              </div>
+
+              <div className="flex-1">
+                <h2 id="delete-modal-title" className="text-lg font-semibold text-gray-900">
+                  Delete Role
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  Are you sure you want to delete the role{" "}
+                  <span className="font-semibold text-gray-900">
+                    {deleteRole.roleName}
+                  </span>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDeleteRole(null)}
+                disabled={isDeleting}
+                aria-label="Close delete confirmation"
+                className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteRole(null)}
+                disabled={isDeleting}
+                className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRoleDelete}
+                disabled={isDeleting}
+                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDeleting ? "Deleting..." : "Delete Role"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {openViewModal && (
-        <div className="fixed inset-0 z-50 flex items-center
-          justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
             type="button"
             aria-label="Close role details"
@@ -107,10 +207,8 @@ function AccessManagement() {
             onClick={() => setOpenViewModal(false)}
           />
 
-          <div className="relative w-full max-w-lg rounded-xl
-            bg-white shadow-xl">
-            <div className="flex items-center justify-between
-              border-b px-6 py-4">
+          <div className="relative w-full max-w-lg rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b px-6 py-4">
               <h2 className="text-lg font-semibold">
                 Role Details
               </h2>
