@@ -39,3 +39,12 @@ export const deleteUser = async (roleId) => {
     throw new Error(handleApiError(error));
   }
 };
+
+export const UpdateUser = async (roleId, payload) => {
+  try {
+    const response = await api.put(`/role/update/${roleId}`, payload);
+    return checkLogicalError(response.data);
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

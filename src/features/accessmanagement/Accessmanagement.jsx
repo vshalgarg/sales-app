@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Pencil, Plus, ShieldCheck, X } from "lucide-react";
 import CustomTable from "../../components/CustomTable";
-import { getAllRoles, getRoleData, deleteUser } from "@/services/roleService";
+import { getAllRoles, getRoleData, deleteUser } from "@/services/RoleService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
-
 
 const DetailField = ({ label, value }) => (
   <div className="flex flex-col gap-1">
@@ -71,6 +70,10 @@ const AccessManagement = () => {
     }
   };
 
+  const handleCreateRole = () => {
+    navigate("/access-createrole");
+  };
+
   const columns = [
     {
       header: "Role Name",
@@ -96,7 +99,7 @@ const AccessManagement = () => {
         {
           label: "Edit",
           onClick: () =>
-            navigate("/access/role/edit", { state: { id: row.id } }),
+            navigate("/access-editrole", { state: { id: row.id } }),
         },
       ],
     },
@@ -120,13 +123,13 @@ const AccessManagement = () => {
 
         <button
           type="button"
-          onClick={() => navigate("/access/role/create")}
+          onClick={handleCreateRole}
           className="inline-flex items-center gap-2 rounded-md
             bg-brand-primary px-4 py-2 text-sm font-medium text-white
             hover:opacity-90"
         >
           <Plus size={18} />
-          Create Role
+          Add New Role
         </button>
       </div>
 
