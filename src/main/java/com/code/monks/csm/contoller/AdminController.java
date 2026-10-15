@@ -23,6 +23,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final com.code.monks.csm.schedular.DailyReportScheduler dailyReportScheduler;
 
     @PutMapping(CHANGE_PASSWORD)
     public ResponseEntity<Map<String, Object>> changePassword(
@@ -61,5 +62,17 @@ public class AdminController {
                 ApiResponse.success("Configuration updated successfully")
         );
     }
+
+        @PostMapping("/send")
+        public ResponseEntity<String> sendDailyReport() {
+
+            dailyReportScheduler.sendDailySalesReport();
+
+            return ResponseEntity.ok(
+                    "Daily sales report email process triggered."
+            );
+        }
+
+
 
 }

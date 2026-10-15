@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface RetailSupplierDepositRepository extends JpaRepository<RetailSupplierDepositEntity, Integer> {
@@ -35,4 +36,31 @@ public interface RetailSupplierDepositRepository extends JpaRepository<RetailSup
             @Param("retailId") Long retailId,
             @Param("status") StatusEnum status
     );
+
+
+        @Query("""
+        SELECT DISTINCT d.retailSupplier.retail.id
+        FROM RetailSupplierDepositEntity d
+        WHERE d.depositDate >= :startDate
+          AND d.depositDate < :endDate
+          AND d.retailSupplier IS NOT NULL
+          AND d.retailSupplier.retail IS NOT NULL
+        """)
+        List<Integer> findDistinctRetailerIdsByDepositDate(
+                @Param("startDate") LocalDate startDate,
+                @Param("endDate") LocalDate endDate);
+
+        @Query("""
+        SELECT DISTINCT d.retailSupplier.supplier.id
+        FROM RetailSupplierDepositEntity d
+        WHERE d.depositDate >= :startDate
+          AND d.depositDate < :endDate
+          AND d.retailSupplier IS NOT NULL
+          AND d.retailSupplier.supplier IS NOT NULL
+        """)
+        List<Integer> findDistinctSupplierIdsByDepositDate(
+                @Param("startDate") LocalDate startDate,
+                @Param("endDate") LocalDate endDate);
+
+
 }

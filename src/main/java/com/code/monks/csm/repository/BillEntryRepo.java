@@ -15,6 +15,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,4 +96,32 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
+
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            LocalDateTime start,
+            LocalDateTime end);
+
+    @Query("""
+    SELECT DISTINCT b.customer.id
+    FROM BillEntryEntity b
+    WHERE b.createdAt >= :start
+      AND b.createdAt < :end
+      AND b.customer IS NOT NULL
+    """)
+    List<Integer> findDistinctCustomerIdsCreatedBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+    @Query("""
+    SELECT DISTINCT b.supplier.id
+    FROM BillEntryEntity b
+    WHERE b.createdAt >= :start
+      AND b.createdAt < :end
+      AND b.supplier IS NOT NULL
+    """)
+    List<Integer> findDistinctSupplierIdsCreatedBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
 }

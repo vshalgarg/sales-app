@@ -3,6 +3,7 @@ package com.code.monks.csm.client;
 import com.code.monks.csm.dto.User;
 import com.code.monks.csm.dto.auth.request.*;
 import com.code.monks.csm.dto.auth.response.*;
+import com.code.monks.csm.dto.email.UserEmailsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -51,16 +53,16 @@ public class AuthRestClient {
     @Value("${auth.change_password.url}")
     private String changePasswordUrl;
 
+    @Value("${auth.get_user_email.url}")
+    private String getUserEmailUrl;
+
     private final GenericRestClient genericRestClient;
 
     public AuthLoginResponseDto callLogin(AuthLoginRequestDto authRequestDto) {
         String url = authHost + loginUrl;
-
         log.info("Calling external auth service at URL: {}", url);
-
         Map<String, String> headers = new HashMap<>();
         updateHeadersForClientNameAndSecret(headers);
-
         log.debug("Request headers prepared: {}", headers.keySet());  // Avoid logging secrets
         log.debug("Sending login request for username: {}", authRequestDto.getUsername());
 
@@ -214,6 +216,36 @@ public class AuthRestClient {
     private void updateHeadersForClientNameAndSecret(Map<String,String> headers){
         headers.put("clientName", authClientName);
         headers.put("clientSecret", authClientSecret);
+    }
+
+    public List<String> getAllUserEmails() {
+        String url = authHost + getUserEmailUrl;
+        log.info("Calling Auth API to fetch user email addresses");
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        String[] emails = genericRestClient.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                headers,
+                String[].class
+        );
+        if (emails == null) {
+            throw new IllegalStateException(
+                    "Auth API returned no user email list"
+            );
+        }
+
+        List<String> userEmails = java.util.Arrays.stream(emails)
+                .filter(email -> email != null && !email.isBlank())
+                .map(String::trim)
+                .distinct()
+                .toList();
+
+        log.info("Fetched {} user email addresses from Auth API",
+                userEmails.size());
+
+        return userEmails;
     }
 
 }
