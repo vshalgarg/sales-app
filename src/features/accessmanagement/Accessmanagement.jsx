@@ -235,10 +235,6 @@ const AccessManagement = () => {
                 label="Description"
                 value={selectedRole?.roleDesc}
               />
-              <DetailField
-                label="Reporting To"
-                value={selectedRole?.parentRoleName}
-              />
             </div>
 
             <div className="px-6 pb-6">

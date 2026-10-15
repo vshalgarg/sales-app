@@ -163,7 +163,6 @@ const CreateRole = () => {
     }
 
     setErrors(nextErrors);
-
     if (Object.keys(nextErrors).length > 0) return;
 
     const payload = {
