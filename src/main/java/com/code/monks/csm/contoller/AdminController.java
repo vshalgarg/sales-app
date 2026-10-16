@@ -1,9 +1,11 @@
 package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.ApiResponse;
+import com.code.monks.csm.dto.email.DailyReportResult;
 import com.code.monks.csm.dto.request.ChangePasswordRequestDTO;
 import com.code.monks.csm.dto.request.ConfigurationRequestDto;
 import com.code.monks.csm.dto.response.ConfigurationResponseDto;
+import com.code.monks.csm.schedular.DailyReportScheduler;
 import com.code.monks.csm.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class AdminController {
 
     private final AdminService adminService;
-    private final com.code.monks.csm.schedular.DailyReportScheduler dailyReportScheduler;
+    private final DailyReportScheduler dailyReportScheduler;
 
     @PutMapping(CHANGE_PASSWORD)
     public ResponseEntity<Map<String, Object>> changePassword(
@@ -63,15 +65,11 @@ public class AdminController {
         );
     }
 
-        @PostMapping("/send")
-        public ResponseEntity<String> sendDailyReport() {
-
-            dailyReportScheduler.sendDailySalesReport();
-
-            return ResponseEntity.ok(
-                    "Daily sales report email process triggered."
-            );
-        }
+    @PostMapping("/send")
+    public ResponseEntity<DailyReportResult> sendDailyReport() {
+        DailyReportResult result = dailyReportScheduler.sendDailySalesReport();
+        return ResponseEntity.ok(result);
+    }
 
 
 

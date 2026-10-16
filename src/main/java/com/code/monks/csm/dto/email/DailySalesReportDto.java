@@ -12,7 +12,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class DailySalesReportDto {
-
     private LocalDate reportDate;
     private BigInteger totalCreditAmount;
     private long totalBills;

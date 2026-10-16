@@ -230,21 +230,16 @@ public class AuthRestClient {
                 headers,
                 String[].class
         );
-        if (emails == null) {
-            throw new IllegalStateException(
-                    "Auth API returned no user email list"
-            );
+        if (emails == null || emails.length == 0) {
+            log.warn("Auth API returned no user emails");
+            return List.of();
         }
-
         List<String> userEmails = java.util.Arrays.stream(emails)
                 .filter(email -> email != null && !email.isBlank())
                 .map(String::trim)
                 .distinct()
                 .toList();
-
-        log.info("Fetched {} user email addresses from Auth API",
-                userEmails.size());
-
+        log.info("Fetched {} email addresses from Auth API", userEmails.size());
         return userEmails;
     }
 
