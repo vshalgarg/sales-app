@@ -10,7 +10,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -50,6 +52,30 @@ public class AuthRestClient {
 
     @Value("${auth.change_password.url}")
     private String changePasswordUrl;
+
+    @Value("${auth.role.create.url}")
+    private String createRoleUrl;
+
+    @Value("${auth.get.all.roles.url}")
+    private String getAllRolesUrl;
+
+    @Value("${auth.role.detail.url}")
+    private String roleDetailUrl;
+
+    @Value("${auth.update.role.url}")
+    private String updateRoleUrl;
+
+    @Value("${auth.get.all.permissions.url}")
+    private String getAllPermissionUrl;
+
+    @Value("${auth.get.role.template.permissions.url}")
+    private String getRoleTemplatePermissionsUrl;
+
+    @Value("${auth.get.all.role.template.url}")
+    private String getAllRoleTemplateUrl;
+
+    @Value("${auth.delete.role.url}")
+    private String deleteRoleUrl;
 
     private final GenericRestClient genericRestClient;
 
@@ -215,5 +241,107 @@ public class AuthRestClient {
         headers.put("clientName", authClientName);
         headers.put("clientSecret", authClientSecret);
     }
+
+    public AuthMessageResponseDto callCreateRole(AuthCreateRoleRequestDto authRequestDto) {
+        String url = authHost + createRoleUrl;
+        log.info("Calling external create role API | role: {}", authRequestDto.getRoleName());
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthMessageResponseDto response = genericRestClient.exchange(url, HttpMethod.POST, authRequestDto, headers, AuthMessageResponseDto.class);
+        log.info("Role created successfully | role: {}", authRequestDto.getRoleName());
+        return response;
+    }
+
+    public List<AuthGetAllRolesDTO> callGetAllRoles() {
+        log.info("Calling external callGetAllRoles API");
+        String url = authHost + getAllRolesUrl;
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthGetAllRolesDTO[] responseArray = genericRestClient.exchange(url, HttpMethod.GET, null, headers, AuthGetAllRolesDTO[].class);
+        return Arrays.asList(responseArray);
+    }
+
+    public AuthGetRoleDetailDto callGetRoleDetail(int roleId) {
+        String url = UriComponentsBuilder
+                .fromUriString(authHost + roleDetailUrl)
+                .buildAndExpand(roleId)
+                .toUriString();
+        log.debug("Calling Auth API: Get Role Detail | roleId={}, url={}", roleId, url);
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthGetRoleDetailDto authResponse = genericRestClient.exchange(url, HttpMethod.GET, null, headers, AuthGetRoleDetailDto.class);
+        log.info("Auth API returned role detail successfully | roleId={}", roleId);
+        return authResponse;
+    }
+
+    public AuthMessageResponseDto callUpdateRole(AuthUpdateRoleRequestDto authRequestDto, int roleId){
+        log.info("Calling external callUpdateRole API | role: {}", authRequestDto.getRoleName());
+        String url = UriComponentsBuilder
+                .fromUriString(authHost + updateRoleUrl)
+                .buildAndExpand(roleId)
+                .toUriString();
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthMessageResponseDto response = genericRestClient.exchange(url, HttpMethod.PUT, authRequestDto, headers, AuthMessageResponseDto.class);
+        log.info("Update Role successfully | role : {}", authRequestDto.getRoleName());
+        return response;
+    }
+
+    public List<AuthGetAllPermissionsDto> callGetAllPermissions() {
+        String url = authHost + getAllPermissionUrl;
+        log.info("Calling Auth API: Get All Permissions | url={}", url);
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthGetAllPermissionsDto[] arrayResponse = genericRestClient.exchange(url, HttpMethod.GET, null, headers, AuthGetAllPermissionsDto[].class);
+        return Arrays.asList(arrayResponse);
+    }
+
+    public AuthGetPermissionsByRoleTemplateDto callGetPermissionsByRoleTemplate(int roleTemplateId){
+        log.info("Calling external getPermissionsByRole API | roleTemplateId: {}", roleTemplateId);
+        String url = UriComponentsBuilder
+                .fromUriString(authHost + getRoleTemplatePermissionsUrl)
+                .buildAndExpand(roleTemplateId)
+                .toUriString();
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthGetPermissionsByRoleTemplateDto response = genericRestClient.exchange(url, HttpMethod.GET, null, headers, AuthGetPermissionsByRoleTemplateDto.class);
+        log.info("Get Role_Permissions successfully | roleTemplateId : {}", roleTemplateId);
+        return response;
+    }
+
+    public List<AuthRoleTemplateDto> callGetAllRoleTemplate() {
+        String url = authHost + getAllRoleTemplateUrl;
+        log.debug("Calling Auth API: Get All Role Template | url={}", url);
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthRoleTemplateDto[] arrayResponse = genericRestClient.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                headers,
+                AuthRoleTemplateDto[].class
+        );
+        return Arrays.asList(arrayResponse);
+    }
+
+    public AuthMessageResponseDto callDeleteRole(int roleId) {
+        String url = UriComponentsBuilder
+                .fromUriString(authHost + deleteRoleUrl)
+                .buildAndExpand(roleId)
+                .toUriString();
+        log.debug("Calling Auth API DELETE Role | roleId={}, url={}", roleId, url);
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        AuthMessageResponseDto authResponse = genericRestClient.exchange(
+                url,
+                HttpMethod.DELETE,
+                null,
+                headers,
+                AuthMessageResponseDto.class
+        );
+        log.info("Auth API DELETE Role response received | roleId={}, message={}", roleId, authResponse.getMessage());
+        return authResponse;
+    }
+
 
 }
