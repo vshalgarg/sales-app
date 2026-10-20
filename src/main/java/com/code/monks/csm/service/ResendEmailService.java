@@ -1,4 +1,3 @@
-
 package com.code.monks.csm.service;
 
 import com.code.monks.csm.dto.email.DailySalesReportDto;
@@ -103,6 +102,10 @@ public class ResendEmailService {
                 report.getTotalCreditAmount()
         );
 
+        String totalDebitAmount = currencyFormat.format(
+                report.getTotalDebitAmount()
+        );
+
         return """
                 <!DOCTYPE html>
                 <html>
@@ -119,6 +122,15 @@ public class ResendEmailService {
                       <tr>
                         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
                           Total Credit Amount
+                        </td>
+                        <td style="padding:14px;text-align:right;
+                                   border-bottom:1px solid #e5e7eb;">
+                          <strong>%s</strong>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
+                          Total Debit Amount
                         </td>
                         <td style="padding:14px;text-align:right;
                                    border-bottom:1px solid #e5e7eb;">
@@ -169,6 +181,7 @@ public class ResendEmailService {
                 """.formatted(
                 report.getReportDate(),
                 totalCreditAmount,
+                totalDebitAmount,
                 report.getTotalBills(),
                 report.getTotalCredits(),
                 report.getTotalRetailers(),

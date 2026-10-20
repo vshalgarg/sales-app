@@ -4,6 +4,7 @@ import com.code.monks.csm.dto.email.DailySalesReportDto;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CreditEntryRepo;
 import com.code.monks.csm.repository.RetailSupplierDepositRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,22 +13,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
+@AllArgsConstructor
 @Service
 public class DailySalesReportService {
 
     private final CreditEntryRepo creditEntryRepo;
     private final BillEntryRepo billEntryRepo;
     private final RetailSupplierDepositRepository depositRepo;
-
-    public DailySalesReportService(
-            CreditEntryRepo creditEntryRepo,
-            BillEntryRepo billEntryRepo,
-            RetailSupplierDepositRepository depositRepo) {
-        this.creditEntryRepo = creditEntryRepo;
-        this.billEntryRepo = billEntryRepo;
-        this.depositRepo = depositRepo;
-    }
 
     @Transactional(readOnly = true)
     public DailySalesReportDto generateReport(LocalDate reportDate) {
@@ -41,6 +33,14 @@ public class DailySalesReportService {
 
         if (totalCreditAmount == null) {
             totalCreditAmount = BigInteger.ZERO;
+        }
+
+        // Total debit amount = sum of bill amounts
+        BigInteger totalDebitAmount =
+                billEntryRepo.sumBillAmountBetween(start, end);
+
+        if (totalDebitAmount == null) {
+            totalDebitAmount = BigInteger.ZERO;
         }
 
         // 2. Total bills created
@@ -89,6 +89,7 @@ public class DailySalesReportService {
         return new DailySalesReportDto(
                 reportDate,
                 totalCreditAmount,
+                totalDebitAmount,
                 totalBills,
                 totalCredits,
                 retailerIds.size(),

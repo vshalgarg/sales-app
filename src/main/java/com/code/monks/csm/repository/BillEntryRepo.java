@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -121,6 +122,16 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
       AND b.supplier IS NOT NULL
     """)
     List<Integer> findDistinctSupplierIdsCreatedBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+    @Query("""
+    SELECT COALESCE(SUM(b.billAmount), 0)
+    FROM BillEntryEntity b
+    WHERE b.createdAt >= :start
+      AND b.createdAt < :end
+    """)
+    BigInteger sumBillAmountBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
