@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Plus, ShieldCheck, X } from "lucide-react";
+import { Plus, ShieldCheck, X } from "lucide-react";
 import CustomTable from "../../components/CustomTable";
 import { getAllRoles, getRoleData, deleteUser } from "@/services/RoleService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
