@@ -1,17 +1,5 @@
 import { NavLink } from "react-router-dom";
-import {
-  Users,
-  User,
-  UserCog,
-  Truck,
-  FileText,
-  CreditCard,
-  ShoppingCart,
-  Store,
-  Receipt,
-  BookOpen,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Users, User, UserCog, Truck, FileText, CreditCard, ShoppingCart, Store, Receipt, BookOpen, SlidersHorizontal, ShieldCheck } from "lucide-react";
 import { useConfig } from "../contexts/ConfigContext";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -29,6 +17,7 @@ const SECTION_ICONS = {
   Transports: Truck,
   Users: User,
   Configurations: SlidersHorizontal,
+  AccessManagement: ShieldCheck,
   "Bill Entry": FileText,
   "Credit Entry": CreditCard,
   "Purchase Entry": ShoppingCart,
@@ -53,6 +42,7 @@ const useSidebarMenuItems = (activeSection) => {
       { name: "Staff", path: "/staff" },
       { name: "Transports", path: "/transports" },
       { name: "Users", path: "/users" },
+      { name: "Access Management", path: "/access-management"},
       ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   }

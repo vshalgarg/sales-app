@@ -22,6 +22,9 @@ const Purchase = lazy(() => import("@/features/purchases/Purchase"));
 const Retail = lazy(() => import("@/features/retail/Retail"));
 const Ledger = lazy(() => import("@/features/ledger/Ledger"));
 const Reports = lazy(() => import("@/features/reports/Reports"));
+const AccessManagement = lazy(() => import("@/features/accessmanagement/Accessmanagement"));
+const Createrole = lazy(() => import("@/features/accessmanagement/components/Createrole"));
+const Editrole = lazy(() => import("@/features/accessmanagement/components/Editrole"));
 
 const RouteFallback = () => (
   <div className="p-4 text-gray-500">Loading...</div>
@@ -54,6 +57,9 @@ export default function AppRoutes() {
             <Route path="/reports" element={<Navigate to="/graph" replace />} />
             <Route path="/transports" element={<TransportDashboard />} />
             <Route path="/configurations" element={<Configurations />} />
+            <Route path="/access-management" element={<AccessManagement />} />
+            <Route path="/access-createrole" element={<Createrole />} />
+            <Route path="/access-editrole" element={<Editrole />} />
             <Route path="/ledger" element={<Ledger />} />
           </Route>
         </Route>
