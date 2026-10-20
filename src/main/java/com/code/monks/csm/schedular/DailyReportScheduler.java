@@ -21,7 +21,12 @@ public class DailyReportScheduler {
     private final DailySalesReportService reportService;
     private final AuthRestClient authRestClient;
     private final ResendEmailService resendEmailService;
-    @Scheduled(cron = "${daily-report.cron:0 0 9 * * *}", zone = "Asia/Kolkata")
+//    @Scheduled(cron = "${daily-report.cron:0 0 9 * * *}", zone = "Asia/Kolkata")
+      @Scheduled(
+        cron = "${daily-report.cron=0 */2 * * * *}",
+        zone = "Asia/Kolkata"
+      )
+
     public void scheduledDailySalesReport() {
         try {
             DailyReportResult result = sendDailySalesReport();
