@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ShieldCheck, X } from "lucide-react";
 import CustomTable from "../../components/CustomTable";
-import { getAllRoles, getRoleData, deleteUser } from "@/services/RoleService";
+import { getAllRoles, getRoleData, deleteUser } from "@/services/roleService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 
 const DetailField = ({ label, value }) => (

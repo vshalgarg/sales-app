@@ -10,7 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import CustomTextField from "@/components/CustomTextField";
-import { createRole } from "@/services/RoleService";
+import { createRole } from "@/services/roleService";
 import { getAllPermission } from "@/services/PermissionService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 
