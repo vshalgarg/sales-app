@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import CustomTextField from "@/components/CustomTextField";
-import { getRoleData, UpdateUser } from "@/services/RoleService";
+import { getRoleData, UpdateUser } from "@/services/roleService";
 import { getAllPermission } from "@/services/PermissionService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 
