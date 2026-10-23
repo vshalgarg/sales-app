@@ -23,68 +23,40 @@ public class DailySalesReportService {
 
     @Transactional(readOnly = true)
     public DailySalesReportDto generateReport(LocalDate reportDate) {
-
         LocalDateTime start = reportDate.atStartOfDay();
         LocalDateTime end = reportDate.plusDays(1).atStartOfDay();
 
-        // 1. Total credit amount
-        BigInteger totalCreditAmount =
-                creditEntryRepo.sumCreditAmountBetween(start, end);
-
+        BigInteger totalCreditAmount = creditEntryRepo.sumCreditAmountBetween(start, end);
         if (totalCreditAmount == null) {
             totalCreditAmount = BigInteger.ZERO;
         }
 
-        // Total debit amount = sum of bill amounts
-        BigInteger totalDebitAmount =
-                billEntryRepo.sumBillAmountBetween(start, end);
+        BigInteger totalDebitAmount = billEntryRepo.sumBillAmountBetween(start, end);
 
         if (totalDebitAmount == null) {
             totalDebitAmount = BigInteger.ZERO;
         }
 
-        // 2. Total bills created
-        long totalBills =
-                billEntryRepo
-                        .countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
-                                start, end);
+        long totalBills = billEntryRepo.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(start, end);
 
-        // 3. Total credit entries created
-        long totalCredits =
-                creditEntryRepo
-                        .countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
-                                start, end);
+        long totalCredits = creditEntryRepo.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(start, end);
 
-        // 4. Unique retailers with deposits on the report date
-        Set<Integer> retailerIds = new HashSet<>(
-                depositRepo.findDistinctRetailerIdsByDepositDate(
+        Set<Integer> retailerIds = new HashSet<>(depositRepo.findDistinctRetailerIdsByDepositDate(
                         reportDate, reportDate.plusDays(1)));
 
-        // 5. Unique suppliers from bills, credits and deposits
         Set<Integer> supplierIds = new HashSet<>();
 
-        supplierIds.addAll(
-                billEntryRepo.findDistinctSupplierIdsCreatedBetween(
-                        start, end));
+        supplierIds.addAll(billEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end));
 
-        supplierIds.addAll(
-                creditEntryRepo.findDistinctSupplierIdsCreatedBetween(
-                        start, end));
+        supplierIds.addAll(creditEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end));
 
-        supplierIds.addAll(
-                depositRepo.findDistinctSupplierIdsByDepositDate(
+        supplierIds.addAll(depositRepo.findDistinctSupplierIdsByDepositDate(
                         reportDate, reportDate.plusDays(1)));
-
-        // 6. Unique customers from bills and credits
         Set<Integer> customerIds = new HashSet<>();
 
-        customerIds.addAll(
-                billEntryRepo.findDistinctCustomerIdsCreatedBetween(
-                        start, end));
+        customerIds.addAll(billEntryRepo.findDistinctCustomerIdsCreatedBetween(start, end));
 
-        customerIds.addAll(
-                creditEntryRepo.findDistinctCustomerIdsCreatedBetween(
-                        start, end));
+        customerIds.addAll(creditEntryRepo.findDistinctCustomerIdsCreatedBetween(start, end));
 
         return new DailySalesReportDto(
                 reportDate,

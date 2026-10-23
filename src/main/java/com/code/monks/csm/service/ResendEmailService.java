@@ -2,12 +2,12 @@ package com.code.monks.csm.service;
 
 import com.code.monks.csm.dto.email.DailySalesReportDto;
 import com.code.monks.csm.dto.email.ResendEmailResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
@@ -92,19 +92,9 @@ public class ResendEmailService {
     }
 
     private String buildHtml(DailySalesReportDto report) {
-
-        NumberFormat currencyFormat =
-                NumberFormat.getCurrencyInstance(
-                        new Locale("en", "IN")
-                );
-
-        String totalCreditAmount = currencyFormat.format(
-                report.getTotalCreditAmount()
-        );
-
-        String totalDebitAmount = currencyFormat.format(
-                report.getTotalDebitAmount()
-        );
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+        String totalCreditAmount = currencyFormat.format(report.getTotalCreditAmount());
+        String totalDebitAmount = currencyFormat.format(report.getTotalDebitAmount());
 
         return """
                 <!DOCTYPE html>
