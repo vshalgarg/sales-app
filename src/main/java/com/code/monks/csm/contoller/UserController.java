@@ -2,6 +2,7 @@ package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.request.AddUserRequestDto;
 import com.code.monks.csm.dto.request.DeleteUserRequestDto;
+import com.code.monks.csm.dto.request.UpdateUserRoleRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.UserService;
 import jakarta.validation.Valid;
@@ -68,5 +69,20 @@ public class UserController {
     public ResponseEntity<EncryptedResponseDTO> getEncryptedUserDetail(@PathVariable Long userId){
         return ResponseEntity.ok(userService.getEncryptedUserDetail(userId));
     }
+
+    @GetMapping(GET_USER_ROLES)
+    public ResponseEntity<GetUserRoleDto> getUserRoles(@PathVariable Long userId) {
+        GetUserRoleDto response = userService.getUserRoles(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(UPDATE_USER_ROLES)
+    public ResponseEntity<UpdateUserRoleResponseDto> updateUserRoles(@PathVariable Long userId,
+            @Valid @RequestBody UpdateUserRoleRequestDto requestDto) {
+        log.info("UPDATE_USER_ROLES API called for userId={}", userId);
+        UpdateUserRoleResponseDto response = userService.updateUserRoles(userId, requestDto);
+        return ResponseEntity.ok(response);
+    }
+
 
 }

@@ -77,6 +77,12 @@ public class AuthRestClient {
     @Value("${auth.delete.role.url}")
     private String deleteRoleUrl;
 
+    @Value("${auth.get.user.role}")
+    private String getUserRole;
+
+    @Value("${auth.update.user.roles.url}")
+    private String updateUserRolesUrl;
+
     private final GenericRestClient genericRestClient;
 
     public AuthLoginResponseDto callLogin(AuthLoginRequestDto authRequestDto) {
@@ -342,6 +348,65 @@ public class AuthRestClient {
         log.info("Auth API DELETE Role response received | roleId={}, message={}", roleId, authResponse.getMessage());
         return authResponse;
     }
+
+    public AuthGetUserRoleDto getUserRoleDetail(Long userId) {
+
+        String url = UriComponentsBuilder
+                .fromUriString(authHost + getUserRole)
+                .buildAndExpand(userId)
+                .toUriString();
+
+        log.info("Calling Auth API to get user roles | userId={}", userId);
+
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+
+        AuthGetUserRoleDto response = genericRestClient.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                headers,
+                AuthGetUserRoleDto.class
+        );
+
+        log.info("Received user role details from Auth | userId={}", userId);
+
+        return response;
+    }
+
+
+
+    public AuthUpdateUserRolesResponseDto callUpdateUserRoles(
+            Long userId,
+            AuthUpdateUserRolesRequestDto requestDto) {
+
+        String url = UriComponentsBuilder
+                .fromUriString(authHost + updateUserRolesUrl)
+                .buildAndExpand(userId)
+                .toUriString();
+
+        log.info("Calling Auth API to update user roles | userId={}",
+                userId);
+
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+
+        AuthUpdateUserRolesResponseDto response =
+                genericRestClient.exchange(
+                        url,
+                        HttpMethod.PUT,
+                        requestDto,
+                        headers,
+                        AuthUpdateUserRolesResponseDto.class
+                );
+
+        log.info("Auth API role update response received | userId={}",
+                userId);
+
+        return response;
+    }
+
+
 
 
 }
