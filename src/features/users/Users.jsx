@@ -13,6 +13,7 @@ import AppButton from "@/components/AppButton";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { CARD_GRID_SHELL_CLASS } from "@/theme/cardTheme";
 import { IconButton, Tooltip } from "@mui/material";
+import EditUserModal from "./components/EditUserModal";
 
 const RoleChip = ({ role }) => (
   <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-brand-primary/10 text-brand-primary">
@@ -29,13 +30,12 @@ const Users = () => {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
   const [changePwdModalOpen, setChangePwdModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
   useEffect(() => {
@@ -45,7 +45,8 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       const data = await getUsers();
-      setUsers(data.users);
+      console.log("GET all users response:", data);
+      setUsers(Array.isArray(data?.users) ? data.users : []);
       setCurrentPage(1);
     } catch (error) {
       showSnackbar(error.message, "error");
@@ -195,6 +196,15 @@ const Users = () => {
                     }
                   : undefined
               }
+
+              onEditUser={
+                isAdmin
+                  ? (u) => {
+                      setUserToEdit(u);
+                      setEditUserModalOpen(true);
+                    }
+                  : undefined
+              }
               emptyMessage="No users found"
               disablePagination
               headerRowSx={tableHeaderRowSx}
@@ -229,6 +239,16 @@ const Users = () => {
         onClose={() => {
           setChangePwdModalOpen(false);
           setSelectedUser(null);
+        }}
+      />
+
+      <EditUserModal
+        open={editUserModalOpen}
+        user={userToEdit}
+        onSuccess={fetchUsers}
+        onClose={() => {
+          setEditUserModalOpen(false);
+          setUserToEdit(null);
         }}
       />
 

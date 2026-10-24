@@ -52,7 +52,7 @@ const ChangePasswordModal = ({ open, onClose, user }) => {
       <div className="bg-white w-full max-w-md mx-4 md:mx-0 rounded-lg shadow-lg">
         <div className="px-6 py-4 border-b">
           <h2 className="text-lg font-bold">
-            Change Password – {user.username}
+            Change Password for {user.username}
           </h2>
         </div>
 
@@ -98,7 +98,7 @@ const ChangePasswordModal = ({ open, onClose, user }) => {
             />
           </div>
 
-          <div className="px-6 py-3 border-t flex justify-end gap-2">
+          <div className="px-6 py-3 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}

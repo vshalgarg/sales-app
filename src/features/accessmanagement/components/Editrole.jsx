@@ -320,7 +320,7 @@ const EditRole = () => {
   );
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-gray-50">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <div className="mb-5 flex items-center gap-3">
         <button
           type="button"
@@ -333,18 +333,10 @@ const EditRole = () => {
 
         <div>
           <div className="flex items-center gap-2">
-            <ShieldCheck
-              className="text-brand-primary"
-              size={25}
-            />
             <h1 className="text-2xl font-bold text-gray-900">
               Edit Role
             </h1>
           </div>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Update role details and assigned permissions.
-          </p>
         </div>
       </div>
 

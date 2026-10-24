@@ -1,22 +1,25 @@
 import { Eye, Pencil, Trash2 } from "lucide-react";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-const CustomTable = ({ columns = [], data = [], emptyMessage = "No records found" }) => {
+const CustomTable = ({ columns = [], data = [], emptyMessage = "No records found", headerRowSx, headerCellSx }) => {
   return (
     <div className="w-full max-w-full min-w-0 overflow-hidden rounded-lg border border-gray-200">
       <div className="w-full overflow-x-auto">
         <table className="w-full min-w-[600px] table-auto border-collapse text-left text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50 text-gray-600">
+          <thead className="border-b border-gray-200 bg-[#F3F0FF]"
+           style={headerRowSx}>
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.accessor || column.header}
-                  className={`whitespace-nowrap px-4 py-3 font-semibold ${
+                  className={`whitespace-nowrap bg-[#F3F0FF] px-4 py-3 font-semibold text-[#203A8F] ${
                     column.isAction ? "text-center" : "text-left"
                   }`}
                   style={{
-                    width:
-                      column.width ||
-                      (column.isAction ? "30%" : "35%"),
+                    ...headerCellSx,
+                    width: column.width || (column.isAction ? "30%" : "35%"),
                   }}
                 >
                   {column.header}
@@ -44,11 +47,11 @@ const CustomTable = ({ columns = [], data = [], emptyMessage = "No records found
                           {(column.actions?.(row) || []).map((action) => {
                             const Icon =
                               action.label === "View"
-                                ? Eye
+                                ? VisibilityIcon
                                 : action.label === "Edit"
-                                  ? Pencil
+                                  ? EditIcon
                                   : action.label === "Delete"
-                                    ? Trash2
+                                    ? DeleteIcon
                                     : null;
 
                             return (

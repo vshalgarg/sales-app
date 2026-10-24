@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CustomTextField from "@/components/CustomTextField";
 import { IconButton } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
@@ -6,19 +6,15 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { createUser } from "@/services/UserService";
 import validate from "@/validations/Validation";
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import AppButton from "@/components/AppButton";
 import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
-
+import { getAllRoles } from "@/services/roleService";
 
 const AddUserModal = ({ open, onClose, onSuccess }) => {
 
-  const ROLE_OPTIONS = ["ADMIN", "AGENT"];
+  const [roleOptions, setRoleOptions] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
   const { showSnackbar } = useSnackbar();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +25,29 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
     password: "",
     role: "",
   });
+
+  useEffect(() => {
+  if (!open) return;
+
+  const getRoles = async () => {
+    try {
+      setLoadingRoles(true);
+
+      const response = await getAllRoles();
+
+      setRoleOptions(Array.isArray(response) ? response : []);
+    } catch (error) {
+      showSnackbar(
+        error?.message || "Failed to load roles",
+        "error"
+      );
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
+
+  getRoles();
+}, [open]);
 
   if (!open) return null;
 
@@ -76,7 +95,7 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
       showSnackbar(response.message, "success");
 
       resetForm();
-      onSuccess();
+      await onSuccess?.();
       onClose();
     } catch (error) {
       showSnackbar(error.message, "error");
@@ -145,14 +164,15 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
                 value={form.role}
                 label="Role"
                 onChange={handleFormChange}
+                disabled={loadingRoles}
               >
                 <MenuItem value="">
-                  <em>Select role</em>
+                  {loadingRoles ? "Loading roles..." : "Select role"}
                 </MenuItem>
 
-                {ROLE_OPTIONS.map((role) => (
-                  <MenuItem key={role} value={role}>
-                    {role}
+                {roleOptions.map((role) => (
+                  <MenuItem key={role.id} value={role.roleName}>
+                    {role.roleName}
                   </MenuItem>
                 ))}
               </Select>
