@@ -75,6 +75,7 @@ public class UserServiceImpl implements UserService {
                 .map(userInfo -> SearchUsersResponseDTO.builder()
                         .id(userInfo.getId())
                         .username(userInfo.getUsername())
+                        .roles(userInfo.getRoles())
                         .build())
                 .toList();
 
