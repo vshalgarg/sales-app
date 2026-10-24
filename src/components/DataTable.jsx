@@ -1,4 +1,3 @@
-// src/components/DataTable.jsx
 import { useState } from "react";
 import {
   Table,
@@ -30,6 +29,7 @@ const DataTable = ({
   loading = false,
   onView,
   onEdit,
+  onEditUser,
   onDelete,
   totalAmount,
   onCopy,
@@ -60,7 +60,6 @@ const DataTable = ({
   };
 
   const handleChangePage = (event, newPage) => {
-    // MUI TablePagination uses 0-based index, we convert to 1-based for our logic
     onPageChange?.(newPage + 1);
   };
 
@@ -268,7 +267,19 @@ const DataTable = ({
             }}
           >
             <EditIcon fontSize="small" sx={{ mr: 1 }} />
-            Edit
+            Change Password
+          </MenuItem>
+        )}
+
+        {onEditUser && (
+          <MenuItem
+            onClick={() => {
+              onEditUser(selectedRow);
+              handleCloseMenu();
+            }}
+          >
+            <EditIcon fontSize="small" sx={{ mr: 1 }} />
+            Edit 
           </MenuItem>
         )}
 

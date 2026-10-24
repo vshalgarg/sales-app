@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ShieldCheck, X } from "lucide-react";
+import { Plus, ShieldCheck, X, Search } from "lucide-react";
 import CustomTable from "../../components/CustomTable";
 import { getAllRoles, getRoleData, deleteUser } from "@/services/roleService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
+import { IconButton, Tooltip } from "@mui/material";
 
 const DetailField = ({ label, value }) => (
   <div className="flex flex-col gap-1">
@@ -25,6 +26,16 @@ const AccessManagement = () => {
   const [isDeleting, setIsDeleting] = useState(false);  
   const [selectedRole, setSelectedRole] = useState(null);
   const [openViewModal, setOpenViewModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredRoles = roles.filter((role) => {
+    const search = searchTerm.toLowerCase();
+
+    return (
+      role.roleName?.toLowerCase().includes(search) ||
+      role.roleDesc?.toLowerCase().includes(search)
+    );
+  });
 
   useEffect(() => {
     const allRoles = async () => {
@@ -74,6 +85,17 @@ const AccessManagement = () => {
     navigate("/access-createrole");
   };
 
+  const tableHeaderRowSx = {
+    backgroundColor: "#f3f0ff",
+  };
+
+  const tableHeaderCellSx = {
+    color: "#203A8F",
+    fontWeight: 700,
+    backgroundColor: "inherit",
+    whiteSpace: "nowrap",
+  };
+
   const columns = [
     {
       header: "Role Name",
@@ -107,30 +129,24 @@ const AccessManagement = () => {
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="text-brand-primary" size={25} />
-            <h1 className="text-2xl font-bold">
-              Access Management
-            </h1>
-          </div>
+      <div className="shrink-0">
+        <div className="mb-7 mt-2 flex items-center gap-2">
+          <h1 className="text-2xl font-bold">
+            Access Management
+          </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Manage roles and their assigned permissions.
-          </p>
+          <Tooltip title="Add new role">
+            <span>
+              <IconButton
+                onClick={handleCreateRole}
+                size="medium"
+                className="!bg-brand-primary hover:!bg-brand-primary-dark"
+              >
+                <Plus className="h-5 w-5 text-white" />
+              </IconButton>
+            </span>
+          </Tooltip>
         </div>
-
-        <button
-          type="button"
-          onClick={handleCreateRole}
-          className="inline-flex items-center gap-2 rounded-md
-            bg-brand-primary px-4 py-2 text-sm font-medium text-white
-            hover:opacity-90"
-        >
-          <Plus size={18} />
-          Add New Role
-        </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto rounded-lg
@@ -139,6 +155,8 @@ const AccessManagement = () => {
           columns={columns}
           data={roles}
           emptyMessage="No roles found"
+          headerRowSx={tableHeaderRowSx}
+          headerCellSx={tableHeaderCellSx}
         />
       </div>
 

@@ -1,14 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  LoaderCircle,
-  Plus,
-  Search,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, LoaderCircle, Search } from "lucide-react";
 import CustomTextField from "@/components/CustomTextField";
 import { createRole } from "@/services/roleService";
 import { getAllPermission } from "@/services/PermissionService";
@@ -99,10 +91,7 @@ const CreateRole = () => {
   );
 
   const togglePermission = (permission, side) => {
-    const setter =
-      side === "available"
-        ? setSelectedAvailable
-        : setSelectedAssigned;
+    const setter = side === "available" ? setSelectedAvailable : setSelectedAssigned;
 
     setter((previous) =>
       previous.some((item) => item.id === permission.id)
@@ -114,9 +103,7 @@ const CreateRole = () => {
   const moveRight = () => {
     if (!selectedAvailable.length) return;
 
-    const movingIds = new Set(
-      selectedAvailable.map((permission) => permission.id)
-    );
+    const movingIds = new Set(selectedAvailable.map((permission) => permission.id));
 
     setAssignedPermissions((previous) => [
       ...previous,
@@ -124,10 +111,7 @@ const CreateRole = () => {
     ]);
 
     setAvailablePermissions((previous) =>
-      previous.filter(
-        (permission) => !movingIds.has(permission.id)
-      )
-    );
+      previous.filter((permission) => !movingIds.has(permission.id)));
 
     setSelectedAvailable([]);
   };
@@ -135,9 +119,7 @@ const CreateRole = () => {
   const moveLeft = () => {
     if (!selectedAssigned.length) return;
 
-    const movingIds = new Set(
-      selectedAssigned.map((permission) => permission.id)
-    );
+    const movingIds = new Set(selectedAssigned.map((permission) => permission.id));
 
     setAvailablePermissions((previous) => [
       ...previous,
@@ -145,11 +127,26 @@ const CreateRole = () => {
     ]);
 
     setAssignedPermissions((previous) =>
-      previous.filter(
-        (permission) => !movingIds.has(permission.id)
-      )
-    );
+      previous.filter((permission) => !movingIds.has(permission.id)));
 
+    setSelectedAssigned([]);
+  };
+
+  const moveAllRight = () => {
+    setAssignedPermissions((previous) => [
+      ...previous,
+      ...availablePermissions,
+    ]);
+    setAvailablePermissions([]);
+    setSelectedAvailable([]);
+  };
+
+  const moveAllLeft = () => {
+    setAvailablePermissions((previous) => [
+      ...previous,
+      ...assignedPermissions,
+    ]);
+    setAssignedPermissions([]);
     setSelectedAssigned([]);
   };
 
@@ -272,7 +269,7 @@ const CreateRole = () => {
     );
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-gray-50">
+    <div className="flex h-full min-h-0 w-full flex-col ">
       <div className="mb-5 flex items-center gap-3">
         <button
           type="button"
@@ -285,18 +282,10 @@ const CreateRole = () => {
 
         <div>
           <div className="flex items-center gap-2">
-            <ShieldCheck
-              className="text-brand-primary"
-              size={25}
-            />
             <h1 className="text-2xl font-bold text-gray-900">
               Create Role
             </h1>
           </div>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Create a role and assign its permissions.
-          </p>
         </div>
       </div>
 
@@ -355,6 +344,30 @@ const CreateRole = () => {
               className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronRight size={23} />
+            </button>
+
+            <button
+              type="button"
+              onClick={moveAllRight}
+              disabled={!availablePermissions.length || loadingPermissions}
+              title="Assign all permissions"
+              aria-label="Assign all permissions"
+              className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronRight size={23} />
+              <ChevronRight size={23} className="-ml-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={moveAllLeft}
+              disabled={!assignedPermissions.length}
+              title="Remove all permissions"
+              aria-label="Remove all permissions"
+              className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronLeft size={23} />
+              <ChevronLeft size={23} className="-ml-4" />
             </button>
 
             <button
