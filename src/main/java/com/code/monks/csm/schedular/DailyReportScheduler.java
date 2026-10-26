@@ -54,6 +54,7 @@ public class DailyReportScheduler {
         int accepted = 0;
         int failed = 0;
         for (String recipient : recipients) {
+            log.warn("Recipient:",recipient);
             if (!isValidEmail(recipient)) {
                 failed++;
                 log.warn("Skipping an invalid or empty email recipient");
