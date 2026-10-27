@@ -1,96 +1,113 @@
+
 package com.code.monks.csm.schedular;
 
 import com.code.monks.csm.client.AuthRestClient;
 import com.code.monks.csm.dto.email.DailyReportResult;
 import com.code.monks.csm.dto.email.DailySalesReportDto;
+import com.code.monks.csm.dto.request.SendEmailRequestDTO;
+import com.code.monks.csm.dto.response.SendEmailResponseDTO;
 import com.code.monks.csm.service.DailySalesReportService;
-import com.code.monks.csm.service.ResendEmailService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.List;
 
-@Slf4j
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DailyReportScheduler {
-    private static final ZoneId INDIA_ZONE = ZoneId.of("Asia/Kolkata");
+
+    private static final ZoneId REPORT_ZONE =
+            ZoneId.of("Asia/Kolkata");
+
     private final DailySalesReportService reportService;
     private final AuthRestClient authRestClient;
-    private final ResendEmailService resendEmailService;
-//    @Scheduled(cron = "${daily-report.cron:0 0 9 * * *}", zone = "Asia/Kolkata")
-      @Scheduled(
-        cron = "${daily-report.cron:0 */5 * * * *}",
-        zone = "Asia/Kolkata"
-      )
 
-    public void scheduledDailySalesReport() {
-        try {
-            DailyReportResult result = sendDailySalesReport();
-            log.info(
-                    "Scheduled daily report completed. Date: {}, recipients: {}, accepted: {}, failed: {}",
-                    LocalDate.now(INDIA_ZONE).minusDays(1),
-                    result.getTotalRecipients(),
-                    result.getAccepted(),
-                    result.getFailed()
-            );
-        } catch (Exception ex) {
-            log.error("Daily sales report process failed", ex);
-        }
+
+    // Automatic daily execution at 9:00 AM IST by default
+    @Scheduled(
+            cron = "${daily-report.cron:0 */2 * * * *}",
+            zone = "Asia/Kolkata"
+    )
+    public void sendDailyReport() {
+        log.info("Daily report scheduler triggered at: {}", LocalDateTime.now());
+        LocalDate reportDate =
+                LocalDate.now(REPORT_ZONE).minusDays(1);
+
+        sendReport(reportDate);
     }
 
+    // Manual execution from AdminController
     public DailyReportResult sendDailySalesReport() {
-        LocalDate reportDate = LocalDate.now(INDIA_ZONE).minusDays(1);
-        log.info("Starting daily sales report for {}", reportDate);
-        DailySalesReportDto report = reportService.generateReport(reportDate);
-        List<String> recipients = authRestClient.getAllUserEmails();
-        if (recipients == null || recipients.isEmpty()) {
-            log.warn("No recipients found for daily sales report");
-            return new DailyReportResult(0, 0, 0);
-        }
-        int accepted = 0;
-        int failed = 0;
-        for (String recipient : recipients) {
-            log.warn("Recipient:",recipient);
-            if (!isValidEmail(recipient)) {
-                failed++;
-                log.warn("Skipping an invalid or empty email recipient");
-                continue;
-            }
-            try {
-                String messageId = resendEmailService.sendDailyReport(recipient.trim(), report);
-                accepted++;
-                log.info("Daily report accepted by Resend. Message ID: {}", messageId);
+        LocalDate reportDate =
+                LocalDate.now(REPORT_ZONE).minusDays(1);
 
-            }
-         catch (org.springframework.web.client.RestClientResponseException ex) {
-            failed++;
-            log.error("Resend failed. HTTP status: {}, response body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            } catch (Exception ex) {
-            failed++;
-            log.error("Email submission failed. Exception: {}", ex.getClass().getSimpleName(), ex
+        return sendReport(reportDate);
+    }
+
+
+    private DailyReportResult sendReport(LocalDate reportDate) {
+        DailySalesReportDto report = reportService.generateReport(reportDate);
+
+        String html = buildReportHtml(report);
+
+        SendEmailRequestDTO request = new SendEmailRequestDTO(
+                null,
+                "Daily Sales Report - " + reportDate,
+                html
+        );
+
+        SendEmailResponseDTO response = authRestClient.sendEmail(request);
+
+        if (response == null || !response.isSuccess()) {
+            throw new IllegalStateException(
+                    "Auth service did not confirm email acceptance"
             );
         }
 
-    }
         log.info(
-                "Daily report finished for {}. Recipients: {}, accepted: {}, failed: {}",
+                "Daily sales report submission accepted by Auth. Date={}, messageId={}",
                 reportDate,
-                recipients.size(),
-                accepted,
-                failed
+                response.getProviderMessageId()
         );
-        return new DailyReportResult(
-                recipients.size(),
-                accepted,
-                failed
-        );
+
+        // Is response se actual recipient-level counts tabhi milenge
+        // jab Auth API response mein ye counts explicitly return kare.
+        return new DailyReportResult(0, 1, 0);
     }
 
-    private boolean isValidEmail(String email) {
-        return email != null && email.trim().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+    private String buildReportHtml(DailySalesReportDto report) {
+        return """
+                <html>
+                <body>
+                    <h2>Daily Sales Report</h2>
+                    <p>Report date: %s</p>
+                    <table border="1" cellpadding="8" cellspacing="0">
+                        <tr><td>Total credit amount</td><td>%s</td></tr>
+                        <tr><td>Total debit amount</td><td>%s</td></tr>
+                        <tr><td>Total bills</td><td>%s</td></tr>
+                        <tr><td>Total credits</td><td>%s</td></tr>
+                        <tr><td>Total retailers</td><td>%s</td></tr>
+                        <tr><td>Total suppliers</td><td>%s</td></tr>
+                        <tr><td>Total customers</td><td>%s</td></tr>
+                    </table>
+                </body>
+                </html>
+                """.formatted(
+                report.getReportDate(),
+                report.getTotalCreditAmount(),
+                report.getTotalDebitAmount(),
+                report.getTotalBills(),
+                report.getTotalCredits(),
+                report.getTotalRetailers(),
+                report.getTotalSuppliers(),
+                report.getTotalCustomers()
+        );
     }
 }

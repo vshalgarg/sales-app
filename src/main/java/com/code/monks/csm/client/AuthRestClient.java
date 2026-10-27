@@ -10,7 +10,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+import com.code.monks.csm.dto.request.SendEmailRequestDTO;
+import com.code.monks.csm.dto.response.SendEmailResponseDTO;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +58,9 @@ public class AuthRestClient {
 
     @Value("${auth.get_user_email.url}")
     private String getUserEmailUrl;
+
+    @Value("${auth.send_email.url}")
+    private String sendEmailUrl;
 
     private final GenericRestClient genericRestClient;
 
@@ -220,9 +226,10 @@ public class AuthRestClient {
 
     public List<String> getAllUserEmails() {
         String url = authHost + getUserEmailUrl;
-        log.info("Calling Auth API to fetch user email addresses");
+
         Map<String, String> headers = new HashMap<>();
         updateHeadersForClientNameAndSecret(headers);
+
         String[] emails = genericRestClient.exchange(
                 url,
                 HttpMethod.GET,
@@ -230,17 +237,45 @@ public class AuthRestClient {
                 headers,
                 String[].class
         );
+
         if (emails == null || emails.length == 0) {
-            log.warn("Auth API returned no user emails");
             return List.of();
         }
-        List<String> userEmails = java.util.Arrays.stream(emails)
+
+        return Arrays.stream(emails)
                 .filter(email -> email != null && !email.isBlank())
                 .map(String::trim)
                 .distinct()
                 .toList();
-        log.info("Fetched {} email addresses from Auth API", userEmails.size());
-        return userEmails;
     }
+
+
+    public SendEmailResponseDTO sendEmail(SendEmailRequestDTO request) {
+        String url = authHost + sendEmailUrl;
+
+        log.info("Calling Auth API to send email");
+
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+
+        SendEmailResponseDTO response = genericRestClient.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                headers,
+                SendEmailResponseDTO.class
+        );
+
+        if (response == null || !response.isSuccess()) {
+            throw new IllegalStateException(
+                    "Auth email API did not confirm email acceptance"
+            );
+        }
+
+        log.info("Auth email API accepted the request");
+        return response;
+    }
+
+
 
 }
