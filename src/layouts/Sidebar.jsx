@@ -34,7 +34,8 @@ const useSidebarMenuItems = (activeSection) => {
   const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
   const { auth, can } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
-  const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");  
+  const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");
+  const canConfiguration = can("CONFIGURATIONS"); 
 
   if (activeSection === "master") {
     return [
@@ -43,18 +44,25 @@ const useSidebarMenuItems = (activeSection) => {
       { name: "Staff", path: "/staff" },
       { name: "Transports", path: "/transports" },
       { name: "Users", path: "/users" },
-       ...(canAccessManagement
-      ? [{ name: "Access Management", path: "/access-management" }]
-      : []),
-      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
+       ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),
+      ...(canConfiguration ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   }
 
   if (activeSection === "entries") {
     return [
-      { name: "Bill Entry", path: "/bill-entry" },
-      { name: "Credit Entry", path: "/credit-entry" },
-      { name: "Purchase Entry", path: "/purchase-entry" },
+      ...(can("BILL_CREATE")
+      ? [{ name: "Bill Entry", path: "/bill-entry" }]
+      : []),
+
+    ...(can("CREDIT_CREATE")
+      ? [{ name: "Credit Entry", path: "/credit-entry" }]
+      : []),
+
+    ...(can("PURCHASE_CREATE")
+      ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
+      : []),
+
       ...(retailConfig?.[0]?.value === "true"
         ? [{ name: "Retail Entry", path: "/retail-entry" }]
         : []),
@@ -63,13 +71,25 @@ const useSidebarMenuItems = (activeSection) => {
 
   if (activeSection === "reporting") {
     return [
-      { name: "Bills", path: "/bills" },
-      { name: "Credit", path: "/credits" },
-      { name: "Purchase", path: "/purchase" },
+      ...(can("BILL_REPORT_VIEW")
+      ? [{ name: "Bills", path: "/bills" }]
+      : []),
+
+    ...(can("CREDIT_REPORT_VIEW")
+      ? [{ name: "Credit", path: "/credits" }]
+      : []),
+
+    ...(can("PURCHASE_REPORT_VIEW")
+      ? [{ name: "Purchase", path: "/purchase" }]
+      : []),
+
+      ...(can("LEDGER_REPORT_VIEW")
+      ? [{ name: "Ledger", path: "/ledge" }]
+      : []),
+
       ...(retailConfig?.[0]?.value === "true"
         ? [{ name: "Retail", path: "/retail" }]
         : []),
-      { name: "Ledger", path: "/ledger" },
     ];
   }
 

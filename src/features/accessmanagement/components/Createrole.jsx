@@ -348,6 +348,16 @@ const CreateRole = () => {
 
             <button
               type="button"
+              onClick={moveLeft}
+              disabled={!selectedAssigned.length}
+              aria-label="Remove selected permissions"
+              className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronLeft size={23} />
+            </button>
+
+            <button
+              type="button"
               onClick={moveAllRight}
               disabled={!availablePermissions.length || loadingPermissions}
               title="Assign all permissions"
@@ -368,16 +378,6 @@ const CreateRole = () => {
             >
               <ChevronLeft size={23} />
               <ChevronLeft size={23} className="-ml-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={moveLeft}
-              disabled={!selectedAssigned.length}
-              aria-label="Remove selected permissions"
-              className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronLeft size={23} />
             </button>
           </div>
 
