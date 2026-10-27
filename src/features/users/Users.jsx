@@ -23,8 +23,7 @@ const RoleChip = ({ role }) => (
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
-  const { auth } = useAuth();
-  const isAdmin = auth?.role?.includes("ADMIN");
+  const { can } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState("");
@@ -142,7 +141,7 @@ const Users = () => {
           <div className="flex gap-2">
             <h2 className={PAGE_TITLE_CLASS}>Users</h2>
 
-            {isAdmin && (
+            {can("USER_CREATE") && (
               <Tooltip title="Add user">
                 <span>
                   <IconButton
@@ -179,31 +178,32 @@ const Users = () => {
               columns={columns}
               data={paginatedUsers}
               loading={false}
-              actions={isAdmin}
+              actions={can("USER_UPDATE") || can("USER_DELETE")}
               onEdit={
-                isAdmin
-                  ? (u) => {
-                      setSelectedUser(u);
-                      setChangePwdModalOpen(true);
-                    }
-                  : undefined
+                can("USER_UPDATE")
+                ? (u) => {
+                  setSelectedUser(u);
+                  setChangePwdModalOpen(true);
+                }
+                : undefined
               }
+
               onDelete={
-                isAdmin
-                  ? (u) => {
-                      setUserToDelete(u);
-                      setDeleteModalOpen(true);
-                    }
-                  : undefined
+                can("USER_DELETE")
+                ? (u) => {
+                  setUserToDelete(u);
+                  setDeleteModalOpen(true);
+                }
+                : undefined
               }
 
               onEditUser={
-                isAdmin
-                  ? (u) => {
-                      setUserToEdit(u);
-                      setEditUserModalOpen(true);
-                    }
-                  : undefined
+                can("USER_UPDATE")
+                ? (u) => {
+                  setUserToEdit(u);
+                  setEditUserModalOpen(true);
+                }
+                : undefined
               }
               emptyMessage="No users found"
               disablePagination

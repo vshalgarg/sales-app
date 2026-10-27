@@ -32,8 +32,9 @@ const SECTION_ICONS = {
 const useSidebarMenuItems = (activeSection) => {
   const { config } = useConfig();
   const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
-  const { auth } = useAuth();
+  const { auth, can } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
+  const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");  
 
   if (activeSection === "master") {
     return [
@@ -42,7 +43,9 @@ const useSidebarMenuItems = (activeSection) => {
       { name: "Staff", path: "/staff" },
       { name: "Transports", path: "/transports" },
       { name: "Users", path: "/users" },
-      { name: "Access Management", path: "/access-management"},
+       ...(canAccessManagement
+      ? [{ name: "Access Management", path: "/access-management" }]
+      : []),
       ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   }

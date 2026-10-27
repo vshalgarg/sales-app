@@ -15,6 +15,7 @@ import useResponsive from "@/hooks/useResponsive";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const STAFF_CARD_FIELDS = [
   { label: "Phone", key: "phone", icon: Phone },
@@ -36,6 +37,7 @@ export default function StaffDashboard() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState(null);
   const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
   const [totalItems, setTotalItems] = useState(0);
   const { isMobile } = useResponsive();
   const [editOpen, setEditOpen] = useState(false);
@@ -185,11 +187,16 @@ export default function StaffDashboard() {
       icon,
       value: staff[key],
     })),
-    onEdit: () => handleEditStaff(staff.staffId),
-    onDelete: () => {
+    onEdit: can("STAFF_UPDATE")
+    ? () => handleEditStaff(staff.staffId)
+    : undefined,
+
+    onDelete: can("STAFF_DELETE")
+  ? () => {
       setStaffToDelete(staff);
       setDeleteModalOpen(true);
-    },
+    }
+  : undefined,
   });
 
   return (
@@ -200,6 +207,7 @@ export default function StaffDashboard() {
             <h2 className={PAGE_TITLE_CLASS}>
               {isMobile ? "Staff" : "Staff Overview"}
             </h2>
+            {can("STAFF_CREATE") && (
             <Tooltip title="Add staff">
               <span>
                 <IconButton
@@ -218,6 +226,7 @@ export default function StaffDashboard() {
                 </IconButton>
               </span>
             </Tooltip>
+            )}
           </div>
 
           <UniversalSearch
