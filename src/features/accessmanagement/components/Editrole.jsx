@@ -42,6 +42,7 @@ const EditRole = () => {
   const [selectedAssigned, setSelectedAssigned] = useState([]);
   const [searchAvailable, setSearchAvailable] = useState("");
   const [searchAssigned, setSearchAssigned] = useState("");
+  const [loadingPermissions, setLoadingPermissions] = useState(true);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -180,6 +181,24 @@ const EditRole = () => {
       )
     );
 
+    setSelectedAssigned([]);
+  };
+
+  const moveAllRight = () => {
+    setAssignedPermissions((previous) => [
+      ...previous,
+      ...availablePermissions,
+    ]);
+    setAvailablePermissions([]);
+    setSelectedAvailable([]);
+  };
+
+  const moveAllLeft = () => {
+    setAvailablePermissions((previous) => [
+      ...previous,
+      ...assignedPermissions,
+    ]);
+    setAssignedPermissions([]);
     setSelectedAssigned([]);
   };
 
@@ -411,13 +430,35 @@ const EditRole = () => {
                 <button
                   type="button"
                   onClick={moveLeft}
-                  disabled={
-                    !selectedAssigned.length || loading
-                  }
+                  disabled={!selectedAssigned.length || loading}
                   aria-label="Remove selected permissions"
                   className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <ChevronLeft size={23} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={moveAllRight}
+                  disabled={!availablePermissions.length || loading}
+                  title="Assign all permissions"
+                  aria-label="Assign all permissions"
+                  className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronRight size={23} />
+                  <ChevronRight size={23} className="-ml-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={moveAllLeft}
+                  disabled={!assignedPermissions.length || loading}
+                  title="Remove all permissions"
+                  aria-label="Remove all permissions"
+                  className="flex h-11 w-14 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft size={23} />
+                  <ChevronLeft size={23} className="-ml-4" />
                 </button>
               </div>
 
