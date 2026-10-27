@@ -14,6 +14,7 @@ import UpdateCustomerModal from "./components/UpdateCustomerModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { getCustomerFormattedText } from "@/utils/copyFormatter";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CUSTOMER_CARD_FIELDS = [
   { label: "GST", key: "customerGstNo", icon: GstIcon },
@@ -37,6 +38,7 @@ export default function CustomerDashboard() {
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
   const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
@@ -94,19 +96,27 @@ export default function CustomerDashboard() {
       value: getValue ? getValue(customer) : customer[key],
       showLabel: false,
     })),
-    onView: () => {
-      setSelectedCustomer(customer);
-      setModalOpen(true);
-    },
-    onEdit: () => {
-      setEditingCustomerId(customer.id);
-      setOpenEdit(true);
-    },
+    onView: can("CUSTOMER_VIEW")
+    ? () => {
+        setSelectedCustomer(customer);
+        setModalOpen(true);
+      }
+    : undefined,
+
+    onEdit: can("CUSTOMER_UPDATE")
+    ? () => {
+        setEditingCustomerId(customer.id);
+        setOpenEdit(true);
+      }
+    : undefined,
+
     onCopy: () => handleCopyDetails(customer),
-    onDelete: () => {
-      setCustomerToDelete(customer);
-      setDeleteModalOpen(true);
-    },
+    onDelete: can("CUSTOMER_DELETE")
+    ? () => {
+        setCustomerToDelete(customer);
+        setDeleteModalOpen(true);
+      }
+    : undefined,
   });
 
   const fetchCustomers = useCallback(
@@ -217,6 +227,7 @@ export default function CustomerDashboard() {
             <h2 className={PAGE_TITLE_CLASS}>
               {isMobile ? "Customer" : "Customer Overview"}
             </h2>
+            {can("CUSTOMER_CREATE") && (
             <Tooltip title="Add customer">
               <span>
                 <IconButton
@@ -228,6 +239,7 @@ export default function CustomerDashboard() {
                 </IconButton>
               </span>
             </Tooltip>
+            )}
           </div>
 
           <UniversalSearch

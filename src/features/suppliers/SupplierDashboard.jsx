@@ -14,6 +14,7 @@ import CopyDetailsModal from "@/components/CopyDetailsModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { getSupplierFormattedText } from "@/utils/copyFormatter";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SUPPLIER_CARD_FIELDS = [
   { label: "GST", key: "supplierGstNo", icon: GstIcon },
@@ -31,16 +32,17 @@ export default function SupplierDashboard() {
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { showSnackbar } = useSnackbar();
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingSupplierId, setEditingSupplierId] = useState(null);
-  const { isMobile } = useResponsive();
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [supplierToCopy, setSupplierToCopy] = useState(null);
+
+  const { isMobile } = useResponsive();
+  const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
 
   const [form, setForm] = useState({
     supplierName: "",
@@ -90,19 +92,26 @@ export default function SupplierDashboard() {
       value: supplier[key],
       showLabel: false,
     })),
-    onView: () => {
-      setSelectedSupplier(supplier.id);
-      setIsModalOpen(true);
-    },
-    onEdit: () => {
-      setEditingSupplierId(supplier.id);
-      setOpenEdit(true);
-    },
-    onCopy: () => handleCopyDetails(supplier),
-    onDelete: () => {
-      setSupplierToDelete(supplier);
-      setDeleteModalOpen(true);
-    },
+    onView: can("SUPPLIER_VIEW")
+    ? () => {
+        setSelectedSupplier(supplier.id);
+        setIsModalOpen(true);
+      }
+    : undefined,
+
+    onEdit: can("SUPPLIER_UPDATE")
+    ? () => {
+        setEditingSupplierId(supplier.id);
+        setOpenEdit(true);
+      }
+    : undefined,
+
+    onDelete: can("SUPPLIER_DELETE")
+    ? () => {
+        setSupplierToDelete(supplier);
+        setDeleteModalOpen(true);
+      }
+    : undefined,
   });
 
   const fetchSuppliers = useCallback(
@@ -213,6 +222,8 @@ export default function SupplierDashboard() {
           <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Supplier" : "Supplier Overview"}
           </h2>
+
+          {can("SUPPLIER_CREATE") && (
           <Tooltip title="Add supplier">
             <span>
               <IconButton
@@ -224,6 +235,7 @@ export default function SupplierDashboard() {
               </IconButton>
             </span>
           </Tooltip>
+          )}
         </div>
         <div>
           <UniversalSearch

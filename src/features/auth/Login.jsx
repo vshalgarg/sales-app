@@ -32,6 +32,7 @@ const Login = () => {
         role: data.roles,
         userId: data.userId,
         username: data.username,
+        permissions: data.permissions,
       });
 
       showSnackbar("Login successful!", "success");

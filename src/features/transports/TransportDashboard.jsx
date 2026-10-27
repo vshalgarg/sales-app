@@ -17,6 +17,7 @@ import { getTransportFormattedText } from "@/utils/copyFormatter";
 import CopyDetailsModal from "@/components/CopyDetailsModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formatContact = (contacts) =>
   contacts?.length > 0 ? contacts.map((c) => c.contactNumber).join(", ") : "-";
@@ -54,6 +55,7 @@ export default function TransportDashboard() {
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [totalItems, setTotalItems] = useState(0);
   const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [transportToDelete, setTransportToDelete] = useState(null);
   const { isMobile } = useResponsive();
@@ -233,12 +235,17 @@ export default function TransportDashboard() {
         showLabel: false,
       },
     ],
-    onEdit: () => handleEdit(transport),
+    onEdit: can("TRANSPORT_UPDATE")
+    ? () => handleEdit(transport)
+    : undefined,
+
     onCopy: () => handleCopy(transport),
-    onDelete: () => {
+    onDelete: can("TRANSPORT_DELETE")
+  ? () => {
       setTransportToDelete(transport);
       setDeleteModalOpen(true);
-    },
+    }
+  : undefined,
   });
 
   return (
