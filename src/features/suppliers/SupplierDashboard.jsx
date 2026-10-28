@@ -112,6 +112,8 @@ export default function SupplierDashboard() {
         setDeleteModalOpen(true);
       }
     : undefined,
+
+    onCopy: () => handleCopyDetails(supplier),
   });
 
   const fetchSuppliers = useCallback(
