@@ -160,7 +160,7 @@ const AppLayout = () => {
           },
           {
             allowed: true,
-            path: "/ledge",
+            path: "/ledger",
           },
         ].find((report) => report.allowed);
 
