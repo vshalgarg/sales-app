@@ -112,7 +112,7 @@ const useSidebarMenuItems = (activeSection) => {
       : []),
 
       ...(can("LEDGER_REPORT_VIEW")
-      ? [{ name: "Ledger", path: "/ledge" }]
+      ? [{ name: "Ledger", path: "/ledger" }]
       : []),
 
       ...(retailConfig?.[0]?.value === "true"
