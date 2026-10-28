@@ -255,6 +255,7 @@ export default function TransportDashboard() {
           <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Transport" : "Transport Overview"}
           </h2>
+          {can("TRANSPORT_CREATE") && (
           <Tooltip title="Add transport">
             <span>
               <IconButton
@@ -266,8 +267,9 @@ export default function TransportDashboard() {
               </IconButton>
             </span>
           </Tooltip>
+          )}
         </div>
-
+        {can("TRANSPORT_VIEW") && (
         <UniversalSearch
           placeholder="Search transports..."
           query={query}
@@ -279,9 +281,11 @@ export default function TransportDashboard() {
           pageSize={rowsPerPage}
           showSuggestions={false}
         />
+        )}
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("TRANSPORT_VIEW") && (
         <EntityCardGrid
           items={transports}
           getItemKey={(transport) => transport.id}
@@ -294,6 +298,7 @@ export default function TransportDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="transports"
         />
+        )}
       </div>
 
       {open && (

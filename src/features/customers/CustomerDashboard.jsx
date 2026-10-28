@@ -241,7 +241,7 @@ export default function CustomerDashboard() {
             </Tooltip>
             )}
           </div>
-
+          {can("CUSTOMER_VIEW") && (
           <UniversalSearch
             placeholder="Search customers..."
             query={query}
@@ -253,10 +253,12 @@ export default function CustomerDashboard() {
             pageSize={rowsPerPage}
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("CUSTOMER_VIEW") && (
         <EntityCardGrid
           items={customers}
           buildCardProps={buildCustomerCardProps}
@@ -268,6 +270,7 @@ export default function CustomerDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="customers"
         />
+        )}
       </div>
 
       {modalOpen && selectedCustomer && (

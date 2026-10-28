@@ -6,10 +6,16 @@ import { GRID_SIDEBAR_NAV_CLASS, SHELL_BORDER } from "../theme/appTheme";
 import { useMediaQuery } from "@mui/material";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useUnsaved } from "../contexts/UnsavedChangesContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useConfig } from "../contexts/ConfigContext";
 
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { can } = useAuth();
+  const { config } = useConfig();
+  const retailConfig = config?.filter((item) => item.key === "RETAIL_FEATURE");
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
     return window.matchMedia("(min-width: 769px)").matches;
@@ -100,27 +106,86 @@ const AppLayout = () => {
     }
   }, [location.pathname, navigate]);
 
+  
   const handleSectionChange = (section) => {
     switch (section) {
       case "master":
         safeNavigate("/suppliers");
         break;
-      case "entries":
-        safeNavigate("/bill-entry");
+
+      case "entries": {
+        const availableEntry = [
+          {
+            allowed: can("BILL_CREATE"),
+            path: "/bill-entry",
+          },
+          {
+            allowed: can("CREDIT_CREATE"),
+            path: "/credit-entry",
+          },
+          {
+            allowed: can("PURCHASE_CREATE"),
+            path: "/purchase-entry",
+          },
+          {
+            allowed: retailConfig?.[0]?.value === "true",
+            path: "/retail-entry",
+          },
+        ].find((entry) => entry.allowed);
+
+        if (availableEntry) {
+          safeNavigate(availableEntry.path);
+        }
+
         break;
-      case "reporting":
-        safeNavigate("/bills");
+      }
+
+      case "reporting": {
+        const availableReport = [
+          {
+            allowed: can("BILL_REPORT_VIEW"),
+            path: "/bills",
+          },
+          {
+            allowed: can("CREDIT_REPORT_VIEW"),
+            path: "/credits",
+          },
+          {
+            allowed: can("PURCHASE_REPORT_VIEW"),
+            path: "/purchase",
+          },
+          {
+            allowed: retailConfig?.[0]?.value === "true",
+            path: "/retail",
+          },
+          {
+            allowed: true,
+            path: "/ledge",
+          },
+        ].find((report) => report.allowed);
+
+        if (availableReport) {
+          safeNavigate(availableReport.path);
+        }
+
         break;
+      }
+
       case "graph":
-        safeNavigate("/graph");
+        if (can("MONITORING_VIEW")) {
+          safeNavigate("/graph");
+        }
         break;
+
       default:
         break;
     }
+
     if (section !== "graph" && section !== activeSection) {
       setIsSidebarOpen(true);
     }
   };
+
 
   const closeSidebar = () => setIsSidebarOpen(false);
   const toggleSidebar = () => {

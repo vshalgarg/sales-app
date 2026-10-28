@@ -155,7 +155,7 @@ const Users = () => {
               </Tooltip>
             )}
           </div>
-
+          {can("USER_VIEW") && (
           <UniversalSearch
             placeholder="Search users..."
             query={query}
@@ -166,6 +166,7 @@ const Users = () => {
             suggestionKey="username"
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
@@ -174,6 +175,7 @@ const Users = () => {
       >
         <div className="flex-1 min-h-0 overflow-hidden p-3 md:p-4">
           <div className="h-full min-h-0">
+            {can("USER_VIEW") && (
             <DataTable
               columns={columns}
               data={paginatedUsers}
@@ -211,10 +213,12 @@ const Users = () => {
               headerCellSx={tableHeaderCellSx}
               actionsHeaderSx={tableHeaderCellSx}
             />
+            )}
           </div>
         </div>
 
         <div className="shrink-0 px-3 md:px-4 pb-3 md:pb-4">
+          {can("USER_VIEW") && (
           <ListPagination
             page={currentPage}
             totalCount={users.length}
@@ -223,6 +227,7 @@ const Users = () => {
             onRowsPerPageChange={handleRowsPerPageChange}
             entityLabel="users"
           />
+          )}
         </div>
       </div>
 
