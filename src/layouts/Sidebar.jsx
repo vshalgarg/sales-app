@@ -35,7 +35,6 @@ const useSidebarMenuItems = (activeSection) => {
   const { auth, can, canAny } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
   const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");
-  const canConfiguration = can("CONFIGURATIONS");
 
   if (activeSection === "master") {
     return [
@@ -74,7 +73,7 @@ const useSidebarMenuItems = (activeSection) => {
         "USER_VIEW",
       ]) ? [{ name: "Users", path: "/users" }] : []),
       ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),
-      ...(canConfiguration ? [{ name: "Configurations", path: "/configurations" }] : []),
+      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   }
 
