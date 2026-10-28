@@ -32,19 +32,48 @@ const SECTION_ICONS = {
 const useSidebarMenuItems = (activeSection) => {
   const { config } = useConfig();
   const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
-  const { auth, can } = useAuth();
+  const { auth, can, canAny } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
   const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");
-  const canConfiguration = can("CONFIGURATIONS"); 
+  const canConfiguration = can("CONFIGURATIONS");
 
   if (activeSection === "master") {
     return [
-      { name: "Suppliers", path: "/suppliers" },
-      { name: "Customers", path: "/customers" },
-      { name: "Staff", path: "/staff" },
-      { name: "Transports", path: "/transports" },
-      { name: "Users", path: "/users" },
-       ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),
+      ...(canAny([
+        "SUPPLIER_CREATE",
+        "SUPPLIER_DELETE",
+        "SUPPLIER_UPDATE",
+        "SUPPLIER_VIEW",
+      ]) ? [{ name: "Suppliers", path: "/suppliers" }] : []),
+
+        ...(canAny([
+        "CUSTOMER_CREATE",
+        "CUSTOMER_DELETE",
+        "CUSTOMER_UPDATE",
+        "CUSTOMER_VIEW",
+      ]) ? [{ name: "Customers", path: "/customers" }] : []),
+
+        ...(canAny([
+        "STAFF_CREATE",
+        "STAFF_DELETE",
+        "STAFF_UPDATE",
+        "STAFF_VIEW",
+      ]) ? [{ name: "Staff", path: "/staff" }] : []),
+
+        ...(canAny([
+        "TRANSPORT_CREATE",
+        "TRANSPORT_DELETE",
+        "TRANSPORT_UPDATE",
+        "TRANSPORT_VIEW",
+      ]) ? [{ name: "Transports", path: "/transports" }] : []),
+
+        ...(canAny([
+        "USER_CREATE",
+        "USER_DELETE",
+        "USER_UPDATE",
+        "USER_VIEW",
+      ]) ? [{ name: "Users", path: "/users" }] : []),
+      ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),
       ...(canConfiguration ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   }

@@ -228,7 +228,7 @@ export default function StaffDashboard() {
             </Tooltip>
             )}
           </div>
-
+          {can("STAFF_VIEW") && (
           <UniversalSearch
             placeholder="Search staff..."
             query={query}
@@ -240,10 +240,12 @@ export default function StaffDashboard() {
             pageSize={rowsPerPage}
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("STAFF_VIEW") && (
         <EntityCardGrid
           items={staffs}
           getItemKey={(staff) => staff.staffId}
@@ -256,6 +258,7 @@ export default function StaffDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="staff"
         />
+        )}
       </div>
 
       <DeleteConfirmModal

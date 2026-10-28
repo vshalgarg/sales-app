@@ -238,6 +238,7 @@ export default function SupplierDashboard() {
           )}
         </div>
         <div>
+          {can("SUPPLIER_VIEW") && (
           <UniversalSearch
             placeholder="Search suppliers..."
             query={query}
@@ -249,10 +250,12 @@ export default function SupplierDashboard() {
             pageSize={rowsPerPage}
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("SUPPLIER_VIEW") && (
         <EntityCardGrid
           items={suppliers}
           buildCardProps={buildSupplierCardProps}
@@ -264,6 +267,7 @@ export default function SupplierDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="suppliers"
         />
+        )}
       </div>
 
       {isModalOpen && selectedSupplier && (

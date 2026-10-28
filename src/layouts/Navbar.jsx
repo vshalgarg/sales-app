@@ -25,7 +25,7 @@ export default function Navbar({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const mainActiveSection = activeSection;
   const navigate = useNavigate();
-  const { auth } = useAuth();
+  const { auth, can } = useAuth();
 
   const handleLogout = () => {
     localStorage.clear();
@@ -69,7 +69,13 @@ export default function Navbar({
           )}
 
           <div className="hidden md:flex items-center gap-2">
-            {["master", "entries", "reporting", "graph"].map((section) => (
+            {["master", "entries", "reporting", "graph"].filter((section) => {
+              if (section === "graph") {
+                return can("MONITORING_VIEW");
+              }
+              return true;
+            })
+            .map((section) => (
               <button
                 key={section}
                 type="button"
@@ -91,7 +97,7 @@ export default function Navbar({
               onChange={(e) => handleSectionClick(e.target.value)}
               className="px-3 pr-8 min-h-[36px] leading-normal whitespace-normal rounded-lg border appearance-none bg-brand-tab-inactive dark:bg-zinc-800 text-brand-navy dark:text-white border-violet-100 dark:border-zinc-700 text-sm"
             >
-              <option value="master">Master</option>
+              {can("MONITORING_VIEW") && (<option value="graph">Monitoring</option>)}
               <option value="entries">Entries</option>
               <option value="reporting">Reporting</option>
               <option value="graph">Monitoring</option>
