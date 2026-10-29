@@ -14,4 +14,5 @@ public class AuthLoginResponseDto {
     private Set<String> roles;
     private String token;
     private Map<String,String> userProfile;
+    private Set<String> permissions;
 }

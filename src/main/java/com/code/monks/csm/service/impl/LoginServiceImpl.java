@@ -34,6 +34,7 @@ public class LoginServiceImpl implements LoginService {
                 .username(responseDto.getUsername())
                 .roles(responseDto.getRoles())
                 .token(responseDto.getToken())
+                .permissions(responseDto.getPermissions())
                 .build();
     }
 }
