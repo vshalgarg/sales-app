@@ -10,7 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -72,5 +74,34 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
+    @Query("""
+    SELECT SUM(c.receivedAmount)
+    FROM CreditEntryEntity c
+    WHERE c.createdAt >= :start
+      AND c.createdAt < :end
+    """)
+    BigInteger sumCreditAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+    SELECT DISTINCT c.customerId
+    FROM CreditEntryEntity c
+    WHERE c.createdAt >= :start
+      AND c.createdAt < :end
+      AND c.customerId IS NOT NULL
+    """)
+    List<Integer> findDistinctCustomerIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("""
+    SELECT DISTINCT c.supplierId
+    FROM CreditEntryEntity c
+    WHERE c.createdAt >= :start
+      AND c.createdAt < :end
+      AND c.supplierId IS NOT NULL
+    """)
+    List<Integer> findDistinctSupplierIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
 
 }

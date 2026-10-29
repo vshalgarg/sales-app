@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-
+import com.code.monks.csm.dto.request.SendEmailRequestDTO;
+import com.code.monks.csm.dto.response.SendEmailResponseDTO;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -51,16 +54,19 @@ public class AuthRestClient {
     @Value("${auth.change_password.url}")
     private String changePasswordUrl;
 
+    @Value("${auth.get_user_email.url}")
+    private String getUserEmailUrl;
+
+    @Value("${auth.send_email.url}")
+    private String sendEmailUrl;
+
     private final GenericRestClient genericRestClient;
 
     public AuthLoginResponseDto callLogin(AuthLoginRequestDto authRequestDto) {
         String url = authHost + loginUrl;
-
         log.info("Calling external auth service at URL: {}", url);
-
         Map<String, String> headers = new HashMap<>();
         updateHeadersForClientNameAndSecret(headers);
-
         log.debug("Request headers prepared: {}", headers.keySet());  // Avoid logging secrets
         log.debug("Sending login request for username: {}", authRequestDto.getUsername());
 
@@ -215,5 +221,23 @@ public class AuthRestClient {
         headers.put("clientName", authClientName);
         headers.put("clientSecret", authClientSecret);
     }
+
+    public SendEmailResponseDTO sendEmail(SendEmailRequestDTO request) {
+        String url = authHost + sendEmailUrl;
+        log.info("Calling Auth API to send email");
+        Map<String, String> headers = new HashMap<>();
+        updateHeadersForClientNameAndSecret(headers);
+        SendEmailResponseDTO response = genericRestClient.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                headers,
+                SendEmailResponseDTO.class
+        );
+        log.info("Auth email API accepted the request");
+        return response;
+    }
+
+
 
 }
