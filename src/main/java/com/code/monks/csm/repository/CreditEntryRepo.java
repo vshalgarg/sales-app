@@ -81,13 +81,9 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
     WHERE c.createdAt >= :start
       AND c.createdAt < :end
     """)
-    BigInteger sumCreditAmountBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    BigInteger sumCreditAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
-            LocalDateTime start,
-            LocalDateTime end);
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
 
     @Query("""
     SELECT DISTINCT c.customerId
@@ -96,9 +92,7 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
       AND c.createdAt < :end
       AND c.customerId IS NOT NULL
     """)
-    List<Integer> findDistinctCustomerIdsCreatedBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    List<Integer> findDistinctCustomerIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT DISTINCT c.supplierId
@@ -107,9 +101,7 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
       AND c.createdAt < :end
       AND c.supplierId IS NOT NULL
     """)
-    List<Integer> findDistinctSupplierIdsCreatedBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    List<Integer> findDistinctSupplierIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
 
 }

@@ -1,4 +1,3 @@
-
 package com.code.monks.csm.dto.email;
 
 import lombok.AllArgsConstructor;
@@ -12,7 +11,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class DailySalesReportDto {
-
     private LocalDate reportDate;
     private BigInteger totalCreditAmount;
     private BigInteger totalDebitAmount;

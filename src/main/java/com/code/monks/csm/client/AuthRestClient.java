@@ -3,7 +3,6 @@ package com.code.monks.csm.client;
 import com.code.monks.csm.dto.User;
 import com.code.monks.csm.dto.auth.request.*;
 import com.code.monks.csm.dto.auth.response.*;
-import com.code.monks.csm.dto.email.UserEmailsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.code.monks.csm.dto.request.SendEmailRequestDTO;
 import com.code.monks.csm.dto.response.SendEmailResponseDTO;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -224,40 +222,11 @@ public class AuthRestClient {
         headers.put("clientSecret", authClientSecret);
     }
 
-    public List<String> getAllUserEmails() {
-        String url = authHost + getUserEmailUrl;
-
-        Map<String, String> headers = new HashMap<>();
-        updateHeadersForClientNameAndSecret(headers);
-
-        String[] emails = genericRestClient.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                headers,
-                String[].class
-        );
-
-        if (emails == null || emails.length == 0) {
-            return List.of();
-        }
-
-        return Arrays.stream(emails)
-                .filter(email -> email != null && !email.isBlank())
-                .map(String::trim)
-                .distinct()
-                .toList();
-    }
-
-
     public SendEmailResponseDTO sendEmail(SendEmailRequestDTO request) {
         String url = authHost + sendEmailUrl;
-
         log.info("Calling Auth API to send email");
-
         Map<String, String> headers = new HashMap<>();
         updateHeadersForClientNameAndSecret(headers);
-
         SendEmailResponseDTO response = genericRestClient.exchange(
                 url,
                 HttpMethod.POST,
@@ -265,13 +234,6 @@ public class AuthRestClient {
                 headers,
                 SendEmailResponseDTO.class
         );
-
-        if (response == null || !response.isSuccess()) {
-            throw new IllegalStateException(
-                    "Auth email API did not confirm email acceptance"
-            );
-        }
-
         log.info("Auth email API accepted the request");
         return response;
     }

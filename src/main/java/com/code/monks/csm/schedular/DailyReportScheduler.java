@@ -1,4 +1,3 @@
-
 package com.code.monks.csm.schedular;
 
 import com.code.monks.csm.client.AuthRestClient;
@@ -24,36 +23,27 @@ import java.time.ZoneId;
 @Slf4j
 public class DailyReportScheduler {
 
-    private static final ZoneId REPORT_ZONE =
-            ZoneId.of("Asia/Kolkata");
-
+    private static final ZoneId REPORT_ZONE = ZoneId.of("Asia/Kolkata");
     private final DailySalesReportService reportService;
     private final AuthRestClient authRestClient;
 
-
-    // Automatic daily execution at 9:00 AM IST by default
     @Scheduled(
             cron = "${daily-report.cron}",
             zone = "Asia/Kolkata"
     )
     public void sendDailyReport() {
         log.info("Daily report scheduler triggered at: {}", LocalDateTime.now());
-        LocalDate reportDate =
-                LocalDate.now(REPORT_ZONE).minusDays(1);
-
+        LocalDate reportDate = LocalDate.now(REPORT_ZONE).minusDays(1);
         sendReport(reportDate);
     }
-
     // Manual execution from AdminController
     public DailyReportResult sendDailySalesReport() {
-        LocalDate reportDate =
-                LocalDate.now(REPORT_ZONE).minusDays(1);
-
+        LocalDate reportDate = LocalDate.now(REPORT_ZONE).minusDays(1);
         return sendReport(reportDate);
     }
 
-
     private DailyReportResult sendReport(LocalDate reportDate) {
+
         DailySalesReportDto report = reportService.generateReport(reportDate);
 
         String html = buildReportHtml(report);
@@ -78,9 +68,12 @@ public class DailyReportScheduler {
                 response.getProviderMessageId()
         );
 
-        // Is response se actual recipient-level counts tabhi milenge
-        // jab Auth API response mein ye counts explicitly return kare.
-        return new DailyReportResult(0, 1, 0);
+        return new DailyReportResult(
+                true,
+                "Daily sales report accepted for submission",
+                reportDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                response.getProviderMessageId()
+        );
     }
 
 

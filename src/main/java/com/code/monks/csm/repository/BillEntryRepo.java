@@ -99,9 +99,7 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
     );
 
 
-    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
-            LocalDateTime start,
-            LocalDateTime end);
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
 
     @Query("""
     SELECT DISTINCT b.customer.id
@@ -110,9 +108,7 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
       AND b.createdAt < :end
       AND b.customer IS NOT NULL
     """)
-    List<Integer> findDistinctCustomerIdsCreatedBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    List<Integer> findDistinctCustomerIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT DISTINCT b.supplier.id
@@ -121,9 +117,7 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
       AND b.createdAt < :end
       AND b.supplier IS NOT NULL
     """)
-    List<Integer> findDistinctSupplierIdsCreatedBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    List<Integer> findDistinctSupplierIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("""
     SELECT COALESCE(SUM(b.billAmount), 0)
@@ -131,8 +125,6 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
     WHERE b.createdAt >= :start
       AND b.createdAt < :end
     """)
-    BigInteger sumBillAmountBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    BigInteger sumBillAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
 }

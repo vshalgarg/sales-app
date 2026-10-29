@@ -5,7 +5,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class DailyReportResult {
-    private final int totalRecipients;
-    private final int accepted;
-    private final int failed;
+    private boolean success;
+    private String message;
+    private String reportDate;
+    private String providerMessageId;
 }
