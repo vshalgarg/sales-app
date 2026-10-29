@@ -127,4 +127,5 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
     """)
     BigInteger sumBillAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+
 }

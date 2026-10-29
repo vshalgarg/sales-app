@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -57,4 +58,16 @@ public interface PurchaseEntryRepo extends
 
     @EntityGraph(attributePaths = {"supplier", "customer"})
     List<PurchaseEntity> findAll(Specification<PurchaseEntity> spec, Sort sort);
+
+    @Query("""
+    SELECT DISTINCT p.supplier.id
+    FROM PurchaseEntity p
+    WHERE p.createdAt >= :start
+      AND p.createdAt < :end
+      AND p.supplier IS NOT NULL
+""")
+    List<Integer> findDistinctSupplierIdsCreatedBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }

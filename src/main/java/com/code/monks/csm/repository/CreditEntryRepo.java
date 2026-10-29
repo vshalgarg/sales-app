@@ -104,4 +104,6 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
     List<Integer> findDistinctSupplierIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
 
+
+
 }

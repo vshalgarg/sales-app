@@ -6,6 +6,8 @@ import com.code.monks.csm.dto.email.DailySalesReportDto;
 import com.code.monks.csm.dto.request.SendEmailRequestDTO;
 import com.code.monks.csm.dto.response.SendEmailResponseDTO;
 import com.code.monks.csm.service.DailySalesReportService;
+
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,30 +78,33 @@ public class DailyReportScheduler {
         );
     }
 
-
+    private BigDecimal toRupees(BigInteger amount) {
+        return new BigDecimal(amount == null ? BigInteger.ZERO : amount)
+                .divide(BigDecimal.valueOf(100));
+    }
     private String buildReportHtml(DailySalesReportDto report) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
         String formattedDate = report.getReportDate().format(formatter);
-        BigInteger netDifference = report.getTotalCreditAmount()
-                .subtract(report.getTotalDebitAmount());
 
-        NumberFormat currencyFormat = NumberFormat.getNumberInstance(
-                Locale.forLanguageTag("en-IN")
-        );
-        currencyFormat.setMinimumFractionDigits(0);
+        // Database stores amounts multiplied by 100.
+        BigDecimal totalCredit = toRupees(report.getTotalCreditAmount());
+        BigDecimal totalDebit = toRupees(report.getTotalDebitAmount());
+
+        // Calculate net difference after converting to rupees.
+        BigDecimal netDifference = totalCredit.subtract(totalDebit);
+
+        NumberFormat currencyFormat =
+                NumberFormat.getNumberInstance(Locale.forLanguageTag("en-IN"));
+
+        currencyFormat.setMinimumFractionDigits(2);
         currencyFormat.setMaximumFractionDigits(2);
 
-        String totalCredit = "₹" + currencyFormat.format(
-                report.getTotalCreditAmount()
-        );
+        String formattedCredit = "₹" + currencyFormat.format(totalCredit);
+        String formattedDebit = "₹" + currencyFormat.format(totalDebit);
 
-        String totalDebit = "₹" + currencyFormat.format(
-                report.getTotalDebitAmount()
-        );
-
-        String formattedNetDifference = (netDifference.signum() < 0 ? "-₹" : "₹")
-                + currencyFormat.format(netDifference.abs());
+        String formattedNetDifference =
+                (netDifference.signum() < 0 ? "-₹" : "₹")
+                        + currencyFormat.format(netDifference.abs());
 
         String dailyInsight;
 
@@ -110,7 +115,8 @@ public class DailyReportScheduler {
             dailyInsight = "Credit transactions exceeded debit transactions by <strong>"
                     + formattedNetDifference + "</strong> for the day.";
         } else {
-            dailyInsight = "Total credit and debit amounts were equal for the day.";
+            dailyInsight =
+                    "Total credit and debit amounts were equal for the day.";
         }
 
         return """
@@ -231,8 +237,8 @@ public class DailyReportScheduler {
             """.formatted(
                 formattedDate,
                 formattedDate,
-                totalCredit,
-                totalDebit,
+                formattedCredit,
+                formattedDebit,
                 formattedNetDifference,
                 report.getTotalBills(),
                 report.getTotalCredits(),

@@ -3,6 +3,7 @@ package com.code.monks.csm.service;
 import com.code.monks.csm.dto.email.DailySalesReportDto;
 import com.code.monks.csm.repository.BillEntryRepo;
 import com.code.monks.csm.repository.CreditEntryRepo;
+import com.code.monks.csm.repository.PurchaseEntryRepo;
 import com.code.monks.csm.repository.RetailSupplierDepositRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class DailySalesReportService {
     private final CreditEntryRepo creditEntryRepo;
     private final BillEntryRepo billEntryRepo;
     private final RetailSupplierDepositRepository depositRepo;
-
+    private final PurchaseEntryRepo purchaseEntryRepo;
     @Transactional(readOnly = true)
     public DailySalesReportDto generateReport(LocalDate reportDate) {
         LocalDateTime start = reportDate.atStartOfDay();
@@ -68,6 +69,31 @@ public class DailySalesReportService {
                 supplierIds.size(),
                 customerIds.size()
         );
+
+
+    }
+    public int countSuppliersWorkedOn(
+            LocalDateTime start,
+            LocalDateTime end) {
+
+        Set<Integer> supplierIds = new HashSet<>();
+
+        supplierIds.addAll(
+                creditEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end)
+        );
+
+        supplierIds.addAll(
+                billEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end)
+        );
+
+        supplierIds.addAll(
+                purchaseEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end)
+        );
+
+        // Add supplier IDs from RetailSupplierEntity here
+        // after confirming its field mappings.
+
+        return supplierIds.size();
     }
 }
 
