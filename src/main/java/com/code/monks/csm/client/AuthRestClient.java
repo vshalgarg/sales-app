@@ -12,8 +12,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.code.monks.csm.dto.request.SendEmailRequestDTO;
 import com.code.monks.csm.dto.response.SendEmailResponseDTO;
 import java.util.Arrays;
-
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +53,6 @@ public class AuthRestClient {
 
     @Value("${auth.change_password.url}")
     private String changePasswordUrl;
-
-    @Value("${auth.get_user_email.url}")
-    private String getUserEmailUrl;
 
     @Value("${auth.send_email.url}")
     private String sendEmailUrl;
@@ -272,9 +267,6 @@ public class AuthRestClient {
         log.info("Auth email API accepted the request");
         return response;
     }
-
-
-
     public AuthMessageResponseDto callCreateRole(AuthCreateRoleRequestDto authRequestDto) {
         String url = authHost + createRoleUrl;
         log.info("Calling external create role API | role: {}", authRequestDto.getRoleName());
@@ -377,17 +369,13 @@ public class AuthRestClient {
     }
 
     public AuthGetUserRoleDto getUserRoleDetail(Long userId) {
-
         String url = UriComponentsBuilder
                 .fromUriString(authHost + getUserRole)
                 .buildAndExpand(userId)
                 .toUriString();
-
         log.info("Calling Auth API to get user roles | userId={}", userId);
-
         Map<String, String> headers = new HashMap<>();
         updateHeadersForClientNameAndSecret(headers);
-
         AuthGetUserRoleDto response = genericRestClient.exchange(
                 url,
                 HttpMethod.GET,
@@ -395,45 +383,25 @@ public class AuthRestClient {
                 headers,
                 AuthGetUserRoleDto.class
         );
-
         log.info("Received user role details from Auth | userId={}", userId);
-
         return response;
     }
-
-
-
-    public AuthUpdateUserRolesResponseDto callUpdateUserRoles(
-            Long userId,
-            AuthUpdateUserRolesRequestDto requestDto) {
-
+    public AuthUpdateUserRolesResponseDto callUpdateUserRoles(Long userId, AuthUpdateUserRolesRequestDto requestDto) {
         String url = UriComponentsBuilder
                 .fromUriString(authHost + updateUserRolesUrl)
                 .buildAndExpand(userId)
                 .toUriString();
-
-        log.info("Calling Auth API to update user roles | userId={}",
-                userId);
-
+        log.info("Calling Auth API to update user roles | userId={}", userId);
         Map<String, String> headers = new HashMap<>();
         updateHeadersForClientNameAndSecret(headers);
-
-        AuthUpdateUserRolesResponseDto response =
-                genericRestClient.exchange(
+        AuthUpdateUserRolesResponseDto response = genericRestClient.exchange(
                         url,
                         HttpMethod.PUT,
                         requestDto,
                         headers,
                         AuthUpdateUserRolesResponseDto.class
                 );
-
-        log.info("Auth API role update response received | userId={}",
-                userId);
-
+        log.info("Auth API role update response received | userId={}", userId);
         return response;
     }
-
-
-
-
 }

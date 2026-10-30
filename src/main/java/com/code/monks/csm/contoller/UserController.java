@@ -73,6 +73,20 @@ public class UserController {
         return ResponseEntity.ok(userService.getEncryptedUserDetail(userId));
     }
 
+    @GetMapping(GET_USER_ROLES)
+    public ResponseEntity<GetUserRoleDto> getUserRoles(@PathVariable Long userId) {
+        GetUserRoleDto response = userService.getUserRoles(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(UPDATE_USER_ROLES)
+    public ResponseEntity<UpdateUserRoleResponseDto> updateUserRoles(@PathVariable Long userId,
+                                                                     @Valid @RequestBody UpdateUserRoleRequestDto requestDto) {
+        log.info("UPDATE_USER_ROLES API called for userId={}", userId);
+        UpdateUserRoleResponseDto response = userService.updateUserRoles(userId, requestDto);
+        return ResponseEntity.ok(response);
+    }
+
     @RestController
     @RequestMapping("/api/v1/test")
     @RequiredArgsConstructor
