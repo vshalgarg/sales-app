@@ -47,17 +47,19 @@ public class DailySalesReportService {
 
         Set<Integer> supplierIds = new HashSet<>();
 
-        supplierIds.addAll(billEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end));
+//        supplierIds.addAll(billEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end));
+//
+//        supplierIds.addAll(creditEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end));
 
-        supplierIds.addAll(creditEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end));
+        supplierIds.addAll(purchaseEntryRepo.findDistinctSupplierIdsCreatedBetween(start,end));
 
-        supplierIds.addAll(depositRepo.findDistinctSupplierIdsByDepositDate(
-                        reportDate, reportDate.plusDays(1)));
         Set<Integer> customerIds = new HashSet<>();
 
-        customerIds.addAll(billEntryRepo.findDistinctCustomerIdsCreatedBetween(start, end));
+//        customerIds.addAll(billEntryRepo.findDistinctCustomerIdsCreatedBetween(start, end));
+//
+//        customerIds.addAll(creditEntryRepo.findDistinctCustomerIdsCreatedBetween(start, end));
 
-        customerIds.addAll(creditEntryRepo.findDistinctCustomerIdsCreatedBetween(start, end));
+        customerIds.addAll(purchaseEntryRepo.findDistinctCustomerIdsCreatedBetween(start, end));
 
         return new DailySalesReportDto(
                 reportDate,
@@ -71,29 +73,6 @@ public class DailySalesReportService {
         );
 
 
-    }
-    public int countSuppliersWorkedOn(
-            LocalDateTime start,
-            LocalDateTime end) {
-
-        Set<Integer> supplierIds = new HashSet<>();
-
-        supplierIds.addAll(
-                creditEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end)
-        );
-
-        supplierIds.addAll(
-                billEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end)
-        );
-
-        supplierIds.addAll(
-                purchaseEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end)
-        );
-
-        // Add supplier IDs from RetailSupplierEntity here
-        // after confirming its field mappings.
-
-        return supplierIds.size();
     }
 }
 

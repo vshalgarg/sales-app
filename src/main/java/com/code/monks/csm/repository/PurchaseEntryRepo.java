@@ -70,4 +70,16 @@ public interface PurchaseEntryRepo extends
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("""
+     SELECT DISTINCT p.customer.id
+     FROM PurchaseEntity p
+     WHERE p.createdAt >= :start
+     AND p.createdAt <:end
+     AND p.customer IS NOT NULL
+""")
+    List<Integer> findDistinctCustomerIdsCreatedBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }
