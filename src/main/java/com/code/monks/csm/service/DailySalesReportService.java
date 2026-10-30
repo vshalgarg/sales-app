@@ -1,10 +1,7 @@
 package com.code.monks.csm.service;
 
 import com.code.monks.csm.dto.email.DailySalesReportDto;
-import com.code.monks.csm.repository.BillEntryRepo;
-import com.code.monks.csm.repository.CreditEntryRepo;
-import com.code.monks.csm.repository.PurchaseEntryRepo;
-import com.code.monks.csm.repository.RetailSupplierDepositRepository;
+import com.code.monks.csm.repository.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +18,7 @@ public class DailySalesReportService {
     private final CreditEntryRepo creditEntryRepo;
     private final BillEntryRepo billEntryRepo;
     private final RetailSupplierDepositRepository depositRepo;
+    private final RetailRepository retailRepo;
     private final PurchaseEntryRepo purchaseEntryRepo;
     @Transactional(readOnly = true)
     public DailySalesReportDto generateReport(LocalDate reportDate) {
@@ -42,9 +40,14 @@ public class DailySalesReportService {
 
         long totalCredits = creditEntryRepo.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(start, end);
 
-        Set<Integer> retailerIds = new HashSet<>(depositRepo.findDistinctRetailerIdsByDepositDate(
-                        reportDate, reportDate.plusDays(1)));
+//        Set<Integer> retailerIds = new HashSet<>(depositRepo.findDistinctRetailerIdsByDepositDate(
+//                        reportDate, reportDate.plusDays(1)));
 
+        Set<Integer> retailerIds = new HashSet<>();
+
+        retailerIds.addAll(
+                retailRepo.findDistinctRetailerIdsCreatedBetween(start, end)
+        );
         Set<Integer> supplierIds = new HashSet<>();
 
 //        supplierIds.addAll(billEntryRepo.findDistinctSupplierIdsCreatedBetween(start, end));
