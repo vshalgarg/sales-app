@@ -6,7 +6,6 @@ import com.code.monks.csm.dto.email.DailySalesReportDto;
 import com.code.monks.csm.dto.request.SendEmailRequestDTO;
 import com.code.monks.csm.dto.response.SendEmailResponseDTO;
 import com.code.monks.csm.service.DailySalesReportService;
-
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
