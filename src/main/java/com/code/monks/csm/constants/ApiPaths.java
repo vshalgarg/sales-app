@@ -14,7 +14,7 @@ public class ApiPaths {
 
     public static final String DELETE_USER = "/user/delete/{userId}";
 
-    public static final String GET_USER_ROLES = "/user/roles/{userId}";
+    public static final String GET_USER_ROLES = "/role/user/get/{userId}";
 
     public static final String UPDATE_USER_ROLES = "/user/roles/{userId}";
 

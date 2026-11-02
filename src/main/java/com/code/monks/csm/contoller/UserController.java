@@ -80,8 +80,7 @@ public class UserController {
     }
 
     @PutMapping(UPDATE_USER_ROLES)
-    public ResponseEntity<UpdateUserRoleResponseDto> updateUserRoles(@PathVariable Long userId,
-                                                                     @Valid @RequestBody UpdateUserRoleRequestDto requestDto) {
+    public ResponseEntity<UpdateUserRoleResponseDto> updateUserRoles(@PathVariable Long userId, @Valid @RequestBody UpdateUserRoleRequestDto requestDto) {
         log.info("UPDATE_USER_ROLES API called for userId={}", userId);
         UpdateUserRoleResponseDto response = userService.updateUserRoles(userId, requestDto);
         return ResponseEntity.ok(response);
@@ -91,9 +90,7 @@ public class UserController {
     @RequestMapping("/api/v1/test")
     @RequiredArgsConstructor
     public static class DailyReportTestController {
-
         private final DailyReportScheduler dailyReportScheduler;
-
         @PostMapping("/daily-report-email")
         public DailyReportResult testDailyReportEmail() {
             return dailyReportScheduler.sendDailySalesReport();
