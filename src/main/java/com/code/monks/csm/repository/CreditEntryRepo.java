@@ -85,25 +85,4 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
 
     long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
 
-    @Query("""
-    SELECT DISTINCT c.customerId
-    FROM CreditEntryEntity c
-    WHERE c.createdAt >= :start
-      AND c.createdAt < :end
-      AND c.customerId IS NOT NULL
-    """)
-    List<Integer> findDistinctCustomerIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-
-    @Query("""
-    SELECT DISTINCT c.supplierId
-    FROM CreditEntryEntity c
-    WHERE c.createdAt >= :start
-      AND c.createdAt < :end
-      AND c.supplierId IS NOT NULL
-    """)
-    List<Integer> findDistinctSupplierIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-
-
-
-
 }

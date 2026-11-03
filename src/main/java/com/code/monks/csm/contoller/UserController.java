@@ -85,15 +85,4 @@ public class UserController {
         UpdateUserRoleResponseDto response = userService.updateUserRoles(userId, requestDto);
         return ResponseEntity.ok(response);
     }
-
-    @RestController
-    @RequestMapping("/api/v1/test")
-    @RequiredArgsConstructor
-    public static class DailyReportTestController {
-        private final DailyReportScheduler dailyReportScheduler;
-        @PostMapping("/daily-report-email")
-        public DailyReportResult testDailyReportEmail() {
-            return dailyReportScheduler.sendDailySalesReport();
-        }
-    }
 }

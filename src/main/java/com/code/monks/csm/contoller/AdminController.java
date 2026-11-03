@@ -64,13 +64,4 @@ public class AdminController {
                 ApiResponse.success("Configuration updated successfully")
         );
     }
-
-    @PostMapping("/send")
-    public ResponseEntity<DailyReportResult> sendDailyReport() {
-        DailyReportResult result = dailyReportScheduler.sendDailySalesReport();
-        return ResponseEntity.ok(result);
-    }
-
-
-
 }
