@@ -10,13 +10,9 @@ import java.util.List;
 public class AuthUpdateRoleRequestDto {
     @NotBlank(message = "Role name is required")
     private String roleName;
-
     private String roleDesc;
-
     @NotNull(message = "Permissions are required")
     private List<Integer> permissionIds;
-
     private Integer parentRoleId;
-
 }
 

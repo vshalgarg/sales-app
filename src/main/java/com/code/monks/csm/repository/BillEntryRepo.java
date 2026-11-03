@@ -100,7 +100,6 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
 
     long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
 
-
     @Query("""
     SELECT COALESCE(SUM(b.billAmount), 0)
     FROM BillEntryEntity b

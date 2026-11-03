@@ -1,4 +1,5 @@
 package com.code.monks.csm.dto.email;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

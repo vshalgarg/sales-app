@@ -1,15 +1,11 @@
 package com.code.monks.csm.contoller;
 
-import com.code.monks.csm.dto.email.DailyReportResult;
 import com.code.monks.csm.dto.request.AddUserRequestDto;
-import com.code.monks.csm.dto.request.DeleteUserRequestDto;
 import com.code.monks.csm.dto.request.UpdateUserRoleRequestDto;
 import com.code.monks.csm.dto.response.*;
-import com.code.monks.csm.schedular.DailyReportScheduler;
 import com.code.monks.csm.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

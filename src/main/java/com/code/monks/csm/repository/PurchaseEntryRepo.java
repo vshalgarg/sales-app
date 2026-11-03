@@ -66,10 +66,7 @@ public interface PurchaseEntryRepo extends
       AND p.createdAt < :end
       AND p.supplier IS NOT NULL
 """)
-    List<Integer> findDistinctSupplierIdsCreatedBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
-    );
+    List<Integer> findDistinctSupplierIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("""
      SELECT DISTINCT p.customer.id
@@ -78,8 +75,5 @@ public interface PurchaseEntryRepo extends
      AND p.createdAt <:end
      AND p.customer IS NOT NULL
 """)
-    List<Integer> findDistinctCustomerIdsCreatedBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
-    );
+    List<Integer> findDistinctCustomerIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

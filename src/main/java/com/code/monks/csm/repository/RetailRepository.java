@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -80,8 +79,5 @@ public interface RetailRepository extends JpaRepository<RetailerEntity,Long>,
     WHERE r.createdAt >= :start
       AND r.createdAt < :end
 """)
-    List<Integer> findDistinctRetailerIdsCreatedBetween(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
-    );
+    List<Integer> findDistinctRetailerIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

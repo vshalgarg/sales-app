@@ -5,7 +5,3 @@ import lombok.Data;
 public class AuthMessageResponseDto {
     private String message;
 }
-
-
-
-

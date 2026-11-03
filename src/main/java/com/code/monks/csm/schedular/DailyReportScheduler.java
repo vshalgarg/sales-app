@@ -37,10 +37,7 @@ public class DailyReportScheduler {
         LocalDate reportDate = LocalDate.now(REPORT_ZONE).minusDays(1);
         sendReport(reportDate);
     }
-    public DailyReportResult sendDailySalesReport() {
-        LocalDate reportDate = LocalDate.now(REPORT_ZONE).minusDays(1);
-        return sendReport(reportDate);
-    }
+
     private DailyReportResult sendReport(LocalDate reportDate) {
         DailySalesReportDto report = reportService.generateReport(reportDate);
         String html = buildReportHtml(report);
@@ -54,12 +51,8 @@ public class DailyReportScheduler {
                 response.getProviderMessageId()
         );
 
-        return new DailyReportResult(
-                true,
-                "Daily sales report accepted for submission",
-                reportDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                response.getProviderMessageId()
-        );
+        return new DailyReportResult(true, "Daily sales report accepted for submission",
+                reportDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), response.getProviderMessageId());
     }
 
     private BigDecimal toRupees(BigInteger amount) {
