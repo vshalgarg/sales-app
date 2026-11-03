@@ -21,7 +21,7 @@ import static com.code.monks.csm.constants.ApiPaths.PERMISSION.*;
 public class PermissionController {
 
     private final RoleService rollService;
-    @HasPermission("PERM_PERMISSION_CRUD")
+
     @GetMapping(GET_ALL_PERMISSIONS)
     public ResponseEntity<List<GetAllPermissionsDto>> getAllPermissions()
     {
@@ -31,7 +31,7 @@ public class PermissionController {
         return ResponseEntity.ok(response);
     }
 
-    @HasPermission("PERM_PERMISSION_CRUD")
+
     @GetMapping(GET_PERMISSIONS_BY_ROLE_TEMPLATE)
     public ResponseEntity<GetPermissionsByRoleTemplateDto> getPermissionsByRoleTemplate(@PathVariable int roleTemplateId)
     {
