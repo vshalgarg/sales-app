@@ -41,7 +41,7 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(CUSTOMER_LIST_WITH_PAGINATION)
     public ResponseEntity<PagedResponseDto<CustomerListDto>> getCustomerList(
             @RequestParam(defaultValue = "0") int page,
@@ -93,7 +93,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = CUSTOMER_UPDATE)
     @PutMapping(UPDATE_CUSTOMER)
     public ResponseEntity<ApiResponse<Void>> updateCustomer(
             @PathVariable Integer id,
@@ -105,7 +105,7 @@ public class CustomerController {
                 ApiResponse.success("Customer updated successfully")
         );
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(GET_CUSTOMER_BY_ID)
     public ResponseEntity<ApiResponse<GetCustomerByIdResponseDto>> getCustomerById(
             @PathVariable Integer id) {
