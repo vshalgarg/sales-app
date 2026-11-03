@@ -162,6 +162,11 @@ const CreateRole = () => {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    if (assignedPermissions.length === 0) {
+    showSnackbar("Please select at least one permission to create a role", "error");
+    return;
+  }
+
     const payload = {
       roleName: roleName.trim(),
       roleDesc: description.trim(),
@@ -404,7 +409,7 @@ const CreateRole = () => {
 
           <button
             type="submit"
-            disabled={saving || loadingPermissions}
+            disabled={saving || loadingPermissions || assignedPermissions.length === 0}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-primary px-5 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? (

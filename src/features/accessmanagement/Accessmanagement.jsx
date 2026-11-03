@@ -63,23 +63,23 @@ const AccessManagement = () => {
       }
   };
 
-  const handleRoleDelete = async () => {
-    if (!deleteRole) return;
+  // const handleRoleDelete = async () => {
+  //   if (!deleteRole) return;
 
-    try {
-      setIsDeleting(true);
-      await deleteUser(deleteRole.id);
-      setRoles((prevRoles) => prevRoles.filter((role) => role.id !== deleteRole.id));
+  //   try {
+  //     setIsDeleting(true);
+  //     await deleteUser(deleteRole.id);
+  //     setRoles((prevRoles) => prevRoles.filter((role) => role.id !== deleteRole.id));
 
-      showSnackbar("Role deleted successfully", "success");
-      setDeleteRole(null);
+  //     showSnackbar("Role deleted successfully", "success");
+  //     setDeleteRole(null);
 
-    } catch (error) {
-      showSnackbar(error?.message || "Failed to delete role", "error");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  //   } catch (error) {
+  //     showSnackbar(error?.message || "Failed to delete role", "error");
+  //   } finally {
+  //     setIsDeleting(false);
+  //   }
+  // };
 
   const handleCreateRole = () => {
     navigate("/access-createrole");
@@ -114,10 +114,10 @@ const AccessManagement = () => {
           label: "View",
           onClick: () => handleViewMode(row),
         },
-        {
-          label: "Delete",
-          onClick: () => setDeleteRole(row),
-        },
+        // {
+        //   label: "Delete",
+        //   onClick: () => setDeleteRole(row),
+        // },
         {
           label: "Edit",
           onClick: () =>

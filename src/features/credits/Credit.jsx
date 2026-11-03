@@ -322,7 +322,7 @@ const Credit = () => {
             setSelectedCreditDetail(row);
             setIsModalOpen(true);
           }}
-          onEdit={(row) => {
+          onEditUser={(row) => {
             setCreditToEdit(row);
             setIsEditOpen(true);
           }}
