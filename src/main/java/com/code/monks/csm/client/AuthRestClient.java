@@ -218,6 +218,7 @@ public class AuthRestClient {
         user.setUserId(response.getUserId());
         user.setUsername(response.getUsername());
         user.setRoles(response.getRoles());
+        user.setPermissions(response.getPermissions());
         return user;
     }
 

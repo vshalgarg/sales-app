@@ -7,7 +7,7 @@ import com.code.monks.csm.dto.response.GetRoleDetailDto;
 import com.code.monks.csm.dto.response.RoleTemplateDto;
 import com.code.monks.csm.dto.response.UpdateRoleRequestDto;
 import com.code.monks.csm.service.RoleService;
-import com.code.monks.csm.validation.HasPermission;
+import com.code.monks.csm.annotation.HasPermission;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import static com.code.monks.csm.constants.ApiPaths.ROLE.*;
+import static com.code.monks.csm.constants.PermissionConstants.ACCESS_MANAGEMENT_CURD;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,6 +23,8 @@ import static com.code.monks.csm.constants.ApiPaths.ROLE.*;
 @RestController
 public class RoleController {
     private final RoleService rollService;
+
+    @HasPermission(value = ACCESS_MANAGEMENT_CURD)
     @PostMapping(CREATE_ROLE)
     public ResponseEntity<MessageResponseDTO> createRole(@Valid @RequestBody CreateRoleRequestDto requestDto) {
         log.info("API START: Create role request received");
@@ -34,7 +37,7 @@ public class RoleController {
         return ResponseEntity.ok(response);
     }
 
-    @HasPermission("PERM_ROLE_CRUD")
+    @HasPermission(value = ACCESS_MANAGEMENT_CURD)
     @GetMapping(GET_ALL_ROLES)
     public ResponseEntity<List<GetAllRolesDTO>> getAllRoles()
     {
@@ -44,7 +47,7 @@ public class RoleController {
         return ResponseEntity.ok(response);
     }
 
-    @HasPermission("PERM_ROLE_CRUD")
+    @HasPermission(value = ACCESS_MANAGEMENT_CURD)
     @GetMapping(GET_ROLE_DETAIL)
     public ResponseEntity<GetRoleDetailDto> getRoleDetail(@PathVariable int roleId) {
         log.info("API START: Get role detail request received | roleId={}", roleId);
@@ -53,7 +56,7 @@ public class RoleController {
         return ResponseEntity.ok(response);
     }
 
-    @HasPermission("PERM_ROLE_CRUD")
+    @HasPermission(value = ACCESS_MANAGEMENT_CURD)
     @PutMapping(UPDATE_ROLE)
     public ResponseEntity<MessageResponseDTO> updateRole(@PathVariable int roleId, @Valid @RequestBody UpdateRoleRequestDto requestDto) {
         log.info("API START: Update role request received");
@@ -67,7 +70,7 @@ public class RoleController {
         return ResponseEntity.ok(response);
     }
 
-    @HasPermission("PERM_ROLE_CRUD")
+    @HasPermission(value = ACCESS_MANAGEMENT_CURD)
     @GetMapping(GET_ALL_ROLE_TEMPLATE)
     public ResponseEntity<List<RoleTemplateDto>> getAllRoleTemplate()
     {
@@ -77,7 +80,7 @@ public class RoleController {
         return ResponseEntity.ok(response);
     }
 
-    @HasPermission("PERM_ROLE_CRUD")
+    @HasPermission(value = ACCESS_MANAGEMENT_CURD)
     @DeleteMapping(DELETE_ROLE)
     public ResponseEntity<MessageResponseDTO> deleteRole(@PathVariable int roleId) {
         log.info("API START: Delete role request received | roleId={}", roleId);

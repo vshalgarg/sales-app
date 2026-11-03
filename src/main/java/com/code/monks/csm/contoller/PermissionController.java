@@ -2,9 +2,8 @@ package com.code.monks.csm.contoller;
 
 import com.code.monks.csm.dto.response.GetAllPermissionsDto;
 import com.code.monks.csm.dto.response.GetPermissionsByRoleTemplateDto;
-import com.code.monks.csm.service.AdminService;
 import com.code.monks.csm.service.RoleService;
-import com.code.monks.csm.validation.HasPermission;
+import com.code.monks.csm.annotation.HasPermission;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
