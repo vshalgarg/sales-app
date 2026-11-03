@@ -12,6 +12,7 @@ import {
   SETTINGS_ICON_CLASS,
 } from "../theme/appTheme";
 import AppButton from "../components/AppButton";
+import { useConfig } from "../contexts/ConfigContext";
 
 export default function Navbar({
   activeSection,
@@ -25,7 +26,25 @@ export default function Navbar({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const mainActiveSection = activeSection;
   const navigate = useNavigate();
-  const { auth, can } = useAuth();
+  const { auth, can, canAny } = useAuth();
+  const { config } = useConfig();
+
+  const retailEnabled = config?.find((item) => item.key === "RETAIL_FEATURE")?.value === "true";
+
+  const hasReportingPermission =
+    canAny([
+      "BILL_REPORT_VIEW",
+      "CREDIT_REPORT_VIEW",
+      "PURCHASE_REPORT_VIEW",
+      "LEDGER_REPORT_VIEW",
+    ]) || retailEnabled;
+    
+  const hasEntryPermission =
+  canAny([
+    "BILL_CREATE",
+    "CREDIT_CREATE",
+    "PURCHASE_CREATE",
+  ]) || retailEnabled;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -73,6 +92,14 @@ export default function Navbar({
               if (section === "graph") {
                 return can("MONITORING_VIEW");
               }
+
+              if (section === "reporting") {
+                return hasReportingPermission;
+              }
+
+              if (section === "entries") {
+                return hasEntryPermission;
+              }
               return true;
             })
             .map((section) => (
@@ -98,8 +125,8 @@ export default function Navbar({
               className="px-3 pr-8 min-h-[36px] leading-normal whitespace-normal rounded-lg border appearance-none bg-brand-tab-inactive dark:bg-zinc-800 text-brand-navy dark:text-white border-violet-100 dark:border-zinc-700 text-sm"
             >
               {can("MONITORING_VIEW") && (<option value="graph">Monitoring</option>)}
-              <option value="entries">Entries</option>
-              <option value="reporting">Reporting</option>
+              {hasEntryPermission && (<option value="entries">Entries</option>)}
+              {hasReportingPermission && (<option value="reporting">Reporting</option>)}
               <option value="graph">Monitoring</option>
             </select>
 

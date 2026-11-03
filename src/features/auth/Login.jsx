@@ -19,33 +19,106 @@ const Login = () => {
   const { showSnackbar } = useSnackbar();
   const { login, auth } = useAuth();
 
+  const getFirstAccessibleMasterPath = (permissions = []) => {
+  const masterPages = [
+    {
+      permissions: [
+        "SUPPLIER_CREATE",
+        "SUPPLIER_VIEW",
+        "SUPPLIER_UPDATE",
+        "SUPPLIER_DELETE",
+      ],
+      path: "/suppliers",
+    },
+    {
+      permissions: [
+        "CUSTOMER_CREATE",
+        "CUSTOMER_VIEW",
+        "CUSTOMER_UPDATE",
+        "CUSTOMER_DELETE",
+      ],
+      path: "/customers",
+    },
+    {
+      permissions: [
+        "USER_CREATE",
+        "USER_VIEW",
+        "USER_UPDATE",
+        "USER_DELETE",
+      ],
+      path: "/users",
+    },
+    {
+      permissions: [
+        "TRANSPORT_CREATE",
+        "TRANSPORT_VIEW",
+        "TRANSPORT_UPDATE",
+        "TRANSPORT_DELETE",
+      ],
+      path: "/transports",
+    },
+    {
+      permissions: [
+        "STAFF_CREATE",
+        "STAFF_VIEW",
+        "STAFF_UPDATE",
+        "STAFF_DELETE",
+      ],
+      path: "/staff",
+    },
+  ];
+
+  const userPermissions = Array.isArray(permissions) ? permissions : [];
+
+  const accessiblePage = masterPages.find((page) =>
+    page.permissions.some((permission) =>
+      userPermissions.includes(permission)
+    )
+  );
+
+  return accessiblePage?.path || null;
+};
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  e.preventDefault();
+  setError("");
+  setIsLoading(true);
 
-    try {
-      const data = await loginUser(email, password);
-      console.log("auth", auth);
-      login({
-        token: data.token,
-        role: data.roles,
-        userId: data.userId,
-        username: data.username,
-        permissions: data.permissions,
-      });
+  try {
+    const data = await loginUser(email, password);
+    console.log("auth", auth);
 
-      showSnackbar("Login successful!", "success");
-      navigate("/suppliers", { replace: true });
-    } catch (err) {
-      console.error("Login error:", err);
-      const errorMsg = err.message || "Login failed. Please try again.";
-      setError(errorMsg);
-      showSnackbar(errorMsg, "error");
-    } finally {
-      setIsLoading(false);
+    login({
+      token: data.token,
+      role: data.roles,
+      userId: data.userId,
+      username: data.username,
+      permissions: data.permissions,
+    });
+
+    const firstAccessiblePath = getFirstAccessibleMasterPath(
+      data.permissions
+    );
+
+    if (!firstAccessiblePath) {
+      showSnackbar("No Master permissions assigned to this user.", "error");
+      return;
     }
-  };
+
+    showSnackbar("Login successful!", "success");
+    navigate(firstAccessiblePath, { replace: true });
+
+  } catch (err) {
+    console.error("Login error:", err);
+
+    const errorMsg = err.message || "Login failed. Please try again.";
+    setError(errorMsg);
+    showSnackbar(errorMsg, "error");
+
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">

@@ -12,7 +12,7 @@ import { useConfig } from "../contexts/ConfigContext";
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { can } = useAuth();
+  const { can, canAny  } = useAuth();
   const { config } = useConfig();
   const retailConfig = config?.filter((item) => item.key === "RETAIL_FEATURE");
 
@@ -29,7 +29,8 @@ const AppLayout = () => {
       location.pathname.startsWith("/suppliers") ||
       location.pathname.startsWith("/customers") ||
       location.pathname.startsWith("/staff") ||
-      location.pathname.startsWith("/users")
+      location.pathname.startsWith("/users") ||
+      location.pathname.startsWith("/transports")
     ) {
       return "master";
     }
@@ -109,9 +110,61 @@ const AppLayout = () => {
   
   const handleSectionChange = (section) => {
     switch (section) {
-      case "master":
-        safeNavigate("/suppliers");
-        break;
+      case "master": {
+  const availableMaster = [
+    {
+      allowed: canAny([
+        "SUPPLIER_CREATE",
+        "SUPPLIER_VIEW",
+        "SUPPLIER_UPDATE",
+        "SUPPLIER_DELETE",
+      ]),
+      path: "/suppliers",
+    },
+    {
+      allowed: canAny([
+        "CUSTOMER_CREATE",
+        "CUSTOMER_VIEW",
+        "CUSTOMER_UPDATE",
+        "CUSTOMER_DELETE",
+      ]),
+      path: "/customers",
+    },
+    {
+      allowed: canAny([
+        "USER_CREATE",
+        "USER_VIEW",
+        "USER_UPDATE",
+        "USER_DELETE",
+      ]),
+      path: "/users",
+    },
+    {
+      allowed: canAny([
+        "TRANSPORT_CREATE",
+        "TRANSPORT_VIEW",
+        "TRANSPORT_UPDATE",
+        "TRANSPORT_DELETE",
+      ]),
+      path: "/transports",
+    },
+    {
+      allowed: canAny([
+        "STAFF_CREATE",
+        "STAFF_VIEW",
+        "STAFF_UPDATE",
+        "STAFF_DELETE",
+      ]),
+      path: "/staff",
+    },
+  ].find((item) => item.allowed);
+
+  if (availableMaster) {
+    safeNavigate(availableMaster.path);
+  }
+
+  break;
+}
 
       case "entries": {
         const availableEntry = [
@@ -159,7 +212,7 @@ const AppLayout = () => {
             path: "/retail",
           },
           {
-            allowed: true,
+            allowed: can("LEDGER_REPORT_VIEW"),
             path: "/ledger",
           },
         ].find((report) => report.allowed);

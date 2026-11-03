@@ -1,7 +1,7 @@
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+// import DeleteIcon from "@mui/icons-material/Delete";
 
 const CustomTable = ({ columns = [], data = [], emptyMessage = "No records found", headerRowSx, headerCellSx }) => {
   return (
@@ -50,8 +50,8 @@ const CustomTable = ({ columns = [], data = [], emptyMessage = "No records found
                                 ? VisibilityIcon
                                 : action.label === "Edit"
                                   ? EditIcon
-                                  : action.label === "Delete"
-                                    ? DeleteIcon
+                                  // : action.label === "Delete"
+                                  //   ? DeleteIcon
                                     : null;
 
                             return (
