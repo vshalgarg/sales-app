@@ -47,7 +47,7 @@ export const searchUsers = async (keyword) => {
 
 export const getUserById = async (userId) => {
   try {
-    const response = await api.get(`/user/roles/${userId}`);
+    const response = await api.get(`/role/user/get/${userId}`);
     return checkLogicalError(response.data); 
   } catch(error) {
         throw new Error(handleApiError(error));
