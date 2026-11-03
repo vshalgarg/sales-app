@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.request.AddSupplierRequestDto;
 import com.code.monks.csm.dto.request.DeleteSupplierRequestDto;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RequestMapping(BASE)
 @AllArgsConstructor
@@ -28,7 +30,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class SupplierController {
 
      private final SupplierService supplierService;
-
+    @HasPermission(value = SUPPLIER_CREATE)
      @PostMapping(ADD_SUPPLIER)
      public ResponseEntity<AddSupplierResponseDto> addSupplier(
           @Valid @RequestBody AddSupplierRequestDto requestDto) {
@@ -57,7 +59,7 @@ public class SupplierController {
         log.info("Retrieved {} suppliers successfully (filter={}).", response.size(), filter);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = SUPPLIER_DELETE)
   @PutMapping(DELETE_SUPPLIER)
   public ResponseEntity<DeleteSupplierResponseDto> deleteSupplier(
           @Valid @RequestBody DeleteSupplierRequestDto requestDto) {
@@ -83,7 +85,7 @@ public class SupplierController {
           PagedResponseDto<SupplierListResponseDto> response = supplierService.searchSuppliers(keyword, pageable);
           return ResponseEntity.ok(response);
       }
-
+    @HasPermission(value = SUPPLIER_UPDATE)
     @PutMapping(UPDATE_SUPPLIER)
     public ResponseEntity<ApiResponse<?>> update(
             @PathVariable Integer id,
