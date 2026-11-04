@@ -7,7 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface RetailRepository extends JpaRepository<RetailerEntity,Long>,
@@ -71,4 +72,12 @@ public interface RetailRepository extends JpaRepository<RetailerEntity,Long>,
             @Param("retailId") Long retailId,
             @Param("status") StatusEnum status
     );
+
+    @Query("""
+    SELECT DISTINCT r.id
+    FROM RetailerEntity r
+    WHERE r.createdAt >= :start
+      AND r.createdAt < :end
+""")
+    List<Integer> findDistinctRetailerIdsCreatedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

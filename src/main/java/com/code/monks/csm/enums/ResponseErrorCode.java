@@ -33,7 +33,8 @@ public enum ResponseErrorCode {
     RETAIL_SUPPLIER_ALREADY_ADDED(1034,"Supplier already added to this retailer"),
     CONFIGURATION_NOT_FOUND(1035, "Configuration not found"),
     INVALID_CONFIGURATION_VALUE(1036, "Invalid configuration value"),
-    EXCEL_GENERATION_FAILED(1037, "Failed to generate Excel file");
+    EXCEL_GENERATION_FAILED(1037, "Failed to generate Excel file"),
+    PERMISSION_DENIED(1038, "You do not have permission to perform this action.");
 
 
     private final int code;
