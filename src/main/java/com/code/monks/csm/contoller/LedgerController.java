@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.ledger.LedgerResponseDto;
 import com.code.monks.csm.enums.LedgerViewTypeEnum;
@@ -18,6 +19,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.CREDIT_REPORT_VIEW;
+import static com.code.monks.csm.constants.PermissionConstants.LEDGER_REPORT_VIEW;
 
 @RestController
 @RequestMapping(BASE)
@@ -26,7 +29,7 @@ public class LedgerController {
 
     private final LedgerService ledgerService;
     private final LedgerExcelService ledgerExcelService;
-
+    @HasPermission(value =LEDGER_REPORT_VIEW)
     @GetMapping(LEDGER)
     public ResponseEntity<ApiResponse<LedgerResponseDto>> getLedger(
             @RequestParam Integer supplierId,

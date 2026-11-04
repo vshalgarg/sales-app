@@ -35,7 +35,7 @@ public class UserController {
 
         return ResponseEntity.ok(responseDto);
     }
-
+    @HasPermission(value =USER_VIEW)
     @GetMapping(GET_USERS)
     public ResponseEntity<GetUsersDto> getUsers() {
         log.info("GET_USERS API called");
@@ -59,7 +59,7 @@ public class UserController {
 
         return ResponseEntity.ok(responseDto);
     }
-
+    @HasPermission(value =USER_VIEW)
     @GetMapping(SEARCH_USER)
     public ResponseEntity<List<SearchUsersResponseDTO>> searchUsers(@RequestParam String keyword) {
         List<SearchUsersResponseDTO> response = userService.searchUsers(keyword);
@@ -70,7 +70,7 @@ public class UserController {
     public ResponseEntity<EncryptedResponseDTO> getEncryptedUserDetail(@PathVariable Long userId){
         return ResponseEntity.ok(userService.getEncryptedUserDetail(userId));
     }
-
+    @HasPermission(value =USER_VIEW)
     @GetMapping(GET_USER_ROLES)
     public ResponseEntity<GetUserRoleDto> getUserRoles(@PathVariable Long userId) {
         GetUserRoleDto response = userService.getUserRoles(userId);

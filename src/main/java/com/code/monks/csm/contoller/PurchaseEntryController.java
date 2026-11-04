@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
-import static com.code.monks.csm.constants.PermissionConstants.PURCHASE_CREATE;
-import static com.code.monks.csm.constants.PermissionConstants.STAFF_DELETE;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @Slf4j
 @RequestMapping(BASE)
@@ -51,7 +50,7 @@ public class PurchaseEntryController {
         AddPurchaseEntryResponseDto response = purchaseService.addPurchaseEntry(requestDto, supplierImages);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =PURCHASE_REPORT_VIEW)
     @GetMapping(SEARCH_PURCHASE_ENTRIES)
     public ResponseEntity<PagedResponseDto<PurchaseHistoryResponseDto>> getPurchaseHistory(
             @RequestParam(required = false)

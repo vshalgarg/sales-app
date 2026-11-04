@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
-import static com.code.monks.csm.constants.PermissionConstants.CREDIT_CREATE;
-import static com.code.monks.csm.constants.PermissionConstants.STAFF_DELETE;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RequestMapping(BASE)
 @RestController
@@ -53,7 +52,7 @@ public class CreditEntryController {
 
         return ResponseEntity.ok(creditEntriesList);
     }
-
+    @HasPermission(value =CREDIT_REPORT_VIEW)
     @GetMapping(SEARCH_CREDIT_ENTRIES)
     public ResponseEntity<ReportPagedResponseDto<SearchCreditEntryResponse>> getCreditHistory(
             @RequestParam(required = false)

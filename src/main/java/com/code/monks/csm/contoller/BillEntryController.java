@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
 import static com.code.monks.csm.constants.PermissionConstants.BILL_CREATE;
+import static com.code.monks.csm.constants.PermissionConstants.BILL_REPORT_VIEW;
 
 @RequestMapping(BASE)
 @RestController
@@ -50,7 +51,7 @@ public class BillEntryController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =BILL_REPORT_VIEW)
     @PatchMapping(
             value = UPDATE_BILL_ENTRY,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE

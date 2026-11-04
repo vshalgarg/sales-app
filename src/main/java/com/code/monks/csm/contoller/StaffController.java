@@ -39,7 +39,7 @@ public class StaffController {
         log.info("ADD_STAFF API completed for name: {}", requestDto.getStaffName());
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(GET_STAFF)
     public ResponseEntity<PagedResponseDto<GetStaffDto>> getStaff(
             @RequestParam(defaultValue = "0") int page,
@@ -52,7 +52,7 @@ public class StaffController {
         log.info("Retrieved {} staffs successfully", response.getContent().size());
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(GET_STAFF_V2)
     public ResponseEntity<List<GetStaffDto>> getAllStaff() {
         return ResponseEntity.ok(staffService.getAllActiveStaff());
@@ -68,7 +68,7 @@ public class StaffController {
         log.info("DELETE_STAFF API completed for staffId: {} with message: {}", requestDto.getStaffId(), response.getMessage());
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(SEARCH_STAFFS)
     public ResponseEntity<PagedResponseDto<SearchStaffsResponseDto>> searchStaffs(
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
@@ -80,7 +80,7 @@ public class StaffController {
         PagedResponseDto<SearchStaffsResponseDto> responseDto = staffService.searchStaffs(trimmedKeyword,pageable);
         return ResponseEntity.ok(responseDto);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(GET_STAFF_BY_ID)
     public ResponseEntity<GetStaffDto> getStaffById(
             @PathVariable Integer staffId
