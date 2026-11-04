@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsRequestDto;
 import com.code.monks.csm.dto.analytics.MonthlyAnalyticsResponseDto;
@@ -23,6 +24,8 @@ import static com.code.monks.csm.constants.ApiPaths.ANALYTICS_STAFF;
 import static com.code.monks.csm.constants.ApiPaths.ANALYTICS_CUSTOMER_AMOUNT;
 import static com.code.monks.csm.constants.ApiPaths.ANALYTICS_SUPPLIER_AMOUNT;
 import static com.code.monks.csm.constants.ApiPaths.BASE;
+import static com.code.monks.csm.constants.PermissionConstants.BILL_REPORT_VIEW;
+import static com.code.monks.csm.constants.PermissionConstants.MONITORING_VIEW;
 
 @RestController
 @RequestMapping(BASE)
@@ -31,7 +34,7 @@ import static com.code.monks.csm.constants.ApiPaths.BASE;
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
-
+    @HasPermission(value =MONITORING_VIEW)
     @PostMapping(ANALYTICS_MONTHLY)
     public ResponseEntity<ApiResponse<MonthlyAnalyticsResponseDto>> getMonthlyAnalytics(@RequestBody MonthlyAnalyticsRequestDto request) {
         log.info("Fetching monthly analytics");
@@ -42,7 +45,7 @@ public class AnalyticsController {
                 )
         );
     }
-
+    @HasPermission(value =MONITORING_VIEW)
     @PostMapping(ANALYTICS_STAFF)
     public ResponseEntity<ApiResponse<StaffAnalyticsResponseDto>> getStaffAnalytics(@RequestBody StaffAnalyticsRequestDto request) {
         log.info("Fetching staff analytics");
@@ -53,7 +56,7 @@ public class AnalyticsController {
                 )
         );
     }
-
+    @HasPermission(value =MONITORING_VIEW)
     @PostMapping(ANALYTICS_SUPPLIER_AMOUNT)
     public ResponseEntity<ApiResponse<SupplierAmountAnalyticsResponseDto>> getSupplierAmountAnalytics(@RequestBody SupplierAmountAnalyticsRequestDto request) {
         log.info("Fetching supplier amount analytics");
@@ -64,7 +67,7 @@ public class AnalyticsController {
                 )
         );
     }
-
+    @HasPermission(value =MONITORING_VIEW)
     @PostMapping(ANALYTICS_CUSTOMER_AMOUNT)
     public ResponseEntity<ApiResponse<CustomerAmountAnalyticsResponseDto>> getCustomerAmountAnalytics(@RequestBody CustomerAmountAnalyticsRequestDto request) {
         log.info("Fetching customer amount analytics");
