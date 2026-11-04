@@ -118,6 +118,12 @@ export default function SupplierDashboard() {
 
   const fetchSuppliers = useCallback(
     async (uiPage = 1) => {
+      if (!can("SUPPLIER_VIEW")) {
+      setSuppliers([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
       const backendPage = uiPage - 1;
       try {
         const data = await SupplierService.getSuppliers(
@@ -136,7 +142,7 @@ export default function SupplierDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage],
+    [rowsPerPage, can, showSnackbar],
   );
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
@@ -193,8 +199,10 @@ export default function SupplierDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
+    if (can("SUPPLIER_VIEW")) {
     fetchSuppliers(1);
-  }, [fetchSuppliers]);
+  }
+  }, [fetchSuppliers,can]);
 
   const handleDelete = async () => {
     if (!supplierToDelete) return;
@@ -214,8 +222,10 @@ export default function SupplierDashboard() {
   };
 
   useEffect(() => {
+     if (can("SUPPLIER_VIEW")) {
     fetchSuppliers(1);
-  }, [fetchSuppliers]);
+  }
+  }, [fetchSuppliers,can]);
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">

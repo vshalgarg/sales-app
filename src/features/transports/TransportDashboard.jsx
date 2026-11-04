@@ -64,6 +64,12 @@ export default function TransportDashboard() {
 
   const fetchTransports = useCallback(
     async (uiPage = 1) => {
+      if (!can("TRANSPORT_VIEW")) {
+      setTransports([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
       const backendPage = uiPage - 1;
       try {
         const data = await TransportService.getTransports(
@@ -82,7 +88,7 @@ export default function TransportDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage],
+    [rowsPerPage,can, showSnackbar],
   );
 
   const handleCopy = (transport) => {
@@ -148,12 +154,15 @@ export default function TransportDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
-    fetchTransports(1);
-  }, [fetchTransports]);
+    if(can("TRANSPORT_VIEW"))
+    {fetchTransports(1);}
+    }, [fetchTransports,can]);
 
   useEffect(() => {
-    fetchTransports(1);
-  }, [fetchTransports]);
+    if(can("TRANSPORT_VIEW"))
+    {fetchTransports(1);}
+    
+  }, [fetchTransports,can]);
 
   const handleDelete = async () => {
     if (!transportToDelete) return;
