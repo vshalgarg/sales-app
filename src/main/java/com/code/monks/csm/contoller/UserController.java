@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.request.AddUserRequestDto;
 import com.code.monks.csm.dto.request.UpdateUserRoleRequestDto;
 import com.code.monks.csm.dto.response.*;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RequestMapping(BASE)
 @RestController
@@ -21,7 +23,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class UserController {
 
     private final UserService userService;
-
+    @HasPermission(value =USER_CREATE)
     @PostMapping(ADD_USER)
     public ResponseEntity<AddUserResponseDto> addUser(@Valid @RequestBody AddUserRequestDto requestDto) {
         log.info("ADD_USER API called with username: {}", requestDto.getUsername());
@@ -45,7 +47,7 @@ public class UserController {
 
         return ResponseEntity.ok(users);
     }
-
+    @HasPermission(value =USER_DELETE)
     @PostMapping(DELETE_USER)
     public ResponseEntity<DeleteUserResponseDto> deleteUser(@PathVariable Long userId) {
         log.info("DELETE_USER API called for userId: {}", userId);
@@ -74,7 +76,7 @@ public class UserController {
         GetUserRoleDto response = userService.getUserRoles(userId);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =USER_UPDATE)
     @PutMapping(UPDATE_USER_ROLES)
     public ResponseEntity<UpdateUserRoleResponseDto> updateUserRoles(@PathVariable Long userId, @Valid @RequestBody UpdateUserRoleRequestDto requestDto) {
         log.info("UPDATE_USER_ROLES API called for userId={}", userId);

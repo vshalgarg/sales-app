@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.TransportService;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RestController
 @RequestMapping(BASE)
@@ -57,7 +59,7 @@ public class TransportController {
         PagedResponseDto<TransportResponseDto> transportPage = transportService.getAllTransports(page, size);
         return ResponseEntity.ok(transportPage);
     }
-
+    @HasPermission(value =TRANSPORT_CREATE)
     @PostMapping(ADD_TRANSPORT)
     public ResponseEntity<CommonTransportResponseDto> add(
             @RequestBody @Valid CreateAndUpdateTransportRequest request) {
@@ -65,7 +67,7 @@ public class TransportController {
         CommonTransportResponseDto response = transportService.add(request);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =TRANSPORT_UPDATE)
     @PutMapping(UPDATE_TRANSPORT)
     public ResponseEntity<CommonTransportResponseDto> update(
             @PathVariable Integer id,
@@ -74,7 +76,7 @@ public class TransportController {
         CommonTransportResponseDto response = transportService.update(id, request);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =TRANSPORT_DELETE)
     @DeleteMapping(DELETE_TRANSPORT)
     public ResponseEntity<?> deleteTransport(@PathVariable Integer id) {
         transportService.deleteTransport(id);

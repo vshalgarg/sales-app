@@ -50,7 +50,7 @@ public class SupplierController {
       PagedResponseDto<SupplierListResponseDto> response = supplierService.getSuppliersWithPagination(page, size);
     return ResponseEntity.ok(response);
   }
-
+    @HasPermission(value = SUPPLIER_VIEW)
     @GetMapping(GET_ALL_SUPPLIERS)
     public ResponseEntity<List<SupplierSummaryDto>> getAllSuppliers(@RequestParam(value = "filter", defaultValue = "ACTIVE") StatusFilter filter) {
 

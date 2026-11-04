@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.request.AddCreditEntryRequestDto;
 import com.code.monks.csm.dto.request.CreditUpdateRequest;
 import com.code.monks.csm.dto.ApiResponse;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.CREDIT_CREATE;
+import static com.code.monks.csm.constants.PermissionConstants.STAFF_DELETE;
 
 @RequestMapping(BASE)
 @RestController
@@ -26,7 +29,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class CreditEntryController {
 
     private final CreditService creditService;
-
+    @HasPermission(value =CREDIT_CREATE)
     @PostMapping(ADD_CREDIT_ENTRY)
     public ResponseEntity<AddCreditEntryResponseDto> addCreditEntry(
             @Valid @RequestBody AddCreditEntryRequestDto requestDto) {

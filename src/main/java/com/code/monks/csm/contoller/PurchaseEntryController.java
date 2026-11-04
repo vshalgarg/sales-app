@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.purchase.PurchaseDetailResponse;
 import com.code.monks.csm.dto.request.AddPurchaseEntryRequestDto;
@@ -23,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.PURCHASE_CREATE;
+import static com.code.monks.csm.constants.PermissionConstants.STAFF_DELETE;
 
 @Slf4j
 @RequestMapping(BASE)
@@ -36,7 +39,7 @@ public class PurchaseEntryController {
         this.purchaseService = purchaseService;
         this.purchaseExcelService = purchaseExcelService;
     }
-
+    @HasPermission(value =PURCHASE_CREATE)
     @PostMapping(
             value = ADD_PURCHASE_ENTRY,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
