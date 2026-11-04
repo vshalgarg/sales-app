@@ -45,7 +45,7 @@ public class TransportController {
 
         return ResponseEntity.ok(response);
     }
-    @HasPermission(value = TRANSPORT_VIEW)
+
     @GetMapping(GET_ALL)
     public ResponseEntity<List<TransportLiteResponseDto>> getAll(){
         return ResponseEntity.ok(transportService.getAll());
@@ -85,7 +85,7 @@ public class TransportController {
                 "message", "Transport marked as deleted"
         ));
     }
-    @HasPermission(value = TRANSPORT_VIEW)
+
 
     @GetMapping(GET_TRANSPORT_DETAILS)
     public TransportDetailsResponseDTO getTransportDetails(

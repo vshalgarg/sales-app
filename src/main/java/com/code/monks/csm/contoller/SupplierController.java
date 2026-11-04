@@ -71,7 +71,7 @@ public class SupplierController {
     return ResponseEntity.ok(response);
   }
 
-
+     @HasPermission(value = CUSTOMER_VIEW)
       @GetMapping(SEARCH_SUPPLIERS_V2)
       public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> searchSuppliers(
               @RequestParam(required = false) String keyword,

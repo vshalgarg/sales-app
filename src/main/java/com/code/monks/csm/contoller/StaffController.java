@@ -68,7 +68,7 @@ public class StaffController {
         log.info("DELETE_STAFF API completed for staffId: {} with message: {}", requestDto.getStaffId(), response.getMessage());
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(SEARCH_STAFFS)
     public ResponseEntity<PagedResponseDto<SearchStaffsResponseDto>> searchStaffs(
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,

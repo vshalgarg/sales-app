@@ -74,7 +74,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(SEARCH_CUSTOMERS)
     public ResponseEntity<PagedResponseDto<CustomerListDto>> searchCustomers(
             @RequestParam(required = false) String keyword,
