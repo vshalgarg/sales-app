@@ -41,7 +41,7 @@ public class SupplierController {
     log.info("Supplier '{}' added successfully", requestDto.getSupplierName());
     return ResponseEntity.ok(response);
   }
-
+    @HasPermission(value = SUPPLIER_VIEW)
   @GetMapping(SUPPLIERS_LIST_WITH_PAGINATION)
   public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> getSupplierList(
           @RequestParam(defaultValue = "0") int page,
@@ -71,6 +71,8 @@ public class SupplierController {
     return ResponseEntity.ok(response);
   }
 
+      @HasPermission(value = SUPPLIER_VIEW)
+
       @GetMapping(SEARCH_SUPPLIERS_V2)
       public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> searchSuppliers(
               @RequestParam(required = false) String keyword,
@@ -97,6 +99,7 @@ public class SupplierController {
                 ApiResponse.success("Supplier updated successfully")
         );
     }
+    @HasPermission(value = SUPPLIER_VIEW)
 
     @GetMapping(GET_SUPPLIER_BY_ID)
     public ResponseEntity<ApiResponse<GetSupplierByIdResponseDto>> getSupplierById(

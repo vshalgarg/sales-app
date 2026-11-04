@@ -27,7 +27,7 @@ import static com.code.monks.csm.constants.PermissionConstants.*;
 public class TransportController {
 
     private final TransportService transportService;
-
+    @HasPermission(value = TRANSPORT_VIEW)
     @GetMapping(TRANSPORT_SEARCH)
     public ResponseEntity<PagedResponseDto<TransportResponseDto>> searchTransports(
             @RequestParam(value = "keyword",required = false) String query,
@@ -45,12 +45,12 @@ public class TransportController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = TRANSPORT_VIEW)
     @GetMapping(GET_ALL)
     public ResponseEntity<List<TransportLiteResponseDto>> getAll(){
         return ResponseEntity.ok(transportService.getAll());
     }
-
+    @HasPermission(value = TRANSPORT_VIEW)
     @GetMapping(GET_ALL_TRANSPORT)
     public ResponseEntity<PagedResponseDto<TransportResponseDto>> getAllTransports(
             @RequestParam(defaultValue = "0") int page,
@@ -85,6 +85,7 @@ public class TransportController {
                 "message", "Transport marked as deleted"
         ));
     }
+    @HasPermission(value = TRANSPORT_VIEW)
 
     @GetMapping(GET_TRANSPORT_DETAILS)
     public TransportDetailsResponseDTO getTransportDetails(
