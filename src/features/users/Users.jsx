@@ -38,10 +38,17 @@ const Users = () => {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
   useEffect(() => {
+     if (can("USER_VIEW")) {
     fetchUsers();
-  }, []);
+  }
+  }, [can]);
 
   const fetchUsers = async () => {
+    if (!can("USER_VIEW")) {
+    setUsers([]);
+    setCurrentPage(1);
+    return;
+  }
     try {
       const data = await getUsers();
       console.log("GET all users response:", data);
@@ -69,7 +76,7 @@ const Users = () => {
   };
 
   const handleSearchResult = (response, searchQuery) => {
-    if (!searchQuery.trim()) {
+    if (!can("USER_VIEW") ||!searchQuery.trim()) {
       return;
     }
 
@@ -82,12 +89,14 @@ const Users = () => {
   };
 
   const handleDelete = async () => {
-    if (!userToDelete?.id) return;
+    if (!userToDelete?.id || !can("USER_DELETE") ) return;
 
     try {
       await deleteUser(userToDelete.id);
       showSnackbar("User deleted successfully", "success");
+       if (can("USER_VIEW")) {
       fetchUsers();
+    }
     } catch (error) {
       showSnackbar(error.message, "error");
     } finally {

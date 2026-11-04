@@ -51,6 +51,12 @@ export default function StaffDashboard() {
 
   const fetchStaffs = useCallback(
     async (uiPage = 1) => {
+       if (!can("STAFF_VIEW")) {
+      setStaffs([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
       const backendPage = uiPage - 1;
       try {
         const data = await getStaffs(backendPage, rowsPerPage);
@@ -73,12 +79,15 @@ export default function StaffDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage, showSnackbar],
+    [rowsPerPage, can,showSnackbar],
   );
 
   useEffect(() => {
-    fetchStaffs(1);
-  }, [fetchStaffs]);
+    if(can("STAFF_VIEW"))
+    {
+      fetchStaffs(1);
+    }
+  }, [fetchStaffs,can]);
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
     const results = (response.content || []).map((s) => ({
@@ -158,8 +167,10 @@ export default function StaffDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
-    fetchStaffs(1);
-  }, [fetchStaffs]);
+    if(can("STAFF_VIEW")){
+      fetchStaffs(1);
+    }
+  }, [fetchStaffs,can]);
 
   const handleEditStaff = async (staffId) => {
     try {

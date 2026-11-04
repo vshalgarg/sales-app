@@ -121,7 +121,13 @@ export default function CustomerDashboard() {
 
   const fetchCustomers = useCallback(
     async (uiPage = 1) => {
-      const backendPage = uiPage - 1;
+      if (!can("CUSTOMER_VIEW")) {
+      setCustomers([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
+    const backendPage = uiPage - 1;
       try {
         const data = await CustomerService.getCustomers(
           backendPage,
@@ -139,7 +145,7 @@ export default function CustomerDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage],
+    [rowsPerPage, can, showSnackbar],
   );
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
@@ -195,12 +201,16 @@ export default function CustomerDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
+    if (can("CUSTOMER_VIEW")) {
     fetchCustomers(1);
-  }, [fetchCustomers]);
+  }
+  }, [fetchCustomers,can]);
 
   useEffect(() => {
+     if (can("CUSTOMER_VIEW")) {
     fetchCustomers(1);
-  }, [fetchCustomers]);
+  }
+  }, [fetchCustomers,can]);
 
   const handleDelete = async () => {
     if (!customerToDelete) return;
