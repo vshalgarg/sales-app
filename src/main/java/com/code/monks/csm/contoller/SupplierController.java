@@ -50,7 +50,7 @@ public class SupplierController {
       PagedResponseDto<SupplierListResponseDto> response = supplierService.getSuppliersWithPagination(page, size);
     return ResponseEntity.ok(response);
   }
-    @HasPermission(value = SUPPLIER_VIEW)
+
     @GetMapping(GET_ALL_SUPPLIERS)
     public ResponseEntity<List<SupplierSummaryDto>> getAllSuppliers(@RequestParam(value = "filter", defaultValue = "ACTIVE") StatusFilter filter) {
 
@@ -71,7 +71,6 @@ public class SupplierController {
     return ResponseEntity.ok(response);
   }
 
-      @HasPermission(value = SUPPLIER_VIEW)
 
       @GetMapping(SEARCH_SUPPLIERS_V2)
       public ResponseEntity<PagedResponseDto<SupplierListResponseDto>> searchSuppliers(
@@ -99,7 +98,6 @@ public class SupplierController {
                 ApiResponse.success("Supplier updated successfully")
         );
     }
-    @HasPermission(value = SUPPLIER_VIEW)
 
     @GetMapping(GET_SUPPLIER_BY_ID)
     public ResponseEntity<ApiResponse<GetSupplierByIdResponseDto>> getSupplierById(

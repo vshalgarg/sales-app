@@ -40,7 +40,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(CUSTOMER_LIST_WITH_PAGINATION)
     public ResponseEntity<PagedResponseDto<CustomerListDto>> getCustomerList(
             @RequestParam(defaultValue = "0") int page,
@@ -53,7 +53,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-    @HasPermission(value = CUSTOMER_VIEW)
+
     @GetMapping(GET_ALL_CUSTOMERS)
     public ResponseEntity<List<CustomerSummaryResponseDto>> getAllCustomers(@RequestParam(value = "filter", defaultValue = "ACTIVE") StatusFilter filter) {
 
@@ -74,7 +74,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-    @HasPermission(value = CUSTOMER_VIEW)
+
     @GetMapping(SEARCH_CUSTOMERS)
     public ResponseEntity<PagedResponseDto<CustomerListDto>> searchCustomers(
             @RequestParam(required = false) String keyword,
@@ -104,7 +104,7 @@ public class CustomerController {
                 ApiResponse.success("Customer updated successfully")
         );
     }
-    @HasPermission(value = CUSTOMER_VIEW)
+
     @GetMapping(GET_CUSTOMER_BY_ID)
     public ResponseEntity<ApiResponse<GetCustomerByIdResponseDto>> getCustomerById(
             @PathVariable Integer id) {
