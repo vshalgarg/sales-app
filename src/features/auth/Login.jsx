@@ -135,7 +135,7 @@ const Login = () => {
           <div className="text-center mb-4">
             <div className="flex justify-center">
               <img
-                src="/logo.webp"
+                 src={`${import.meta.env.BASE_URL}logo.webp`}
                 alt="Hisabio Logo"
                 width="800"
                 height="450"
