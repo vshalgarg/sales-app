@@ -40,8 +40,6 @@ const useSidebarMenuItems = (activeSection) => {
     return [
       ...(canAny([
         "SUPPLIER_CREATE",
-        "SUPPLIER_DELETE",
-        "SUPPLIER_UPDATE",
         "SUPPLIER_VIEW",
       ]) ? [{ name: "Suppliers", path: "/suppliers" }] : []),
 
