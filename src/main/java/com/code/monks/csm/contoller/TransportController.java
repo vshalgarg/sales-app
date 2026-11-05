@@ -1,10 +1,8 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.request.CreateAndUpdateTransportRequest;
-import com.code.monks.csm.dto.response.CommonTransportResponseDto;
-import com.code.monks.csm.dto.response.PagedResponseDto;
-import com.code.monks.csm.dto.response.TransportLiteResponseDto;
-import com.code.monks.csm.dto.response.TransportResponseDto;
+import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.TransportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RestController
 @RequestMapping(BASE)
@@ -28,7 +27,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class TransportController {
 
     private final TransportService transportService;
-
+    @HasPermission(value = TRANSPORT_VIEW)
     @GetMapping(TRANSPORT_SEARCH)
     public ResponseEntity<PagedResponseDto<TransportResponseDto>> searchTransports(
             @RequestParam(value = "keyword",required = false) String query,
@@ -51,7 +50,7 @@ public class TransportController {
     public ResponseEntity<List<TransportLiteResponseDto>> getAll(){
         return ResponseEntity.ok(transportService.getAll());
     }
-
+    @HasPermission(value = TRANSPORT_VIEW)
     @GetMapping(GET_ALL_TRANSPORT)
     public ResponseEntity<PagedResponseDto<TransportResponseDto>> getAllTransports(
             @RequestParam(defaultValue = "0") int page,
@@ -60,7 +59,7 @@ public class TransportController {
         PagedResponseDto<TransportResponseDto> transportPage = transportService.getAllTransports(page, size);
         return ResponseEntity.ok(transportPage);
     }
-
+    @HasPermission(value =TRANSPORT_CREATE)
     @PostMapping(ADD_TRANSPORT)
     public ResponseEntity<CommonTransportResponseDto> add(
             @RequestBody @Valid CreateAndUpdateTransportRequest request) {
@@ -68,7 +67,7 @@ public class TransportController {
         CommonTransportResponseDto response = transportService.add(request);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =TRANSPORT_UPDATE)
     @PutMapping(UPDATE_TRANSPORT)
     public ResponseEntity<CommonTransportResponseDto> update(
             @PathVariable Integer id,
@@ -77,7 +76,7 @@ public class TransportController {
         CommonTransportResponseDto response = transportService.update(id, request);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =TRANSPORT_DELETE)
     @DeleteMapping(DELETE_TRANSPORT)
     public ResponseEntity<?> deleteTransport(@PathVariable Integer id) {
         transportService.deleteTransport(id);
@@ -85,5 +84,14 @@ public class TransportController {
                 "success", true,
                 "message", "Transport marked as deleted"
         ));
+    }
+
+
+    @GetMapping(GET_TRANSPORT_DETAILS)
+    public TransportDetailsResponseDTO getTransportDetails(
+            @PathVariable Integer id
+    ) {
+        log.info("Received request to get transport details for id: {}", id);
+        return transportService.getTransportDetails(id);
     }
 }

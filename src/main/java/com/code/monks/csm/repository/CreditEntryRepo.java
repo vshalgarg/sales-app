@@ -9,8 +9,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -72,4 +73,15 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
+    @Query("""
+    SELECT SUM(c.receivedAmount)
+    FROM CreditEntryEntity c
+    WHERE c.createdAt >= :start
+      AND c.createdAt < :end
+    """)
+    BigInteger sumCreditAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
+
 }

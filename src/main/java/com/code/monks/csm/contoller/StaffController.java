@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.request.AddStaffRequestDto;
 import com.code.monks.csm.dto.request.DeleteStaffRequestDto;
 import com.code.monks.csm.dto.request.UpdateStaffRequestDto;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RequestMapping(BASE)
 @RestController
@@ -27,7 +29,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class StaffController {
 
     private final StaffService staffService;
-
+    @HasPermission(value =STAFF_CREATE)
     @PostMapping(ADD_STAFF)
     public ResponseEntity<AddStaffResponseDto> addStaff(@Valid @RequestBody AddStaffRequestDto requestDto) {
         log.info("ADD_STAFF API called with staff name: {}", requestDto.getStaffName());
@@ -37,7 +39,7 @@ public class StaffController {
         log.info("ADD_STAFF API completed for name: {}", requestDto.getStaffName());
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(GET_STAFF)
     public ResponseEntity<PagedResponseDto<GetStaffDto>> getStaff(
             @RequestParam(defaultValue = "0") int page,
@@ -56,7 +58,7 @@ public class StaffController {
         return ResponseEntity.ok(staffService.getAllActiveStaff());
     }
 
-
+    @HasPermission(value =STAFF_DELETE)
     @PutMapping(DELETE_STAFF)
     public ResponseEntity<DeleteStaffResponseDto> deleteStaff(@Valid @RequestBody DeleteStaffRequestDto requestDto) {
         log.info("DELETE_STAFF API called for staffId: {}", requestDto.getStaffId());
@@ -66,7 +68,7 @@ public class StaffController {
         log.info("DELETE_STAFF API completed for staffId: {} with message: {}", requestDto.getStaffId(), response.getMessage());
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(SEARCH_STAFFS)
     public ResponseEntity<PagedResponseDto<SearchStaffsResponseDto>> searchStaffs(
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
@@ -78,7 +80,7 @@ public class StaffController {
         PagedResponseDto<SearchStaffsResponseDto> responseDto = staffService.searchStaffs(trimmedKeyword,pageable);
         return ResponseEntity.ok(responseDto);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(GET_STAFF_BY_ID)
     public ResponseEntity<GetStaffDto> getStaffById(
             @PathVariable Integer staffId
@@ -90,7 +92,7 @@ public class StaffController {
         log.info("GET_STAFF_BY_ID API completed for staffId: {}", staffId);
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =STAFF_UPDATE)
     @PutMapping(UPDATE_STAFF)
     public ResponseEntity<UpdateStaffResponseDto> updateStaff(
             @PathVariable Integer staffId,
