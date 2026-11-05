@@ -25,8 +25,6 @@ const Login = () => {
       permissions: [
         "SUPPLIER_CREATE",
         "SUPPLIER_VIEW",
-        "SUPPLIER_UPDATE",
-        "SUPPLIER_DELETE",
       ],
       path: "/suppliers",
     },
@@ -34,8 +32,6 @@ const Login = () => {
       permissions: [
         "CUSTOMER_CREATE",
         "CUSTOMER_VIEW",
-        "CUSTOMER_UPDATE",
-        "CUSTOMER_DELETE",
       ],
       path: "/customers",
     },
@@ -43,8 +39,6 @@ const Login = () => {
       permissions: [
         "USER_CREATE",
         "USER_VIEW",
-        "USER_UPDATE",
-        "USER_DELETE",
       ],
       path: "/users",
     },
@@ -52,8 +46,6 @@ const Login = () => {
       permissions: [
         "TRANSPORT_CREATE",
         "TRANSPORT_VIEW",
-        "TRANSPORT_UPDATE",
-        "TRANSPORT_DELETE",
       ],
       path: "/transports",
     },
@@ -61,8 +53,6 @@ const Login = () => {
       permissions: [
         "STAFF_CREATE",
         "STAFF_VIEW",
-        "STAFF_UPDATE",
-        "STAFF_DELETE",
       ],
       path: "/staff",
     },

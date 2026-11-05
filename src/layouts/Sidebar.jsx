@@ -40,36 +40,26 @@ const useSidebarMenuItems = (activeSection) => {
     return [
       ...(canAny([
         "SUPPLIER_CREATE",
-        "SUPPLIER_DELETE",
-        "SUPPLIER_UPDATE",
         "SUPPLIER_VIEW",
       ]) ? [{ name: "Suppliers", path: "/suppliers" }] : []),
 
         ...(canAny([
         "CUSTOMER_CREATE",
-        "CUSTOMER_DELETE",
-        "CUSTOMER_UPDATE",
         "CUSTOMER_VIEW",
       ]) ? [{ name: "Customers", path: "/customers" }] : []),
 
         ...(canAny([
         "STAFF_CREATE",
-        "STAFF_DELETE",
-        "STAFF_UPDATE",
         "STAFF_VIEW",
       ]) ? [{ name: "Staff", path: "/staff" }] : []),
 
         ...(canAny([
         "TRANSPORT_CREATE",
-        "TRANSPORT_DELETE",
-        "TRANSPORT_UPDATE",
         "TRANSPORT_VIEW",
       ]) ? [{ name: "Transports", path: "/transports" }] : []),
 
         ...(canAny([
         "USER_CREATE",
-        "USER_DELETE",
-        "USER_UPDATE",
         "USER_VIEW",
       ]) ? [{ name: "Users", path: "/users" }] : []),
       ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),

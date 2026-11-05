@@ -116,8 +116,6 @@ const AppLayout = () => {
       allowed: canAny([
         "SUPPLIER_CREATE",
         "SUPPLIER_VIEW",
-        "SUPPLIER_UPDATE",
-        "SUPPLIER_DELETE",
       ]),
       path: "/suppliers",
     },
@@ -125,8 +123,6 @@ const AppLayout = () => {
       allowed: canAny([
         "CUSTOMER_CREATE",
         "CUSTOMER_VIEW",
-        "CUSTOMER_UPDATE",
-        "CUSTOMER_DELETE",
       ]),
       path: "/customers",
     },
@@ -134,8 +130,6 @@ const AppLayout = () => {
       allowed: canAny([
         "USER_CREATE",
         "USER_VIEW",
-        "USER_UPDATE",
-        "USER_DELETE",
       ]),
       path: "/users",
     },
@@ -143,8 +137,6 @@ const AppLayout = () => {
       allowed: canAny([
         "TRANSPORT_CREATE",
         "TRANSPORT_VIEW",
-        "TRANSPORT_UPDATE",
-        "TRANSPORT_DELETE",
       ]),
       path: "/transports",
     },
@@ -152,8 +144,6 @@ const AppLayout = () => {
       allowed: canAny([
         "STAFF_CREATE",
         "STAFF_VIEW",
-        "STAFF_UPDATE",
-        "STAFF_DELETE",
       ]),
       path: "/staff",
     },
