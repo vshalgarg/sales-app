@@ -104,7 +104,7 @@ public class CustomerController {
                 ApiResponse.success("Customer updated successfully")
         );
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(GET_CUSTOMER_BY_ID)
     public ResponseEntity<ApiResponse<GetCustomerByIdResponseDto>> getCustomerById(
             @PathVariable Integer id) {

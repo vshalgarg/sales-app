@@ -80,7 +80,7 @@ public class StaffController {
         PagedResponseDto<SearchStaffsResponseDto> responseDto = staffService.searchStaffs(trimmedKeyword,pageable);
         return ResponseEntity.ok(responseDto);
     }
-
+    @HasPermission(value=STAFF_VIEW)
     @GetMapping(GET_STAFF_BY_ID)
     public ResponseEntity<GetStaffDto> getStaffById(
             @PathVariable Integer staffId

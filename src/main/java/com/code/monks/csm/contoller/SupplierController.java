@@ -98,7 +98,7 @@ public class SupplierController {
                 ApiResponse.success("Supplier updated successfully")
         );
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(GET_SUPPLIER_BY_ID)
     public ResponseEntity<ApiResponse<GetSupplierByIdResponseDto>> getSupplierById(
             @PathVariable Integer id) {
