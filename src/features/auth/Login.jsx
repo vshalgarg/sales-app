@@ -4,7 +4,7 @@ import { loginUser } from "@/services/LoginService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
-
+import { useConfig } from "@/contexts/ConfigContext";
 const LEGAL_LINK_CLASS =
   "font-bold text-gray-500 hover:text-[#6c63ff] underline underline-offset-2 transition-colors whitespace-nowrap";
 
@@ -14,70 +14,121 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const { config } = useConfig();
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
-  const { login, auth } = useAuth();
+  const { login} = useAuth();
 
-  const getFirstAccessibleMasterPath = (permissions = []) => {
-  const masterPages = [
+const getFirstAccessiblePath = (permissions = [], config = []) => {
+  const userPermissions = Array.isArray(permissions)
+    ? permissions
+    : [];
+
+  const retailEnabled =
+    config?.find((item) => item.key === "RETAIL_FEATURE")?.value === "true";
+
+  const hasAnyPermission = (requiredPermissions) =>
+    requiredPermissions.some((permission) =>
+      userPermissions.includes(permission)
+    );
+
+  const accessiblePages = [
+    // Master
     {
-      permissions: [
+      allowed: hasAnyPermission([
         "SUPPLIER_CREATE",
         "SUPPLIER_VIEW",
-      ],
+      ]),
       path: "/suppliers",
     },
     {
-      permissions: [
+      allowed: hasAnyPermission([
         "CUSTOMER_CREATE",
         "CUSTOMER_VIEW",
-      ],
+      ]),
       path: "/customers",
     },
     {
-      permissions: [
+      allowed: hasAnyPermission([
         "USER_CREATE",
         "USER_VIEW",
-      ],
+      ]),
       path: "/users",
     },
     {
-      permissions: [
+      allowed: hasAnyPermission([
         "TRANSPORT_CREATE",
         "TRANSPORT_VIEW",
-      ],
+      ]),
       path: "/transports",
     },
     {
-      permissions: [
+      allowed: hasAnyPermission([
         "STAFF_CREATE",
         "STAFF_VIEW",
-      ],
+      ]),
       path: "/staff",
+    },
+
+    // Entries
+    {
+      allowed: userPermissions.includes("BILL_CREATE"),
+      path: "/bill-entry",
+    },
+    {
+      allowed: userPermissions.includes("CREDIT_CREATE"),
+      path: "/credit-entry",
+    },
+    {
+      allowed: userPermissions.includes("PURCHASE_CREATE"),
+      path: "/purchase-entry",
+    },
+    {
+      allowed: retailEnabled,
+      path: "/retail-entry",
+    },
+
+    // Reporting
+    {
+      allowed: userPermissions.includes("BILL_REPORT_VIEW"),
+      path: "/bills",
+    },
+    {
+      allowed: userPermissions.includes("CREDIT_REPORT_VIEW"),
+      path: "/credits",
+    },
+    {
+      allowed: userPermissions.includes("PURCHASE_REPORT_VIEW"),
+      path: "/purchase",
+    },
+    {
+      allowed: retailEnabled,
+      path: "/retail",
+    },
+    {
+      allowed: userPermissions.includes("LEDGER_REPORT_VIEW"),
+      path: "/ledger",
+    },
+
+    // Monitoring
+    {
+      allowed: userPermissions.includes("MONITORING_VIEW"),
+      path: "/graph",
     },
   ];
 
-  const userPermissions = Array.isArray(permissions) ? permissions : [];
-
-  const accessiblePage = masterPages.find((page) =>
-    page.permissions.some((permission) =>
-      userPermissions.includes(permission)
-    )
-  );
-
-  return accessiblePage?.path || null;
+  return accessiblePages.find((page) => page.allowed)?.path || null;
 };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   setError("");
   setIsLoading(true);
 
   try {
     const data = await loginUser(email, password);
-    console.log("auth", auth);
 
+    // Save authentication details
     login({
       token: data.token,
       role: data.roles,
@@ -86,22 +137,31 @@ const Login = () => {
       permissions: data.permissions,
     });
 
-    const firstAccessiblePath = getFirstAccessibleMasterPath(
-      data.permissions
+    // Find the first accessible page across all sections
+    const firstAccessiblePath = getFirstAccessiblePath(
+      data.permissions,
+      config
     );
 
     if (!firstAccessiblePath) {
-      showSnackbar("No Master permissions assigned to this user.", "error");
+      showSnackbar(
+        "No permissions assigned to this user. Please contact your administrator.",
+        "error"
+      );
+
       return;
     }
 
     showSnackbar("Login successful!", "success");
+
     navigate(firstAccessiblePath, { replace: true });
 
   } catch (err) {
     console.error("Login error:", err);
 
-    const errorMsg = err.message || "Login failed. Please try again.";
+    const errorMsg =
+      err.message || "Login failed. Please try again.";
+
     setError(errorMsg);
     showSnackbar(errorMsg, "error");
 
@@ -109,6 +169,7 @@ const Login = () => {
     setIsLoading(false);
   }
 };
+
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
