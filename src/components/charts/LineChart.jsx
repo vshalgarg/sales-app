@@ -1,4 +1,5 @@
 import { Line } from "react-chartjs-2";
+import "@/chartConfig";
 
 const CHART_HEIGHT = 300;
 const SCROLL_THRESHOLD = 24;

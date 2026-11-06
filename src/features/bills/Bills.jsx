@@ -349,7 +349,7 @@ const Bills = () => {
                 setSelectedBillDetail(row);
                 setIsModalOpen(true);
               }}
-              onEdit={(row) => {
+              onEditUser={(row) => {
                 setSelectedBillDetail(row);
                 setOpen(true);
               }}

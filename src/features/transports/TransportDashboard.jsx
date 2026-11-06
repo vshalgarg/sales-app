@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   MapPin,
   Phone,
-  Receipt,
   MapPinned,
   Plus,
 } from "lucide-react";
@@ -11,12 +10,14 @@ import AddNewTransport from "./components/AddNewTransport";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import UniversalSearch from "@/components/UniversalSearch";
 import EntityCardGrid from "@/components/EntityCardGrid";
+import GstIcon from "@/components/GstIcon";
 import useResponsive from "@/hooks/useResponsive";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { getTransportFormattedText } from "@/utils/copyFormatter";
 import CopyDetailsModal from "@/components/CopyDetailsModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formatContact = (contacts) =>
   contacts?.length > 0 ? contacts.map((c) => c.contactNumber).join(", ") : "-";
@@ -54,6 +55,7 @@ export default function TransportDashboard() {
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [totalItems, setTotalItems] = useState(0);
   const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [transportToDelete, setTransportToDelete] = useState(null);
   const { isMobile } = useResponsive();
@@ -62,6 +64,12 @@ export default function TransportDashboard() {
 
   const fetchTransports = useCallback(
     async (uiPage = 1) => {
+      if (!can("TRANSPORT_VIEW")) {
+      setTransports([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
       const backendPage = uiPage - 1;
       try {
         const data = await TransportService.getTransports(
@@ -80,7 +88,7 @@ export default function TransportDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage],
+    [rowsPerPage,can, showSnackbar],
   );
 
   const handleCopy = (transport) => {
@@ -146,12 +154,15 @@ export default function TransportDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
-    fetchTransports(1);
-  }, [fetchTransports]);
+    if(can("TRANSPORT_VIEW"))
+    {fetchTransports(1);}
+    }, [fetchTransports,can]);
 
   useEffect(() => {
-    fetchTransports(1);
-  }, [fetchTransports]);
+    if(can("TRANSPORT_VIEW"))
+    {fetchTransports(1);}
+    
+  }, [fetchTransports,can]);
 
   const handleDelete = async () => {
     if (!transportToDelete) return;
@@ -206,7 +217,7 @@ export default function TransportDashboard() {
       {
         label: "GST No.",
         key: "gstNo",
-        icon: Receipt,
+        icon: GstIcon,
         value: transport.gstNo,
         showLabel: false,
       },
@@ -233,12 +244,17 @@ export default function TransportDashboard() {
         showLabel: false,
       },
     ],
-    onEdit: () => handleEdit(transport),
+    onEdit: can("TRANSPORT_UPDATE")
+    ? () => handleEdit(transport)
+    : undefined,
+
     onCopy: () => handleCopy(transport),
-    onDelete: () => {
+    onDelete: can("TRANSPORT_DELETE")
+  ? () => {
       setTransportToDelete(transport);
       setDeleteModalOpen(true);
-    },
+    }
+  : undefined,
   });
 
   return (
@@ -248,6 +264,7 @@ export default function TransportDashboard() {
           <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Transport" : "Transport Overview"}
           </h2>
+          {can("TRANSPORT_CREATE") && (
           <Tooltip title="Add transport">
             <span>
               <IconButton
@@ -259,8 +276,9 @@ export default function TransportDashboard() {
               </IconButton>
             </span>
           </Tooltip>
+          )}
         </div>
-
+        {can("TRANSPORT_VIEW") && (
         <UniversalSearch
           placeholder="Search transports..."
           query={query}
@@ -272,9 +290,11 @@ export default function TransportDashboard() {
           pageSize={rowsPerPage}
           showSuggestions={false}
         />
+        )}
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("TRANSPORT_VIEW") && (
         <EntityCardGrid
           items={transports}
           getItemKey={(transport) => transport.id}
@@ -287,6 +307,7 @@ export default function TransportDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="transports"
         />
+        )}
       </div>
 
       {open && (

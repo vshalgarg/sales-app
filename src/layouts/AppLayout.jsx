@@ -6,10 +6,16 @@ import { GRID_SIDEBAR_NAV_CLASS, SHELL_BORDER } from "../theme/appTheme";
 import { useMediaQuery } from "@mui/material";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useUnsaved } from "../contexts/UnsavedChangesContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useConfig } from "../contexts/ConfigContext";
 
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { can, canAny  } = useAuth();
+  const { config } = useConfig();
+  const retailConfig = config?.filter((item) => item.key === "RETAIL_FEATURE");
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
     return window.matchMedia("(min-width: 769px)").matches;
@@ -23,7 +29,8 @@ const AppLayout = () => {
       location.pathname.startsWith("/suppliers") ||
       location.pathname.startsWith("/customers") ||
       location.pathname.startsWith("/staff") ||
-      location.pathname.startsWith("/users")
+      location.pathname.startsWith("/users") ||
+      location.pathname.startsWith("/transports")
     ) {
       return "master";
     }
@@ -100,27 +107,128 @@ const AppLayout = () => {
     }
   }, [location.pathname, navigate]);
 
+  
   const handleSectionChange = (section) => {
     switch (section) {
-      case "master":
-        safeNavigate("/suppliers");
+      case "master": {
+  const availableMaster = [
+    {
+      allowed: canAny([
+        "SUPPLIER_CREATE",
+        "SUPPLIER_VIEW",
+      ]),
+      path: "/suppliers",
+    },
+    {
+      allowed: canAny([
+        "CUSTOMER_CREATE",
+        "CUSTOMER_VIEW",
+      ]),
+      path: "/customers",
+    },
+    {
+      allowed: canAny([
+        "USER_CREATE",
+        "USER_VIEW",
+      ]),
+      path: "/users",
+    },
+    {
+      allowed: canAny([
+        "TRANSPORT_CREATE",
+        "TRANSPORT_VIEW",
+      ]),
+      path: "/transports",
+    },
+    {
+      allowed: canAny([
+        "STAFF_CREATE",
+        "STAFF_VIEW",
+      ]),
+      path: "/staff",
+    },
+  ].find((item) => item.allowed);
+
+  if (availableMaster) {
+    safeNavigate(availableMaster.path);
+  }
+
+  break;
+}
+
+      case "entries": {
+        const availableEntry = [
+          {
+            allowed: can("BILL_CREATE"),
+            path: "/bill-entry",
+          },
+          {
+            allowed: can("CREDIT_CREATE"),
+            path: "/credit-entry",
+          },
+          {
+            allowed: can("PURCHASE_CREATE"),
+            path: "/purchase-entry",
+          },
+          {
+            allowed: retailConfig?.[0]?.value === "true",
+            path: "/retail-entry",
+          },
+        ].find((entry) => entry.allowed);
+
+        if (availableEntry) {
+          safeNavigate(availableEntry.path);
+        }
+
         break;
-      case "entries":
-        safeNavigate("/bill-entry");
+      }
+
+      case "reporting": {
+        const availableReport = [
+          {
+            allowed: can("BILL_REPORT_VIEW"),
+            path: "/bills",
+          },
+          {
+            allowed: can("CREDIT_REPORT_VIEW"),
+            path: "/credits",
+          },
+          {
+            allowed: can("PURCHASE_REPORT_VIEW"),
+            path: "/purchase",
+          },
+          {
+            allowed: retailConfig?.[0]?.value === "true",
+            path: "/retail",
+          },
+          {
+            allowed: can("LEDGER_REPORT_VIEW"),
+            path: "/ledger",
+          },
+        ].find((report) => report.allowed);
+
+        if (availableReport) {
+          safeNavigate(availableReport.path);
+        }
+
         break;
-      case "reporting":
-        safeNavigate("/bills");
-        break;
+      }
+
       case "graph":
-        safeNavigate("/graph");
+        if (can("MONITORING_VIEW")) {
+          safeNavigate("/graph");
+        }
         break;
+
       default:
         break;
     }
+
     if (section !== "graph" && section !== activeSection) {
       setIsSidebarOpen(true);
     }
   };
+
 
   const closeSidebar = () => setIsSidebarOpen(false);
   const toggleSidebar = () => {

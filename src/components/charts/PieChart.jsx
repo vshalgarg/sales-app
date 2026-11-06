@@ -1,4 +1,5 @@
 import { Doughnut } from "react-chartjs-2";
+import "@/chartConfig";
 
 const getChartTotal = (data) => {
   const values = data?.datasets?.[0]?.data || [];

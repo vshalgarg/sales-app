@@ -15,6 +15,7 @@ import useResponsive from "@/hooks/useResponsive";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const STAFF_CARD_FIELDS = [
   { label: "Phone", key: "phone", icon: Phone },
@@ -36,6 +37,7 @@ export default function StaffDashboard() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState(null);
   const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
   const [totalItems, setTotalItems] = useState(0);
   const { isMobile } = useResponsive();
   const [editOpen, setEditOpen] = useState(false);
@@ -49,6 +51,12 @@ export default function StaffDashboard() {
 
   const fetchStaffs = useCallback(
     async (uiPage = 1) => {
+       if (!can("STAFF_VIEW")) {
+      setStaffs([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
       const backendPage = uiPage - 1;
       try {
         const data = await getStaffs(backendPage, rowsPerPage);
@@ -71,12 +79,15 @@ export default function StaffDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage, showSnackbar],
+    [rowsPerPage, can,showSnackbar],
   );
 
   useEffect(() => {
-    fetchStaffs(1);
-  }, [fetchStaffs]);
+    if(can("STAFF_VIEW"))
+    {
+      fetchStaffs(1);
+    }
+  }, [fetchStaffs,can]);
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
     const results = (response.content || []).map((s) => ({
@@ -156,8 +167,10 @@ export default function StaffDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
-    fetchStaffs(1);
-  }, [fetchStaffs]);
+    if(can("STAFF_VIEW")){
+      fetchStaffs(1);
+    }
+  }, [fetchStaffs,can]);
 
   const handleEditStaff = async (staffId) => {
     try {
@@ -185,11 +198,16 @@ export default function StaffDashboard() {
       icon,
       value: staff[key],
     })),
-    onEdit: () => handleEditStaff(staff.staffId),
-    onDelete: () => {
+    onEdit: can("STAFF_UPDATE")
+    ? () => handleEditStaff(staff.staffId)
+    : undefined,
+
+    onDelete: can("STAFF_DELETE")
+  ? () => {
       setStaffToDelete(staff);
       setDeleteModalOpen(true);
-    },
+    }
+  : undefined,
   });
 
   return (
@@ -200,6 +218,7 @@ export default function StaffDashboard() {
             <h2 className={PAGE_TITLE_CLASS}>
               {isMobile ? "Staff" : "Staff Overview"}
             </h2>
+            {can("STAFF_CREATE") && (
             <Tooltip title="Add staff">
               <span>
                 <IconButton
@@ -218,8 +237,9 @@ export default function StaffDashboard() {
                 </IconButton>
               </span>
             </Tooltip>
+            )}
           </div>
-
+          {can("STAFF_VIEW") && (
           <UniversalSearch
             placeholder="Search staff..."
             query={query}
@@ -231,10 +251,12 @@ export default function StaffDashboard() {
             pageSize={rowsPerPage}
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("STAFF_VIEW") && (
         <EntityCardGrid
           items={staffs}
           getItemKey={(staff) => staff.staffId}
@@ -247,6 +269,7 @@ export default function StaffDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="staff"
         />
+        )}
       </div>
 
       <DeleteConfirmModal
