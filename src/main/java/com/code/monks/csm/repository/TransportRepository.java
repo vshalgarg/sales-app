@@ -59,4 +59,12 @@ WHERE t.status = com.code.monks.csm.enums.StatusEnum.ACTIVE
 ORDER BY t.id DESC
 """)
   List<TransportLiteResponseDto> findAllLite();
+
+  @Query("""
+            SELECT DISTINCT t
+            FROM TransportEntity t
+            LEFT JOIN FETCH t.contacts
+            WHERE t.id = :id
+            """)
+  Optional<TransportEntity> findTransportDetailsById(Integer id);
 }

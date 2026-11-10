@@ -6,6 +6,7 @@ import com.code.monks.csm.entity.TransportContactEntity;
 import com.code.monks.csm.entity.TransportEntity;
 import com.code.monks.csm.enums.StatusEnum;
 import com.code.monks.csm.exception.ResourceNotFoundException;
+import com.code.monks.csm.mapper.TransportMapper;
 import com.code.monks.csm.repository.TransportContactEntityRepository;
 import com.code.monks.csm.repository.TransportRepository;
 import com.code.monks.csm.service.TransportService;
@@ -310,6 +311,22 @@ public class TransportServiceImpl implements TransportService {
         ));
 
         validatorUtil.validateUniqueFields(checks);
+    }
+
+    @Override
+    public TransportDetailsResponseDTO getTransportDetails(
+            Integer id
+    ) {
+
+        log.info("Fetching transport from database for id: {}", id);
+        TransportEntity transport =
+                transportRepository
+                        .findTransportDetailsById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(TRANSPORT_NOT_FOUND," with Transport id = "+id));
+
+        log.info("Transport fetched successfully for id: {}", id);
+        return TransportMapper.toResponse(transport);
     }
 
 }
