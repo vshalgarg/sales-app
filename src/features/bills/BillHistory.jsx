@@ -14,7 +14,7 @@ const BillHistory = ({
   totalAmount,
   onPageChange,
   onView,
-  onEdit,
+  onEditUser,
   onDelete,
   emptyMessage,
 }) => {
@@ -100,7 +100,7 @@ const BillHistory = ({
       onPageChange={onPageChange}
       actions={true}
       onView={onView}
-      onEdit={onEdit}
+      onEditUser={onEditUser}
       onDelete={onDelete}
       emptyMessage={emptyMessage}
       headerRowSx={tableHeaderRowSx}

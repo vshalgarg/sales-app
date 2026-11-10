@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import { MapPinned, Phone, Receipt, Plus } from "lucide-react";
+import { MapPinned, Phone, Plus } from "lucide-react";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import CustomerService from "@/services/CustomerService";
 import AddNewCustomer from "./components/AddNewCustomer";
 import CustomerDetail from "./components/CustomerDetail";
 import UniversalSearch from "@/components/UniversalSearch";
 import EntityCardGrid from "@/components/EntityCardGrid";
+import GstIcon from "@/components/GstIcon";
 import useResponsive from "@/hooks/useResponsive";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import CopyDetailsModal from "@/components/CopyDetailsModal";
@@ -13,9 +14,10 @@ import UpdateCustomerModal from "./components/UpdateCustomerModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { getCustomerFormattedText } from "@/utils/copyFormatter";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CUSTOMER_CARD_FIELDS = [
-  { label: "GST", key: "customerGstNo", icon: Receipt },
+  { label: "GST", key: "customerGstNo", icon: GstIcon },
   {
     label: "Mobile",
     key: "mobile",
@@ -36,6 +38,7 @@ export default function CustomerDashboard() {
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
   const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
@@ -93,24 +96,38 @@ export default function CustomerDashboard() {
       value: getValue ? getValue(customer) : customer[key],
       showLabel: false,
     })),
-    onView: () => {
-      setSelectedCustomer(customer);
-      setModalOpen(true);
-    },
-    onEdit: () => {
-      setEditingCustomerId(customer.id);
-      setOpenEdit(true);
-    },
+    onView: can("CUSTOMER_VIEW")
+    ? () => {
+        setSelectedCustomer(customer);
+        setModalOpen(true);
+      }
+    : undefined,
+
+    onEdit: can("CUSTOMER_UPDATE")
+    ? () => {
+        setEditingCustomerId(customer.id);
+        setOpenEdit(true);
+      }
+    : undefined,
+
     onCopy: () => handleCopyDetails(customer),
-    onDelete: () => {
-      setCustomerToDelete(customer);
-      setDeleteModalOpen(true);
-    },
+    onDelete: can("CUSTOMER_DELETE")
+    ? () => {
+        setCustomerToDelete(customer);
+        setDeleteModalOpen(true);
+      }
+    : undefined,
   });
 
   const fetchCustomers = useCallback(
     async (uiPage = 1) => {
-      const backendPage = uiPage - 1;
+      if (!can("CUSTOMER_VIEW")) {
+      setCustomers([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
+    const backendPage = uiPage - 1;
       try {
         const data = await CustomerService.getCustomers(
           backendPage,
@@ -128,7 +145,7 @@ export default function CustomerDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage],
+    [rowsPerPage, can, showSnackbar],
   );
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
@@ -184,12 +201,16 @@ export default function CustomerDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
+    if (can("CUSTOMER_VIEW")) {
     fetchCustomers(1);
-  }, [fetchCustomers]);
+  }
+  }, [fetchCustomers,can]);
 
   useEffect(() => {
+     if (can("CUSTOMER_VIEW")) {
     fetchCustomers(1);
-  }, [fetchCustomers]);
+  }
+  }, [fetchCustomers,can]);
 
   const handleDelete = async () => {
     if (!customerToDelete) return;
@@ -216,6 +237,7 @@ export default function CustomerDashboard() {
             <h2 className={PAGE_TITLE_CLASS}>
               {isMobile ? "Customer" : "Customer Overview"}
             </h2>
+            {can("CUSTOMER_CREATE") && (
             <Tooltip title="Add customer">
               <span>
                 <IconButton
@@ -227,8 +249,9 @@ export default function CustomerDashboard() {
                 </IconButton>
               </span>
             </Tooltip>
+            )}
           </div>
-
+          {can("CUSTOMER_VIEW") && (
           <UniversalSearch
             placeholder="Search customers..."
             query={query}
@@ -240,10 +263,12 @@ export default function CustomerDashboard() {
             pageSize={rowsPerPage}
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("CUSTOMER_VIEW") && (
         <EntityCardGrid
           items={customers}
           buildCardProps={buildCustomerCardProps}
@@ -255,6 +280,7 @@ export default function CustomerDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="customers"
         />
+        )}
       </div>
 
       {modalOpen && selectedCustomer && (

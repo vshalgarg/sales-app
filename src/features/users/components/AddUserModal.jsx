@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CustomTextField from "@/components/CustomTextField";
 import { IconButton } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
@@ -6,18 +6,15 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { createUser } from "@/services/UserService";
 import validate from "@/validations/Validation";
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import AppButton from "@/components/AppButton";
-
+import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
+import { getAllRoles } from "@/services/roleService";
 
 const AddUserModal = ({ open, onClose, onSuccess }) => {
 
-  const ROLE_OPTIONS = ["ADMIN", "AGENT"];
+  const [roleOptions, setRoleOptions] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
   const { showSnackbar } = useSnackbar();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -28,6 +25,29 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
     password: "",
     role: "",
   });
+
+  useEffect(() => {
+  if (!open) return;
+
+  const getRoles = async () => {
+    try {
+      setLoadingRoles(true);
+
+      const response = await getAllRoles();
+
+      setRoleOptions(Array.isArray(response) ? response : []);
+    } catch (error) {
+      showSnackbar(
+        error?.message || "Failed to load roles",
+        "error"
+      );
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
+
+  getRoles();
+}, [open]);
 
   if (!open) return null;
 
@@ -75,7 +95,7 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
       showSnackbar(response.message, "success");
 
       resetForm();
-      onSuccess();
+      await onSuccess?.();
       onClose();
     } catch (error) {
       showSnackbar(error.message, "error");
@@ -100,84 +120,88 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
           <h2 className="text-lg font-bold">Add New User</h2>
         </div>
 
-        <div className="px-6 py-4 overflow-y-auto flex-1 space-y-3">
-          <CustomTextField
-            name="username"
-            label="Username"
-            value={form.username}
-            onChange={handleFormChange}
-            error={!!errors.username}
-            helperText={errors.username || ""}
-          />
-
-          <CustomTextField
-            name="password"
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            value={form.password}
-            onChange={handleFormChange}
-            error={!!errors.password}
-            helperText={errors.password || ""}
-            InputProps={{
-              endAdornment: (
-                <IconButton onClick={togglePassword} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              ),
-            }}
-          />
-          <FormControl
-            fullWidth
-            size="small"
-            margin="dense"
-            variant="outlined"
-            error={!!errors.role}
-          >
-            <InputLabel id="role-label">Role</InputLabel>
-
-            <Select
-              labelId="role-label"
-              name="role"
-              value={form.role}
-              label="Role"
+        <form autoComplete="off" onSubmit={handleAddUser} className="flex flex-col min-h-0 flex-1">
+          <div className="px-6 py-4 overflow-y-auto flex-1 space-y-3">
+            <CustomTextField
+              name="username"
+              label="Username"
+              autoComplete={AUTOCOMPLETE.createCredentials.username}
+              value={form.username}
               onChange={handleFormChange}
+              error={!!errors.username}
+              helperText={errors.username || ""}
+            />
+
+            <CustomTextField
+              name="password"
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={AUTOCOMPLETE.createCredentials.password}
+              value={form.password}
+              onChange={handleFormChange}
+              error={!!errors.password}
+              helperText={errors.password || ""}
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={togglePassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
+            />
+            <FormControl
+              fullWidth
+              size="small"
+              margin="dense"
+              variant="outlined"
+              error={!!errors.role}
             >
-              <MenuItem value="">
-                <em>Select role</em>
-              </MenuItem>
+              <InputLabel id="role-label">Role</InputLabel>
 
-              {ROLE_OPTIONS.map((role) => (
-                <MenuItem key={role} value={role}>
-                  {role}
+              <Select
+                labelId="role-label"
+                name="role"
+                value={form.role}
+                label="Role"
+                onChange={handleFormChange}
+                disabled={loadingRoles}
+              >
+                <MenuItem value="">
+                  {loadingRoles ? "Loading roles..." : "Select role"}
                 </MenuItem>
-              ))}
-            </Select>
 
-            {errors.role && (
-              <p className="text-xs text-red-500 mt-1">{errors.role}</p>
-            )}
-          </FormControl>
+                {roleOptions.map((role) => (
+                  <MenuItem key={role.id} value={role.roleName}>
+                    {role.roleName}
+                  </MenuItem>
+                ))}
+              </Select>
 
+              {errors.role && (
+                <p className="text-xs text-red-500 mt-1">{errors.role}</p>
+              )}
+            </FormControl>
+          </div>
 
-        </div>
-
-        <div className="px-6 py-2 border-t flex justify-end space-x-2">
-          <button
-            onClick={() => {
-              resetForm();
-              onClose();
-            }}
-            className="px-3 py-2 border rounded-lg hover:bg-gray-200 text-sm"
-          >
-            Cancel
-          </button>
-          <AppButton
-            onClick={handleAddUser}
-            variant="primary"
-          >
-            Save User
-          </AppButton>
-        </div>
+          <div className="px-6 py-2 border-t flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                onClose();
+              }}
+              className="px-3 py-2 border rounded-lg hover:bg-gray-200 text-sm"
+            >
+              Cancel
+            </button>
+            <AppButton
+              onClick={handleAddUser}
+              variant="primary"
+            >
+              Save User
+            </AppButton>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, MapPinned, Phone, Receipt } from "lucide-react";
+import { Plus, MapPinned, Phone } from "lucide-react";
 import SupplierService from "@/services/SupplierService";
 import AddNewSupplier from "./components/AddNewSupplier";
 import SupplierDetail from "./components/SupplierDetail";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import UniversalSearch from "@/components/UniversalSearch";
 import EntityCardGrid from "@/components/EntityCardGrid";
+import GstIcon from "@/components/GstIcon";
 import useResponsive from "@/hooks/useResponsive";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import UpdateSupplierModal from "./components/UpdateSupplierModal";
@@ -13,9 +14,10 @@ import CopyDetailsModal from "@/components/CopyDetailsModal";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { getSupplierFormattedText } from "@/utils/copyFormatter";
 import { IconButton, Tooltip } from "@mui/material";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SUPPLIER_CARD_FIELDS = [
-  { label: "GST", key: "supplierGstNo", icon: Receipt },
+  { label: "GST", key: "supplierGstNo", icon: GstIcon },
   { label: "Mobile", key: "mobile", icon: Phone },
   { label: "Address", key: "address", icon: MapPinned },
 ];
@@ -30,16 +32,17 @@ export default function SupplierDashboard() {
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { showSnackbar } = useSnackbar();
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingSupplierId, setEditingSupplierId] = useState(null);
-  const { isMobile } = useResponsive();
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [supplierToCopy, setSupplierToCopy] = useState(null);
+
+  const { isMobile } = useResponsive();
+  const { showSnackbar } = useSnackbar();
+  const { can } = useAuth();
 
   const [form, setForm] = useState({
     supplierName: "",
@@ -89,23 +92,38 @@ export default function SupplierDashboard() {
       value: supplier[key],
       showLabel: false,
     })),
-    onView: () => {
-      setSelectedSupplier(supplier.id);
-      setIsModalOpen(true);
-    },
-    onEdit: () => {
-      setEditingSupplierId(supplier.id);
-      setOpenEdit(true);
-    },
+    onView: can("SUPPLIER_VIEW")
+    ? () => {
+        setSelectedSupplier(supplier.id);
+        setIsModalOpen(true);
+      }
+    : undefined,
+
+    onEdit: can("SUPPLIER_UPDATE")
+    ? () => {
+        setEditingSupplierId(supplier.id);
+        setOpenEdit(true);
+      }
+    : undefined,
+
+    onDelete: can("SUPPLIER_DELETE")
+    ? () => {
+        setSupplierToDelete(supplier);
+        setDeleteModalOpen(true);
+      }
+    : undefined,
+
     onCopy: () => handleCopyDetails(supplier),
-    onDelete: () => {
-      setSupplierToDelete(supplier);
-      setDeleteModalOpen(true);
-    },
   });
 
   const fetchSuppliers = useCallback(
     async (uiPage = 1) => {
+      if (!can("SUPPLIER_VIEW")) {
+      setSuppliers([]);
+      setTotalPages(0);
+      setTotalItems(0);
+      return;
+    }
       const backendPage = uiPage - 1;
       try {
         const data = await SupplierService.getSuppliers(
@@ -124,7 +142,7 @@ export default function SupplierDashboard() {
         showSnackbar(error.message, "error");
       }
     },
-    [rowsPerPage],
+    [rowsPerPage, can, showSnackbar],
   );
 
   const handleSearchResult = (response, searchQuery, page = 1) => {
@@ -181,8 +199,10 @@ export default function SupplierDashboard() {
   const handleClearSearch = useCallback(() => {
     setQuery("");
     setIsSearchActive(false);
+    if (can("SUPPLIER_VIEW")) {
     fetchSuppliers(1);
-  }, [fetchSuppliers]);
+  }
+  }, [fetchSuppliers,can]);
 
   const handleDelete = async () => {
     if (!supplierToDelete) return;
@@ -202,8 +222,10 @@ export default function SupplierDashboard() {
   };
 
   useEffect(() => {
+     if (can("SUPPLIER_VIEW")) {
     fetchSuppliers(1);
-  }, [fetchSuppliers]);
+  }
+  }, [fetchSuppliers,can]);
 
   return (
     <div className="text-gray-900 dark:text-gray-100 flex flex-col h-full">
@@ -212,6 +234,8 @@ export default function SupplierDashboard() {
           <h2 className={PAGE_TITLE_CLASS}>
             {isMobile ? "Supplier" : "Supplier Overview"}
           </h2>
+
+          {can("SUPPLIER_CREATE") && (
           <Tooltip title="Add supplier">
             <span>
               <IconButton
@@ -223,8 +247,10 @@ export default function SupplierDashboard() {
               </IconButton>
             </span>
           </Tooltip>
+          )}
         </div>
         <div>
+          {can("SUPPLIER_VIEW") && (
           <UniversalSearch
             placeholder="Search suppliers..."
             query={query}
@@ -236,10 +262,12 @@ export default function SupplierDashboard() {
             pageSize={rowsPerPage}
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
       <div className="flex-1 min-h-0">
+        {can("SUPPLIER_VIEW") && (
         <EntityCardGrid
           items={suppliers}
           buildCardProps={buildSupplierCardProps}
@@ -251,6 +279,7 @@ export default function SupplierDashboard() {
           onRowsPerPageChange={handleRowsPerPageChange}
           entityLabel="suppliers"
         />
+        )}
       </div>
 
       {isModalOpen && selectedSupplier && (

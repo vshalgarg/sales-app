@@ -13,6 +13,7 @@ import AppButton from "@/components/AppButton";
 import { PAGE_TITLE_CLASS } from "@/theme/appTheme";
 import { CARD_GRID_SHELL_CLASS } from "@/theme/cardTheme";
 import { IconButton, Tooltip } from "@mui/material";
+import EditUserModal from "./components/EditUserModal";
 
 const RoleChip = ({ role }) => (
   <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-brand-primary/10 text-brand-primary">
@@ -22,30 +23,36 @@ const RoleChip = ({ role }) => (
 
 const Users = () => {
   const { showSnackbar } = useSnackbar();
-  const { auth } = useAuth();
-  const isAdmin = auth?.role?.includes("ADMIN");
+  const { can } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
   const [changePwdModalOpen, setChangePwdModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
   useEffect(() => {
+     if (can("USER_VIEW")) {
     fetchUsers();
-  }, []);
+  }
+  }, [can]);
 
   const fetchUsers = async () => {
+    if (!can("USER_VIEW")) {
+    setUsers([]);
+    setCurrentPage(1);
+    return;
+  }
     try {
       const data = await getUsers();
-      setUsers(data.users);
+      console.log("GET all users response:", data);
+      setUsers(Array.isArray(data?.users) ? data.users : []);
       setCurrentPage(1);
     } catch (error) {
       showSnackbar(error.message, "error");
@@ -69,7 +76,7 @@ const Users = () => {
   };
 
   const handleSearchResult = (response, searchQuery) => {
-    if (!searchQuery.trim()) {
+    if (!can("USER_VIEW") ||!searchQuery.trim()) {
       return;
     }
 
@@ -82,12 +89,14 @@ const Users = () => {
   };
 
   const handleDelete = async () => {
-    if (!userToDelete?.id) return;
+    if (!userToDelete?.id || !can("USER_DELETE") ) return;
 
     try {
       await deleteUser(userToDelete.id);
       showSnackbar("User deleted successfully", "success");
+       if (can("USER_VIEW")) {
       fetchUsers();
+    }
     } catch (error) {
       showSnackbar(error.message, "error");
     } finally {
@@ -141,7 +150,7 @@ const Users = () => {
           <div className="flex gap-2">
             <h2 className={PAGE_TITLE_CLASS}>Users</h2>
 
-            {isAdmin && (
+            {can("USER_CREATE") && (
               <Tooltip title="Add user">
                 <span>
                   <IconButton
@@ -155,7 +164,7 @@ const Users = () => {
               </Tooltip>
             )}
           </div>
-
+          {can("USER_VIEW") && (
           <UniversalSearch
             placeholder="Search users..."
             query={query}
@@ -166,6 +175,7 @@ const Users = () => {
             suggestionKey="username"
             showSuggestions={false}
           />
+          )}
         </div>
       </div>
 
@@ -174,26 +184,37 @@ const Users = () => {
       >
         <div className="flex-1 min-h-0 overflow-hidden p-3 md:p-4">
           <div className="h-full min-h-0">
+            {can("USER_VIEW") && (
             <DataTable
               columns={columns}
               data={paginatedUsers}
               loading={false}
-              actions={isAdmin}
+              actions={can("USER_UPDATE") || can("USER_DELETE")}
               onEdit={
-                isAdmin
-                  ? (u) => {
-                      setSelectedUser(u);
-                      setChangePwdModalOpen(true);
-                    }
-                  : undefined
+                can("USER_UPDATE")
+                ? (u) => {
+                  setSelectedUser(u);
+                  setChangePwdModalOpen(true);
+                }
+                : undefined
               }
+
               onDelete={
-                isAdmin
-                  ? (u) => {
-                      setUserToDelete(u);
-                      setDeleteModalOpen(true);
-                    }
-                  : undefined
+                can("USER_DELETE")
+                ? (u) => {
+                  setUserToDelete(u);
+                  setDeleteModalOpen(true);
+                }
+                : undefined
+              }
+
+              onEditUser={
+                can("USER_UPDATE")
+                ? (u) => {
+                  setUserToEdit(u);
+                  setEditUserModalOpen(true);
+                }
+                : undefined
               }
               emptyMessage="No users found"
               disablePagination
@@ -201,10 +222,12 @@ const Users = () => {
               headerCellSx={tableHeaderCellSx}
               actionsHeaderSx={tableHeaderCellSx}
             />
+            )}
           </div>
         </div>
 
         <div className="shrink-0 px-3 md:px-4 pb-3 md:pb-4">
+          {can("USER_VIEW") && (
           <ListPagination
             page={currentPage}
             totalCount={users.length}
@@ -213,6 +236,7 @@ const Users = () => {
             onRowsPerPageChange={handleRowsPerPageChange}
             entityLabel="users"
           />
+          )}
         </div>
       </div>
 
@@ -229,6 +253,16 @@ const Users = () => {
         onClose={() => {
           setChangePwdModalOpen(false);
           setSelectedUser(null);
+        }}
+      />
+
+      <EditUserModal
+        open={editUserModalOpen}
+        user={userToEdit}
+        onSuccess={fetchUsers}
+        onClose={() => {
+          setEditUserModalOpen(false);
+          setUserToEdit(null);
         }}
       />
 

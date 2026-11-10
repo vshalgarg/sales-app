@@ -1,81 +1,143 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSnackbar } from './SnackbarContext';
+import React, { createContext, useContext, useEffect, useState, useCallback,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import { useSnackbar } from "./SnackbarContext";
+
 const AuthContext = createContext();
+
+const getStoredArray = (key) => {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-  const {showSnackbar}=useSnackbar();
+  const { showSnackbar } = useSnackbar();
+
   const [auth, setAuth] = useState(() => {
-    const token = localStorage.getItem('token');
-    const role = JSON.parse(localStorage.getItem('role') || '[]');
-    const userId = localStorage.getItem('userId');
-    const username = localStorage.getItem('username');
+    const token = localStorage.getItem("token");
+    const role = getStoredArray("role");
+    const permissions = getStoredArray("permissions");
+    const userId = localStorage.getItem("userId");
+    const username = localStorage.getItem("username");
 
     return token && role.length > 0
       ? {
           token,
           role,
           userId,
-          username
+          username,
+          permissions,
         }
       : null;
   });
 
+  // Check whether the logged-in user has a permission
+  const can = useCallback(
+    (requiredPermission) => {
+      return (
+        Array.isArray(auth?.permissions) &&
+        auth.permissions.includes(requiredPermission)
+      );
+    },
+    [auth?.permissions]
+  );
+
+  // Check whether the user has at least one permission
+  const canAny = useCallback(
+    (requiredPermissions) => {
+      return (
+        Array.isArray(requiredPermissions) &&
+        requiredPermissions.some((permission) => can(permission))
+      );
+    },
+    [can]
+  );
+
+  // Check whether the user has all permissions
+  const canAll = useCallback(
+    (requiredPermissions) => {
+      return (
+        Array.isArray(requiredPermissions) &&
+        requiredPermissions.every((permission) => can(permission))
+      );
+    },
+    [can]
+  );
+
   useEffect(() => {
     const onAppLogout = (event) => {
-      // event.detail has the payload
-      console.log('Received logout event', event.detail);
-      // Clear local storage and in-memory auth state
+      console.log("Received logout event", event.detail);
+
       localStorage.clear();
       setAuth(null);
-      // Navigate using React Router (SPA navigation)
-      navigate('/', { replace: true });
-      // Optionally show a toast/snackbar: "Session expired"
-      showSnackbar("Session expired! login again","error");
+
+      navigate("/", { replace: true });
+      showSnackbar("Session expired! login again", "error");
     };
 
-    // Register listener
-    window.addEventListener('app:logout', onAppLogout);
+    window.addEventListener("app:logout", onAppLogout);
 
-    // Clean up listener when provider unmounts
     return () => {
-      window.removeEventListener('app:logout', onAppLogout);
+      window.removeEventListener("app:logout", onAppLogout);
     };
-  }, [navigate]);
+  }, [navigate, showSnackbar]);
 
   const login = ({
     token,
     role,
+    roles,
     userId,
-    username
+    username,
+    permissions = [],
   }) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('role', JSON.stringify(role));
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('username', String(username));
-    
+    // Support both the existing "role" and API's "roles" property
+    const normalizedRole = role ?? roles ?? [];
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", JSON.stringify(normalizedRole));
+    localStorage.setItem("userId", String(userId));
+    localStorage.setItem("username", String(username));
+    localStorage.setItem("permissions", JSON.stringify(Array.isArray(permissions) ? permissions : []));
 
     setAuth({
       token,
-      role,
+      role: normalizedRole,
       userId,
       username,
-    
+      permissions: Array.isArray(permissions) ? permissions : [],
     });
   };
 
-  const logout = () => {
+  const logout = () => { 
     localStorage.clear();
     setAuth({
       token: null,
       role: null,
       userId: null,
-      username:null
+      username: null,
+      permissions: [],
     });
   };
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout, setAuth }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        auth,
+        login,
+        logout,
+        setAuth,
+        can,
+        canAny,
+        canAll,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };
 

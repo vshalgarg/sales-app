@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { loginUser } from "@/services/LoginService";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { AUTOCOMPLETE } from "@/utils/formAutocomplete";
+import { useConfig } from "@/contexts/ConfigContext";
+const LEGAL_LINK_CLASS =
+  "font-bold text-gray-500 hover:text-[#6c63ff] underline underline-offset-2 transition-colors whitespace-nowrap";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,37 +14,162 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const { config } = useConfig();
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
-  const { login, auth, setAuth } = useAuth();
+  const { login} = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+const getFirstAccessiblePath = (permissions = [], config = []) => {
+  const userPermissions = Array.isArray(permissions)
+    ? permissions
+    : [];
 
-    try {
-      const data = await loginUser(email, password);
-      console.log("auth", auth);
-      login({
-        token: data.token,
-        role: data.roles,
-        userId: data.userId,
-        username: data.username,
-      });
+  const retailEnabled =
+    config?.find((item) => item.key === "RETAIL_FEATURE")?.value === "true";
 
-      showSnackbar("Login successful!", "success");
-      navigate("/suppliers", { replace: true });
-    } catch (err) {
-      console.error("Login error:", err);
-      const errorMsg = err.message || "Login failed. Please try again.";
-      setError(errorMsg);
-      showSnackbar(errorMsg, "error");
-    } finally {
-      setIsLoading(false);
+  const hasAnyPermission = (requiredPermissions) =>
+    requiredPermissions.some((permission) =>
+      userPermissions.includes(permission)
+    );
+
+  const accessiblePages = [
+    // Master
+    {
+      allowed: hasAnyPermission([
+        "SUPPLIER_CREATE",
+        "SUPPLIER_VIEW",
+      ]),
+      path: "/suppliers",
+    },
+    {
+      allowed: hasAnyPermission([
+        "CUSTOMER_CREATE",
+        "CUSTOMER_VIEW",
+      ]),
+      path: "/customers",
+    },
+    {
+      allowed: hasAnyPermission([
+        "USER_CREATE",
+        "USER_VIEW",
+      ]),
+      path: "/users",
+    },
+    {
+      allowed: hasAnyPermission([
+        "TRANSPORT_CREATE",
+        "TRANSPORT_VIEW",
+      ]),
+      path: "/transports",
+    },
+    {
+      allowed: hasAnyPermission([
+        "STAFF_CREATE",
+        "STAFF_VIEW",
+      ]),
+      path: "/staff",
+    },
+
+    // Entries
+    {
+      allowed: userPermissions.includes("BILL_CREATE"),
+      path: "/bill-entry",
+    },
+    {
+      allowed: userPermissions.includes("CREDIT_CREATE"),
+      path: "/credit-entry",
+    },
+    {
+      allowed: userPermissions.includes("PURCHASE_CREATE"),
+      path: "/purchase-entry",
+    },
+    {
+      allowed: retailEnabled,
+      path: "/retail-entry",
+    },
+
+    // Reporting
+    {
+      allowed: userPermissions.includes("BILL_REPORT_VIEW"),
+      path: "/bills",
+    },
+    {
+      allowed: userPermissions.includes("CREDIT_REPORT_VIEW"),
+      path: "/credits",
+    },
+    {
+      allowed: userPermissions.includes("PURCHASE_REPORT_VIEW"),
+      path: "/purchase",
+    },
+    {
+      allowed: retailEnabled,
+      path: "/retail",
+    },
+    {
+      allowed: userPermissions.includes("LEDGER_REPORT_VIEW"),
+      path: "/ledger",
+    },
+
+    // Monitoring
+    {
+      allowed: userPermissions.includes("MONITORING_VIEW"),
+      path: "/graph",
+    },
+  ];
+
+  return accessiblePages.find((page) => page.allowed)?.path || null;
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setIsLoading(true);
+
+  try {
+    const data = await loginUser(email, password);
+
+    // Save authentication details
+    login({
+      token: data.token,
+      role: data.roles,
+      userId: data.userId,
+      username: data.username,
+      permissions: data.permissions,
+    });
+
+    // Find the first accessible page across all sections
+    const firstAccessiblePath = getFirstAccessiblePath(
+      data.permissions,
+      config
+    );
+
+    if (!firstAccessiblePath) {
+      showSnackbar(
+        "No permissions assigned to this user. Please contact your administrator.",
+        "error"
+      );
+
+      return;
     }
-  };
+
+    showSnackbar("Login successful!", "success");
+
+    navigate(firstAccessiblePath, { replace: true });
+
+  } catch (err) {
+    console.error("Login error:", err);
+
+    const errorMsg =
+      err.message || "Login failed. Please try again.";
+
+    setError(errorMsg);
+    showSnackbar(errorMsg, "error");
+
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
@@ -52,19 +181,23 @@ const Login = () => {
       </div>
 
       {/* Right - Form */}
-      <div className="flex-1 flex items-center justify-center bg-gray-50 px-6 py-10 md:px-12">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 md:p-10">
-          <div className="text-center mb-8">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 px-6 py-4 md:px-12">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-5 md:p-6">
+          <div className="text-center mb-4">
             <div className="flex justify-center">
               <img
                 src="/logo.png"
                 alt="Hisabio Logo"
+                width="800"
+                height="450"
                 className="w-36 md:w-64 h-auto object-contain"
+                fetchPriority="high"
+                loading="eager"
               />
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -72,6 +205,8 @@ const Login = () => {
               </label>
               <input
                 type="text"
+                name="username"
+                autoComplete={AUTOCOMPLETE.login.username}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your username"
@@ -90,6 +225,8 @@ const Login = () => {
               </label>
               <input
                 type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete={AUTOCOMPLETE.login.password}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
@@ -162,6 +299,30 @@ const Login = () => {
             >
               {isLoading ? "Signing in..." : "Login →"}
             </button>
+
+            <p className="text-xs text-center text-gray-500 leading-relaxed">
+              By continuing, you agree to our{" "}
+              <a
+                href="/terms-and-conditions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={LEGAL_LINK_CLASS}
+              >
+                Terms &amp; Conditions
+              </a>{" "}
+              and{" "}
+              <span className="whitespace-nowrap">
+                <a
+                  href="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={LEGAL_LINK_CLASS}
+                >
+                  Privacy Policy
+                </a>
+                .
+              </span>
+            </p>
           </form>
         </div>
       </div>
