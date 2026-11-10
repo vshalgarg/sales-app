@@ -3,9 +3,11 @@ package com.code.monks.csm.service.impl;
 import com.code.monks.csm.client.AuthRestClient;
 import com.code.monks.csm.dto.auth.request.AuthAddUserRequestDto;
 import com.code.monks.csm.dto.auth.request.AuthDeleteUserRequestDto;
+import com.code.monks.csm.dto.auth.request.AuthUpdateUserRolesRequestDto;
 import com.code.monks.csm.dto.auth.response.*;
 import com.code.monks.csm.dto.request.AddUserRequestDto;
 import com.code.monks.csm.dto.request.DeleteUserRequestDto;
+import com.code.monks.csm.dto.request.UpdateUserRoleRequestDto;
 import com.code.monks.csm.dto.response.*;
 import com.code.monks.csm.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -87,5 +89,31 @@ public class UserServiceImpl implements UserService {
         AuthEncryptedUserDetailDTO authResponseDto = authRestClient.callGetUserDetail(userId);
         return EncryptedResponseDTO.builder().encryptedPayload(authResponseDto.getEncryptedPayload()).build();
     }
+
+    @Override
+    public GetUserRoleDto getUserRoles(Long userId) {
+        log.info("Fetching username and roles for userId: {}", userId);
+        AuthGetUserRoleDto authResponse = authRestClient.getUserRoleDetail(userId);
+        return GetUserRoleDto.builder()
+                .userId(authResponse.getUserId())
+                .username(authResponse.getUsername())
+                .roles(authResponse.getRoles())
+                .build();
+    }
+
+    @Override
+    public UpdateUserRoleResponseDto updateUserRoles(Long userId, UpdateUserRoleRequestDto requestDto) {
+        log.info("Updating user roles through Auth | userId={}", userId);
+        AuthUpdateUserRolesRequestDto authRequest = new AuthUpdateUserRolesRequestDto(requestDto.getRoleNames());
+        AuthUpdateUserRolesResponseDto authResponse = authRestClient.callUpdateUserRoles(userId, authRequest);
+        return UpdateUserRoleResponseDto.builder()
+                .userId(authResponse.getUserId())
+                .username(authResponse.getUsername())
+                .roles(authResponse.getRoles())
+                .message(authResponse.getMessage())
+                .build();
+    }
+
+
 
 }

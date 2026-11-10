@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.request.AddCustomerRequestDto;
 import com.code.monks.csm.dto.request.DeleteCustomerRequestDto;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RequestMapping(BASE)
 @RestController
@@ -27,7 +29,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class CustomerController {
 
     private final CustomerService customerService;
-
+    @HasPermission(value = CUSTOMER_CREATE)
     @PostMapping(ADD_CUSTOMER)
     public ResponseEntity<AddCustomerResponseDto> addCustomer(
             @Valid @RequestBody AddCustomerRequestDto requestDto) {
@@ -38,7 +40,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(CUSTOMER_LIST_WITH_PAGINATION)
     public ResponseEntity<PagedResponseDto<CustomerListDto>> getCustomerList(
             @RequestParam(defaultValue = "0") int page,
@@ -61,7 +63,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = CUSTOMER_DELETE)
     @PutMapping(DELETE_CUSTOMER)
     public ResponseEntity<DeleteCustomerResponseDto> deleteCustomer(
             @Valid @RequestBody DeleteCustomerRequestDto requestDto) {
@@ -72,7 +74,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(SEARCH_CUSTOMERS)
     public ResponseEntity<PagedResponseDto<CustomerListDto>> searchCustomers(
             @RequestParam(required = false) String keyword,
@@ -90,7 +92,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value = CUSTOMER_UPDATE)
     @PutMapping(UPDATE_CUSTOMER)
     public ResponseEntity<ApiResponse<Void>> updateCustomer(
             @PathVariable Integer id,
@@ -102,7 +104,7 @@ public class CustomerController {
                 ApiResponse.success("Customer updated successfully")
         );
     }
-
+    @HasPermission(value = CUSTOMER_VIEW)
     @GetMapping(GET_CUSTOMER_BY_ID)
     public ResponseEntity<ApiResponse<GetCustomerByIdResponseDto>> getCustomerById(
             @PathVariable Integer id) {
