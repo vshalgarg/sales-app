@@ -10,10 +10,12 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import java.math.BigInteger;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,30 +26,34 @@ import java.time.ZoneId;
 @Slf4j
 public class DailyReportScheduler {
 
-    private static final ZoneId REPORT_ZONE = ZoneId.of("Asia/Kolkata");
+    @Value("${daily-report.recipients}")
+    private List<String> recipients;
+
     private final DailySalesReportService reportService;
     private final AuthRestClient authRestClient;
 
     @Scheduled(
             cron = "${daily-report.cron}",
-            zone = "Asia/Kolkata"
+            zone = "${daily-report.timezone:Asia/Kolkata}"
     )
     public void sendDailyReport() {
         log.info("Daily report scheduler triggered at: {}", LocalDateTime.now());
-        LocalDate reportDate = LocalDate.now(REPORT_ZONE).minusDays(1);
+        LocalDate reportDate =  LocalDate.now(ZoneId.of("Asia/Kolkata")).minusDays(1);
         sendReport(reportDate);
     }
 
     private DailyReportResult sendReport(LocalDate reportDate) {
+        if (recipients == null || recipients.isEmpty()) {
+            throw new IllegalStateException("Email recipients are not found");
+        }
         DailySalesReportDto report = reportService.generateReport(reportDate);
         String html = buildReportHtml(report);
-        SendEmailRequestDTO request = new SendEmailRequestDTO(null, "Daily Sales Report - " + reportDate, html);
+        SendEmailRequestDTO request = new SendEmailRequestDTO(recipients, "Daily Sales Report - " + reportDate, html);
         SendEmailResponseDTO response = authRestClient.sendEmail(request);
         if (response == null || !response.isSuccess()) {
             throw new IllegalStateException("Auth service did not confirm email acceptance");
         }
-        log.info(
-                "Daily sales report submission accepted by Auth. Date={}, messageId={}", reportDate,
+        log.info("Daily sales report submission accepted by Auth. Date={}, messageId={}", reportDate,
                 response.getProviderMessageId()
         );
 
