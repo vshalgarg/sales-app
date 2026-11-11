@@ -1,5 +1,6 @@
 package com.code.monks.csm.contoller;
 
+import com.code.monks.csm.annotation.HasPermission;
 import com.code.monks.csm.dto.ApiResponse;
 import com.code.monks.csm.dto.request.*;
 import com.code.monks.csm.dto.response.PagedResponseDto;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RequestMapping(BASE)
 @RestController
@@ -27,7 +29,7 @@ import static com.code.monks.csm.constants.ApiPaths.*;
 public class RetailController {
 
     private final RetailService retailService;
-
+    @HasPermission(value =RETAILER_CREATE)
     @PostMapping(RETAILER_ENTRY)
     public ResponseEntity<ApiResponse<Void>> createRetail(@Valid @RequestBody CreateRetailerRequestDto request) {
 
@@ -38,7 +40,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @PutMapping(UPDATE_RETAILER)
     public ResponseEntity<ApiResponse<Void>> updateRetail(@PathVariable Long id, @Valid @RequestBody UpdateRetailerRequestDto request) {
         retailService.updateRetail(id, request);
@@ -48,7 +50,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @GetMapping(GET_RETAILER)
     public ResponseEntity<ApiResponse<RetailResponseDto>> getRetailDetails(@PathVariable Long id) {
 
@@ -60,7 +62,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @GetMapping(SEARCH_RETAILERS)
     public ResponseEntity<ApiResponse<PagedResponseDto<RetailerListResponseDto>>> searchRetailers(
 
@@ -114,7 +116,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @PostMapping(ADD_DEPOSIT)
     public ResponseEntity<ApiResponse<Void>> addDeposit(@Valid @RequestBody RetailSupplierDepositRequestDto request) {
         retailService.addDeposit(request);
@@ -125,7 +127,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @GetMapping(GET_DEPOSIT_HISTORY)
     public ResponseEntity<ApiResponse<List<SupplierDepositHistoryResponseDto>>> getDepositHistory(@PathVariable Long retailId) {
 
@@ -136,7 +138,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @DeleteMapping(DELETE_RETAILER)
     public ResponseEntity<ApiResponse<Void>> deleteRetailer(@PathVariable Long retailId) {
 
@@ -146,7 +148,7 @@ public class RetailController {
                 "Retail deleted successfully"
         ));
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @PutMapping(UPDATE_RETAIL_SUPPLIER)
     public ResponseEntity<ApiResponse<Void>> updateRetailSupplier(
             @PathVariable Integer retailSupplierId,
@@ -164,7 +166,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @DeleteMapping(DELETE_RETAIL_SUPPLIER)
     public ResponseEntity<ApiResponse<Void>> deleteRetailSupplier(@PathVariable Integer retailSupplierId) {
 
@@ -173,7 +175,7 @@ public class RetailController {
                 ApiResponse.success("Retail supplier deleted successfully")
         );
     }
-
+    @HasPermission(value =RETAILER_VIEW)
     @PostMapping(ADD_RETAIL_SUPPLIER)
     public ResponseEntity<ApiResponse<Void>> addRetailSupplier(@Valid @RequestBody AddRetailSupplierRequestDto request) {
 
