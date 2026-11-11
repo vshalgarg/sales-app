@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Users, User, UserCog, Truck, FileText, CreditCard, ShoppingCart, Store, Receipt, BookOpen, SlidersHorizontal, ShieldCheck } from "lucide-react";
+import {Users,User,UserCog,Truck,FileText,CreditCard,ShoppingCart,Store,Receipt,BookOpen,SlidersHorizontal,ShieldCheck,} from "lucide-react";
 import { useConfig } from "../contexts/ConfigContext";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -17,7 +17,7 @@ const SECTION_ICONS = {
   Transports: Truck,
   Users: User,
   Configurations: SlidersHorizontal,
-  AccessManagement: ShieldCheck,
+  "Access Management": ShieldCheck,
   "Bill Entry": FileText,
   "Credit Entry": CreditCard,
   "Purchase Entry": ShoppingCart,
@@ -31,57 +31,64 @@ const SECTION_ICONS = {
 
 const useSidebarMenuItems = (activeSection) => {
   const { config } = useConfig();
-  const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
   const { auth, can, canAny } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
+const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
+        (item.value === "true" || item.value === true)) ?? false;
+
+  const showRetailEntry =isRetailEnabled && can("RETAILER_CREATE");
+
+  const showRetailReporting = isRetailEnabled && can("RETAILER_VIEW");
+
   const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");
 
   if (activeSection === "master") {
     return [
-      ...(canAny([
-        "SUPPLIER_CREATE",
-        "SUPPLIER_VIEW",
-      ]) ? [{ name: "Suppliers", path: "/suppliers" }] : []),
+      ...(canAny(["SUPPLIER_CREATE", "SUPPLIER_VIEW"])
+        ? [{ name: "Suppliers", path: "/suppliers" }]
+        : []),
 
-        ...(canAny([
-        "CUSTOMER_CREATE",
-        "CUSTOMER_VIEW",
-      ]) ? [{ name: "Customers", path: "/customers" }] : []),
+      ...(canAny(["CUSTOMER_CREATE", "CUSTOMER_VIEW"])
+        ? [{ name: "Customers", path: "/customers" }]
+        : []),
 
-        ...(canAny([
-        "STAFF_CREATE",
-        "STAFF_VIEW",
-      ]) ? [{ name: "Staff", path: "/staff" }] : []),
+      ...(canAny(["STAFF_CREATE", "STAFF_VIEW"])
+        ? [{ name: "Staff", path: "/staff" }]
+        : []),
 
-        ...(canAny([
-        "TRANSPORT_CREATE",
-        "TRANSPORT_VIEW",
-      ]) ? [{ name: "Transports", path: "/transports" }] : []),
+      ...(canAny(["TRANSPORT_CREATE", "TRANSPORT_VIEW"])
+        ? [{ name: "Transports", path: "/transports" }]
+        : []),
 
-        ...(canAny([
-        "USER_CREATE",
-        "USER_VIEW",
-      ]) ? [{ name: "Users", path: "/users" }] : []),
-      ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),
-      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
+      ...(canAny(["USER_CREATE", "USER_VIEW"])
+        ? [{ name: "Users", path: "/users" }]
+        : []),
+
+      ...(canAccessManagement
+        ? [{ name: "Access Management", path: "/access-management" }]
+        : []),
+
+      ...(isAdmin
+        ? [{ name: "Configurations", path: "/configurations" }]
+        : []),
     ];
   }
 
   if (activeSection === "entries") {
     return [
       ...(can("BILL_CREATE")
-      ? [{ name: "Bill Entry", path: "/bill-entry" }]
-      : []),
+        ? [{ name: "Bill Entry", path: "/bill-entry" }]
+        : []),
 
-    ...(can("CREDIT_CREATE")
-      ? [{ name: "Credit Entry", path: "/credit-entry" }]
-      : []),
+      ...(can("CREDIT_CREATE")
+        ? [{ name: "Credit Entry", path: "/credit-entry" }]
+        : []),
 
-    ...(can("PURCHASE_CREATE")
-      ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
-      : []),
+      ...(can("PURCHASE_CREATE")
+        ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
+        : []),
 
-      ...(retailConfig?.[0]?.value === "true"
+      ...(showRetailEntry
         ? [{ name: "Retail Entry", path: "/retail-entry" }]
         : []),
     ];
@@ -90,23 +97,23 @@ const useSidebarMenuItems = (activeSection) => {
   if (activeSection === "reporting") {
     return [
       ...(can("BILL_REPORT_VIEW")
-      ? [{ name: "Bills", path: "/bills" }]
-      : []),
+        ? [{ name: "Bills", path: "/bills" }]
+        : []),
 
-    ...(can("CREDIT_REPORT_VIEW")
-      ? [{ name: "Credit", path: "/credits" }]
-      : []),
+      ...(can("CREDIT_REPORT_VIEW")
+        ? [{ name: "Credit", path: "/credits" }]
+        : []),
 
-    ...(can("PURCHASE_REPORT_VIEW")
-      ? [{ name: "Purchase", path: "/purchase" }]
-      : []),
+      ...(can("PURCHASE_REPORT_VIEW")
+        ? [{ name: "Purchase", path: "/purchase" }]
+        : []),
+
+      ...(showRetailReporting
+        ? [{ name: "Retail", path: "/retail" }]
+        : []),
 
       ...(can("LEDGER_REPORT_VIEW")
-      ? [{ name: "Ledger", path: "/ledger" }]
-      : []),
-
-      ...(retailConfig?.[0]?.value === "true"
-        ? [{ name: "Retail", path: "/retail" }]
+        ? [{ name: "Ledger", path: "/ledger" }]
         : []),
     ];
   }
@@ -186,3 +193,4 @@ const Sidebar = ({
 );
 
 export default Sidebar;
+

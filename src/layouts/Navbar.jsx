@@ -24,41 +24,39 @@ export default function Navbar({
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+
   const mainActiveSection = activeSection;
   const navigate = useNavigate();
+
   const { auth, can, canAny } = useAuth();
   const { config } = useConfig();
-  const hasMasterPermission =
-  canAny([
-    "SUPPLIER_CREATE",
-    "SUPPLIER_VIEW",
-    "CUSTOMER_CREATE",
-    "CUSTOMER_VIEW",
-    "STAFF_CREATE",
-    "STAFF_VIEW",
-    "TRANSPORT_CREATE",
-    "TRANSPORT_VIEW",
-    "USER_CREATE",
-    "USER_VIEW",
-  ]) ||
-  can("ACCESS_MANAGEMENT_CURD") ||
-  auth?.role?.includes("ADMIN");
-  const retailEnabled = config?.find((item) => item.key === "RETAIL_FEATURE")?.value === "true";
 
-  const hasReportingPermission =
+  const hasMasterPermission =
     canAny([
-      "BILL_REPORT_VIEW",
-      "CREDIT_REPORT_VIEW",
-      "PURCHASE_REPORT_VIEW",
-      "LEDGER_REPORT_VIEW",
-    ]) || retailEnabled;
-    
-  const hasEntryPermission =
-  canAny([
-    "BILL_CREATE",
-    "CREDIT_CREATE",
-    "PURCHASE_CREATE",
-  ]) || retailEnabled;
+      "SUPPLIER_CREATE",
+      "SUPPLIER_VIEW",
+      "CUSTOMER_CREATE",
+      "CUSTOMER_VIEW",
+      "STAFF_CREATE",
+      "STAFF_VIEW",
+      "TRANSPORT_CREATE",
+      "TRANSPORT_VIEW",
+      "USER_CREATE",
+      "USER_VIEW",
+    ]) ||
+    can("ACCESS_MANAGEMENT_CURD") ||
+    auth?.role?.includes("ADMIN");
+
+  const retailEnabled =config?.some((item) =>item.key === "RETAIL_FEATURE" &&
+        (item.value === "true" || item.value === true)) ?? false;
+
+  const hasRetailEntryPermission =retailEnabled && can("RETAILER_CREATE");
+
+  const hasRetailReportingPermission =retailEnabled && can("RETAILER_VIEW");
+
+  const hasEntryPermission =canAny([ "BILL_CREATE","CREDIT_CREATE","PURCHASE_CREATE",]) || hasRetailEntryPermission;
+
+  const hasReportingPermission = canAny(["BILL_REPORT_VIEW","CREDIT_REPORT_VIEW","PURCHASE_REPORT_VIEW","LEDGER_REPORT_VIEW",]) || hasRetailReportingPermission;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -78,11 +76,39 @@ export default function Navbar({
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (!e.target.closest(".profile-dropdown")) setShowProfileMenu(false);
+      if (!e.target.closest(".profile-dropdown")) {
+        setShowProfileMenu(false);
+      }
     };
+
     document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
   }, []);
+
+  const availableSections = ["master", "entries", "reporting", "graph"].filter(
+    (section) => {
+      if (section === "master") {
+        return hasMasterPermission;
+      }
+
+      if (section === "entries") {
+        return hasEntryPermission;
+      }
+
+      if (section === "reporting") {
+        return hasReportingPermission;
+      }
+
+      if (section === "graph") {
+        return can("MONITORING_VIEW");
+      }
+
+      return false;
+    }
+  );
 
   return (
     <>
@@ -101,54 +127,36 @@ export default function Navbar({
             </button>
           )}
 
+          {/* Desktop navigation */}
           <div className="hidden md:flex items-center gap-2">
-        
-            {["master", "entries", "reporting", "graph"]
-  .filter((section) => {
-    if (section === "master") {
-      return hasMasterPermission;
-    }
-
-    if (section === "graph") {
-      return can("MONITORING_VIEW");
-    }
-
-    if (section === "reporting") {
-      return hasReportingPermission;
-    }
-
-    if (section === "entries") {
-      return hasEntryPermission;
-    }
-
-    return false;
-  })
-  .map((section) => (
-    <button
-      key={section}
-      type="button"
-      onClick={() => handleSectionClick(section)}
-      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-        mainActiveSection === section
-          ? NAV_TAB_ACTIVE_CLASS
-          : NAV_TAB_INACTIVE_CLASS
-      }`}
-    >
-      {sectionLabels[section]}
-    </button>
-  ))}
+            {availableSections.map((section) => (
+              <button
+                key={section}
+                type="button"
+                onClick={() => handleSectionClick(section)}
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  mainActiveSection === section
+                    ? NAV_TAB_ACTIVE_CLASS
+                    : NAV_TAB_INACTIVE_CLASS
+                }`}
+              >
+                {sectionLabels[section]}
+              </button>
+            ))}
           </div>
 
+          {/* Mobile navigation */}
           <div className="relative md:hidden">
             <select
               value={activeSection}
               onChange={(e) => handleSectionClick(e.target.value)}
               className="px-3 pr-8 min-h-[36px] leading-normal whitespace-normal rounded-lg border appearance-none bg-brand-tab-inactive dark:bg-zinc-800 text-brand-navy dark:text-white border-violet-100 dark:border-zinc-700 text-sm"
             >
-              {hasMasterPermission && (<option value="master">Master</option>)}
-              {hasEntryPermission && (<option value="entries">Entries</option>)}
-              {hasReportingPermission && (<option value="reporting">Reporting</option>)}
-              {can("MONITORING_VIEW") && (<option value="graph">Monitoring</option>)}
+              {availableSections.map((section) => (
+                <option key={section} value={section}>
+                  {sectionLabels[section]}
+                </option>
+              ))}
             </select>
 
             <span className="pointer-events-none absolute right-2 inset-y-0 flex items-center text-brand-icon text-xs">
@@ -157,6 +165,7 @@ export default function Navbar({
           </div>
         </div>
 
+        {/* Profile menu */}
         <div className="relative profile-dropdown flex items-center shrink-0">
           <button
             type="button"
@@ -177,7 +186,8 @@ export default function Navbar({
                 }}
                 className="flex items-center w-full text-left px-4 py-2 hover:bg-brand-tab-inactive dark:hover:bg-zinc-700 text-brand-navy dark:text-white"
               >
-                <User className="w-4 h-4 mr-2 shrink-0" /> My Profile
+                <User className="w-4 h-4 mr-2 shrink-0" />
+                My Profile
               </button>
 
               <button
@@ -188,13 +198,15 @@ export default function Navbar({
                 }}
                 className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-brand-tab-inactive dark:hover:bg-zinc-700 dark:text-red-400"
               >
-                <LogOut className="w-4 h-4 mr-2 shrink-0" /> Logout
+                <LogOut className="w-4 h-4 mr-2 shrink-0" />
+                Logout
               </button>
             </div>
           )}
         </div>
       </nav>
 
+      {/* Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6 w-[360px] mx-4 md:mx-0">
@@ -204,8 +216,10 @@ export default function Navbar({
 
             <div className="space-y-2 text-brand-navy dark:text-gray-100">
               <p>
-                <strong>Username:</strong> {auth?.username || "Not available"}
+                <strong>Username:</strong>{" "}
+                {auth?.username || "Not available"}
               </p>
+
               <p>
                 <strong>Role:</strong>{" "}
                 {Array.isArray(auth?.role) && auth.role.length > 0
@@ -227,6 +241,7 @@ export default function Navbar({
         </div>
       )}
 
+      {/* Logout Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6 w-[320px]">
@@ -252,3 +267,4 @@ export default function Navbar({
     </>
   );
 }
+
