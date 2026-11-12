@@ -50,9 +50,9 @@ export default function Navbar({
   const retailEnabled =config?.some((item) =>item.key === "RETAIL_FEATURE" &&
         (item.value === "true" || item.value === true)) ?? false;
 
-  const hasRetailEntryPermission =retailEnabled && can("RETAILER_CREATE");
+  const hasRetailEntryPermission =retailEnabled && can("RETAIL_CREATE");
 
-  const hasRetailReportingPermission =retailEnabled && can("RETAILER_VIEW");
+  const hasRetailReportingPermission =retailEnabled && can("RETAIL_REPORT_VIEW");
 
   const hasEntryPermission =canAny([ "BILL_CREATE","CREDIT_CREATE","PURCHASE_CREATE",]) || hasRetailEntryPermission;
 

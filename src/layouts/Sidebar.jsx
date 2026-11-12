@@ -36,9 +36,9 @@ const useSidebarMenuItems = (activeSection) => {
 const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
         (item.value === "true" || item.value === true)) ?? false;
 
-  const showRetailEntry =isRetailEnabled && can("RETAILER_CREATE");
+  const showRetailEntry =isRetailEnabled && can("RETAIL_CREATE");
 
-  const showRetailReporting = isRetailEnabled && can("RETAILER_VIEW");
+  const showRetailReporting = isRetailEnabled && can("RETAIL_REPORT_VIEW");
 
   const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");
 
