@@ -4,7 +4,7 @@ import { roundUp } from "@/utils/numberUtils";
 import DataTable from "@/components/DataTable";
 import NameWithTooltip from "@/components/NameWithTooltip";
 import dayjs from "dayjs";
-
+import { useAuth } from "@/contexts/AuthContext";
 const CreditHistory = ({
   data,
   loading,
@@ -20,6 +20,10 @@ const CreditHistory = ({
 }) => {
 
   const { isMobile } = useResponsive();
+  const { can } = useAuth();
+
+  const canEditCredit = can("CREDIT_REPORT_UPDATE");
+  const canDeleteCredit= can("CREDIT_REPORT_DELETE");
   const tableHeaderRowSx = {
     backgroundColor: "#f3f0ff",
   };
@@ -98,8 +102,8 @@ const CreditHistory = ({
       totalAmount={totalAmount}
       actions={true}
       onView={onView}
-      onEditUser={onEditUser}
-      onDelete={onDelete}
+      onEditUser={canEditCredit? onEditUser : undefined}
+      onDelete={canDeleteCredit? onDelete: undefined}
       emptyMessage={emptyMessage}
       headerRowSx={tableHeaderRowSx}
       headerCellSx={tableHeaderCellSx}

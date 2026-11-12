@@ -4,7 +4,7 @@ import { roundUp } from "@/utils/numberUtils";
 import DataTable from "@/components/DataTable";
 import NameWithTooltip from "@/components/NameWithTooltip";
 import dayjs from "dayjs";
-
+import { useAuth } from "@/contexts/AuthContext";
 const BillHistory = ({
   data,
   loading,
@@ -20,6 +20,10 @@ const BillHistory = ({
 }) => {
 
   const { isMobile } = useResponsive();
+  const { can } = useAuth();
+
+  const canEditBill = can("BILL_REPORT_UPDATE");
+  const canDeleteBill= can("BILL_REPORT_DELETE");
   const tableHeaderRowSx = {
     backgroundColor: "#f3f0ff",
   };
@@ -100,8 +104,8 @@ const BillHistory = ({
       onPageChange={onPageChange}
       actions={true}
       onView={onView}
-      onEditUser={onEditUser}
-      onDelete={onDelete}
+      onEditUser={canEditBill ? onEditUser : undefined}
+      onDelete={canDeleteBill? onDelete: undefined}
       emptyMessage={emptyMessage}
       headerRowSx={tableHeaderRowSx}
       headerCellSx={tableHeaderCellSx}

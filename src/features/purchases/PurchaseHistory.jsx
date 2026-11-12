@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useSnackbar } from "@/contexts/SnackbarContext";
 import NameWithTooltip from "@/components/NameWithTooltip";
-
+import { useAuth } from "@/contexts/AuthContext";
 const PurchaseHistory = ({
   data,
   loading,
@@ -26,6 +26,10 @@ const PurchaseHistory = ({
   emptyMessage,
 }) => {
   const { isMobile } = useResponsive();
+  const { can } = useAuth();
+
+  const canEditPurchase = can("PURCHASE_REPORT_UPDATE");
+  const canDeletePurchase= can("PURCHASE_REPORT_DELETE");
   const tableHeaderRowSx = {
     backgroundColor: "#f3f0ff",
   };
@@ -158,8 +162,8 @@ const PurchaseHistory = ({
         rowsPerPage={rowsPerPage}
         onPageChange={onPageChange}
         actions
-        onEdit={onEdit}
-        onDelete={onDelete}
+        onEdit={canEditPurchase ? onEdit : undefined}
+        onDelete={canDeletePurchase? onDelete: undefined}
         onView={handleView}
         emptyMessage={emptyMessage}
         headerRowSx={tableHeaderRowSx}

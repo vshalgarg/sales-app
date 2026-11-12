@@ -267,7 +267,7 @@ const DataTable = ({
             }}
           >
             <EditIcon fontSize="small" sx={{ mr: 1 }} />
-            Change Password
+            Edit
           </MenuItem>
         )}
 

@@ -7,7 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import {formatIndianCurrency} from "@/utils/currencyUtils"
 import NameWithTooltip from "@/components/NameWithTooltip";
-
+import { useAuth } from "@/contexts/AuthContext";
 const RetailHistory = ({
   data,
   loading,
@@ -52,6 +52,12 @@ const RetailHistory = ({
       width: "20%",
     },
   ];
+ const { can } = useAuth();
+
+const canView = can("RETAIL_REPORT_VIEW");
+const canEdit = can("RETAIL_REPORT_UPDATE");
+const canAddSupplier = can("RETAIL_REPORT_ADD_SUPPLIER");
+const canDelete = can("RETAIL_REPORT_DELETE");
 
   const expandedColumns = [
     {
@@ -83,28 +89,39 @@ const RetailHistory = ({
   ];
 
   const actionItems = [
-    {
-      label: "View",
-      icon: VisibilityIcon,
-      onClick: (row) => onView(row),
-    },
-    {
-      label: "Edit",
-      icon: EditIcon,
-      onClick: (row) => onEdit(row),
-    },
-    {
-      label: "Add Supplier",
-      icon: AddIcon,
-      onClick: (row) => onAddSupplier(row),
-    },
-    {
-      label: "Delete",
-      icon: DeleteIcon,
-      onClick: (row) => onDelete(row),
-      sx: { color: "error.main" },
-    },
-  ];
+  ...(canView
+    ? [{
+        label: "View",
+        icon: VisibilityIcon,
+        onClick: (row) => onView(row),
+      }]
+    : []),
+
+  ...(canEdit
+    ? [{
+        label: "Edit",
+        icon: EditIcon,
+        onClick: (row) => onEdit(row),
+      }]
+    : []),
+
+  ...(canAddSupplier
+    ? [{
+        label: "Add Supplier",
+        icon: AddIcon,
+        onClick: (row) => onAddSupplier(row),
+      }]
+    : []),
+
+  ...(canDelete
+    ? [{
+        label: "Delete",
+        icon: DeleteIcon,
+        onClick: (row) => onDelete(row),
+        sx: { color: "error.main" },
+      }]
+    : []),
+];
 
   const expandedActionItems = [
     {
