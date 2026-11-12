@@ -41,7 +41,7 @@ public class CreditEntryController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =CREDIT_REPORT_VIEW)
     @GetMapping(GET_CREDIT_ENTRIES)
     public ResponseEntity<List<GetCreditEntries>> getCreditEntries() {
         log.info("Received request to fetch all credit entries.");
@@ -78,7 +78,7 @@ public class CreditEntryController {
 
         return ResponseEntity.ok(history);
     }
-
+    @HasPermission(value =CREDIT_REPORT_DELETE)
     @DeleteMapping(DELETE_CREDIT_ENTRY)
     public ResponseEntity<Map<String, Object>> deleteCreditEntry(@PathVariable int id){
 
@@ -86,13 +86,13 @@ public class CreditEntryController {
 
        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    @HasPermission(value =CREDIT_REPORT_UPDATE)
     @PatchMapping(UPDATE_CREDIT_ENTRY)
     public ResponseEntity<Map<String, Object>> updateCreditEntry(@PathVariable int id, @RequestBody CreditUpdateRequest creditUpdateRequest){
         Map<String, Object> response = creditService.updateCreditEntry(id, creditUpdateRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    @HasPermission(value =CREDIT_REPORT_VIEW)
     @GetMapping(GET_CREDIT_DETAILS)
     public ResponseEntity<ApiResponse<CreditDetailResponse>> getCreditDetails(@PathVariable int id) {
         log.info("Received request to fetch credit details for id: {}", id);

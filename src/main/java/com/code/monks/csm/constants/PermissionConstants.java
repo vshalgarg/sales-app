@@ -46,5 +46,14 @@ public final class PermissionConstants {
     public static final String ACCESS_MANAGEMENT_CURD = "PERM_ACCESS_MANAGEMENT_CURD";
 
     public static final String RETAIL_CREATE= "PERM_RETAILER_CREATE";
-    public static final String RETAIL_REPORT_VIEW="PERM_RETAILER_VIEW";
+    public static final String RETAIL_REPORT_VIEW="PERM_RETAIL_REPORT_VIEW";
+    public static final String BILL_REPORT_UPDATE = "PERM_BILL_REPORT_UPDATE";
+    public static final String BILL_REPORT_DELETE = "PERM_BILL_REPORT_DELETE";
+    public static final String CREDIT_REPORT_UPDATE= "PERM_CREDIT_REPORT_UPDATE";
+    public static final String CREDIT_REPORT_DELETE= "PERM_CREDIT_REPORT_DELETE";
+    public static final String PURCHASE_REPORT_UPDATE= "PERM_PURCHASE_REPORT_UPDATE";
+    public static final String PURCHASE_REPORT_DELETE= "PERM_PURCHASE_REPORT_DELETE";
+    public static final String RETAIL_REPORT_UPDATE= "PERM_RETAIL_REPORT_UPDATE";
+    public static final String RETAIL_REPORT_ADD_SUPPLIER= "PERM_RETAIL_REPORT_ADD_SUPPLIER";
+    public static final String RETAIL_REPORT_DELETE= "PERM_RETAIL_REPORT_DELETE";
 }

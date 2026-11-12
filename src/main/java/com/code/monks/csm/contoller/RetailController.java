@@ -40,7 +40,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAIL_REPORT_UPDATE)
     @PutMapping(UPDATE_RETAILER)
     public ResponseEntity<ApiResponse<Void>> updateRetail(@PathVariable Long id, @Valid @RequestBody UpdateRetailerRequestDto request) {
         retailService.updateRetail(id, request);
@@ -50,7 +50,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAIL_REPORT_VIEW)
     @GetMapping(GET_RETAILER)
     public ResponseEntity<ApiResponse<RetailResponseDto>> getRetailDetails(@PathVariable Long id) {
 
@@ -62,7 +62,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAIL_REPORT_VIEW)
     @GetMapping(SEARCH_RETAILERS)
     public ResponseEntity<ApiResponse<PagedResponseDto<RetailerListResponseDto>>> searchRetailers(
 
@@ -138,7 +138,7 @@ public class RetailController {
                 )
         );
     }
-
+    @HasPermission(value =RETAIL_REPORT_DELETE)
     @DeleteMapping(DELETE_RETAILER)
     public ResponseEntity<ApiResponse<Void>> deleteRetailer(@PathVariable Long retailId) {
 
@@ -175,7 +175,7 @@ public class RetailController {
                 ApiResponse.success("Retail supplier deleted successfully")
         );
     }
-
+    @HasPermission(value =RETAIL_REPORT_ADD_SUPPLIER)
     @PostMapping(ADD_RETAIL_SUPPLIER)
     public ResponseEntity<ApiResponse<Void>> addRetailSupplier(@Valid @RequestBody AddRetailSupplierRequestDto request) {
 
