@@ -45,6 +45,6 @@ public final class PermissionConstants {
 
     public static final String ACCESS_MANAGEMENT_CURD = "PERM_ACCESS_MANAGEMENT_CURD";
 
-    public static final String RETAILER_CREATE= "PERM_RETAILER_CREATE";
-    public static final String RETAILER_VIEW="PERM_RETAILER_VIEW";
+    public static final String RETAIL_CREATE= "PERM_RETAILER_CREATE";
+    public static final String RETAIL_REPORT_VIEW="PERM_RETAILER_VIEW";
 }
