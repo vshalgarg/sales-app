@@ -79,7 +79,6 @@ export default function Navbar({
     };
 
     document.addEventListener("click", handleClickOutside);
-
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
@@ -175,7 +174,8 @@ export default function Navbar({
                 }}
                 className="flex items-center w-full text-left px-4 py-2 hover:bg-brand-tab-inactive dark:hover:bg-zinc-700 text-brand-navy dark:text-white"
               >
-                <User className="w-4 h-4 mr-2 shrink-0" />My Profile</button>
+                <User className="w-4 h-4 mr-2 shrink-0" />My Profile
+              </button>
               <button
                 type="button"
                 onClick={() => {
