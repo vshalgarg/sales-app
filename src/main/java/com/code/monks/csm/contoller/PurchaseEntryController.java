@@ -74,7 +74,7 @@ public class PurchaseEntryController {
                 )
         );
     }
-
+    @HasPermission(value =PURCHASE_REPORT_UPDATE)
     @PatchMapping(value = UPDATE_PURCHASE_ENTRY, consumes = "multipart/form-data")
     public ResponseEntity<Map<String, Object>> updatePurchaseEntry(
             @PathVariable int id,
@@ -86,13 +86,13 @@ public class PurchaseEntryController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =PURCHASE_REPORT_DELETE)
     @DeleteMapping(DELETE_PURCHASE_ENTRY)
     public ResponseEntity<Map<String, Object>> deletePurchaseEntry(@PathVariable int id){
        Map<String, Object> response = purchaseService.deletePurchaseEntry(id);
        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    @HasPermission(value =PURCHASE_REPORT_VIEW)
     @GetMapping(GET_PURCHASE_DETAILS_BY_ID)
     public ResponseEntity<ApiResponse<PurchaseDetailResponse>> getPurchaseById(
             @PathVariable int id

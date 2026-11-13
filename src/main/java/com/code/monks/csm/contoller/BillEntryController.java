@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.code.monks.csm.constants.ApiPaths.*;
-import static com.code.monks.csm.constants.PermissionConstants.BILL_CREATE;
-import static com.code.monks.csm.constants.PermissionConstants.BILL_REPORT_VIEW;
+import static com.code.monks.csm.constants.PermissionConstants.*;
 
 @RequestMapping(BASE)
 @RestController
@@ -51,7 +50,7 @@ public class BillEntryController {
 
         return ResponseEntity.ok(response);
     }
-    @HasPermission(value =BILL_REPORT_VIEW)
+    @HasPermission(value =BILL_REPORT_UPDATE)
     @PatchMapping(
             value = UPDATE_BILL_ENTRY,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -68,7 +67,7 @@ public class BillEntryController {
 
         return ResponseEntity.ok(response);
     }
-
+    @HasPermission(value =BILL_REPORT_VIEW)
     @GetMapping(SEARCH_BILL_ENTRY)
     public ResponseEntity<ReportPagedResponseDto<BillListResponseDto>> getBillHistory(
             @RequestParam(required = false)
@@ -99,14 +98,14 @@ public class BillEntryController {
 
         return ResponseEntity.ok(history);
     }
-
+    @HasPermission(value =BILL_REPORT_DELETE)
     @DeleteMapping(DELETE_BILL_ENTRY + "/{billNumber}")
     public ResponseEntity<Map<String, Object>> deleteBillEntry( @PathVariable String billNumber){
 
        Map<String, Object> response = billService.deleteBillEntry(billNumber);
        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    @HasPermission(value =BILL_REPORT_VIEW)
     @GetMapping(GET_BILL_DETAILS)
     public ResponseEntity<BillDetailResponseDto> getBillDetail(@PathVariable String billNumber) {
         BillDetailResponseDto response = billService.getBillDetail(billNumber);
