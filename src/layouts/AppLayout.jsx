@@ -14,7 +14,10 @@ const AppLayout = () => {
   const location = useLocation();
   const { can, canAny  } = useAuth();
   const { config } = useConfig();
-  const retailConfig = config?.filter((item) => item.key === "RETAIL_FEATURE");
+  const isRetailEnabled =config?.some(
+    (item) =>item.key === "RETAIL_FEATURE" &&
+    (item.value === "true" || item.value === true)
+  ) ?? false;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -116,8 +119,6 @@ const AppLayout = () => {
       allowed: canAny([
         "SUPPLIER_CREATE",
         "SUPPLIER_VIEW",
-        "SUPPLIER_UPDATE",
-        "SUPPLIER_DELETE",
       ]),
       path: "/suppliers",
     },
@@ -125,8 +126,6 @@ const AppLayout = () => {
       allowed: canAny([
         "CUSTOMER_CREATE",
         "CUSTOMER_VIEW",
-        "CUSTOMER_UPDATE",
-        "CUSTOMER_DELETE",
       ]),
       path: "/customers",
     },
@@ -134,8 +133,6 @@ const AppLayout = () => {
       allowed: canAny([
         "USER_CREATE",
         "USER_VIEW",
-        "USER_UPDATE",
-        "USER_DELETE",
       ]),
       path: "/users",
     },
@@ -143,8 +140,6 @@ const AppLayout = () => {
       allowed: canAny([
         "TRANSPORT_CREATE",
         "TRANSPORT_VIEW",
-        "TRANSPORT_UPDATE",
-        "TRANSPORT_DELETE",
       ]),
       path: "/transports",
     },
@@ -152,8 +147,6 @@ const AppLayout = () => {
       allowed: canAny([
         "STAFF_CREATE",
         "STAFF_VIEW",
-        "STAFF_UPDATE",
-        "STAFF_DELETE",
       ]),
       path: "/staff",
     },
@@ -181,7 +174,7 @@ const AppLayout = () => {
             path: "/purchase-entry",
           },
           {
-            allowed: retailConfig?.[0]?.value === "true",
+            allowed: isRetailEnabled && can("RETAIL_CREATE"),
             path: "/retail-entry",
           },
         ].find((entry) => entry.allowed);
@@ -208,7 +201,7 @@ const AppLayout = () => {
             path: "/purchase",
           },
           {
-            allowed: retailConfig?.[0]?.value === "true",
+            allowed: isRetailEnabled && can("RETAIL_REPORT_VIEW"),
             path: "/retail",
           },
           {

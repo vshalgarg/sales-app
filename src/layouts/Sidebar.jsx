@@ -17,7 +17,7 @@ const SECTION_ICONS = {
   Transports: Truck,
   Users: User,
   Configurations: SlidersHorizontal,
-  AccessManagement: ShieldCheck,
+  "Access Management": ShieldCheck,
   "Bill Entry": FileText,
   "Credit Entry": CreditCard,
   "Purchase Entry": ShoppingCart,
@@ -31,45 +31,41 @@ const SECTION_ICONS = {
 
 const useSidebarMenuItems = (activeSection) => {
   const { config } = useConfig();
-  const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
   const { auth, can, canAny } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
+const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
+        (item.value === "true" || item.value === true)) ?? false;
+
+  const showRetailEntry =isRetailEnabled && can("RETAIL_CREATE");
+
+  const showRetailReporting = isRetailEnabled && can("RETAIL_REPORT_VIEW");
+
   const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");
 
   if (activeSection === "master") {
     return [
       ...(canAny([
         "SUPPLIER_CREATE",
-        "SUPPLIER_DELETE",
-        "SUPPLIER_UPDATE",
         "SUPPLIER_VIEW",
       ]) ? [{ name: "Suppliers", path: "/suppliers" }] : []),
 
         ...(canAny([
         "CUSTOMER_CREATE",
-        "CUSTOMER_DELETE",
-        "CUSTOMER_UPDATE",
         "CUSTOMER_VIEW",
       ]) ? [{ name: "Customers", path: "/customers" }] : []),
 
         ...(canAny([
         "STAFF_CREATE",
-        "STAFF_DELETE",
-        "STAFF_UPDATE",
         "STAFF_VIEW",
       ]) ? [{ name: "Staff", path: "/staff" }] : []),
 
         ...(canAny([
         "TRANSPORT_CREATE",
-        "TRANSPORT_DELETE",
-        "TRANSPORT_UPDATE",
         "TRANSPORT_VIEW",
       ]) ? [{ name: "Transports", path: "/transports" }] : []),
 
         ...(canAny([
         "USER_CREATE",
-        "USER_DELETE",
-        "USER_UPDATE",
         "USER_VIEW",
       ]) ? [{ name: "Users", path: "/users" }] : []),
       ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),
@@ -91,7 +87,7 @@ const useSidebarMenuItems = (activeSection) => {
       ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
       : []),
 
-      ...(retailConfig?.[0]?.value === "true"
+      ...(showRetailEntry
         ? [{ name: "Retail Entry", path: "/retail-entry" }]
         : []),
     ];
@@ -114,8 +110,8 @@ const useSidebarMenuItems = (activeSection) => {
       ...(can("LEDGER_REPORT_VIEW")
       ? [{ name: "Ledger", path: "/ledger" }]
       : []),
-
-      ...(retailConfig?.[0]?.value === "true"
+        
+      ...(showRetailReporting
         ? [{ name: "Retail", path: "/retail" }]
         : []),
     ];
