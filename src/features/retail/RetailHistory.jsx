@@ -52,8 +52,7 @@ const RetailHistory = ({
       width: "20%",
     },
   ];
- const { can } = useAuth();
-
+const { can } = useAuth();
 const canView = can("RETAIL_REPORT_VIEW");
 const canEdit = can("RETAIL_REPORT_UPDATE");
 const canAddSupplier = can("RETAIL_REPORT_ADD_SUPPLIER");

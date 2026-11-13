@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import {Users,User,UserCog,Truck,FileText,CreditCard,ShoppingCart,Store,Receipt,BookOpen,SlidersHorizontal,ShieldCheck,} from "lucide-react";
+import {Users, User, UserCog, Truck, FileText, CreditCard, ShoppingCart, Store, Receipt, BookOpen, SlidersHorizontal, ShieldCheck } from "lucide-react";
 import { useConfig } from "../contexts/ConfigContext";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -44,53 +44,54 @@ const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
 
   if (activeSection === "master") {
     return [
-      ...(canAny(["SUPPLIER_CREATE", "SUPPLIER_VIEW"])
-        ? [{ name: "Suppliers", path: "/suppliers" }]
-        : []),
+        ...(canAny([
+        "SUPPLIER_CREATE",
+        "SUPPLIER_VIEW"
+      ])? [{ name: "Suppliers", path: "/suppliers" }]: []),
 
-      ...(canAny(["CUSTOMER_CREATE", "CUSTOMER_VIEW"])
-        ? [{ name: "Customers", path: "/customers" }]
-        : []),
+        ...(canAny([
+        "CUSTOMER_CREATE",
+        "CUSTOMER_VIEW"
+      ])? [{ name: "Customers", path: "/customers" }]: []),
 
-      ...(canAny(["STAFF_CREATE", "STAFF_VIEW"])
-        ? [{ name: "Staff", path: "/staff" }]
-        : []),
+      ...(canAny([
+        "STAFF_CREATE", 
+        "STAFF_VIEW"
+      ])? [{ name: "Staff", path: "/staff" }]: []),
 
-      ...(canAny(["TRANSPORT_CREATE", "TRANSPORT_VIEW"])
-        ? [{ name: "Transports", path: "/transports" }]
-        : []),
+      ...(canAny([
+        "TRANSPORT_CREATE", 
+        "TRANSPORT_VIEW"
+      ])? [{ name: "Transports", path: "/transports" }]: []),
 
-      ...(canAny(["USER_CREATE", "USER_VIEW"])
-        ? [{ name: "Users", path: "/users" }]
-        : []),
+      ...(canAny([
+        "USER_CREATE", 
+        "USER_VIEW"])
+      ? [{ name: "Users", path: "/users" }]: []),
 
-      ...(canAccessManagement
-        ? [{ name: "Access Management", path: "/access-management" }]
-        : []),
+      ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }]: []),
 
-      ...(isAdmin
-        ? [{ name: "Configurations", path: "/configurations" }]
-        : []),
+      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }]: []),
     ];
   }
 
   if (activeSection === "entries") {
     return [
       ...(can("BILL_CREATE")
-        ? [{ name: "Bill Entry", path: "/bill-entry" }]
-        : []),
+      ? [{ name: "Bill Entry", path: "/bill-entry" }]
+      : []),
 
       ...(can("CREDIT_CREATE")
-        ? [{ name: "Credit Entry", path: "/credit-entry" }]
-        : []),
+      ? [{ name: "Credit Entry", path: "/credit-entry" }]
+      : []),
 
       ...(can("PURCHASE_CREATE")
-        ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
-        : []),
+      ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
+      : []),
 
       ...(showRetailEntry
-        ? [{ name: "Retail Entry", path: "/retail-entry" }]
-        : []),
+      ? [{ name: "Retail Entry", path: "/retail-entry" }]
+      : []),
     ];
   }
 
@@ -108,12 +109,12 @@ const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
         ? [{ name: "Purchase", path: "/purchase" }]
         : []),
 
-      ...(showRetailReporting
-        ? [{ name: "Retail", path: "/retail" }]
-        : []),
-
       ...(can("LEDGER_REPORT_VIEW")
         ? [{ name: "Ledger", path: "/ledger" }]
+        : []),
+        
+      ...(showRetailReporting
+        ? [{ name: "Retail", path: "/retail" }]
         : []),
     ];
   }
@@ -193,4 +194,3 @@ const Sidebar = ({
 );
 
 export default Sidebar;
-

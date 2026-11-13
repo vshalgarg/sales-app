@@ -21,7 +21,6 @@ const BillHistory = ({
 
   const { isMobile } = useResponsive();
   const { can } = useAuth();
-
   const canEditBill = can("BILL_REPORT_UPDATE");
   const canDeleteBill= can("BILL_REPORT_DELETE");
   const tableHeaderRowSx = {

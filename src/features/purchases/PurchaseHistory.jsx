@@ -27,7 +27,6 @@ const PurchaseHistory = ({
 }) => {
   const { isMobile } = useResponsive();
   const { can } = useAuth();
-
   const canEditPurchase = can("PURCHASE_REPORT_UPDATE");
   const canDeletePurchase= can("PURCHASE_REPORT_DELETE");
   const tableHeaderRowSx = {

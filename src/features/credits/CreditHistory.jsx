@@ -21,7 +21,6 @@ const CreditHistory = ({
 
   const { isMobile } = useResponsive();
   const { can } = useAuth();
-
   const canEditCredit = can("CREDIT_REPORT_UPDATE");
   const canDeleteCredit= can("CREDIT_REPORT_DELETE");
   const tableHeaderRowSx = {

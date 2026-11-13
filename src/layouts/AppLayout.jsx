@@ -174,8 +174,8 @@ const AppLayout = () => {
             path: "/purchase-entry",
           },
           {
-             allowed: isRetailEnabled && can("RETAIL_CREATE"),
-             path: "/retail-entry",
+            allowed: isRetailEnabled && can("RETAIL_CREATE"),
+            path: "/retail-entry",
           },
         ].find((entry) => entry.allowed);
 
@@ -201,8 +201,8 @@ const AppLayout = () => {
             path: "/purchase",
           },
           {
-             allowed: isRetailEnabled && can("RETAIL_REPORT_VIEW"),
-             path: "/retail",
+            allowed: isRetailEnabled && can("RETAIL_REPORT_VIEW"),
+            path: "/retail",
           },
           {
             allowed: can("LEDGER_REPORT_VIEW"),
