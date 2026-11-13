@@ -24,8 +24,10 @@ const getFirstAccessiblePath = (permissions = [], config = []) => {
     ? permissions
     : [];
 
-  const retailEnabled =
-    config?.find((item) => item.key === "RETAIL_FEATURE")?.value === "true";
+const retailEnabled =config?.some(
+    (item) =>item.key === "RETAIL_FEATURE" &&
+      (item.value === "true" || item.value === true)
+  ) ?? false;
 
   const hasAnyPermission = (requiredPermissions) =>
     requiredPermissions.some((permission) =>
@@ -84,7 +86,7 @@ const getFirstAccessiblePath = (permissions = [], config = []) => {
       path: "/purchase-entry",
     },
     {
-      allowed: retailEnabled,
+      allowed:retailEnabled && userPermissions.includes("RETAIL_CREATE"),
       path: "/retail-entry",
     },
 
@@ -102,7 +104,7 @@ const getFirstAccessiblePath = (permissions = [], config = []) => {
       path: "/purchase",
     },
     {
-      allowed: retailEnabled,
+      allowed:retailEnabled && userPermissions.includes("RETAIL_REPORT_VIEW"),
       path: "/retail",
     },
     {

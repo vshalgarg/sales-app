@@ -17,7 +17,7 @@ const SECTION_ICONS = {
   Transports: Truck,
   Users: User,
   Configurations: SlidersHorizontal,
-  AccessManagement: ShieldCheck,
+  "Access Management": ShieldCheck,
   "Bill Entry": FileText,
   "Credit Entry": CreditCard,
   "Purchase Entry": ShoppingCart,
@@ -31,9 +31,15 @@ const SECTION_ICONS = {
 
 const useSidebarMenuItems = (activeSection) => {
   const { config } = useConfig();
-  const retailConfig = config?.filter((c) => c.key === "RETAIL_FEATURE");
   const { auth, can, canAny } = useAuth();
   const isAdmin = auth?.role?.includes("ADMIN");
+const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
+        (item.value === "true" || item.value === true)) ?? false;
+
+  const showRetailEntry =isRetailEnabled && can("RETAIL_CREATE");
+
+  const showRetailReporting = isRetailEnabled && can("RETAIL_REPORT_VIEW");
+
   const canAccessManagement = can("ACCESS_MANAGEMENT_CURD");
 
   if (activeSection === "master") {
@@ -81,7 +87,7 @@ const useSidebarMenuItems = (activeSection) => {
       ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
       : []),
 
-      ...(retailConfig?.[0]?.value === "true"
+      ...(showRetailEntry
         ? [{ name: "Retail Entry", path: "/retail-entry" }]
         : []),
     ];
@@ -104,8 +110,8 @@ const useSidebarMenuItems = (activeSection) => {
       ...(can("LEDGER_REPORT_VIEW")
       ? [{ name: "Ledger", path: "/ledger" }]
       : []),
-
-      ...(retailConfig?.[0]?.value === "true"
+        
+      ...(showRetailReporting
         ? [{ name: "Retail", path: "/retail" }]
         : []),
     ];
