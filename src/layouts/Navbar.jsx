@@ -80,7 +80,7 @@ export default function Navbar({
 
     document.addEventListener("click", handleClickOutside);
 
-    return () => {document.removeEventListener("click", handleClickOutside);};
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const availableSections = ["master", "entries", "reporting", "graph"].filter(
@@ -184,7 +184,7 @@ export default function Navbar({
                 }}
                 className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-brand-tab-inactive dark:hover:bg-zinc-700 dark:text-red-400"
               >
-                <LogOut className="w-4 h-4 mr-2 shrink-0" />Logout
+                <LogOut className="w-4 h-4 mr-2 shrink-0" /> Logout
               </button>
             </div>
           )}
@@ -200,7 +200,7 @@ export default function Navbar({
 
             <div className="space-y-2 text-brand-navy dark:text-gray-100">
               <p>
-                <strong>Username:</strong>{" "}{auth?.username || "Not available"}
+                <strong>Username:</strong> {auth?.username || "Not available"}
               </p>
 
               <p>

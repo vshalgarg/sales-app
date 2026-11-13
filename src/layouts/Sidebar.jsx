@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import {Users, User, UserCog, Truck, FileText, CreditCard, ShoppingCart, Store, Receipt, BookOpen, SlidersHorizontal, ShieldCheck } from "lucide-react";
+import { Users, User, UserCog, Truck, FileText, CreditCard, ShoppingCart, Store, Receipt, BookOpen, SlidersHorizontal, ShieldCheck } from "lucide-react";
 import { useConfig } from "../contexts/ConfigContext";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -44,33 +44,31 @@ const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
 
   if (activeSection === "master") {
     return [
-        ...(canAny([
+      ...(canAny([
         "SUPPLIER_CREATE",
-        "SUPPLIER_VIEW"
-      ])? [{ name: "Suppliers", path: "/suppliers" }]: []),
+        "SUPPLIER_VIEW",
+      ]) ? [{ name: "Suppliers", path: "/suppliers" }]: []),
 
         ...(canAny([
         "CUSTOMER_CREATE",
-        "CUSTOMER_VIEW"
-      ])? [{ name: "Customers", path: "/customers" }]: []),
+        "CUSTOMER_VIEW",
+      ]) ? [{ name: "Customers", path: "/customers" }]: []),
 
-      ...(canAny([
+        ...(canAny([
         "STAFF_CREATE", 
-        "STAFF_VIEW"
-      ])? [{ name: "Staff", path: "/staff" }]: []),
+        "STAFF_VIEW",
+      ]) ? [{ name: "Staff", path: "/staff" }]: []),
 
-      ...(canAny([
+       ...(canAny([
         "TRANSPORT_CREATE", 
-        "TRANSPORT_VIEW"
-      ])? [{ name: "Transports", path: "/transports" }]: []),
+        "TRANSPORT_VIEW",
+      ]) ? [{ name: "Transports", path: "/transports" }]: []),
 
-      ...(canAny([
+        ...(canAny([
         "USER_CREATE", 
-        "USER_VIEW"])
-      ? [{ name: "Users", path: "/users" }]: []),
-
+        "USER_VIEW"
+      ])? [{ name: "Users", path: "/users" }]: []),
       ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }]: []),
-
       ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }]: []),
     ];
   }
@@ -81,37 +79,37 @@ const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
       ? [{ name: "Bill Entry", path: "/bill-entry" }]
       : []),
 
-      ...(can("CREDIT_CREATE")
+    ...(can("CREDIT_CREATE")
       ? [{ name: "Credit Entry", path: "/credit-entry" }]
       : []),
 
-      ...(can("PURCHASE_CREATE")
+    ...(can("PURCHASE_CREATE")
       ? [{ name: "Purchase Entry", path: "/purchase-entry" }]
       : []),
 
       ...(showRetailEntry
-      ? [{ name: "Retail Entry", path: "/retail-entry" }]
-      : []),
+       ? [{ name: "Retail Entry", path: "/retail-entry" }]
+       : []),
     ];
   }
 
   if (activeSection === "reporting") {
     return [
       ...(can("BILL_REPORT_VIEW")
-        ? [{ name: "Bills", path: "/bills" }]
-        : []),
+      ? [{ name: "Bills", path: "/bills" }]
+      : []),
 
-      ...(can("CREDIT_REPORT_VIEW")
-        ? [{ name: "Credit", path: "/credits" }]
-        : []),
+    ...(can("CREDIT_REPORT_VIEW")
+      ? [{ name: "Credit", path: "/credits" }]
+      : []),
 
-      ...(can("PURCHASE_REPORT_VIEW")
-        ? [{ name: "Purchase", path: "/purchase" }]
-        : []),
+    ...(can("PURCHASE_REPORT_VIEW")
+      ? [{ name: "Purchase", path: "/purchase" }]
+      : []),
 
       ...(can("LEDGER_REPORT_VIEW")
-        ? [{ name: "Ledger", path: "/ledger" }]
-        : []),
+      ? [{ name: "Ledger", path: "/ledger" }]
+      : []),
         
       ...(showRetailReporting
         ? [{ name: "Retail", path: "/retail" }]
