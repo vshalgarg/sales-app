@@ -47,29 +47,29 @@ const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
       ...(canAny([
         "SUPPLIER_CREATE",
         "SUPPLIER_VIEW",
-      ]) ? [{ name: "Suppliers", path: "/suppliers" }]: []),
+      ]) ? [{ name: "Suppliers", path: "/suppliers" }] : []),
 
         ...(canAny([
         "CUSTOMER_CREATE",
         "CUSTOMER_VIEW",
-      ]) ? [{ name: "Customers", path: "/customers" }]: []),
+      ]) ? [{ name: "Customers", path: "/customers" }] : []),
 
         ...(canAny([
-        "STAFF_CREATE", 
+        "STAFF_CREATE",
         "STAFF_VIEW",
-      ]) ? [{ name: "Staff", path: "/staff" }]: []),
-
-       ...(canAny([
-        "TRANSPORT_CREATE", 
-        "TRANSPORT_VIEW",
-      ]) ? [{ name: "Transports", path: "/transports" }]: []),
+      ]) ? [{ name: "Staff", path: "/staff" }] : []),
 
         ...(canAny([
-        "USER_CREATE", 
-        "USER_VIEW"
-      ])? [{ name: "Users", path: "/users" }]: []),
-      ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }]: []),
-      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }]: []),
+        "TRANSPORT_CREATE",
+        "TRANSPORT_VIEW",
+      ]) ? [{ name: "Transports", path: "/transports" }] : []),
+
+        ...(canAny([
+        "USER_CREATE",
+        "USER_VIEW",
+      ]) ? [{ name: "Users", path: "/users" }] : []),
+      ...(canAccessManagement ? [{ name: "Access Management", path: "/access-management" }] : []),
+      ...(isAdmin ? [{ name: "Configurations", path: "/configurations" }] : []),
     ];
   }
 
@@ -88,8 +88,8 @@ const isRetailEnabled =config?.some((item) => item.key === "RETAIL_FEATURE" &&
       : []),
 
       ...(showRetailEntry
-       ? [{ name: "Retail Entry", path: "/retail-entry" }]
-       : []),
+        ? [{ name: "Retail Entry", path: "/retail-entry" }]
+        : []),
     ];
   }
 
