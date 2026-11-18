@@ -68,7 +68,7 @@ public class MonthlyPendingPaymentScheduler {
                         <p>
                         The report includes details of outstanding customer payments for your reference.
                         </p>
-                        <p>Regards,<br/>Sales Management Team</p>
+                        <p>Regards,<br/>Hisabio</p>
                     </body>
                     </html>
                     """.formatted(
