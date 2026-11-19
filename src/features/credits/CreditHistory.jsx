@@ -14,7 +14,7 @@ const CreditHistory = ({
   totalAmount,
   onPageChange,
   onView,
-  onEditUser,
+  onEdit,
   onDelete,
   emptyMessage,
 }) => {
@@ -101,7 +101,7 @@ const CreditHistory = ({
       totalAmount={totalAmount}
       actions={true}
       onView={onView}
-      onEditUser={canEditCredit? onEditUser : undefined}
+      onEdit={canEditCredit? onEdit : undefined}
       onDelete={canDeleteCredit? onDelete: undefined}
       emptyMessage={emptyMessage}
       headerRowSx={tableHeaderRowSx}
