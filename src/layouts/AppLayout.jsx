@@ -14,7 +14,10 @@ const AppLayout = () => {
   const location = useLocation();
   const { can, canAny  } = useAuth();
   const { config } = useConfig();
-  const retailConfig = config?.filter((item) => item.key === "RETAIL_FEATURE");
+  const isRetailEnabled =config?.some(
+    (item) =>item.key === "RETAIL_FEATURE" &&
+    (item.value === "true" || item.value === true)
+  ) ?? false;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -171,7 +174,7 @@ const AppLayout = () => {
             path: "/purchase-entry",
           },
           {
-            allowed: retailConfig?.[0]?.value === "true",
+            allowed: isRetailEnabled && can("RETAIL_CREATE"),
             path: "/retail-entry",
           },
         ].find((entry) => entry.allowed);
@@ -198,7 +201,7 @@ const AppLayout = () => {
             path: "/purchase",
           },
           {
-            allowed: retailConfig?.[0]?.value === "true",
+            allowed: isRetailEnabled && can("RETAIL_REPORT_VIEW"),
             path: "/retail",
           },
           {
