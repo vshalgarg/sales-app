@@ -190,7 +190,7 @@ const Users = () => {
               data={paginatedUsers}
               loading={false}
               actions={can("USER_UPDATE") || can("USER_DELETE")}
-              onEdit={
+              onEditUser={
                 can("USER_UPDATE")
                 ? (u) => {
                   setSelectedUser(u);
@@ -208,7 +208,7 @@ const Users = () => {
                 : undefined
               }
 
-              onEditUser={
+              onEdit={
                 can("USER_UPDATE")
                 ? (u) => {
                   setUserToEdit(u);
