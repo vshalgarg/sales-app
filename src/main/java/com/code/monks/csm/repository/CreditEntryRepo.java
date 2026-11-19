@@ -3,6 +3,7 @@ package com.code.monks.csm.repository;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
 import com.code.monks.csm.dto.analytics.projection.CustomerAmountView;
 import com.code.monks.csm.dto.analytics.projection.SupplierAmountView;
+import com.code.monks.csm.dto.ledger.PendingReceivedAmountView;
 import com.code.monks.csm.entity.CreditEntryEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -84,4 +85,15 @@ public interface CreditEntryRepo extends JpaRepository<CreditEntryEntity,Integer
 
     long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
 
+
+    @Query("""
+    SELECT
+        c.customerId AS customerId,
+        c.supplierId AS supplierId,
+        COALESCE(SUM(c.receivedAmount), 0) AS amount
+    FROM CreditEntryEntity c
+    WHERE c.date <= :asOfDate
+    GROUP BY c.customerId, c.supplierId
+""")
+    List<PendingReceivedAmountView> getPendingReceivedAmounts(@Param("asOfDate") LocalDate asOfDate);
 }

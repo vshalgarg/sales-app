@@ -5,5 +5,11 @@ import java.util.List;
 public record SendEmailRequestDTO(
         List<String> to,
         String subject,
-        String html
-) {}
+        String html,
+        List<EmailAttachmentDTO> attachments
+) {
+    public SendEmailRequestDTO(List<String> to, String subject, String html)
+    {
+        this(to, subject, html, List.of());
+    }
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Monthly Pending Payment Report</title>
+</head>
+<body style="font-family: 'NotoSans', sans-serif; color: #333;">
+<div style="max-width: 900px; margin: auto; padding: 20px;">
+    <h2>Monthly Pending Customer Payment Report</h2>
+    <p>
+        <strong>Report Month:</strong>
+        <span th:text="${reportMonth}"></span>
+    </p>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+        <tr style="background-color: #f2f2f2;">
+            <th style="padding: 12px; border: 1px solid #ddd;">Customer Name</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Supplier Name</th>
+            <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Pending Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(pendingPayments)}">
+            <td colspan="3" style="padding: 15px; text-align: center;">
+                There are no outstanding customer payments for this month.
+            </td>
+        </tr>
+        <tr th:each="payment : ${pendingPayments}">
+            <td style="padding: 10px; border: 1px solid #ddd;" th:text="${payment.customerName}"></td>
+            <td style="padding: 10px; border: 1px solid #ddd;" th:text="${payment.supplierName}"></td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: right;" th:text="${'₹' + #numbers.formatDecimal(payment.pendingAmount, 1, 'COMMA', 2, 'POINT')}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <h3 style="text-align: right; margin-top: 25px;">
+        Total Outstanding Amount:
+        <span th:text="${'₹' + #numbers.formatDecimal(totalOutstanding, 1, 'COMMA', 2, 'POINT')}"></span>
+    </h3>
+    <p style="color: #777; font-size: 12px;">This is an automatically generated monthly report.</p>
+</div>
+</body>
+</html>
