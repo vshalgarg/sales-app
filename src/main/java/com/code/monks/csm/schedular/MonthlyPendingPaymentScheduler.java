@@ -42,7 +42,7 @@ public class MonthlyPendingPaymentScheduler {
             zone = "${monthly-pending-report.timezone:Asia/Kolkata}"
     )
     public void sendMonthlyPendingPaymentReport() {
-        YearMonth reportMonth = YearMonth.now(REPORT_ZONE).minusMonths(1);;
+        YearMonth reportMonth = YearMonth.now(REPORT_ZONE).minusMonths(1);
         LocalDate asOfDate = reportMonth.atEndOfMonth();
         try {
             log.info("Generating monthly pending payment report for {} as of {}", reportMonth, asOfDate);

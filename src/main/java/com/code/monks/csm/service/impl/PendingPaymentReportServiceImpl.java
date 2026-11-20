@@ -43,7 +43,7 @@ public class PendingPaymentReportServiceImpl implements PendingPaymentReportServ
             BigInteger totalBillAmount = bill.getAmount() == null ? BigInteger.ZERO : bill.getAmount();
             BigInteger totalReceivedAmount = receivedAmountMap.getOrDefault(key,BigInteger.ZERO);
             BigInteger pendingAmount = totalBillAmount.subtract(totalReceivedAmount);
-            if (pendingAmount.compareTo(BigInteger.ZERO) > 0) {
+            if (pendingAmount.compareTo(BigInteger.ZERO) != 0) {
                 BigDecimal pendingInRupees = MoneyUtil.toRupee(pendingAmount);
                 result.add(new PendingPaymentReportDTO(
                                 bill.getCustomerId(),

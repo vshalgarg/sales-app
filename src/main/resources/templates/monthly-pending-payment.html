@@ -28,7 +28,7 @@
         <tr th:each="payment : ${pendingPayments}">
             <td style="padding: 10px; border: 1px solid #ddd;" th:text="${payment.customerName}"></td>
             <td style="padding: 10px; border: 1px solid #ddd;" th:text="${payment.supplierName}"></td>
-            <td style="padding: 10px; border: 1px solid #ddd; text-align: right;" th:text="${'₹' + #numbers.formatDecimal(payment.pendingAmount, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: right;" th:text="${(payment.pendingAmount.signum() < 0 ? '-₹ ' : '₹ ') + #numbers.formatDecimal(payment.pendingAmount.abs(), 1, 'COMMA', 2, 'POINT')}"></td>
         </tr>
         </tbody>
     </table>
