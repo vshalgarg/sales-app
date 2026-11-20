@@ -4,12 +4,14 @@ class RoleDropdown extends StatefulWidget {
   final String? value;
   final ValueChanged<String?> onChanged;
   final String? errorText;
+  final List<String>? roles;
 
   const RoleDropdown({
     super.key,
     this.value,
     required this.onChanged,
     this.errorText,
+    this.roles,
   });
 
   @override
@@ -22,10 +24,7 @@ class _RoleDropdownState extends State<RoleDropdown> {
 
   OverlayEntry? _overlayEntry;
 
-  final List<String> roles = const [
-    "ADMIN",
-    "AGENT",
-  ];
+  List<String> get roles => widget.roles ?? [];
 
   bool get _isOpen => _overlayEntry != null;
 
@@ -164,7 +163,7 @@ class _RoleDropdownState extends State<RoleDropdown> {
         ),
 
         decoration: InputDecoration(
-          labelText: "Role * ",
+          labelText: "Role ",
 
           hintStyle: const TextStyle(
             fontSize: 16,

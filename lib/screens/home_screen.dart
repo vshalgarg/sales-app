@@ -11,7 +11,9 @@ import 'package:hisabio/screens/reporting_screen/retail.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors_used.dart';
 import '../provider/master_provider/config_provider.dart';
+import '../provider/master_provider/permission_provider.dart';
 import '../shared_preferences/login_token.dart';
+import 'master_screens/access_management.dart';
 import 'master_screens/configurations.dart';
 import 'master_screens/customer.dart';
 import 'master_screens/staff.dart';
@@ -61,6 +63,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final canShowSupplier =
+        permissionProvider.canView('SUPPLIER') ||
+            permissionProvider.canCreate('SUPPLIER');
+
+    final canShowCustomer =
+        permissionProvider.canView('CUSTOMER') ||
+            permissionProvider.canCreate('CUSTOMER');
+
+    final canShowUser =
+        permissionProvider.canView('USER') ||
+            permissionProvider.canCreate('USER');
+
+    final canShowStaff =
+        permissionProvider.canView('STAFF') ||
+            permissionProvider.canCreate('STAFF');
+
+    final canShowTransport =
+        permissionProvider.canView('TRANSPORT') ||
+            permissionProvider.canCreate('TRANSPORT');
+    final canShowAccessManagement =
+    permissionProvider.hasPermission('ACCESS_MANAGEMENT_CURD');
+
+    final canShowBills =
+        permissionProvider.canView('BILL_REPORT') ||
+            permissionProvider.canCreate('BILL');
+
+    final canShowCredit =
+        permissionProvider.canView('CREDIT_REPORT') ||
+            permissionProvider.canCreate('CREDIT');
+
+    final canShowPurchase =
+        permissionProvider.canView('PURCHASE_REPORT') ||
+            permissionProvider.canCreate('PURCHASE');
+
+    final canShowLedger =
+    permissionProvider.canView('LEDGER_REPORT');
     final provider = context.watch<ConfigProvider>();
     return Scaffold(
       appBar: NewCustomAppBar(),
@@ -98,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisSpacing: 16,
                     physics: NeverScrollableScrollPhysics(),
                     children: [
+                      if (canShowSupplier)
                       menuItemCard(
                         imagePath: "assets/images/supplier 1.png",
                         title: "Suppliers",
@@ -110,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+                      if (canShowCustomer)
                       menuItemCard(
                         imagePath: "assets/images/customer.png",
                         title: "Customers",
@@ -122,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+                      if (canShowStaff)
                       menuItemCard(
                         imagePath: "assets/images/teamwork.png",
                         title: "Staff",
@@ -134,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+                      if (canShowUser)
                       menuItemCard(
                         imagePath: "assets/images/users.png",
                         title: "Users",
@@ -146,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+                      if (canShowTransport)
                       menuItemCard(
                         imagePath: "assets/images/transport.png",
                         title: "Transport",
@@ -158,7 +203,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
-                      if (role.toUpperCase() != "AGENT")
+                      if (canShowAccessManagement)
+                      menuItemCard(
+                        imagePath: "assets/images/users.png",
+                        title: "Access Management",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>AccessManagementScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      if (role.trim().toUpperCase() == "ADMIN")
                       menuItemCard(
                         imagePath: "assets/images/config.png",
                         title: "Configurations",
@@ -171,6 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+                      if (canShowBills)
                       menuItemCard(
                         imagePath: "assets/images/bill.png",
                         title: "Bills",
@@ -181,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) =>  Bills()));
                         },
                       ),
+                      if (canShowCredit)
                       menuItemCard(
                         imagePath: "assets/images/credits.png",
                         title: "Credits",
@@ -191,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
-
+                      if (canShowPurchase)
                       menuItemCard(
                         imagePath: "assets/images/purchase.png",
                         title: "Purchases",
@@ -202,7 +262,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => Purchases()));
                         },
                       ),
-                      if (provider.retailEnabled)
+                      if (provider.retailEnabled &&
+                          (permissionProvider.hasPermission('RETAIL_CREATE') ||
+                              permissionProvider.hasPermission('RETAIL_REPORT_VIEW')))
                         menuItemCard(
                           imagePath: "assets/images/retailors.png",
                           title: "Retailors",
@@ -213,6 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     builder: (context) => Retail()));
                           },
                         ),
+                      if (canShowLedger)
                       menuItemCard(
                         imagePath: "assets/images/ledger.png",
                         title: "Ledger",

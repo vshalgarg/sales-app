@@ -14,6 +14,7 @@ import 'package:hisabio/model_classes/entries/entries_customer_model.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'package:public_file_saver/public_file_saver.dart';
 import '../../constants/view_image_method.dart';
 import '../../dialog_boxes/entry_dialogboxes/add_new_bill_item.dart';
@@ -104,14 +105,14 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         style: const TextStyle(color: Colors.white, fontSize: 18),
         children: !isViewMode
             ? const [
-                TextSpan(
-                  text: ' * ',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ]
+          TextSpan(
+            text: ' * ',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ]
             : [],
       ),
     );
@@ -158,7 +159,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
       if (safeFileName.isEmpty) {
         safeFileName =
-            'attachment_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        'attachment_${DateTime.now().millisecondsSinceEpoch}.jpg';
       }
 
       final extension = safeFileName.contains('.')
@@ -258,6 +259,14 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   @override
   void initState() {
     super.initState();
+
+    final permissionProvider = context.read<PermissionProvider>();
+    final allowed = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('BILL'),
+      FormMode.view => permissionProvider.hasPermission('BILL_REPORT_VIEW'),
+      FormMode.edit => permissionProvider.hasPermission('BILL_REPORT_UPDATE'),
+    };
+    if (!allowed) return;
 
     if (widget.mode == FormMode.add) {
       dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
@@ -393,89 +402,89 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
             duration: const Duration(milliseconds: 250),
             child: billItemExpanded[index]
                 ? Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        _billItemField(
-                          icon: Iconsax.box_1,
-                          title: "Pieces",
-                          subtitle: "Enter number of pieces",
-                          value: item.pieces?.toString() ?? "-",
-                        ),
-                        _billItemField(
-                          icon: Iconsax.money_2,
-                          title: "Gross Amount",
-                          subtitle: "Enter gross amount",
-                          value: _formatAmount(item.grossAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.percentage_circle,
-                          title: "Discount %",
-                          subtitle: "Enter discount percentage",
-                          value: _formatAmount(item.discountPercent),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.discount_shape,
-                          title: "Discount Amount",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(item.discountAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.add_square,
-                          title: "Add-On Amount",
-                          subtitle: "Enter add-on amount",
-                          value: _formatAmount(item.addOnAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.card,
-                          title: "ECR Amount",
-                          subtitle: "Enter ECR amount",
-                          value: _formatAmount(item.ecrAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.percentage_circle,
-                          title: "GST %",
-                          subtitle: "Enter GST percentage",
-                          value: _formatAmount(item.gstPercent),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.calculator,
-                          title: "GST Amount",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(item.gstAmount),
-                          isLast: true,
-                        ),
-                        _billItemField(
-                          icon: Iconsax.receipt_item,
-                          title: "Taxable Value",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(
-                            item.taxableValue ??
-                                ((item.grossAmount ?? 0) -
-                                    (item.discountAmount ?? 0) +
-                                    (item.addOnAmount ?? 0) +
-                                    (item.ecrAmount ?? 0)),
-                          ),
-                        ),
-
-                        _billItemField(
-                          icon: Iconsax.wallet_2,
-                          title: "Bill Amount",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(
-                            item.totalAmount ??
-                                ((item.taxableValue ??
-                                        ((item.grossAmount ?? 0) -
-                                            (item.discountAmount ?? 0) +
-                                            (item.addOnAmount ?? 0) +
-                                            (item.ecrAmount ?? 0))) +
-                                    (item.gstAmount ?? 0)),
-                          ),
-                          isLast: true,
-                        ),
-                      ],
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  _billItemField(
+                    icon: Iconsax.box_1,
+                    title: "Pieces",
+                    subtitle: "Enter number of pieces",
+                    value: item.pieces?.toString() ?? "-",
+                  ),
+                  _billItemField(
+                    icon: Iconsax.money_2,
+                    title: "Gross Amount",
+                    subtitle: "Enter gross amount",
+                    value: _formatAmount(item.grossAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.percentage_circle,
+                    title: "Discount %",
+                    subtitle: "Enter discount percentage",
+                    value: _formatAmount(item.discountPercent),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.discount_shape,
+                    title: "Discount Amount",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(item.discountAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.add_square,
+                    title: "Add-On Amount",
+                    subtitle: "Enter add-on amount",
+                    value: _formatAmount(item.addOnAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.card,
+                    title: "ECR Amount",
+                    subtitle: "Enter ECR amount",
+                    value: _formatAmount(item.ecrAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.percentage_circle,
+                    title: "GST %",
+                    subtitle: "Enter GST percentage",
+                    value: _formatAmount(item.gstPercent),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.calculator,
+                    title: "GST Amount",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(item.gstAmount),
+                    isLast: true,
+                  ),
+                  _billItemField(
+                    icon: Iconsax.receipt_item,
+                    title: "Taxable Value",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(
+                      item.taxableValue ??
+                          ((item.grossAmount ?? 0) -
+                              (item.discountAmount ?? 0) +
+                              (item.addOnAmount ?? 0) +
+                              (item.ecrAmount ?? 0)),
                     ),
-                  )
+                  ),
+
+                  _billItemField(
+                    icon: Iconsax.wallet_2,
+                    title: "Bill Amount",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(
+                      item.totalAmount ??
+                          ((item.taxableValue ??
+                              ((item.grossAmount ?? 0) -
+                                  (item.discountAmount ?? 0) +
+                                  (item.addOnAmount ?? 0) +
+                                  (item.ecrAmount ?? 0))) +
+                              (item.gstAmount ?? 0)),
+                    ),
+                    isLast: true,
+                  ),
+                ],
+              ),
+            )
                 : const SizedBox.shrink(),
           ),
         ],
@@ -503,8 +512,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
             border: isLast
                 ? null
                 : const Border(
-                    bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
-                  ),
+              bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
+            ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -630,7 +639,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     final provider = context.read<EntriesProvider>();
 
-             //  SUPPLIER
+    //  SUPPLIER
 
     final supplier = provider.entries.where(
           (e) => e.id == bill.supplierId,
@@ -650,7 +659,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       selectedSupplierName = bill.supplierName;
     }
 
-              //  CUSTOMER
+    //  CUSTOMER
 
     final customer = provider.customerEntries.where(
           (e) => e.id == bill.customerId,
@@ -670,7 +679,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       selectedCustomerName = bill.customerName;
     }
 
-           //  TRANSPORT
+    //  TRANSPORT
 
     selectedTransportName = bill.transport;
 
@@ -682,7 +691,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         ? transportMatches.first
         : null;
 
-           //  ATTACHMENTS
+    //  ATTACHMENTS
 
     existingObjectKeys = List<String>.from(
       bill.objectKeys ?? [],
@@ -773,11 +782,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       remarks: remarksController.text.isEmpty ? null : remarksController.text,
       taxableValue: billItems.fold<double>(
         0.0,
-        (sum, item) => sum + (item.taxableValue ?? 0),
+            (sum, item) => sum + (item.taxableValue ?? 0),
       ),
       billAmount: billItems.fold<double>(
         0.0,
-        (sum, item) => sum + (item.totalAmount ?? 0),
+            (sum, item) => sum + (item.totalAmount ?? 0),
       ),
       items: billItems,
     );
@@ -800,7 +809,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
         Navigator.pop(context, true);
       } else {
-      //  ScaffoldSnackBar.show(context, "Failed to save bill");
+        //  ScaffoldSnackBar.show(context, "Failed to save bill");
       }
     } catch (e) {
       if (!context.mounted) return;
@@ -992,28 +1001,43 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+    final allowed = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('BILL'),
+      FormMode.view => permissionProvider.hasPermission('BILL_REPORT_VIEW'),
+      FormMode.edit => permissionProvider.hasPermission('BILL_REPORT_UPDATE'),
+    };
+
+    if (!allowed) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to perform this action.'),
+        ),
+      );
+    }
+
     final provider = context.read<EntriesProvider>();
     final bill = context.read<BillProvider>().billDetails;
     final totalTaxableValue = billItems.fold<double>(
       0,
-      (sum, item) =>
-          sum +
+          (sum, item) =>
+      sum +
           ((item.taxableValue ??
-                  ((item.grossAmount ?? 0) -
-                      (item.discountAmount ?? 0) +
-                      (item.addOnAmount ?? 0) +
-                      (item.ecrAmount ?? 0)))
+              ((item.grossAmount ?? 0) -
+                  (item.discountAmount ?? 0) +
+                  (item.addOnAmount ?? 0) +
+                  (item.ecrAmount ?? 0)))
               .toDouble()),
     );
 
     final totalBillAmount = billItems.fold<double>(0, (sum, item) {
       final taxable =
-          (item.taxableValue ??
-                  ((item.grossAmount ?? 0) -
-                      (item.discountAmount ?? 0) +
-                      (item.addOnAmount ?? 0) +
-                      (item.ecrAmount ?? 0)))
-              .toDouble();
+      (item.taxableValue ??
+          ((item.grossAmount ?? 0) -
+              (item.discountAmount ?? 0) +
+              (item.addOnAmount ?? 0) +
+              (item.ecrAmount ?? 0)))
+          .toDouble();
 
       final total = (item.totalAmount ?? (taxable + (item.gstAmount ?? 0)))
           .toDouble();
@@ -1035,11 +1059,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         ),
         leading: widget.mode == FormMode.view
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              )
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        )
             : null,
         actions: [
           if (widget.mode != FormMode.view)
@@ -1137,7 +1161,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             controller: invoiceController,
                             hintText: "Invoice",
                             autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
+                            AutovalidateMode.onUserInteraction,
                             onChanged: (value) {
                               if (value.trim().isNotEmpty) {
                                 _formKey.currentState?.validate();
@@ -1217,7 +1241,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               },
                               onChanged: (value) {
                                 final supplier = provider.entries.firstWhere(
-                                  (e) => e.supplierName == value,
+                                      (e) => e.supplierName == value,
                                 );
 
                                 debugPrint(
@@ -1338,7 +1362,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                   selectedCustomer = provider.customerEntries
                                       .firstWhere(
                                         (e) => e.customerName == value,
-                                      );
+                                  );
                                 });
 
                                 customerGroupController.text =
@@ -1620,12 +1644,12 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         GestureDetector(
                           onTap: () async {
                             final BillItem? item =
-                                await Navigator.push<BillItem>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AddNewBillItem(),
-                                  ),
-                                );
+                            await Navigator.push<BillItem>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AddNewBillItem(),
+                              ),
+                            );
 
                             if (item != null) {
                               setState(() {
@@ -1885,13 +1909,13 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           else
                             Column(
                               children: List.generate(existingUrls.length, (
-                                index,
-                              ) {
+                                  index,
+                                  ) {
                                 final imageUrl = existingUrls[index];
 
                                 final fileName =
-                                    existingFileNames.length > index &&
-                                        existingFileNames[index].isNotEmpty
+                                existingFileNames.length > index &&
+                                    existingFileNames[index].isNotEmpty
                                     ? existingFileNames[index]
                                     : "Attachment ${index + 1}";
 
@@ -2032,8 +2056,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         border: isLast
             ? null
             : const Border(
-                bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
-              ),
+          bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
+        ),
       ),
       child: Row(
         children: [

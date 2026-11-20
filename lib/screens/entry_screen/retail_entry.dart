@@ -14,6 +14,7 @@ import '../../model_classes/entries/entries_customer_model.dart';
 import '../../model_classes/entries/get_staff_entry.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../widgets/entry_bottom_action_bar.dart';
 
 class RetailEntryScreen extends StatefulWidget {
@@ -77,6 +78,9 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
     super.initState();
 
     dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    final permissionProvider = context.read<PermissionProvider>();
+    if (!permissionProvider.hasPermission('RETAIL_CREATE')) return;
+
     final provider = context.read<EntriesProvider>();
     Future.microtask(() async {
       await Future.wait([
@@ -107,6 +111,10 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
   }
 
   Future<void> _saveRetailEntry() async {
+    if (!context.read<PermissionProvider>().hasPermission('RETAIL_CREATE')) {
+      return;
+    }
+
     setState(() {
       isExpanded = true;
       isSupplierExpanded = true;
@@ -133,23 +141,36 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
     final apiDate = DateFormat('yyyy-MM-dd').format(inputDate);
 
+    final validSuppliers = List.generate(
+      selectedSupplierIds.length,
+          (index) {
+        final supplierId = selectedSupplierIds[index];
+
+        if (supplierId == null) return null;
+
+        return {
+          "supplierId": supplierId,
+          "totalAmount": double.tryParse(totalAmount[index].text) ?? 0,
+          "depositAmount": double.tryParse(depositAmount[index].text) ?? 0,
+          "balanceAmount": double.tryParse(balancedAmount[index].text) ?? 0,
+        };
+      },
+    ).whereType<Map<String, dynamic>>().toList();
+
+    if (validSuppliers.isEmpty) {
+      ScaffoldSnackBar.show(context, "Please select at least one supplier");
+      return;
+    }
+
     final payload = {
       "date": apiDate,
-      "name": nameController.text,
+      "name": nameController.text.trim(),
       "staffId": selectedStaff?.staffId,
       "referredByCustomerId": selectedReferred?.id,
       "commission": commissionController.text.trim().isEmpty
           ? null
           : commissionController.text.trim(),
-      "suppliers": List.generate(
-        selectedSuppliers.length,
-        (index) => {
-          "supplierId": selectedSupplierIds[index],
-          "totalAmount": double.tryParse(totalAmount[index].text) ?? 0,
-          "depositAmount": double.tryParse(depositAmount[index].text) ?? 0,
-          "balanceAmount": double.tryParse(balancedAmount[index].text) ?? 0,
-        },
-      ),
+      "suppliers": validSuppliers,
     };
 
     try {
@@ -182,7 +203,19 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+    if (!permissionProvider.hasPermission('RETAIL_CREATE')) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to create Retail entries.'),
+        ),
+      );
+    }
+
     final provider = context.watch<EntriesProvider>();
+    final canAddSupplier = permissionProvider.hasPermission(
+      'RETAIL_REPORT_ADD_SUPPLIER',
+    );
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -504,27 +537,28 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
                           const SizedBox(height: 15),
 
-                          CustomElevatedButton(
-                            color: AppColors.primaryPurple,
-                            text: "+ Add More Supplier",
-                            textStyle: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
+                          if (canAddSupplier)
+                            CustomElevatedButton(
+                              color: AppColors.primaryPurple,
+                              text: "+ Add More Supplier",
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                              height: 50,
+                              width: double.infinity,
+                              onPressed: () async {
+                                setState(() {
+                                  suppliers.add(suppliers.length);
+                                  totalAmount.add(TextEditingController());
+                                  depositAmount.add(TextEditingController());
+                                  balancedAmount.add(TextEditingController());
+                                  selectedSuppliers.add(null);
+                                  selectedSupplierIds.add(null);
+                                });
+                              },
+                              borderRadius: 5,
                             ),
-                            height: 50,
-                            width: double.infinity,
-                            onPressed: () async {
-                              setState(() {
-                                suppliers.add(suppliers.length);
-                                totalAmount.add(TextEditingController());
-                                depositAmount.add(TextEditingController());
-                                balancedAmount.add(TextEditingController());
-                                selectedSuppliers.add(null);
-                                selectedSupplierIds.add(null);
-                              });
-                            },
-                            borderRadius: 5,
-                          ),
                         ],
                       ),
                     ],

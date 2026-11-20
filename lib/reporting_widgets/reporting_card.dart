@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
@@ -10,25 +11,29 @@ class ReportField {
   final String value;
   final IconData? icon;
 
-  const ReportField({required this.label, required this.value, this.icon});
+  const ReportField({
+    required this.label,
+    required this.value,
+    this.icon,
+  });
 }
 
 class ReportChip {
   final IconData icon;
   final String text;
 
-  const ReportChip({required this.icon, required this.text});
+  const ReportChip({
+    required this.icon,
+    required this.text,
+  });
 }
 
 class ReportingCard extends StatelessWidget {
   final IconData? leadingIcon;
-
   final String? title;
   final String? value;
-
   final List<ReportChip> chips;
   final List<ReportField> fields;
-
   final String? amount;
   final bool deleteWithAmount;
   final VoidCallback? onTap;
@@ -47,11 +52,12 @@ class ReportingCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
-    this.deleteWithAmount=false,
+    this.deleteWithAmount = false,
     this.showHeader = true,
   });
 
   static const primary = Color(0xff4A4CCB);
+
   String _formatDisplayDate(String value) {
     if (value.trim().isEmpty) return value;
 
@@ -62,17 +68,23 @@ class ReportingCard extends StatelessWidget {
       return value;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
       child: Card(
+        margin: const EdgeInsets.symmetric(
+          vertical: AppSpacing.cardGap / 2,
+        ),
         elevation: 1.8,
         color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(15),
+          padding: AppSpacing.card,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -81,9 +93,7 @@ class ReportingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(leadingIcon, size: 24, color: primary),
-
-                    const SizedBox(width: 10),
-
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +105,6 @@ class ReportingCard extends StatelessWidget {
                               color: Colors.black,
                             ),
                           ),
-
                           Expanded(
                             child: Text(
                               value!,
@@ -111,8 +120,7 @@ class ReportingCard extends StatelessWidget {
                         ],
                       ),
                     ),
-
-                    if (showHeader && onEdit != null)
+                    if (onEdit != null)
                       _actionButton(
                         icon: Iconsax.edit,
                         color: const Color(0xff00B894),
@@ -120,50 +128,50 @@ class ReportingCard extends StatelessWidget {
                       ),
                   ],
                 ),
-
               if (chips.isNotEmpty) ...[
-                if (showHeader) const SizedBox(height: 5),
-
+                if (showHeader)
+                  const SizedBox(height: AppSpacing.xs),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Wrap(
-                        spacing: 5,
-                        runSpacing: 5,
-                        children: chips
-                            .map(
-                              (chip) => Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: AppColors.primaryPurpleLight,
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: chips.map((chip) {
+                          return Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: AppColors.primaryPurpleLight,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  chip.icon,
+                                  size: 17,
+                                  color: primary,
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(chip.icon, size: 17, color: primary),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      chip.icon == Iconsax.calendar
-                                          ? _formatDisplayDate(chip.text)
-                                          : chip.text,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(width: 2),
+                                Text(
+                                  chip.icon == Iconsax.calendar
+                                      ? _formatDisplayDate(chip.text)
+                                      : chip.text,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            )
-                            .toList(),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
-
                     if (!showHeader && onEdit != null)
                       Padding(
-                        padding: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.only(left: AppSpacing.sm),
                         child: _actionButton(
                           icon: Iconsax.edit,
                           color: const Color(0xff00B894),
@@ -173,19 +181,18 @@ class ReportingCard extends StatelessWidget {
                   ],
                 ),
               ],
-
               if (fields.isNotEmpty) ...[
-                const SizedBox(height: 5),
-
+                const SizedBox(height: AppSpacing.xs),
                 Divider(color: Colors.grey.shade300),
-
-                const SizedBox(height: 5),
+                const SizedBox(height: AppSpacing.xs),
                 ...fields.asMap().entries.map((entry) {
                   final index = entry.key;
                   final field = entry.value;
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 5),
+                    padding: const EdgeInsets.only(
+                      bottom: AppSpacing.xs,
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -194,9 +201,7 @@ class ReportingCard extends StatelessWidget {
                           size: 18,
                           color: primary,
                         ),
-
-                        const SizedBox(width: 5),
-
+                        const SizedBox(width: AppSpacing.xs),
                         SizedBox(
                           width: 80,
                           child: Text(
@@ -207,7 +212,6 @@ class ReportingCard extends StatelessWidget {
                             ),
                           ),
                         ),
-
                         Expanded(
                           child: Text(
                             field.value.isEmpty ? "-" : field.value,
@@ -219,11 +223,13 @@ class ReportingCard extends StatelessWidget {
                             ),
                           ),
                         ),
-
-                        if (index == fields.length - 1 && onDelete != null&&
+                        if (index == fields.length - 1 &&
+                            onDelete != null &&
                             !deleteWithAmount)
                           Padding(
-                            padding: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.only(
+                              left: AppSpacing.sm,
+                            ),
                             child: _actionButton(
                               icon: Iconsax.trash,
                               color: const Color(0xffFF3B30),
@@ -234,16 +240,14 @@ class ReportingCard extends StatelessWidget {
                     ),
                   );
                 }),
-
                 if (amount != null) ...[
-                  const SizedBox(height: 5),
-
+                  const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
                       Expanded(
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(AppSpacing.sm),
                           decoration: BoxDecoration(
                             color: const Color(0xffF4FCF9),
                             borderRadius: BorderRadius.circular(5),
@@ -258,9 +262,7 @@ class ReportingCard extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-
                               const Spacer(),
-
                               Text(
                                 "₹ $amount",
                                 style: const TextStyle(
@@ -274,7 +276,7 @@ class ReportingCard extends StatelessWidget {
                         ),
                       ),
                       if (deleteWithAmount && onDelete != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         _actionButton(
                           icon: Iconsax.trash,
                           color: const Color(0xffFF3B30),
@@ -301,7 +303,11 @@ class ReportingCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Center(
-        child: customIcon(icon: icon, iconColor: color, bgColor: color),
+        child: customIcon(
+          icon: icon,
+          iconColor: color,
+          bgColor: color,
+        ),
       ),
     );
   }

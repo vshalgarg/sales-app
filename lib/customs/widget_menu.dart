@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-
 import '../constants/colors_used.dart';
 
 Widget menuItemCard({
   required String imagePath,
   required String title,
-  required VoidCallback onTap
+  required VoidCallback onTap,
 }) {
   return Column(
     mainAxisSize: MainAxisSize.min,
+    mainAxisAlignment: MainAxisAlignment.start,
     children: [
-      GestureDetector(onTap:onTap,
+      GestureDetector(
+        onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppColors.containerFillColor,
             borderRadius: BorderRadius.circular(12),
@@ -26,16 +27,21 @@ Widget menuItemCard({
           ),
           child: Image.asset(
             imagePath,
+            width: 56,
+            height: 56,
             fit: BoxFit.contain,
           ),
         ),
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: 4),
       Text(
         title,
         textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          fontSize: 14,
+          fontSize: 12,
+          height: 1.1,
         ),
       ),
     ],

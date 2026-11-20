@@ -18,49 +18,30 @@ class BottomNavigationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left:15,right:15,bottom:30),
-
+      padding: const EdgeInsets.only(left: 15, right: 15, bottom: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (mode == FormMode.add) ...[
+          if (mode == FormMode.add || mode == FormMode.edit)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryPurple,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  minimumSize: const Size(double.infinity, 44),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
-                onPressed: saveSupplier,
-                child: const Text(
-                  "Save Details",
-                  style: TextStyle(color: Colors.white),
+                onPressed: mode == FormMode.add ? saveSupplier : update,
+                child: Text(
+                  mode == FormMode.add ? "Save Details" : "Update",
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ),
-          ],
-          if (mode == FormMode.edit) ...[
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPurple,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                onPressed: update,
-                child: const Text(
-                  "Update",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-            SizedBox(height:20)
-          ],
-
         ],
       ),
     );

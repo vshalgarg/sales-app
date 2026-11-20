@@ -7,6 +7,7 @@ import '../constants/colors_used.dart';
 import '../customs/app_bar.dart';
 import '../model_classes/retailers/retail_deposit_history_model.dart';
 import '../provider/reporting_provider/retail_provider.dart';
+import '../provider/master_provider/permission_provider.dart';
 
 class RetailDetailsScreen extends StatefulWidget {
   final int retailId;
@@ -23,14 +24,27 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
   bool showRetailInfo = true;
   bool showHistory = true;
   final Map<int, GlobalKey> _historyKeys = {};
+  bool _hasStartedFetching = false;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  void _fetchRetailData() {
+    if (_hasStartedFetching) return;
+
+    _hasStartedFetching = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
       final provider = context.read<RetailProvider>();
 
       await provider.fetchRetailDetails(widget.retailId);
+
+      if (!mounted) return;
+
       await provider.fetchDepositHistory(widget.retailId);
     });
   }
@@ -40,6 +54,26 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final canView = permissionProvider.hasPermission(
+      'RETAIL_REPORT_VIEW',
+    );
+
+    if (canView && !_hasStartedFetching) {
+      _fetchRetailData();
+    }
+
+    if (!canView) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to view Retail details.',
+          ),
+        ),
+      );
+    }
+
     return Consumer<RetailProvider>(
       builder: (context, provider, child) {
         if (provider.detailsLoading) {
@@ -118,9 +152,9 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                     _infoItem("Staff", retail.staffName ?? "-"),
                     const SizedBox(height: 15),
 
-          _infoItem(
-            "Commission",
-            retail.commission ?? "-",
+                    _infoItem(
+                      "Commission",
+                      retail.commission ?? "-",
                     ),
                   ],
 
@@ -152,8 +186,8 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                         RetailDepositHistoryModel? history;
                         try {
                           history = provider.depositHistory.firstWhere(
-                            (e) =>
-                                e.retailSupplierId == supplier.retailSupplierId,
+                                (e) =>
+                            e.retailSupplierId == supplier.retailSupplierId,
                           );
                         } catch (_) {
                           history = null;
@@ -247,8 +281,8 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
                       ),
                       child: Text(
                         "${retailDate.day.toString().padLeft(2, "0")}-"
-                        "${retailDate.month.toString().padLeft(2, "0")}-"
-                        "${retailDate.year}",
+                            "${retailDate.month.toString().padLeft(2, "0")}-"
+                            "${retailDate.year}",
                         style: const TextStyle(
                           color: Colors.deepOrange,
                           fontSize: 11,
@@ -468,21 +502,21 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
               ),
               const SizedBox(height: 3),
 
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-                value,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                  ),
                 ),
-              ),
-          )
+              )
             ],
           ),
         ),

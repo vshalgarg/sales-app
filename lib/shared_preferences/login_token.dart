@@ -4,6 +4,7 @@ class AppStorage {
   static const  _tokenKey = "token";
   static const _emailKey = "email";
   static const String _isLoggedInKey = 'isLoggedIn';
+  static const String _permissionsKey = "permissions";
 
   static Future<void> setRole(String role) async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,8 +45,20 @@ class AppStorage {
   }
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
+
     await prefs.remove(_tokenKey);
+    await prefs.remove(_permissionsKey);
+
     await prefs.setBool(_isLoggedInKey, false);
+  }
+  static Future<void> setPermissions(List<String> permissions) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_permissionsKey, permissions);
+  }
+
+  static Future<List<String>> getPermissions() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_permissionsKey) ?? [];
   }
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();

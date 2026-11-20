@@ -16,6 +16,7 @@ import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/supplier/add_supplier_request.dart';
 import '../../model_classes/supplier/bank_details_request.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/master_provider/supplier_provider.dart';
 import '../../provider/master_provider/transport_provider.dart';
 
@@ -101,41 +102,47 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   List<BankControllers> bankDetails = [];
   List<int> selectedTransportIds = [];
   List<String> selectedTransportNames = [];
+
   String? nullableText(String value) {
     final text = value.trim();
     return text.isEmpty ? null : text;
   }
+
   AddSupplierRequest submitSupplier() {
     final List<Map<String, dynamic>> contactList = contacts
-        .map((c) => {
-      "contactPerson": c.name.text.trim(),
-      "mobileNumber": c.mobile.text.trim(),
-      "type": c.type.text.trim(),
-    })
-        .where((contact) =>
-    (contact["contactPerson"] as String).isNotEmpty ||
-        (contact["mobileNumber"] as String).isNotEmpty ||
-        (contact["type"] as String).isNotEmpty)
+        .map(
+          (c) => {
+            "contactPerson": c.name.text.trim(),
+            "mobileNumber": c.mobile.text.trim(),
+            "type": c.type.text.trim(),
+          },
+        )
+        .where(
+          (contact) =>
+              (contact["contactPerson"] as String).isNotEmpty ||
+              (contact["mobileNumber"] as String).isNotEmpty ||
+              (contact["type"] as String).isNotEmpty,
+        )
         .toList();
     final List<BankDetailRequest> bankDetailList = bankDetails
         .map(
           (bank) => BankDetailRequest(
-        id: bank.id,
-        bankName: bank.bankName.text.trim(),
-        accountNumber: bank.accountNumber.text.trim(),
-        ifscCode: bank.ifscCode.text.trim(),
-        branchName: bank.branchName.text.trim(),
-        accountName: bank.accountName.text.trim(),
-      ),
-    )
+            id: bank.id,
+            bankName: bank.bankName.text.trim(),
+            accountNumber: bank.accountNumber.text.trim(),
+            ifscCode: bank.ifscCode.text.trim(),
+            branchName: bank.branchName.text.trim(),
+            accountName: bank.accountName.text.trim(),
+          ),
+        )
         .where(
           (bank) =>
-      (bank.bankName?.isNotEmpty ?? false) ||
-          (bank.accountNumber?.isNotEmpty ?? false) ||
-          (bank.ifscCode?.isNotEmpty ?? false) ||
-          (bank.branchName?.isNotEmpty ?? false) ||
-          (bank.accountName?.isNotEmpty ?? false),
-    )
+              (bank.bankName?.isNotEmpty ?? false) ||
+              (bank.accountNumber?.isNotEmpty ?? false) ||
+              (bank.ifscCode?.isNotEmpty ?? false) ||
+              (bank.branchName?.isNotEmpty ?? false) ||
+              (bank.accountName?.isNotEmpty ?? false),
+        )
         .toList();
 
     return AddSupplierRequest(
@@ -146,9 +153,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
       msme: nullableText(msmeController.text),
 
-      commissionScheme: nullableText(
-        commissionSchemeController.text,
-      ),
+      commissionScheme: nullableText(commissionSchemeController.text),
       commissionRate: num.tryParse(commissionRateController.text.trim()),
       referenceBy: nullableText(referenceController.text),
 
@@ -178,21 +183,21 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     final List<BankDetailRequest> bankDetailList = bankDetails
         .map(
           (bank) => BankDetailRequest(
-        bankName: bank.bankName.text.trim(),
-        accountNumber: bank.accountNumber.text.trim(),
-        ifscCode: bank.ifscCode.text.trim(),
-        branchName: bank.branchName.text.trim(),
-        accountName: bank.accountName.text.trim(),
-      ),
-    )
+            bankName: bank.bankName.text.trim(),
+            accountNumber: bank.accountNumber.text.trim(),
+            ifscCode: bank.ifscCode.text.trim(),
+            branchName: bank.branchName.text.trim(),
+            accountName: bank.accountName.text.trim(),
+          ),
+        )
         .where(
           (bank) =>
-      (bank.bankName?.isNotEmpty ?? false) ||
-          (bank.accountNumber?.isNotEmpty ?? false) ||
-          (bank.ifscCode?.isNotEmpty ?? false) ||
-          (bank.branchName?.isNotEmpty ?? false) ||
-          (bank.accountName?.isNotEmpty ?? false),
-    )
+              (bank.bankName?.isNotEmpty ?? false) ||
+              (bank.accountNumber?.isNotEmpty ?? false) ||
+              (bank.ifscCode?.isNotEmpty ?? false) ||
+              (bank.branchName?.isNotEmpty ?? false) ||
+              (bank.accountName?.isNotEmpty ?? false),
+        )
         .toList();
 
     return AddSupplierRequest(
@@ -317,6 +322,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       contacts.add(ContactControllers());
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -431,16 +437,42 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final canCreate = permissionProvider.canCreate('SUPPLIER');
+    final canUpdate = permissionProvider.canUpdate('SUPPLIER');
+
+    if (widget.mode == FormMode.add && !canCreate) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to add suppliers',
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    if (widget.mode == FormMode.edit && !canUpdate) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to edit suppliers',
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         leading: widget.mode == FormMode.view
             ? IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        )
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
             : null,
         actions: [
           if (widget.mode != FormMode.view)
@@ -456,7 +488,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   saveButtonText: "Stay",
                   onDiscard: () {
                     Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    Navigator.pop(context);
                   },
                 );
               },
@@ -467,7 +499,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
             ? "Add New Supplier"
             : widget.mode == FormMode.edit
             ? "Edit Supplier"
-            : "View Supplier",
+            : "Supplier Details",
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -569,9 +601,10 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   ),
                   Consumer<TransportProvider>(
                     builder: (context, transportProvider, child) {
-
                       final List<Transport> transports = transportProvider
-                          .data.items.cast<Transport>();
+                          .data
+                          .items
+                          .cast<Transport>();
 
                       return CustomDropdown(
                         hintText: "Preferred Transports",
@@ -584,7 +617,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                         isMultiSelect: true,
                         expandMultiSelect: true,
 
-                        initialValues: List<String>.from(selectedTransportNames),
+                        initialValues: List<String>.from(
+                          selectedTransportNames,
+                        ),
 
                         isDisabled: widget.mode == FormMode.view,
 
@@ -598,7 +633,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
                             selectedTransportIds = names.map<int>((name) {
                               final transport = transports.firstWhere(
-                                    (e) => e.name == name,
+                                (e) => e.name == name,
                               );
 
                               return transport.id!.toInt();
@@ -653,20 +688,14 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   ScaffoldSnackBar.show(context, message);
                   Navigator.pop(context, true);
                 } else {
-                  ScaffoldSnackBar.show(
-                    context,
-                    "Failed to update supplier",
-                  );
+                  ScaffoldSnackBar.show(context, "Failed to update supplier");
                 }
               } catch (e) {
                 log("Update supplier error: $e");
 
                 if (!context.mounted) return;
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Failed to update supplier: $e",
-                );
+                ScaffoldSnackBar.show(context, "Failed to update supplier: $e");
               }
             },
 
@@ -675,13 +704,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                 final isValid = _formKey.currentState!.validate();
 
                 if (!isValid) {
-                  ScaffoldSnackBar.show(
-                    context,
-                    " Name is required.",
-                  );
+                  ScaffoldSnackBar.show(context, " Name is required.");
                   return;
                 }
-
 
                 final request = submitSupplier();
 
@@ -695,10 +720,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
               } catch (e) {
                 if (!context.mounted) return;
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Something went wrong: $e",
-                );
+                ScaffoldSnackBar.show(context, "Something went wrong: $e");
               }
             },
           );

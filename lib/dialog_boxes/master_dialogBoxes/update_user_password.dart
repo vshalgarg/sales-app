@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
+import '../../provider/master_provider/permission_provider.dart';
 
 class UpdateUserPassword extends StatefulWidget {
   final String name;
@@ -30,6 +32,14 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
   String? confirmPasswordError;
   @override
   Widget build(BuildContext context) {
+    final canUpdate =
+    context.watch<PermissionProvider>().canUpdate('USER');
+
+    if (!canUpdate) {
+      return const AlertDialog(
+        content: Text('You do not have permission to update passwords.'),
+      );
+    }
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Stack(

@@ -3,6 +3,7 @@ class LoginModel {
   final String? username;
   final List<String>? roles;
   final String? token;
+  final List<String>? permissions;
 
   final int? code;
   final String? message;
@@ -13,6 +14,7 @@ class LoginModel {
     this.username,
     this.roles,
     this.token,
+    this.permissions,
     this.code,
     this.message,
     this.timestamp,
@@ -27,6 +29,11 @@ class LoginModel {
           : null,
       token: json['token'],
 
+      // Parse permissions from login response
+      permissions: json['permissions'] != null
+          ? List<String>.from(json['permissions'])
+          : [],
+
       code: json['code'],
       message: json['message'],
       timestamp: json['timestamp'],
@@ -36,5 +43,4 @@ class LoginModel {
   bool get isSuccess => token != null;
 
   bool get isError => token == null;
-
 }

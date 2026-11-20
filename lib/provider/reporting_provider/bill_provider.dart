@@ -130,7 +130,6 @@ class BillProvider extends PaginationProvider<Bill> {
       );
 
       if (result.isSuccess) {
-        await refreshBills();
         return true;
       }
 

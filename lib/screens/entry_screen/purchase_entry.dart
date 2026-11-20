@@ -1,3 +1,4 @@
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -76,6 +77,18 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
         "dd-MM-yyyy",
       ).format(DateTime.now());
     }
+    // Purchase permissions assigned to this user: CREATE and REPORT_VIEW only.
+    final permissionProvider = context.read<PermissionProvider>();
+
+    final allowed = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('PURCHASE'),
+      FormMode.view =>
+          permissionProvider.hasPermission('PURCHASE_REPORT_VIEW'),
+      FormMode.edit =>
+          permissionProvider.hasPermission('PURCHASE_REPORT_UPDATE'),
+    };
+
+    if (!allowed) return;
     final purchaseProvider = context.read<PurchaseProvider>();
     final entriesProvider = context.read<EntriesProvider>();
 
@@ -99,6 +112,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       }
     });
   }
+
   String _toApiDate(String? value) {
     if (value == null || value.trim().isEmpty) return "";
 
@@ -122,6 +136,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       return value;
     }
   }
+
   void _fillData(PurchaseDetails purchase, EntriesProvider entriesProvider) {
     transactionController.text = _formatDisplayDate(purchase.date);
 
@@ -213,6 +228,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
     super.dispose();
   }
+
   Future<void> _downloadAttachment(
       String url,
       String fileName,
@@ -359,7 +375,9 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
     return true;
   }
+
   Future<void> _savePurchase() async {
+    if (!context.read<PermissionProvider>().canCreate('PURCHASE')) return;
     final isValid = await _validatePurchaseForm();
 
     if (!isValid) return;
@@ -406,7 +424,13 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       );
     }
   }
+
   Future<void> _updatePurchase() async {
+    if (!context
+        .read<PermissionProvider>()
+        .hasPermission('PURCHASE_REPORT_UPDATE')) {
+      return;
+    }
     final isValid = await _validatePurchaseForm();
 
     if (!isValid) return;
@@ -450,6 +474,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
     Navigator.pop(context, true);
   }
+
   Widget _buildBottomActionBar() {
     if (isViewMode) {
       return SafeArea(
@@ -491,9 +516,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       return EntryBottomActionBar(
         secondaryText: "Cancel",
         secondaryIcon: Icons.close_rounded,
-        onSecondaryPressed: () {
-          Navigator.pop(context);
-        },
+        onSecondaryPressed: () => Navigator.pop(context),
         primaryText: "Update",
         primaryIcon: Icons.save_outlined,
         onPrimaryPressed: _updatePurchase,
@@ -509,8 +532,25 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
       onPrimaryPressed: _savePurchase,
     );
   }
+
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final hasPermission = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('PURCHASE'),
+      FormMode.view =>
+          permissionProvider.hasPermission('PURCHASE_REPORT_VIEW'),
+      FormMode.edit =>
+          permissionProvider.hasPermission('PURCHASE_REPORT_UPDATE'),
+    };
+    if (!hasPermission) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to perform this action.'),
+        ),
+      );
+    }
     final purchaseProvider = context.watch<PurchaseProvider>();
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
@@ -527,11 +567,11 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
         ),
         leading: widget.mode == FormMode.view
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              )
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        )
             : null,
 
         actions: [
@@ -632,7 +672,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                 selectedCustomer = provider.customerEntries
                                     .firstWhere(
                                       (e) => e.customerName == value,
-                                    );
+                                );
                               });
                             },
                           );
@@ -658,7 +698,7 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                             onChanged: (value) {
                               setState(() {
                                 selectedStaff = provider.staffList.firstWhere(
-                                  (e) => e.staffName == value,
+                                      (e) => e.staffName == value,
                                 );
                               });
                             },
@@ -686,508 +726,508 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
 
                 const SizedBox(height: 15),
                 EntryContainer(
-                  children: [
-                    Container(
-                      height: 55,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryPurple,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                "Suppliers",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
+                    children: [
+                      Container(
+                        height: 55,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryPurple,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Row(
+                          children: [
+                            const Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  "Suppliers",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              setState(() {
-                                isSupplierExpanded = !isSupplierExpanded;
-                              });
-                            },
-                            icon: Icon(
-                              isSupplierExpanded
-                                  ? Icons.keyboard_arrow_up
-                                  : Icons.keyboard_arrow_down,
-                              color: Colors.white,
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isSupplierExpanded = !isSupplierExpanded;
+                                });
+                              },
+                              icon: Icon(
+                                isSupplierExpanded
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    if (isSupplierExpanded) ...[
-                      const SizedBox(height: 10),
-                      Column(
-                        children: List.generate(selectedSuppliers.length, (
-                          index,
-                        ) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 15),
-                            decoration: BoxDecoration(
-                              color: AppColors.bodyFillColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        index == 0 && widget.mode != FormMode.view
-                                            ? "Supplier ${index + 1}*"
-                                            : "Supplier ${index + 1}",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      if (index != 0)
-                                        InkWell(
-                                          onTap: () {
-                                            setState(() {
-                                              remarksControllers.removeAt(
-                                                index,
-                                              );
-                                              selectedSuppliers.removeAt(
-                                                index,
-                                              );
-                                              uploadedFiles.removeAt(index);
-                                            });
-                                          },
-                                          child: const Icon(
-                                            Icons.delete_outline,
-                                            color: Colors.red,
-                                            size: 24,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 10),
-
-                                  Consumer<EntriesProvider>(
-                                    builder: (context, provider, child) {
-                                      return CustomDropdown(
-                                        isDisabled: isViewMode,
-
-                                        hintText:"Supplier",
-
-                                        isRequired: index == 0,
-
-                                        items: provider.entries
-                                            .map((e) => e.supplierName ?? "")
-                                            .toList(),
-
-                                        initialValue: selectedSuppliers[index]?.supplierName,
-
-                                        validator: index == 0
-                                            ? (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return "Supplier is required";
-                                          }
-                                          return null;
-                                        }
-                                            : null,
-
-                                        onChanged: (value) {
-                                          setState(() {
-                                            selectedSuppliers[index] = provider.entries.firstWhere(
-                                                  (e) => e.supplierName == value,
-                                            );
-                                          });
-                                        },
-                                      );
-                                    },
-                                  ),
-
-                                  const SizedBox(height: 10),
-
-                                  const Text(
-                                    "Remarks",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-
-                                  EntryTextField(
-                                    enabled: !isViewMode,
-                                    controller: remarksControllers[index],
-                                    hintText: "Remarks",
-                                  ),
-
-                                  const SizedBox(height: 10),
-                                  if (isViewMode)
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                      if (isSupplierExpanded) ...[
+                        const SizedBox(height: 10),
+                        Column(
+                          children: List.generate(selectedSuppliers.length, (
+                              index,
+                              ) {
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 15),
+                              decoration: BoxDecoration(
+                                color: AppColors.bodyFillColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                       children: [
-                                        const Text(
-                                          "Documents",
-                                          style: TextStyle(
+                                        Text(
+                                          index == 0 && widget.mode != FormMode.view
+                                              ? "Supplier ${index + 1}*"
+                                              : "Supplier ${index + 1}",
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 18,
-                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
+                                        if (index != 0)
+                                          InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                remarksControllers.removeAt(
+                                                  index,
+                                                );
+                                                selectedSuppliers.removeAt(
+                                                  index,
+                                                );
+                                                uploadedFiles.removeAt(index);
+                                              });
+                                            },
+                                            child: const Icon(
+                                              Icons.delete_outline,
+                                              color: Colors.red,
+                                              size: 24,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
 
-                                        const SizedBox(height: 10),
+                                    const SizedBox(height: 10),
 
-                                        if ((purchaseProvider
-                                                .purchaseDetails
-                                                ?.supplier
-                                                .images
-                                                .isEmpty ??
-                                            true))
-                                          Container(
+                                    Consumer<EntriesProvider>(
+                                      builder: (context, provider, child) {
+                                        return CustomDropdown(
+                                          isDisabled: isViewMode,
+
+                                          hintText:"Supplier",
+
+                                          isRequired: index == 0,
+
+                                          items: provider.entries
+                                              .map((e) => e.supplierName ?? "")
+                                              .toList(),
+
+                                          initialValue: selectedSuppliers[index]?.supplierName,
+
+                                          validator: index == 0
+                                              ? (value) {
+                                            if (value == null || value.isEmpty) {
+                                              return "Supplier is required";
+                                            }
+                                            return null;
+                                          }
+                                              : null,
+
+                                          onChanged: (value) {
+                                            setState(() {
+                                              selectedSuppliers[index] = provider.entries.firstWhere(
+                                                    (e) => e.supplierName == value,
+                                              );
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+
+                                    const SizedBox(height: 10),
+
+                                    const Text(
+                                      "Remarks",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+
+                                    EntryTextField(
+                                      enabled: !isViewMode,
+                                      controller: remarksControllers[index],
+                                      hintText: "Remarks",
+                                    ),
+
+                                    const SizedBox(height: 10),
+                                    if (isViewMode)
+                                      Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            "Documents",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 10),
+
+                                          if ((purchaseProvider
+                                              .purchaseDetails
+                                              ?.supplier
+                                              .images
+                                              .isEmpty ??
+                                              true))
+                                            Container(
+                                              width: double.infinity,
+                                              padding: const EdgeInsets.all(14),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                BorderRadius.circular(10),
+                                              ),
+                                              child: const Center(
+                                                child: Text(
+                                                  "No Documents Uploaded",
+                                                  style: TextStyle(
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          else
+                                            Column(
+                                              children: purchaseProvider.purchaseDetails!.supplier.images.map(
+                                                    (image) {
+                                                  return Container(
+                                                    margin: const EdgeInsets.only(bottom: 10),
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 10,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(10),
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        //  FILE ICON
+                                                        Container(
+                                                          height: 48,
+                                                          width: 48,
+                                                          decoration: BoxDecoration(
+                                                            color: const Color(0xFFF4F0FF),
+                                                            borderRadius: BorderRadius.circular(10),
+                                                          ),
+                                                          child: Icon(
+                                                            image.fileName.toLowerCase().endsWith('.pdf')
+                                                                ? Icons.picture_as_pdf_outlined
+                                                                : Icons.image_outlined,
+                                                            color: AppColors.primaryPurple,
+                                                            size: 27,
+                                                          ),
+                                                        ),
+
+                                                        const SizedBox(width: 12),
+
+                                                        //  FILE NAME
+                                                        Expanded(
+                                                          child: Text(
+                                                            image.fileName,
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                            style: const TextStyle(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontSize: 15,
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                        //  VIEW
+                                                        IconButton(
+                                                          padding: EdgeInsets.zero,
+                                                          constraints: const BoxConstraints(
+                                                            minWidth: 38,
+                                                            minHeight: 38,
+                                                          ),
+                                                          icon: const Icon(
+                                                            Icons.remove_red_eye,
+                                                            color: Colors.blue,
+                                                            size: 23,
+                                                          ),
+                                                          onPressed: () async {
+                                                            if (image.url.isEmpty) {
+                                                              ScaffoldSnackBar.show(
+                                                                context,
+                                                                "Invalid document URL",
+                                                              );
+                                                              return;
+                                                            }
+
+                                                            final uri = Uri.parse(image.url);
+
+                                                            try {
+                                                              final launched = await launchUrl(
+                                                                uri,
+                                                                mode: LaunchMode.externalApplication,
+                                                              );
+
+                                                              if (!launched && context.mounted) {
+                                                                ScaffoldSnackBar.show(
+                                                                  context,
+                                                                  "Unable to open document",
+                                                                );
+                                                              }
+                                                            } catch (e) {
+                                                              if (context.mounted) {
+                                                                ScaffoldSnackBar.show(
+                                                                  context,
+                                                                  "Unable to open document",
+                                                                );
+                                                              }
+                                                            }
+                                                          },
+                                                        ),
+
+                                                        //  DOWNLOAD
+                                                        IconButton(
+                                                          padding: EdgeInsets.zero,
+                                                          constraints: const BoxConstraints(
+                                                            minWidth: 38,
+                                                            minHeight: 38,
+                                                          ),
+                                                          icon: const Icon(
+                                                            Icons.download,
+                                                            color: Colors.green,
+                                                            size: 23,
+                                                          ),
+                                                          onPressed: () async {
+                                                            if (image.url.isEmpty) {
+                                                              ScaffoldSnackBar.show(
+                                                                context,
+                                                                "Download URL not available",
+                                                              );
+                                                              return;
+                                                            }
+
+                                                            await _downloadAttachment(
+                                                              image.url,
+                                                              image.fileName,
+                                                            );
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              ).toList(),
+                                            ),
+                                        ],
+                                      )
+                                    else
+                                      GestureDetector(
+                                        onTap: isViewMode
+                                            ? null
+                                            : () async {
+                                          final dialog =
+                                          BillEntryUploadDocuments(
+                                            files:
+                                            uploadedFiles[index],
+
+                                            existingImageKeys:
+                                            isEditMode
+                                                ? existingImageKeys
+                                                : [],
+                                            existingFileNames:
+                                            isEditMode
+                                                ? existingFileNames
+                                                : [],
+                                            existingUrls: isEditMode
+                                                ? existingUrls
+                                                : [],
+
+                                            isViewMode: isViewMode,
+                                            isEditMode: isEditMode,
+                                          );
+
+                                          final result =
+                                          await showDialog<
+                                              Map<String, dynamic>
+                                          >(
+                                            context: context,
+                                            builder: (_) => dialog,
+                                          );
+
+                                          if (result != null) {
+                                            setState(() {
+                                              uploadedFiles[index] =
+                                              List<PlatformFile>.from(
+                                                result["files"] ?? [],
+                                              );
+
+                                              if (isEditMode) {
+                                                existingImageKeys =
+                                                List<String>.from(
+                                                  result["existingImageKeys"] ??
+                                                      [],
+                                                );
+
+                                                existingFileNames =
+                                                List<String>.from(
+                                                  result["existingFileNames"] ??
+                                                      [],
+                                                );
+
+                                                existingUrls =
+                                                List<String>.from(
+                                                  result["existingUrls"] ??
+                                                      [],
+                                                );
+                                              }
+                                            });
+                                          }
+                                        },
+                                        child: SizedBox(
+                                          width: double.infinity,
+                                          height: 82,
+                                          child: Container(
                                             width: double.infinity,
-                                            padding: const EdgeInsets.all(14),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 14,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
                                               borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: const Center(
-                                              child: Text(
-                                                "No Documents Uploaded",
-                                                style: TextStyle(
-                                                  color: Colors.grey,
-                                                ),
+                                              BorderRadius.circular(10),
+                                              border: Border.all(
+                                                color: const Color(0xFFE4D9FF),
                                               ),
                                             ),
-                                          )
-                                        else
-                                          Column(
-                                            children: purchaseProvider.purchaseDetails!.supplier.images.map(
-                                                  (image) {
-                                                return Container(
-                                                  margin: const EdgeInsets.only(bottom: 10),
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 10,
-                                                  ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  height: 46,
+                                                  width: 46,
                                                   decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius: BorderRadius.circular(10),
+                                                    color: const Color(
+                                                      0xFFF4F0FF,
+                                                    ),
+                                                    borderRadius:
+                                                    BorderRadius.circular(
+                                                      10,
+                                                    ),
                                                   ),
-                                                  child: Row(
+                                                  child: const Icon(
+                                                    Icons.cloud_upload_outlined,
+                                                    color:
+                                                    AppColors.primaryPurple,
+                                                  ),
+                                                ),
+
+                                                const SizedBox(width: 14),
+
+                                                Expanded(
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .center,
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .start,
                                                     children: [
-                                                      //  FILE ICON
-                                                      Container(
-                                                        height: 48,
-                                                        width: 48,
-                                                        decoration: BoxDecoration(
-                                                          color: const Color(0xFFF4F0FF),
-                                                          borderRadius: BorderRadius.circular(10),
-                                                        ),
-                                                        child: Icon(
-                                                          image.fileName.toLowerCase().endsWith('.pdf')
-                                                              ? Icons.picture_as_pdf_outlined
-                                                              : Icons.image_outlined,
-                                                          color: AppColors.primaryPurple,
-                                                          size: 27,
+                                                      const Text(
+                                                        "Upload Documents",
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                          FontWeight.w600,
+                                                          color: AppColors
+                                                              .primaryPurple,
                                                         ),
                                                       ),
-
-                                                      const SizedBox(width: 12),
-
-                                                      //  FILE NAME
-                                                      Expanded(
-                                                        child: Text(
-                                                          image.fileName,
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: const TextStyle(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontSize: 15,
-                                                          ),
+                                                      const SizedBox(height: 3),
+                                                      Text(
+                                                        "JPG, PNG, PDF • Max 3 files",
+                                                        style: TextStyle(
+                                                          color: Colors
+                                                              .grey
+                                                              .shade600,
+                                                          fontSize: 12,
                                                         ),
-                                                      ),
-
-                                                      //  VIEW
-                                                      IconButton(
-                                                        padding: EdgeInsets.zero,
-                                                        constraints: const BoxConstraints(
-                                                          minWidth: 38,
-                                                          minHeight: 38,
-                                                        ),
-                                                        icon: const Icon(
-                                                          Icons.remove_red_eye,
-                                                          color: Colors.blue,
-                                                          size: 23,
-                                                        ),
-                                                        onPressed: () async {
-                                                          if (image.url.isEmpty) {
-                                                            ScaffoldSnackBar.show(
-                                                              context,
-                                                              "Invalid document URL",
-                                                            );
-                                                            return;
-                                                          }
-
-                                                          final uri = Uri.parse(image.url);
-
-                                                          try {
-                                                            final launched = await launchUrl(
-                                                              uri,
-                                                              mode: LaunchMode.externalApplication,
-                                                            );
-
-                                                            if (!launched && context.mounted) {
-                                                              ScaffoldSnackBar.show(
-                                                                context,
-                                                                "Unable to open document",
-                                                              );
-                                                            }
-                                                          } catch (e) {
-                                                            if (context.mounted) {
-                                                              ScaffoldSnackBar.show(
-                                                                context,
-                                                                "Unable to open document",
-                                                              );
-                                                            }
-                                                          }
-                                                        },
-                                                      ),
-
-                                                      //  DOWNLOAD
-                                                      IconButton(
-                                                        padding: EdgeInsets.zero,
-                                                        constraints: const BoxConstraints(
-                                                          minWidth: 38,
-                                                          minHeight: 38,
-                                                        ),
-                                                        icon: const Icon(
-                                                          Icons.download,
-                                                          color: Colors.green,
-                                                          size: 23,
-                                                        ),
-                                                        onPressed: () async {
-                                                          if (image.url.isEmpty) {
-                                                            ScaffoldSnackBar.show(
-                                                              context,
-                                                              "Download URL not available",
-                                                            );
-                                                            return;
-                                                          }
-
-                                                          await _downloadAttachment(
-                                                            image.url,
-                                                            image.fileName,
-                                                          );
-                                                        },
                                                       ),
                                                     ],
                                                   ),
-                                                );
-                                              },
-                                            ).toList(),
-                                          ),
-                                      ],
-                                    )
-                                  else
-                                    GestureDetector(
-                                      onTap: isViewMode
-                                          ? null
-                                          : () async {
-                                              final dialog =
-                                                  BillEntryUploadDocuments(
-                                                    files:
-                                                        uploadedFiles[index],
-
-                                                    existingImageKeys:
-                                                        isEditMode
-                                                        ? existingImageKeys
-                                                        : [],
-                                                    existingFileNames:
-                                                        isEditMode
-                                                        ? existingFileNames
-                                                        : [],
-                                                    existingUrls: isEditMode
-                                                        ? existingUrls
-                                                        : [],
-
-                                                    isViewMode: isViewMode,
-                                                    isEditMode: isEditMode,
-                                                  );
-
-                                              final result =
-                                                  await showDialog<
-                                                    Map<String, dynamic>
-                                                  >(
-                                                    context: context,
-                                                    builder: (_) => dialog,
-                                                  );
-
-                                              if (result != null) {
-                                                setState(() {
-                                                  uploadedFiles[index] =
-                                                      List<PlatformFile>.from(
-                                                        result["files"] ?? [],
-                                                      );
-
-                                                  if (isEditMode) {
-                                                    existingImageKeys =
-                                                        List<String>.from(
-                                                          result["existingImageKeys"] ??
-                                                              [],
-                                                        );
-
-                                                    existingFileNames =
-                                                        List<String>.from(
-                                                          result["existingFileNames"] ??
-                                                              [],
-                                                        );
-
-                                                    existingUrls =
-                                                        List<String>.from(
-                                                          result["existingUrls"] ??
-                                                              [],
-                                                        );
-                                                  }
-                                                });
-                                              }
-                                            },
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        height: 82,
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 14,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            border: Border.all(
-                                              color: const Color(0xFFE4D9FF),
+                                                ),
+                                                Container(
+                                                  padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 8,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFFF4F0FF,
+                                                    ),
+                                                    borderRadius:
+                                                    BorderRadius.circular(
+                                                      5,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    "${(isEditMode ? existingImageKeys.length : 0) + uploadedFiles[index].length}/3",
+                                                    style: const TextStyle(
+                                                      color: AppColors
+                                                          .primaryPurple,
+                                                      fontWeight:
+                                                      FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                height: 46,
-                                                width: 46,
-                                                decoration: BoxDecoration(
-                                                  color: const Color(
-                                                    0xFFF4F0FF,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        10,
-                                                      ),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.cloud_upload_outlined,
-                                                  color:
-                                                      AppColors.primaryPurple,
-                                                ),
-                                              ),
-
-                                              const SizedBox(width: 14),
-
-                                              Expanded(
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
-                                                  children: [
-                                                    const Text(
-                                                      "Upload Documents",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: AppColors
-                                                            .primaryPurple,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 3),
-                                                    Text(
-                                                      "JPG, PNG, PDF • Max 3 files",
-                                                      style: TextStyle(
-                                                        color: Colors
-                                                            .grey
-                                                            .shade600,
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 8,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(
-                                                    0xFFF4F0FF,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        5,
-                                                      ),
-                                                ),
-                                                child: Text(
-                                                  "${(isEditMode ? existingImageKeys.length : 0) + uploadedFiles[index].length}/3",
-                                                  style: const TextStyle(
-                                                    color: AppColors
-                                                        .primaryPurple,
-                                                    fontWeight:
-                                                        FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
                                           ),
                                         ),
                                       ),
-                                    ),
 
-                                  SizedBox(height: 20),
-                                ],
+                                    SizedBox(height: 20),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        }),
-                      ),
-                      if (isAddMode)
-                        CustomElevatedButton(
-                          color: AppColors.primaryPurple,
-                          text: "+ Add More Supplier",
-                          textStyle: const TextStyle(color: Colors.white),
-                          borderRadius: 5,
-                          onPressed: () async {
-                            setState(() {
-                              remarksControllers.add(TextEditingController());
-
-                              selectedSuppliers.add(null);
-
-                              uploadedFiles.add([]);
-                            });
-                          },
+                            );
+                          }),
                         ),
-                    ],
-    ]
+                        if (isAddMode)
+                          CustomElevatedButton(
+                            color: AppColors.primaryPurple,
+                            text: "+ Add More Supplier",
+                            textStyle: const TextStyle(color: Colors.white),
+                            borderRadius: 5,
+                            onPressed: () async {
+                              setState(() {
+                                remarksControllers.add(TextEditingController());
+
+                                selectedSuppliers.add(null);
+
+                                uploadedFiles.add([]);
+                              });
+                            },
+                          ),
+                      ],
+                    ]
                 ),
               ],
             ),

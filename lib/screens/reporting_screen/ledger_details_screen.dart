@@ -1,3 +1,4 @@
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,13 @@ class LedgerDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!context.watch<PermissionProvider>().hasPermission('LEDGER_REPORT_VIEW')) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to access this screen.'),
+        ),
+      );
+    }
     final ledgerProvider = context.watch<LedgerProvider>();
     final ledger = ledgerProvider.ledger;
 
@@ -176,7 +184,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                         ledger.party!.email!,
                       ),
                     ),
-                SizedBox(height:5),
+                  SizedBox(height:5),
 
                   if (ledger.party?.gstNo != null &&
                       ledger.party!.gstNo!

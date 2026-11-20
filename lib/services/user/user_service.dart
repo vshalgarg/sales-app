@@ -36,6 +36,52 @@ class UserService {
     );
   }
 
+  // GET USER WITH ROLES
+  Future<ResponseResult<Map<String, dynamic>>> getUserWithRoles(
+      int userId,
+      ) async {
+    final result = await _api.get<Map<String, dynamic>>(
+      path: '/role/user/get/$userId',
+    );
+
+    if (result.isFailure || result.data == null) {
+      return ResponseResult.error(
+        errorMessage: result.errorMessage ?? 'Failed to fetch user roles',
+        statusCode: result.statusCode,
+      );
+    }
+
+    return ResponseResult.success(
+      result.data!,
+      result.statusCode,
+    );
+  }
+
+// UPDATE USER ROLES
+  Future<ResponseResult<Map<String, dynamic>>> updateUserRoles({
+    required int userId,
+    required List<String> roleNames,
+  }) async {
+    final result = await _api.put<Map<String, dynamic>>(
+      path: '/user/roles/$userId',
+      data: {
+        'roleNames': roleNames,
+      },
+    );
+
+    if (result.isFailure || result.data == null) {
+      return ResponseResult.error(
+        errorMessage: result.errorMessage ?? 'Failed to update user roles',
+        statusCode: result.statusCode,
+      );
+    }
+
+    return ResponseResult.success(
+      result.data!,
+      result.statusCode,
+    );
+  }
+
   Future<ResponseResult<List<User>>> searchUsers({
     required String keyword,
   }) async {

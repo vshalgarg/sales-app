@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../constants/app_spacing.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/enums/customer_mode.dart';
 import 'package:hisabio/pop_ups/general_closing_popup.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/provider/reporting_provider/bill_provider.dart';
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'package:hisabio/provider/entries_provider/entries_section_provider.dart';
 import 'package:hisabio/reporting_widgets/reporting_card.dart';
 import 'package:hisabio/reporting_widgets/reporting_filter_section.dart';
@@ -15,6 +17,7 @@ import 'package:provider/provider.dart';
 
 import '../../model_classes/bills/bill.dart';
 import '../../pagination/pagination_widget.dart';
+import '../../customs/card_entrance_examination.dart';
 
 class Bills extends StatefulWidget {
   const Bills({super.key});
@@ -57,32 +60,35 @@ class _BillsState extends State<Bills> {
     late OverlayEntry entry;
 
     entry = OverlayEntry(
-      builder: (context) => Positioned(
-        left: 16,
-        right: 16,
-        bottom: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppColors.containerFillColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    message,
-                    style: const TextStyle(color: Colors.black, fontSize: 14),
-                  ),
+      builder: (context) =>
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 20,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.containerFillColor,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
+                child: Row(
+                  children: [
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        message,
+                        style: const TextStyle(
+                            color: Colors.black, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
     );
 
     overlay.insert(entry);
@@ -95,6 +101,9 @@ class _BillsState extends State<Bills> {
   @override
   void initState() {
     super.initState();
+
+    final permissionProvider = context.read<PermissionProvider>();
+    if (!permissionProvider.hasPermission('BILL_REPORT_VIEW')) return;
 
     final now = DateTime.now();
     final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
@@ -117,14 +126,12 @@ class _BillsState extends State<Bills> {
 
       billProvider.setSupplierId(null);
       billProvider.setCustomerId(null);
-      billProvider.fetchInitialBills();
-
       final entriesProvider = context.read<EntriesProvider>();
 
       Future.wait([
         entriesProvider.fetchSuppliers(),
         entriesProvider.fetchCustomer(),
-        billProvider.fetchPage(0),
+        billProvider.fetchInitialBills(),
       ]);
     });
   }
@@ -158,7 +165,7 @@ class _BillsState extends State<Bills> {
 
     if (selectedSupplier != null) {
       final supplier = entriesProvider.entries.firstWhere(
-        (e) => e.supplierName == selectedSupplier,
+            (e) => e.supplierName == selectedSupplier,
       );
 
       supplierId = supplier.id?.toInt();
@@ -166,7 +173,7 @@ class _BillsState extends State<Bills> {
 
     if (selectedCustomer != null) {
       final customer = entriesProvider.customerEntries.firstWhere(
-        (e) => e.customerName == selectedCustomer,
+            (e) => e.customerName == selectedCustomer,
       );
 
       customerId = customer.id?.toInt();
@@ -228,7 +235,9 @@ class _BillsState extends State<Bills> {
             return Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(40),
+                ),
               ),
               child: ReportingFilterSection(
                 fromDateController: fromDateController,
@@ -272,9 +281,9 @@ class _BillsState extends State<Bills> {
                 onApply: () async {
                   final hasFilter =
                       fromDateController.text.isNotEmpty ||
-                      toDateController.text.isNotEmpty ||
-                      selectedSupplier != null ||
-                      selectedCustomer != null;
+                          toDateController.text.isNotEmpty ||
+                          selectedSupplier != null ||
+                          selectedCustomer != null;
 
                   if (!hasFilter) {
                     _showBottomSheetSnackBar(
@@ -285,7 +294,6 @@ class _BillsState extends State<Bills> {
                   }
 
                   Navigator.pop(context);
-
                   await _applyFilters();
                 },
                 onClear: () async {
@@ -298,7 +306,16 @@ class _BillsState extends State<Bills> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      if (!mounted) return;
+
+      setState(() {
+        fromDateController.clear();
+        toDateController.clear();
+        selectedSupplier = null;
+        selectedCustomer = null;
+      });
+    });
   }
 
   Future<void> _resetBillsBeforeExit() async {
@@ -330,6 +347,26 @@ class _BillsState extends State<Bills> {
 
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final canViewReports =
+    permissionProvider.hasPermission('BILL_REPORT_VIEW');
+
+    final canCreate = permissionProvider.canCreate('BILL');
+
+    final canUpdate =
+    permissionProvider.hasPermission('BILL_REPORT_UPDATE');
+
+    final canDelete =
+    permissionProvider.hasPermission('BILL_REPORT_DELETE');
+
+    if (!canViewReports && !canCreate) {
+      return const Scaffold(
+        body: Center(
+            child: Text('You do not have permission to access Bills.')),
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
@@ -367,17 +404,17 @@ class _BillsState extends State<Bills> {
                 fontSize: 25,
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.filter_alt_outlined,
-                    color: Colors.white,
+                if (canViewReports)
+                  IconButton(
+                    icon: const Icon(
+                        Icons.filter_alt_outlined, color: Colors.white),
+                    onPressed: _showFilterBottomSheet,
                   ),
-                  onPressed: _showFilterBottomSheet,
-                ),
               ],
             ),
 
-            floatingActionButton: FloatingActionButton(
+            floatingActionButton: canCreate
+                ? FloatingActionButton(
               backgroundColor: AppColors.primaryPurple,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(50),
@@ -385,48 +422,50 @@ class _BillsState extends State<Bills> {
               onPressed: isOpening
                   ? null
                   : () async {
-                      final refresh = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EntriesBillEntry(),
-                        ),
-                      );
+                final refresh = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const EntriesBillEntry(),
+                  ),
+                );
 
-                      if (!context.mounted) return;
+                if (!context.mounted) return;
 
-                      if (refresh == true) {
-                        final billProvider = context.read<BillProvider>();
+                if (refresh == true && canViewReports) {
+                  final billProvider = context.read<BillProvider>();
 
-                        await billProvider.refresh();
+                  await billProvider.refresh();
 
-                        if (!context.mounted) return;
+                  if (!context.mounted) return;
 
-                        ScaffoldSnackBar.show(
-                          context,
-                          "Bill Saved Successfully",
-                        );
-                      }
+                  ScaffoldSnackBar.show(
+                    context,
+                    "Bill Saved Successfully",
+                  );
+                }
 
-                      setState(() {
-                        isOpening = false;
-                      });
-                    },
+                setState(() {
+                  isOpening = false;
+                });
+              },
               child: isOpening
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
                   : const Icon(Iconsax.add, color: Colors.white, size: 34),
-            ),
+            )
+                : null,
 
-            body: Padding(
+            body: canViewReports
+                ? Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: width * 0.04,
-                vertical: height * 0.015,
+                horizontal: AppSpacing.screenPadding,
+                vertical: AppSpacing.sm,
               ),
               child: Consumer<BillProvider>(
                 builder: (context, provider, child) {
@@ -446,139 +485,147 @@ class _BillsState extends State<Bills> {
                     },
 
                     itemBuilder: (context, bill) {
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: height * 0.015),
-                        child: ReportingCard(
-                          leadingIcon: Iconsax.document,
+                      return CardEntranceAnimation(
+                        key: ValueKey('bills-card-${bill.id}'),
+                        delay: Duration(milliseconds: (provider.data.items.indexOf(bill).clamp(0, 5)) * 65),
+                        child: Padding(
+                          padding: EdgeInsets.zero,
+                          child: ReportingCard(
+                            leadingIcon: Iconsax.document,
 
-                          title: "Invoice :",
+                            title: "Invoice :",
 
-                          value: bill.invoiceNo ?? "",
+                            value: bill.invoiceNo ?? "",
 
-                          chips: [
-                            ReportChip(
-                              icon: Iconsax.calendar,
-                              text: bill.date ?? "",
-                            ),
-                          ],
-
-                          fields: [
-                            ReportField(
-                              icon: Iconsax.shop,
-                              label: "Supplier",
-                              value: bill.supplierName ?? "",
-                            ),
-
-                            ReportField(
-                              icon: Iconsax.user,
-                              label: "Customer",
-                              value: bill.customerName ?? "",
-                            ),
-                          ],
-
-                          amount: bill.billAmount?.toString(),
-
-                          deleteWithAmount: true,
-
-                          onTap: () async {
-                            await _showBillDetails(bill.billNumber ?? "");
-                          },
-
-                          onEdit: () async {
-                            final refresh = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => EntriesBillEntry(
-                                  mode: FormMode.edit,
-                                  id: bill.billNumber,
-                                ),
+                            chips: [
+                              ReportChip(
+                                icon: Iconsax.calendar,
+                                text: bill.date ?? "",
                               ),
-                            );
+                            ],
 
-                            if (!mounted) return;
+                            fields: [
+                              ReportField(
+                                icon: Iconsax.shop,
+                                label: "Supplier",
+                                value: bill.supplierName ?? "",
+                              ),
 
-                            if (refresh == true) {
-                              await provider.refresh();
-                            }
-                          },
+                              ReportField(
+                                icon: Iconsax.user,
+                                label: "Customer",
+                                value: bill.customerName ?? "",
+                              ),
+                            ],
 
-                          onDelete: () async {
-                            ExitConfirmationDialog.show(
-                              context,
-                              isDelete: true,
-                              body: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (bill.invoiceNo != null &&
-                                      bill.invoiceNo!.trim().isNotEmpty)
-                                    RichText(
-                                      textAlign: TextAlign.center,
-                                      text: TextSpan(
-                                        style: const TextStyle(
+                            amount: bill.billAmount?.toString(),
+
+                            deleteWithAmount: true,
+
+                            onTap: () async {
+                              await _showBillDetails(bill.billNumber ?? "");
+                            },
+
+                            onEdit: canUpdate ? () async {
+                              final refresh = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EntriesBillEntry(
+                                    mode: FormMode.edit,
+                                    id: bill.billNumber,
+                                  ),
+                                ),
+                              );
+
+                              if (!mounted) return;
+
+                              if (refresh == true) {
+                                await provider.refresh();
+                              }
+                            }:null,
+                            onDelete: canDelete ? () async {
+                              ExitConfirmationDialog.show(
+                                context,
+                                isDelete: true,
+                                body: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (bill.invoiceNo != null &&
+                                        bill.invoiceNo!.trim().isNotEmpty)
+                                      RichText(
+                                        textAlign: TextAlign.center,
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text:
+                                              "Are you sure you want to delete Bill :  ",
+                                            ),
+                                            TextSpan(
+                                              text: bill.invoiceNo,
+                                              style: const TextStyle(
+                                                color: AppColors.orangeColor,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const TextSpan(text: "?"),
+                                          ],
+                                        ),
+                                      )
+                                    else
+                                      const Text(
+                                        "Are you sure you want to delete this bill?",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.black,
                                         ),
-                                        children: [
-                                          const TextSpan(
-                                            text:
-                                                "Are you sure you want to delete Bill :  ",
-                                          ),
-                                          TextSpan(
-                                            text: bill.invoiceNo,
-                                            style: const TextStyle(
-                                              color: AppColors.orangeColor,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const TextSpan(text: "?"),
-                                        ],
                                       ),
-                                    )
-                                  else
-                                    const Text(
-                                      "Are you sure you want to delete this bill?",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              saveButtonText: "Delete",
+                                  ],
+                                ),
+                                saveButtonText: "Delete",
 
-                              discardButtonText: "Cancel",
+                                discardButtonText: "Cancel",
 
-                              onDiscard: () {
-                                Navigator.pop(context);
-                              },
+                                onDiscard: () {
+                                  Navigator.pop(context);
+                                },
 
-                              onSave: () async {
-                                Navigator.pop(context);
-                                final success = await provider.deleteBill(
-                                  bill.billNumber ?? "",
-                                );
+                                onSave: () async {
+                                  Navigator.pop(context);
+                                  final success = await provider.deleteBill(
+                                    bill.billNumber ?? "",
+                                  );
 
-                                if (success) {
-                                  await provider.refresh();
-                                }
+                                  if (success) {
+                                    await provider.refresh();
+                                  }
 
-                                if (!context.mounted) return;
+                                  if (!context.mounted) return;
 
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  success
-                                      ? "Bill deleted successfully"
-                                      : "Failed to delete bill",
-                                );
-                              },
-                            );
-                          },
+                                  ScaffoldSnackBar.show(
+                                    context,
+                                    success
+                                        ? "Bill deleted successfully"
+                                        : "Failed to delete bill",
+                                  );
+                                },
+                              );
+                            }:null,
+                          ),
                         ),
                       );
                     },
                   );
                 },
+              ),
+            ) : const Center(
+              child: Text(
+                'You can create Bills, but cannot view Bill records.',
+                textAlign: TextAlign.center,
               ),
             ),
           ),

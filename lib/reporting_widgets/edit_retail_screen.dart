@@ -11,6 +11,7 @@ import '../model_classes/retailers/add_deposit_model.dart';
 import '../model_classes/retailers/retail_deposit_history_model.dart';
 import '../pop_ups/general_closing_popup.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
+import '../provider/master_provider/permission_provider.dart';
 import '../provider/reporting_provider/retail_provider.dart';
 import '../provider/master_provider/staff_provider.dart';
 
@@ -51,6 +52,11 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!context.mounted ||
+          !context.read<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE')) {
+        if (mounted) setState(() => initialized = true);
+        return;
+      }
       final retailProvider = context.read<RetailProvider>();
 
       final entriesProvider = context.read<EntriesProvider>();
@@ -188,11 +194,11 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   }
 
   Widget buildRetailInformation(
-    RetailDetails retail,
-    RetailProvider retailProvider,
-    EntriesProvider entriesProvider,
-    StaffProvider staffProvider,
-  ) {
+      RetailDetails retail,
+      RetailProvider retailProvider,
+      EntriesProvider entriesProvider,
+      StaffProvider staffProvider,
+      ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -248,19 +254,19 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               items: entriesProvider.customerEntries
                   .map(
                     (e) => (e.customerName ?? '')
-                        .replaceAll('\n', '')
-                        .replaceAll('\r', '')
-                        .trim(),
-                  )
+                    .replaceAll('\n', '')
+                    .replaceAll('\r', '')
+                    .trim(),
+              )
                   .toList(),
 
               initialValue:
-                  entriesProvider.customerEntries
-                      .where((e) => e.id == selectedCustomerId)
-                      .isNotEmpty
+              entriesProvider.customerEntries
+                  .where((e) => e.id == selectedCustomerId)
+                  .isNotEmpty
                   ? entriesProvider.customerEntries
-                        .firstWhere((e) => e.id == selectedCustomerId)
-                        .customerName
+                  .firstWhere((e) => e.id == selectedCustomerId)
+                  .customerName
                   : null,
 
               onChanged: (value) {
@@ -272,7 +278,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 }
 
                 final customer = entriesProvider.customerEntries.firstWhere(
-                  (e) => e.customerName == value,
+                      (e) => e.customerName == value,
                 );
 
                 setState(() {
@@ -291,16 +297,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                   .map((e) => e.staffName ?? "")
                   .toList(),
               initialValue:
-                  staffProvider.data.items
-                      .where((e) => e.id == selectedStaffId)
-                      .isNotEmpty
+              staffProvider.data.items
+                  .where((e) => e.id == selectedStaffId)
+                  .isNotEmpty
                   ? staffProvider.data.items
-                        .firstWhere((e) => e.id == selectedStaffId)
-                        .staffName
+                  .firstWhere((e) => e.id == selectedStaffId)
+                  .staffName
                   : null,
               onChanged: (value) {
                 final staff = staffProvider.data.items.firstWhere(
-                  (e) => e.staffName == value,
+                      (e) => e.staffName == value,
                 );
 
                 setState(() {
@@ -333,6 +339,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               ),
             ),
             onPressed: () async {
+              if (!context.read<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE')) {
+                return;
+              }
               final displayDate = dateController.text.trim();
 
               final parsedDate = DateFormat(
@@ -513,6 +522,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 onPressed: provider.depositLoading
                     ? null
                     : () async {
+                  if (!context.read<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE')) {
+                    return;
+                  }
                   final latestRetail = provider.retailDetails;
 
                   if (latestRetail == null) {
@@ -557,19 +569,19 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                         amount: int.parse(amount),
                       ),
                     );
-                        }
+                  }
 
-                        if (items.isEmpty) {
-                          ScaffoldSnackBar.show(
-                            context,
-                            "Please enter at least one deposit and select date",
-                          );
-                          return;
-                        }
+                  if (items.isEmpty) {
+                    ScaffoldSnackBar.show(
+                      context,
+                      "Please enter at least one deposit and select date",
+                    );
+                    return;
+                  }
 
-                        final result = await provider.addDeposit(
-                          AddDepositModel(deposits: items),
-                        );
+                  final result = await provider.addDeposit(
+                    AddDepositModel(deposits: items),
+                  );
 
                   if (result["success"]) {
                     if (!mounted) return;
@@ -589,16 +601,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                       result["message"],
                     );
                   }
-                      },
+                },
                 child: provider.depositLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
-                        "SAVE DEPOSITS",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  "SAVE DEPOSITS",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               );
             },
           ),
@@ -980,6 +992,15 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canUpdate = context.watch<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE');
+    if (!canUpdate) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to edit Retail records.'),
+        ),
+      );
+    }
+
     final retailProvider = context.watch<RetailProvider>();
     final entriesProvider = context.read<EntriesProvider>();
     final staffProvider = context.read<StaffProvider>();
@@ -1102,7 +1123,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       ),
     );
   }
-  }
+}
 
 class DashedDivider extends StatelessWidget {
   final double height; // Thickness of the line

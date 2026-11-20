@@ -1,20 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/containers/master_containers/transport_container.dart';
 import 'package:hisabio/dialog_boxes/master_dialogBoxes/copy_supplier_details_dialog.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
-import 'package:hisabio/screens/home_screen.dart';
 import 'package:hisabio/screens/master_screens/add_new_transport.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
+import '../../customs/card_entrance_examination.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/Transport/transport.dart';
 import '../../pagination/pagination_widget.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/master_provider/transport_provider.dart';
 
 class TransportScreen extends StatefulWidget {
@@ -33,17 +35,22 @@ class _TransportScreenState extends State<TransportScreen> {
   void initState() {
     super.initState();
 
-    final transportProvider = context.read<TransportProvider>();
+    final permissionProvider = context.read<PermissionProvider>();
 
-    Future.microtask(() async {
-      searchController.clear();
+    if (permissionProvider.canView('TRANSPORT')) {
+      final transportProvider = context.read<TransportProvider>();
 
-      await transportProvider.clearSearch();
+      Future.microtask(() async {
+        searchController.clear();
 
-      if (!mounted) return;
-      await transportProvider.fetchPage(0);
-      transportProvider.fetchInitial();
-    });
+        await transportProvider.clearSearch();
+
+        if (!mounted) return;
+
+        await transportProvider.fetchPage(0);
+        transportProvider.fetchInitial();
+      });
+    }
   }
 
   @override
@@ -54,106 +61,104 @@ class _TransportScreenState extends State<TransportScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransportProvider>();
+    final permissionProvider = context.watch<PermissionProvider>();
 
-    final List<Transport> transports =
-    provider.data.items.cast<Transport>();
+    final canView = permissionProvider.canView('TRANSPORT');
+    final canCreate = permissionProvider.canCreate('TRANSPORT');
+    final canUpdate = permissionProvider.canUpdate('TRANSPORT');
+    final canDelete = permissionProvider.canDelete('TRANSPORT');
+
+    final canAccess = canView || canCreate;
+
+    if (!canAccess) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to access Transport.'),
+        ),
+      );
+    }
+
+    final List<Transport> transports = provider.data.items.cast<Transport>();
 
     return Scaffold(
-        backgroundColor: AppColors.bodyFillColor,
+      backgroundColor: AppColors.bodyFillColor,
 
-        appBar: CustomAppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => HomeScreen(),
-                ),
-              );
-            },
-          ),
-          title: "Transport Overview",
-          textStyle: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 25,
-          ),
+      appBar: CustomAppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
+        title: "Transport Overview",
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 25,
+        ),
+      ),
 
-        body: Padding(
-            padding: const EdgeInsets.all(15),
+      body: Padding(
+        padding: AppSpacing.screen,
 
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (canView) ...[
               Container(
-              height: 40,
-              width: double.infinity,
+                height: 40,
+                width: double.infinity,
 
-              decoration: BoxDecoration(
-                color: AppColors.containerFillColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-
-              child: SearchBar(
-                controller: searchController,
-
-                shape: WidgetStatePropertyAll(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
+                decoration: BoxDecoration(
+                  color: AppColors.containerFillColor,
+                  borderRadius: BorderRadius.circular(8),
                 ),
 
-                elevation: const WidgetStatePropertyAll(2),
+                child: SearchBar(
+                  controller: searchController,
 
-                hintText: "Search Transport...",
-
-                leading: const Icon(
-                  Icons.search,
-                  size: 30,
-                ),
-
-                backgroundColor:
-                const WidgetStatePropertyAll(Colors.white),
-
-                trailing: [
-                  if (searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-
-                      onPressed: () async {
-                        searchController.clear();
-
-                        await context
-                            .read<TransportProvider>()
-                            .clearSearch();
-
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      },
+                  shape: WidgetStatePropertyAll(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                ],
+                  ),
 
-                onChanged: (value) {
+                  elevation: const WidgetStatePropertyAll(2),
 
-                  if (_debounce?.isActive ?? false) {
-                    _debounce!.cancel();
-                  }
+                  hintText: "Search Transport...",
 
-                  _debounce = Timer(
-                    const Duration(milliseconds: 500),
-                        () {
+                  leading: const Icon(Icons.search, size: 30),
 
+                  backgroundColor: const WidgetStatePropertyAll(Colors.white),
+
+                  trailing: [
+                    if (searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.close),
+
+                        onPressed: () async {
+                          searchController.clear();
+
+                          await context.read<TransportProvider>().clearSearch();
+
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
+                      ),
+                  ],
+
+                  onChanged: (value) {
+                    if (_debounce?.isActive ?? false) {
+                      _debounce!.cancel();
+                    }
+
+                    _debounce = Timer(const Duration(milliseconds: 500), () {
                       if (value.trim().isEmpty) {
-
-                        context
-                            .read<TransportProvider>()
-                            .clearSearch();
+                        context.read<TransportProvider>().clearSearch();
 
                         if (mounted) {
                           setState(() {});
@@ -162,233 +167,236 @@ class _TransportScreenState extends State<TransportScreen> {
                         return;
                       }
 
-                      context
-                          .read<TransportProvider>()
-                          .search(value);
-                    },
-                  );
-                },
+                      context.read<TransportProvider>().search(value);
+                    });
+                  },
+                ),
               ),
-            ),
 
-            const SizedBox(height: 5),
+              const SizedBox(height: AppSpacing.sectionGap),
 
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 50),
+              Expanded(
+                //child: Padding(
+                //padding: const EdgeInsets.only(bottom: 1),
                 child: PaginationWidget<Transport>(
-                    pagination: provider.data.pagination,
+                  pagination: provider.data.pagination,
 
-                    items: transports,
+                  items: transports,
 
-                    loading: provider.data.isLoading,
+                  loading: provider.data.isLoading,
 
-                    fetchPage: provider.fetchPage,
+                  fetchPage: provider.fetchPage,
 
-                    refresh: provider.refreshTransports,
+                  refresh: provider.refreshTransports,
 
-                    itemBuilder: (context, item) {
+                  itemBuilder: (context, item) {
+                    final phoneNumbers = item.contacts
+                        .map((contact) => contact.contactNumber?.trim() ?? '')
+                        .where((number) => number.isNotEmpty)
+                        .toSet()
+                        .join(', ');
 
-                      final firstContact =
-                      item.contacts.isNotEmpty
-                          ? item.contacts.first
-                          : null;
+                    return CardEntranceAnimation(
+                      key: ValueKey('transport-card-${item.id}'),
+                      delay: Duration(milliseconds: (transports.indexOf(item).clamp(0, 5)) * 65),
+                      child: GestureDetector(
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddNewTransport(
+                                id: item.id?.toInt(),
+                                mode: FormMode.view,
+                              ),
+                            ),
+                          );
+                        },
 
-                      return GestureDetector(
+                        child: TransportContainer(
+                          elevation: 1,
 
-                          onTap: () async {
-                            await Navigator.push(
+                          name: item.name,
+
+                          city: item.city ?? "-",
+
+                          gst: item.gstNo ?? "-",
+
+                          status: item.status ?? "-",
+
+                          phone: phoneNumbers.isEmpty ? "-" : phoneNumbers,
+                          trashIconTap: canDelete?() {
+                            ExitConfirmationDialog.show(
+                              context,
+                              isDelete: true,
+                              body: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RichText(
+                                    textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                                      children: [
+                                        const TextSpan(
+                                          text:
+                                          "Are you sure you want to permanently delete ",
+                                        ),
+                                        TextSpan(
+                                          text: item.name ?? "",
+                                          style: const TextStyle(
+                                            color: AppColors.orangeColor,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(text: "?"),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  const Text(
+                                    "This action cannot be undone.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              discardButtonText: "Cancel",
+                              saveButtonText: "Delete",
+                              onSave: () async {
+                                Navigator.of(context).pop();
+
+                                final success = await provider.deleteTransport(
+                                  item.id!.toInt(),
+                                );
+
+                                if (!context.mounted) return;
+
+                                ScaffoldSnackBar.show(
+                                  context,
+                                  success
+                                      ? "Transport deleted successfully"
+                                      : "Failed to delete transport",
+                                );
+                              },
+                              onDiscard: () {
+                                Navigator.pop(context);
+                              },
+                            );
+                          } : null,
+
+                          copyIconTap: canView?() async {
+                            await provider.fetchTransportDetails(
+                              item.id!.toInt(),
+                            );
+                            if (!context.mounted) return;
+                            final data = provider.transportDetails;
+
+                            if (data == null) return;
+
+                            String fullAddress =
+                            [
+                              data.addressLine1,
+                              data.addressLine2,
+                              data.city,
+                              data.state,
+                              data.pinCode,
+                            ]
+                                .where((e) => (e ?? "").trim().isNotEmpty)
+                                .join(", ");
+
+                            String contactsText = "";
+
+                            if (data.contacts.isNotEmpty) {
+                              contactsText = data.contacts
+                                  .map((c) {
+                                if (c is Map) {
+                                  return "${['contactPerson']} - ${['mobileNumber']}";
+                                }
+
+                                return "${c.contactPerson ?? ""} - ${c.contactNumber ?? ""}";
+                              })
+                                  .join("\n");
+                            }
+
+                            showDialog(
+                              context: context,
+                              builder: (_) {
+                                return CustomCopyDetailsDialog(
+                                  showCopyBankButton: false,
+                                  showCloseIcon: false,
+                                  heading: "Transport Details",
+                                  firmName: data.name ?? "",
+                                  contact: contactsText,
+                                  address: fullAddress,
+                                  gstNo: data.gstNo ?? "",
+                                  emails: data.email ?? "",
+                                );
+                              },
+                            );
+                          } : null,
+
+                          editIconTap: canUpdate?() async {
+                            final refresh = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => AddNewTransport(
                                   id: item.id?.toInt(),
-                                  mode: FormMode.view,
+                                  mode: FormMode.edit,
                                 ),
                               ),
                             );
-                          },
 
-                          child: TransportContainer(
+                            if (!mounted) return;
 
-                            elevation: 1,
-
-                            name: item.name,
-
-                            city: item.city ?? "-",
-
-                            gst: item.gstNo ?? "-",
-
-                            status: item.status ?? "-",
-
-                            phone:
-                            firstContact?.contactNumber ?? "-",
-                            trashIconTap: () {
-                              ExitConfirmationDialog.show(
-                                context,
-                                isDelete: true,
-                                body: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    RichText(
-                                      textAlign: TextAlign.center,
-                                      text: TextSpan(
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.black,
-                                        ),
-                                        children: [
-                                          const TextSpan(
-                                            text:
-                                            "Are you sure you want to permanently delete ",
-                                          ),
-                                          TextSpan(
-                                            text: item.name ?? "",
-                                            style: const TextStyle(
-                                              color: AppColors.orangeColor,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          TextSpan(text: "?"),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    const Text(
-                                      "This action cannot be undone.",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                discardButtonText: "Cancel",
-                                saveButtonText: "Delete",
-                                onSave: () async {
-                                  Navigator.of(context).pop();
-
-                                  final success =
-                                  await provider.deleteTransport(
-                                    item.id!.toInt(),
-                                  );
-
-                                  if (!context.mounted) return;
-
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    success
-                                        ? "Transport deleted successfully"
-                                        : "Failed to delete transport",
-                                  );
-                                },
-                                onDiscard: () {
-                                  Navigator.pop(context);
-                                },
-                              );
-                            },
-
-                            copyIconTap: () async {
-
-                              await provider.fetchTransportDetails(
-                                item.id!.toInt(),
-                              );
-                              if (!context.mounted) return;
-                              final data = provider.transportDetails;
-
-                              if (data == null) return;
-
-                              String fullAddress = [
-                                data.addressLine1,
-                                data.addressLine2,
-                                data.city,
-                                data.state,
-                                data.pinCode,
-                              ]
-                                  .where((e) => (e ?? "").trim().isNotEmpty)
-                                  .join(", ");
-
-                              String contactsText = "";
-
-                              if (data.contacts.isNotEmpty) {
-                                contactsText = data.contacts.map((c) {
-                                  if (c is Map) {
-                                    return "${['contactPerson']} - ${['mobileNumber']}";
-                                  }
-
-                                  return "${c.contactPerson ?? ""} - ${c.contactNumber ?? ""}";
-                                }).join("\n");
-                              }
-
-                              showDialog(
-                                context: context,
-                                builder: (_) {
-                                  return CustomCopyDetailsDialog(
-                                    showCopyBankButton: false,
-                                    showCloseIcon: false,
-                                    heading: "Transport Details",
-                                    firmName: data.name ?? "",
-                                    contact: contactsText,
-                                    address: fullAddress ,
-                                    gstNo: data.gstNo ?? "",
-                                    emails: data.email ?? "",
-                                  );
-                                },
-                              );
-                            },
-
-                            editIconTap: () async {
-                              final refresh =
-                              await Navigator.push<bool>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AddNewTransport(
-                                    id: item.id?.toInt(),
-                                    mode: FormMode.edit,
-                                  ),
-                                ),
-                              );
-
-                              if (!mounted) return;
-
-                              if (refresh == true) {
-                                await provider.refreshTransports();
-                              }
-                            },
-                          ),
-                      );
-                    },
+                            if (refresh == true) {
+                              await provider.refreshTransports();
+                            }
+                          } : null,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-            ),
-            )
-              ],
-            ),
+              ),
+              //),
+            ] else ...[
+              const Expanded(
+                child: Center(
+                  child: Text(
+                      'You can add Transport, but you cannot view Transport records.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16,
+                          color: Colors.white
+                      )
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
+      ),
 
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50),
-        ),
+      floatingActionButton: canCreate
+          ? FloatingActionButton(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         backgroundColor: AppColors.primaryPurple,
-        child: const Icon(
-          Iconsax.add,
-          color: Colors.white,
-          size: 40,
-        ),
+        child: const Icon(Iconsax.add, color: Colors.white, size: 40),
         onPressed: () async {
-          final refresh =
-          await Navigator.push<bool>(
+          final refresh = await Navigator.push<bool>(
             context,
-            MaterialPageRoute(
-              builder: (_) => const AddNewTransport(),
-            ),
+            MaterialPageRoute(builder: (_) => const AddNewTransport()),
           );
 
           if (refresh == true && mounted) {
             await provider.fetchInitial();
           }
         },
-      ),
+      ) : null,
     );
   }
 }

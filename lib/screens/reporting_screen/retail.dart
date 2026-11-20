@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
+import '../../constants/app_spacing.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
+import '../../customs/card_entrance_examination.dart';
 import '../../model_classes/retailers/retail_model.dart' as retail_model;
 import '../../pagination/pagination_widget.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
+import '../../provider/master_provider/config_provider.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/reporting_provider/retail_provider.dart';
 import '../../provider/master_provider/staff_provider.dart';
 import '../../reporting_widgets/edit_retail_screen.dart';
@@ -40,12 +43,14 @@ class _RetailState extends State<Retail> {
   int? selectedCustomerId;
 
   int? selectedStaffId;
+
   String _toApiDate(String date) {
     if (date.isEmpty) return date;
 
     final parsed = DateFormat("dd-MM-yyyy").parse(date);
     return DateFormat("yyyy-MM-dd").format(parsed);
   }
+
   void _showBottomSheetSnackBar(BuildContext context, String message) {
     final overlay = Overlay.of(context);
 
@@ -83,11 +88,7 @@ class _RetailState extends State<Retail> {
     super.initState();
 
     final now = DateTime.now();
-    final oneMonthAgo = DateTime(
-      now.year,
-      now.month - 1,
-      now.day,
-    );
+    final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
 
     final formatter = DateFormat("dd-MM-yyyy");
 
@@ -96,6 +97,23 @@ class _RetailState extends State<Retail> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!context.mounted) return;
+
+      final configProvider = context.read<ConfigProvider>();
+      final permissions = context.read<PermissionProvider>();
+
+      // Check configuration first.
+      if (!configProvider.retailEnabled) return;
+
+      // Check permissions only when configuration is ON.
+      final canView = permissions.hasPermission('RETAIL_REPORT_VIEW');
+      final canCreate = permissions.hasPermission('RETAIL_CREATE');
+      final canUpdate = permissions.hasPermission('RETAIL_REPORT_UPDATE');
+      final canDelete = permissions.hasPermission('RETAIL_REPORT_DELETE');
+      final canAddSupplier = permissions.hasPermission(
+        'RETAIL_REPORT_ADD_SUPPLIER',
+      );
+
+      if (!canView && !canCreate) return;
 
       final entriesProvider = context.read<EntriesProvider>();
 
@@ -130,7 +148,7 @@ class _RetailState extends State<Retail> {
 
     if (selectedSupplier != null) {
       final supplier = entriesProvider.entries.firstWhere(
-        (e) => e.supplierName == selectedSupplier,
+            (e) => e.supplierName == selectedSupplier,
       );
 
       supplierId = supplier.id?.toInt();
@@ -234,10 +252,10 @@ class _RetailState extends State<Retail> {
                     value: selectedCustomerId == null
                         ? null
                         : entriesProvider.customerEntries
-                              .firstWhere(
-                                (e) => e.id?.toInt() == selectedCustomerId,
-                              )
-                              .customerName,
+                        .firstWhere(
+                          (e) => e.id?.toInt() == selectedCustomerId,
+                    )
+                        .customerName,
                     items: entriesProvider.customerEntries
                         .map((e) => e.customerName ?? "")
                         .where((e) => e.isNotEmpty)
@@ -261,15 +279,15 @@ class _RetailState extends State<Retail> {
                     value: selectedStaffId == null
                         ? null
                         : staffProvider.data.items
-                              .firstWhere((e) => e.id == selectedStaffId)
-                              .staffName,
+                        .firstWhere((e) => e.id == selectedStaffId)
+                        .staffName,
                     items: staffProvider.data.items
                         .map((e) => e.staffName ?? "")
                         .where((e) => e.isNotEmpty)
                         .toList(),
                     onChanged: (value) {
                       final staff = staffProvider.data.items.firstWhere(
-                        (e) => e.staffName == value,
+                            (e) => e.staffName == value,
                       );
 
                       setBottomState(() {
@@ -285,10 +303,10 @@ class _RetailState extends State<Retail> {
                 onApply: () async {
                   final hasFilter =
                       fromDateController.text.isNotEmpty ||
-                      toDateController.text.isNotEmpty ||
-                      selectedSupplier != null ||
-                      selectedCustomerId != null ||
-                      selectedStaffId != null;
+                          toDateController.text.isNotEmpty ||
+                          selectedSupplier != null ||
+                          selectedCustomerId != null ||
+                          selectedStaffId != null;
 
                   if (!hasFilter) {
                     _showBottomSheetSnackBar(
@@ -312,7 +330,16 @@ class _RetailState extends State<Retail> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      if (!mounted) return;
+
+      setState(() {
+        fromDateController.clear();
+        toDateController.clear();
+        selectedSupplier = null;
+        selectedCustomerId = null;
+      });
+    });
   }
 
   Future<void> _resetRetailBeforeExit() async {
@@ -350,121 +377,170 @@ class _RetailState extends State<Retail> {
 
   @override
   Widget build(BuildContext context) {
+    final configProvider = context.watch<ConfigProvider>();
+
+    // Configuration check comes first.
+    if (!configProvider.retailEnabled) {
+      return const Scaffold(
+        body: Center(child: Text("Retailers are disabled.")),
+      );
+    }
+
+    final permissions = context.watch<PermissionProvider>();
+
+    final canView = permissions.hasPermission('RETAIL_REPORT_VIEW');
+
+    final canCreate = permissions.hasPermission('RETAIL_CREATE');
+    final canUpdate = permissions.hasPermission('RETAIL_REPORT_UPDATE');
+    final canDelete = permissions.hasPermission('RETAIL_REPORT_DELETE');
+    final canAddSupplier = permissions.hasPermission(
+      'RETAIL_REPORT_ADD_SUPPLIER',
+    );
+
+    if (!canView && !canCreate) {
+      return const Scaffold(
+        body: Center(
+          child: Text("You do not have permission to access Retailers."),
+        ),
+      );
+    }
+
     return LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final height = constraints.maxHeight;
-          return PopScope(
-            canPop: false,
-            onPopInvokedWithResult: (didPop, result) async {
-              if (didPop) return;
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final height = constraints.maxHeight;
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
 
-              await _resetRetailBeforeExit();
+            await _resetRetailBeforeExit();
 
-              if (!context.mounted) return;
+            if (!context.mounted) return;
 
-              Navigator.pop(context);
-            },
-            child: Scaffold(
-              backgroundColor: AppColors.bodyFillColor,
+            Navigator.pop(context);
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.bodyFillColor,
 
-              appBar: CustomAppBar(
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () async {
-                    await _resetRetailBeforeExit();
-
-                    if (!context.mounted) return;
-
-                    Navigator.pop(context);
-                  },
-                ),
-                title: "Retailers",
-                textStyle: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 25,
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(
-                        Icons.filter_alt_outlined, color: Colors.white),
-                    onPressed: _showFilterBottomSheet,
-                  ),
-                ],
-              ),
-
-              floatingActionButton: FloatingActionButton(
-                backgroundColor: AppColors.primaryPurple,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                onPressed: isOpening
-                    ? null
-                    : () async {
-                  setState(() {
-                    isOpening = true;
-                  });
-
-                  final refresh = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const RetailEntryScreen(),
-                    ),
-                  );
+            appBar: CustomAppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () async {
+                  await _resetRetailBeforeExit();
 
                   if (!context.mounted) return;
 
-                  if (refresh == true) {
-                    await context.read<RetailProvider>().refresh();
-                  }
-
-                  setState(() {
-                    isOpening = false;
-                  });
+                  Navigator.pop(context);
                 },
-                child: isOpening
-                    ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-                    : const Icon(Iconsax.add, color: Colors.white, size: 34),
               ),
+              title: "Retailers",
+              textStyle: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 25,
+              ),
+              actions: [
+                if (canView)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.filter_alt_outlined,
+                      color: Colors.white,
+                    ),
+                    onPressed: _showFilterBottomSheet,
+                  ),
+              ],
+            ),
 
-              body: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: width * 0.04,
-                  vertical: height * 0.015,
+            floatingActionButton: canCreate
+                ? FloatingActionButton(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50),
+              ),
+              onPressed: isOpening
+                  ? null
+                  : () async {
+                setState(() {
+                  isOpening = true;
+                });
+
+                final refresh = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RetailEntryScreen(),
+                  ),
+                );
+
+                if (!context.mounted) return;
+
+                if (refresh == true) {
+                  await context.read<RetailProvider>().refresh();
+                }
+
+                setState(() {
+                  isOpening = false;
+                });
+              },
+              child: isOpening
+                  ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
                 ),
-                child: Consumer<RetailProvider>(
-                  builder: (context, provider, child) {
-                    return PaginationWidget<retail_model.Retail>(
-                      pagination: provider.pagination,
+              )
+                  : const Icon(
+                Iconsax.add,
+                color: Colors.white,
+                size: 34,
+              ),
+            )
+                : null,
 
-                      items: provider.data.items,
+            body: !canView
+                ? const Center(
+              child: Text(
+                "You can create Retailers, but cannot view Retailer records.",
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+                : Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding,
+                vertical: AppSpacing.sm,
+              ),
+              child: Consumer<RetailProvider>(
+                builder: (context, provider, child) {
+                  return PaginationWidget<retail_model.Retail>(
+                    pagination: provider.pagination,
 
-                      loading: provider.loading,
+                    items: provider.data.items,
 
-                      fetchPage: (page) async {
-                        await provider.fetchPage(page);
-                      },
+                    loading: provider.loading,
 
-                      refresh: () async {
-                        await provider.refresh();
-                      },
+                    fetchPage: (page) async {
+                      await provider.fetchPage(page);
+                    },
 
-                      itemBuilder: (context, retail) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: height * 0.015),
+                    refresh: () async {
+                      await provider.refresh();
+                    },
+
+                    itemBuilder: (context, retail) {
+                      return CardEntranceAnimation(
+                        key: ValueKey('retail-card-${retail.id}'),
+                        delay: Duration(milliseconds: (provider.data.items.indexOf(retail).clamp(0, 5)) * 65),
+                        child: Padding(
+                          padding: EdgeInsets.zero,
                           child: RetailCard(
                             fields: [
                               MapEntry(
                                 "Date",
-                                DateFormat("dd-MM-yyyy").format(retail.date),
+                                DateFormat(
+                                  "dd-MM-yyyy",
+                                ).format(retail.date),
                               ),
 
                               MapEntry("Retailer", retail.name),
@@ -477,8 +553,9 @@ class _RetailState extends State<Retail> {
                               final refresh = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      RetailDetailsScreen(retailId: retail.id),
+                                  builder: (_) => RetailDetailsScreen(
+                                    retailId: retail.id,
+                                  ),
                                 ),
                               );
 
@@ -489,12 +566,14 @@ class _RetailState extends State<Retail> {
                               }
                             },
 
-                            onEdit: () async {
+                            onEdit: canUpdate
+                                ? () async {
                               final refresh = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      EditRetailScreen(retailId: retail.id),
+                                  builder: (_) => EditRetailScreen(
+                                    retailId: retail.id,
+                                  ),
                                 ),
                               );
 
@@ -503,9 +582,11 @@ class _RetailState extends State<Retail> {
                               if (refresh == true) {
                                 await provider.refresh();
                               }
-                            },
+                            }
+                                : null,
 
-                            onAdd: () async {
+                            onAdd: canAddSupplier
+                                ? () async {
                               final refresh = await showDialog<bool>(
                                 context: context,
                                 builder: (_) =>
@@ -517,39 +598,43 @@ class _RetailState extends State<Retail> {
                               if (refresh == true) {
                                 await provider.refresh();
                               }
-                            },
+                            }
+                                : null,
 
-                            onDelete: () async {
+                            onDelete: canDelete
+                                ? () async {
                               ExitConfirmationDialog.show(
                                 context,
                                 isDelete: true,
                                 body: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      RichText(
-                                        textAlign: TextAlign.center,
-                                        text: TextSpan(
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black,
-                                          ),
-                                          children: [
-                                            const TextSpan(
-                                              text:
-                                              "Are you sure you want to delete Retailer :  ",
-                                            ),
-                                            TextSpan(
-                                              text: retail.name,
-                                              style: const TextStyle(
-                                                color: AppColors.orangeColor,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            TextSpan(text: "?"),
-                                          ],
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    RichText(
+                                      textAlign: TextAlign.center,
+                                      text: TextSpan(
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black,
                                         ),
+                                        children: [
+                                          const TextSpan(
+                                            text:
+                                            "Are you sure you want to delete Retailer :  ",
+                                          ),
+                                          TextSpan(
+                                            text: retail.name,
+                                            style: const TextStyle(
+                                              color: AppColors
+                                                  .orangeColor,
+                                              fontWeight:
+                                              FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(text: "?"),
+                                        ],
                                       ),
-                                    ]
+                                    ),
+                                  ],
                                 ),
 
                                 saveButtonText: "Delete",
@@ -563,9 +648,8 @@ class _RetailState extends State<Retail> {
                                 onSave: () async {
                                   Navigator.pop(context);
 
-                                  final success = await provider.deleteRetail(
-                                    retail.id,
-                                  );
+                                  final success = await provider
+                                      .deleteRetail(retail.id);
 
                                   if (success) {
                                     await provider.refresh();
@@ -581,17 +665,19 @@ class _RetailState extends State<Retail> {
                                   );
                                 },
                               );
-                            },
+                            }
+                                : null,
                           ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
-          );
-        }
+          ),
+        );
+      },
     );
   }
 }

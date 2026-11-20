@@ -1,8 +1,10 @@
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../constants/app_spacing.dart';
 import '../../constants/colors_used.dart';
 import '../../customs/app_bar.dart';
 import '../../enums/customer_mode.dart';
@@ -14,6 +16,7 @@ import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/reporting_provider/purchase_provider.dart';
 import '../../reporting_widgets/reporting_card.dart';
 import '../../reporting_widgets/reporting_filter_section.dart';
+import '../../customs/card_entrance_examination.dart';
 import '../entry_screen/purchase_entry.dart';
 
 class Purchases extends StatefulWidget {
@@ -69,6 +72,7 @@ class _PurchasesState extends State<Purchases> {
     final defaultToDate = formatter.format(now);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!context.read<PermissionProvider>().hasPermission('PURCHASE_REPORT_VIEW')) return;
       if (!context.mounted) return;
 
       final entriesProvider = context.read<EntriesProvider>();
@@ -135,6 +139,7 @@ class _PurchasesState extends State<Purchases> {
   }
 
   Future<void> _applyFilters() async {
+    if (!context.read<PermissionProvider>().hasPermission('PURCHASE_REPORT_VIEW')) return;
     final entriesProvider = context.read<EntriesProvider>();
 
     final provider = context.read<PurchaseProvider>();
@@ -145,7 +150,7 @@ class _PurchasesState extends State<Purchases> {
 
     if (selectedSupplier != null) {
       final supplier = entriesProvider.entries.firstWhere(
-        (e) => e.supplierName == selectedSupplier,
+            (e) => e.supplierName == selectedSupplier,
       );
 
       supplierId = supplier.id?.toInt();
@@ -153,7 +158,7 @@ class _PurchasesState extends State<Purchases> {
 
     if (selectedCustomer != null) {
       final customer = entriesProvider.customerEntries.firstWhere(
-        (e) => e.customerName == selectedCustomer,
+            (e) => e.customerName == selectedCustomer,
       );
 
       customerId = customer.id?.toInt();
@@ -185,6 +190,7 @@ class _PurchasesState extends State<Purchases> {
   }
 
   Future<void> _clearFilters() async {
+    if (!context.read<PermissionProvider>().hasPermission('PURCHASE_REPORT_VIEW')) return;
     final now = DateTime.now();
     final tenDaysAgo = now.subtract(const Duration(days: 10));
     final formatter = DateFormat("dd-MM-yyyy");
@@ -218,7 +224,10 @@ class _PurchasesState extends State<Purchases> {
     await provider.refresh();
   }
 
+  bool get _canView => context.read<PermissionProvider>().hasPermission('PURCHASE_REPORT_VIEW');
+
   void _showFilterBottomSheet() {
+    if (!_canView) return;
     final entriesProvider = context.read<EntriesProvider>();
 
     showModalBottomSheet(
@@ -275,9 +284,9 @@ class _PurchasesState extends State<Purchases> {
                 onApply: () async {
                   final hasFilter =
                       fromDateController.text.isNotEmpty ||
-                      toDateController.text.isNotEmpty ||
-                      selectedSupplier != null ||
-                      selectedCustomer != null;
+                          toDateController.text.isNotEmpty ||
+                          selectedSupplier != null ||
+                          selectedCustomer != null;
 
                   if (!hasFilter) {
                     _showBottomSheetSnackBar(
@@ -301,7 +310,16 @@ class _PurchasesState extends State<Purchases> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      if (!mounted) return;
+
+      setState(() {
+        fromDateController.clear();
+        toDateController.clear();
+        selectedSupplier = null;
+        selectedCustomer = null;
+      });
+    });
   }
 
   Future<void> _resetPurchaseBeforeExit() async {
@@ -333,6 +351,12 @@ class _PurchasesState extends State<Purchases> {
 
   @override
   Widget build(BuildContext context) {
+    final permissions = context.watch<PermissionProvider>();
+    final canView = permissions.hasPermission('PURCHASE_REPORT_VIEW');
+    final canCreate = permissions.hasPermission('PURCHASE_CREATE');
+    final canUpdate = permissions.hasPermission('PURCHASE_REPORT_UPDATE');
+    final canDelete = permissions.hasPermission('PURCHASE_REPORT_DELETE');
+    if (!canView && !canCreate) return const Scaffold(body: Center(child: Text('You do not have permission to access Purchases.')));
     return LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
@@ -370,7 +394,7 @@ class _PurchasesState extends State<Purchases> {
                   fontSize: 25,
                 ),
                 actions: [
-                  IconButton(
+                  if (canView) IconButton(
                     icon: const Icon(
                         Icons.filter_alt_outlined, color: Colors.white),
                     onPressed: _showFilterBottomSheet,
@@ -378,7 +402,7 @@ class _PurchasesState extends State<Purchases> {
                 ],
               ),
 
-              floatingActionButton: FloatingActionButton(
+              floatingActionButton: canCreate ? FloatingActionButton(
                 backgroundColor: AppColors.primaryPurple,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
@@ -399,7 +423,7 @@ class _PurchasesState extends State<Purchases> {
                   if (!context.mounted) {
                     return;
                   }
-                  if (refresh == true) {
+                  if (refresh == true && canView) {
                     await context.read<PurchaseProvider>().refresh();
                   }
 
@@ -417,12 +441,17 @@ class _PurchasesState extends State<Purchases> {
                   ),
                 )
                     : const Icon(Iconsax.add, color: Colors.white, size: 34),
-              ),
+              ) : null,
 
-              body: Padding(
+              body: !canView ? const Center(
+                  child: Text("You can create Purchases, but cannot view Purchase records.",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white),))
+                  : Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: width * 0.04,
-                  vertical: height * 0.015,
+                  horizontal: AppSpacing.screenPadding,
+                  vertical: AppSpacing.sm,
                 ),
                 child: Consumer<PurchaseProvider>(
                   builder: (context, provider, child) {
@@ -442,125 +471,117 @@ class _PurchasesState extends State<Purchases> {
                       },
 
                       itemBuilder: (context, purchase) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: height * 0.015),
-                          child: ReportingCard(
-                            showHeader: false,
+                        return CardEntranceAnimation(
+                          key: ValueKey('purchases-card-${purchase.id}'),
+                          delay: Duration(milliseconds: (provider.data.items.indexOf(purchase).clamp(0, 5)) * 65),
+                          child: Padding(
+                            padding: EdgeInsets.zero,
+                            child: ReportingCard(
+                              showHeader: false,
 
-                            chips: [
-                              ReportChip(
-                                icon: Iconsax.calendar,
-                                text: purchase.date ?? "",
-                              ),
-                            ],
-
-                            fields: [
-                              ReportField(
-                                icon: Iconsax.profile_2user,
-                                label: "Staff",
-                                value: purchase.staffName ?? "",
-                              ),
-
-                              ReportField(
-                                icon: Iconsax.shop,
-                                label: "Supplier",
-                                value: purchase.supplierName ?? "",
-                              ),
-
-                              ReportField(
-                                icon: Iconsax.user,
-                                label: "Customer",
-                                value: purchase.customerName ?? "",
-                              ),
-
-                              ReportField(
-                                icon: Iconsax.note,
-                                label: "Remarks",
-                                value: purchase.remarks ?? "",
-                              ),
-                            ],
-
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      PurchaseEntryScreen(
-                                        mode: FormMode.view,
-                                        id: purchase.id,
-                                      ),
+                              chips: [
+                                ReportChip(
+                                  icon: Iconsax.calendar,
+                                  text: purchase.date ?? "",
                                 ),
-                              );
-                            },
+                              ],
 
-                            onEdit: () async {
-                              final refresh = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      PurchaseEntryScreen(
-                                        mode: FormMode.edit,
-                                        id: purchase.id,
-                                      ),
+                              fields: [
+                                ReportField(
+                                  icon: Iconsax.profile_2user,
+                                  label: "Staff",
+                                  value: purchase.staffName ?? "",
                                 ),
-                              );
 
-                              if (!mounted) return;
+                                ReportField(
+                                  icon: Iconsax.shop,
+                                  label: "Supplier",
+                                  value: purchase.supplierName ?? "",
+                                ),
 
-                              if (refresh == true) {
-                                await provider.refresh();
-                              }
-                            },
+                                ReportField(
+                                  icon: Iconsax.user,
+                                  label: "Customer",
+                                  value: purchase.customerName ?? "",
+                                ),
 
-                            onDelete: () async {
-                              ExitConfirmationDialog.show(
-                                context,
-                                isDelete: true,
-                                body: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 8),
-                                  child: Text(
-                                    "Are you sure you want to delete this Purchase?",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
+                                ReportField(
+                                  icon: Iconsax.note,
+                                  label: "Remarks",
+                                  value: purchase.remarks ?? "",
+                                ),
+                              ],
+
+                              onTap: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        PurchaseEntryScreen(
+                                          mode: FormMode.view,
+                                          id: purchase.id,
+                                        ),
+                                  ),
+                                );
+                              },
+
+                              onEdit: canUpdate ? () async {
+                                final refresh = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PurchaseEntryScreen(
+                                      mode: FormMode.edit,
+                                      id: purchase.id,
                                     ),
                                   ),
-                                ),
+                                );
 
-                                saveButtonText: "Delete",
+                                if (!mounted) return;
 
-                                discardButtonText: "Cancel",
+                                if (refresh == true) {
+                                  await provider.refresh();
+                                }
+                              }
+                                  : null,
 
-                                onDiscard: () {
-                                  Navigator.pop(context);
-                                },
+                              onDelete: canDelete ? () async {
+                                ExitConfirmationDialog.show(
+                                  context,
+                                  isDelete: true,
+                                  body: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 8),
+                                    child: Text(
+                                      "Are you sure you want to delete this Purchase?",
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  saveButtonText: "Delete",
+                                  discardButtonText: "Cancel",
+                                  onDiscard: () => Navigator.pop(context),
+                                  onSave: () async {
+                                    Navigator.pop(context);
 
-                                onSave: () async {
-                                  Navigator.pop(context);
+                                    final success =
+                                    await provider.deletePurchase(purchase.id!);
 
-                                  final success = await provider.deletePurchase(
-                                    purchase.id!,
-                                  );
+                                    if (success) {
+                                      await provider.refresh();
+                                    }
 
-                                  if (success) {
-                                    await provider.refresh();
-                                  }
+                                    if (!context.mounted) return;
 
-                                  if (!context.mounted) {
-                                    return;
-                                  }
+                                    ScaffoldSnackBar.show(
+                                      context,
+                                      success
+                                          ? "Purchase deleted successfully"
+                                          : "Failed to delete purchase",
+                                    );
+                                  },
+                                );
+                              }
+                                  : null,
 
-                                  ScaffoldSnackBar.show(
-                                    context,
-                                    success
-                                        ? "Purchase deleted successfully"
-                                        : "Failed to delete purchase",
-                                  );
-                                },
-                              );
-                            },
+                            ),
                           ),
                         );
                       },

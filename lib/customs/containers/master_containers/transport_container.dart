@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
@@ -10,6 +12,7 @@ class TransportContainer extends StatelessWidget {
   final String? gst;
   final String? phone;
   final String? status;
+
   final VoidCallback? eyeIconTap;
   final VoidCallback? trashIconTap;
   final VoidCallback? copyIconTap;
@@ -32,16 +35,26 @@ class TransportContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.symmetric(
+        vertical: AppSpacing.cardGap / 2,
+      ),
       elevation: elevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+          AppSpacing.borderRadius,
+        ),
+      ),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(
+            AppSpacing.borderRadius,
+          ),
         ),
         child: IntrinsicHeight(
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: AppSpacing.card,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -55,127 +68,145 @@ class TransportContainer extends StatelessWidget {
                           color: AppColors.editGreenLight,
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: Text(
-                            status ?? "",
-                            style: TextStyle(
-                              color: AppColors.editGreen,
-                              fontSize: 12,
-                            ),
+                        padding: const EdgeInsets.all(5),
+                        child: Text(
+                          status ?? "-",
+                          style: const TextStyle(
+                            color: AppColors.editGreen,
+                            fontSize: 12,
                           ),
                         ),
                       ),
-                      SizedBox(height: 5),
+
+                      const SizedBox(height: AppSpacing.xs),
+
                       Text(
                         name ?? "",
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           color: AppColors.primaryPurple,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(height: 5),
+
+                      const SizedBox(height: AppSpacing.xs),
+
                       Row(
-                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            " Phone :   ",
+                            "Phone : ",
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: Colors.black,
                             ),
                           ),
-                          Text(
-                            phone!,
-                            style: const TextStyle(
+                          Expanded(
+                            child: Text(
+                              phone?.trim().isNotEmpty == true
+                                  ? phone!
+                                  : "-",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: AppSpacing.xs),
+
+                      Row(
+                        children: [
+                          const Text(
+                            "GST : ",
+                            style: TextStyle(
                               fontSize: 13,
+                              fontWeight: FontWeight.w600,
                               color: Colors.black,
                             ),
                           ),
+                          Expanded(
+                            child: Text(
+                              gst ?? "-",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      SizedBox(height: 5),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            const Text(
-                              " GST :  ",
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                              maxLines: 3,
 
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight:FontWeight.w600 ,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                              maxLines: 3,
-                              gst ?? "",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: AppSpacing.xs),
+
                       Row(
                         children: [
-                          Text(
-                            " City :  ",
-                            style: TextStyle(fontSize: 13,
-                                fontWeight:FontWeight.w600 ,
-                                color: Colors.black),
+                          const Text(
+                            "City : ",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
                           ),
-                          Text(
-                            city ?? "",
-                            style: TextStyle(fontSize: 13, color: Colors.black),
+                          Expanded(
+                            child: Text(
+                              city ?? "-",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-
                     ],
                   ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: trashIconTap,
-                      child: customIcon(
-                        icon: Iconsax.trash,
-                        iconColor: AppColors.binRed,
-                        bgColor: AppColors.binRedLight,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: copyIconTap,
-                      child: customIcon(
-                        icon: Iconsax.copy,
-                        iconColor: AppColors.blueDarkCopy,
-                        bgColor: AppColors.blueLightCopy,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: editIconTap,
-                      child: customIcon(
-                        icon: Iconsax.edit,
-                        iconColor: AppColors.editGreen,
-                        bgColor: AppColors.editGreenLight,
-                      ),
-                    ),
-                  ],
-                ),
+
+                if (trashIconTap != null ||
+                    copyIconTap != null ||
+                    editIconTap != null)
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (trashIconTap != null)
+                        GestureDetector(
+                          onTap: trashIconTap,
+                          child: customIcon(
+                            icon: Iconsax.trash,
+                            iconColor: AppColors.binRed,
+                            bgColor: AppColors.binRedLight,
+                          ),
+                        ),
+
+                      if (copyIconTap != null)
+                        GestureDetector(
+                          onTap: copyIconTap,
+                          child: customIcon(
+                            icon: Iconsax.copy,
+                            iconColor: AppColors.blueDarkCopy,
+                            bgColor: AppColors.blueLightCopy,
+                          ),
+                        ),
+
+                      if (editIconTap != null)
+                        GestureDetector(
+                          onTap: editIconTap,
+                          child: customIcon(
+                            icon: Iconsax.edit,
+                            iconColor: AppColors.editGreen,
+                            bgColor: AppColors.editGreenLight,
+                          ),
+                        ),
+                    ],
+                  ),
               ],
             ),
           ),

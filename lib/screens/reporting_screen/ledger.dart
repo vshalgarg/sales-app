@@ -1,3 +1,5 @@
+
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';
@@ -23,6 +25,8 @@ class LedgerReporting extends StatefulWidget {
 class _LedgerReportingState extends State<LedgerReporting> {
   bool loading = true;
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   EntriesModel? selectedSupplier;
   String? selectedSupplierName;
 
@@ -41,6 +45,12 @@ class _LedgerReportingState extends State<LedgerReporting> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context
+          .read<PermissionProvider>()
+          .hasPermission('LEDGER_REPORT_VIEW')) {
+        return;
+      }
+
       context.read<LedgerProvider>().clearLedger();
     });
 
@@ -48,6 +58,12 @@ class _LedgerReportingState extends State<LedgerReporting> {
   }
 
   Future<void> _loadData() async {
+    if (!context
+        .read<PermissionProvider>()
+        .hasPermission('LEDGER_REPORT_VIEW')) {
+      return;
+    }
+
     final provider = context.read<EntriesProvider>();
 
     await Future.wait([
@@ -62,16 +78,28 @@ class _LedgerReportingState extends State<LedgerReporting> {
     });
   }
 
-  Future<void> _submitLedger() async {
-    if (selectedSupplier == null ||
-        selectedCustomer == null ||
-        generatingFor == null) {
+  // Validate all mandatory dropdowns
+  bool _validateRequiredFields() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
       ScaffoldSnackBar.show(
         context,
         "Please Select Required Fields",
       );
+    }
+
+    return isValid;
+  }
+
+  Future<void> _submitLedger() async {
+    if (!context
+        .read<PermissionProvider>()
+        .hasPermission('LEDGER_REPORT_VIEW')) {
       return;
     }
+
+    if (!_validateRequiredFields()) return;
 
     try {
       await context.read<LedgerProvider>().fetchLedger(
@@ -111,15 +139,13 @@ class _LedgerReportingState extends State<LedgerReporting> {
   }
 
   Future<void> _downloadLedger() async {
-    if (selectedSupplier == null ||
-        selectedCustomer == null ||
-        generatingFor == null) {
-      ScaffoldSnackBar.show(
-        context,
-        "Please Select Required Fields",
-      );
+    if (!context
+        .read<PermissionProvider>()
+        .hasPermission('LEDGER_REPORT_VIEW')) {
       return;
     }
+
+    if (!_validateRequiredFields()) return;
 
     try {
       final bytes = await context
@@ -137,6 +163,7 @@ class _LedgerReportingState extends State<LedgerReporting> {
           context,
           "Failed to download ledger",
         );
+
         return;
       }
 
@@ -160,6 +187,18 @@ class _LedgerReportingState extends State<LedgerReporting> {
 
   @override
   Widget build(BuildContext context) {
+    if (!context
+        .watch<PermissionProvider>()
+        .hasPermission('LEDGER_REPORT_VIEW')) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to access this screen.',
+          ),
+        ),
+      );
+    }
+
     final provider = context.watch<EntriesProvider>();
 
     return Scaffold(
@@ -170,13 +209,7 @@ class _LedgerReportingState extends State<LedgerReporting> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             context.read<LedgerProvider>().clearLedger();
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => HomeScreen(),
-              ),
-            );
+            Navigator.pop(context);
           },
         ),
         title: "Ledger",
@@ -194,43 +227,58 @@ class _LedgerReportingState extends State<LedgerReporting> {
           : Padding(
         padding: const EdgeInsets.all(15.0),
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              const Text(
-                "Supplier * ",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                // SUPPLIER
+                const Text(
+                  "Supplier *",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 5),
+                const SizedBox(height: 5),
 
-              CustomDropdown(
-                hintText: "Supplier ",
-                initialValue: selectedSupplierName,
-                items: provider.entries
-                    .map((e) {
-                  final name = e.supplierName ?? "";
-                  final city = e.city ?? "";
+                CustomDropdown(
+                  hintText: "Supplier",
+                  initialValue: selectedSupplierName,
 
-                  if (city.isEmpty) {
-                    return name;
-                  }
+                  isRequired: true,
 
-                  return "$name - $city";
-                })
-                    .where((e) => e.isNotEmpty)
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
+                  autovalidateMode:
+                  AutovalidateMode.onUserInteraction,
 
-                  final supplier = provider.entries.firstWhere(
-                        (e) {
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty) {
+                      return "Supplier is required.";
+                    }
+                    return null;
+                  },
+
+                  items: provider.entries.map((e) {
+                    final name = e.supplierName ?? "";
+                    final city = e.city ?? "";
+
+                    if (city.isEmpty) {
+                      return name;
+                    }
+
+                    return "$name - $city";
+                  }).where((e) => e.isNotEmpty).toList(),
+
+                  onChanged: (value) {
+                    if (value == null) return;
+
+                    final supplier =
+                    provider.entries.firstWhere((e) {
                       final name = e.supplierName ?? "";
                       final city = e.city ?? "";
 
@@ -239,41 +287,61 @@ class _LedgerReportingState extends State<LedgerReporting> {
                           : "$name - $city";
 
                       return displayName == value;
-                    },
-                  );
+                    });
 
-                  setState(() {
-                    selectedSupplierName = value;
-                    selectedSupplier = supplier;
-                  });
-                },
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Customer * ",
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
-              CustomDropdown(
-                hintText: "Customer  ",
-                initialValue: selectedCustomerName,
-                items: provider.customerEntries
-                    .map((e) {
-                  final name = e.customerName ?? "";
-                  final city = e.city ?? "";
+                    setState(() {
+                      selectedSupplierName = value;
+                      selectedSupplier = supplier;
+                    });
+                  },
+                ),
 
-                  if (city.isEmpty) {
-                    return name;
-                  }
+                const SizedBox(height: 10),
 
-                  return "$name - $city";
-                })
-                    .where((e) => e.isNotEmpty)
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
+                // CUSTOMER
+                const Text(
+                  "Customer *",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
+                ),
 
-                  final customer = provider.customerEntries.firstWhere(
-                        (e) {
+                const SizedBox(height: 5),
+
+                CustomDropdown(
+                  hintText: "Customer",
+                  initialValue: selectedCustomerName,
+
+                  isRequired: true,
+
+                  autovalidateMode:
+                  AutovalidateMode.onUserInteraction,
+
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty) {
+                      return "Customer is required.";
+                    }
+                    return null;
+                  },
+
+                  items: provider.customerEntries.map((e) {
+                    final name = e.customerName ?? "";
+                    final city = e.city ?? "";
+
+                    if (city.isEmpty) {
+                      return name;
+                    }
+
+                    return "$name - $city";
+                  }).where((e) => e.isNotEmpty).toList(),
+
+                  onChanged: (value) {
+                    if (value == null) return;
+
+                    final customer =
+                    provider.customerEntries.firstWhere((e) {
                       final name = e.customerName ?? "";
                       final city = e.city ?? "";
 
@@ -282,109 +350,123 @@ class _LedgerReportingState extends State<LedgerReporting> {
                           : "$name - $city";
 
                       return displayName == value;
-                    },
-                  );
+                    });
 
-                  setState(() {
-                    selectedCustomerName = value;
-                    selectedCustomer = customer;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 15),
-
-              const Text(
-                "Generating for * ",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                    setState(() {
+                      selectedCustomerName = value;
+                      selectedCustomer = customer;
+                    });
+                  },
                 ),
-              ),
 
-              const SizedBox(height: 5),
+                const SizedBox(height: 15),
 
-              CustomDropdown(
-                hintText: "Generating for ",
-                initialValue: generatingFor,
-                items: generatesList,
-                onChanged: (value) {
-                  setState(() {
-                    generatingFor = value;
-                  });
-                },
-              ),
+                // GENERATING FOR
+                const Text(
+                  "Generating for *",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
+                ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 5),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                CustomDropdown(
+                  hintText: "Generating for",
+                  initialValue: generatingFor,
 
-                  // SUBMIT
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        AppColors.primaryPurple,
-                        foregroundColor: Colors.white,
-                        padding:
-                        const EdgeInsets.symmetric(
-                          vertical: 13,
+                  isRequired: true,
+
+                  autovalidateMode:
+                  AutovalidateMode.onUserInteraction,
+
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty) {
+                      return "Generating for is required.";
+                    }
+                    return null;
+                  },
+
+                  items: generatesList,
+
+                  onChanged: (value) {
+                    setState(() {
+                      generatingFor = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // BUTTONS
+                Row(
+                  mainAxisAlignment:
+                  MainAxisAlignment.end,
+                  children: [
+
+                    // SUBMIT
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                          AppColors.primaryPurple,
+                          foregroundColor: Colors.white,
+                          padding:
+                          const EdgeInsets.symmetric(
+                            vertical: 13,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(5),
+                          ),
                         ),
-                        shape:
-                        RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(5),
-                        ),
-                      ),
-                      onPressed: _submitLedger,
-                      child: const Text(
-                        "SUBMIT",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                        onPressed: _submitLedger,
+                        child: const Text(
+                          "SUBMIT",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(width: 15),
+                    const SizedBox(width: 15),
 
-                  // DOWNLOAD
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor:
-                        AppColors.primaryPurple,
-                        padding:
-                        const EdgeInsets.symmetric(
-                          vertical: 13,
+                    // DOWNLOAD
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor:
+                          AppColors.primaryPurple,
+                          padding:
+                          const EdgeInsets.symmetric(
+                            vertical: 13,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(5),
+                          ),
                         ),
-                        shape:
-                        RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(5),
-                        ),
-                      ),
-                      onPressed: _downloadLedger,
-                      child: const Text(
-                        "DOWNLOAD",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
+                        onPressed: _downloadLedger,
+                        child: const Text(
+                          "DOWNLOAD",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-

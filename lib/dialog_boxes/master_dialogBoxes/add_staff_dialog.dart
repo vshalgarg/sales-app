@@ -9,6 +9,7 @@ import '../../enums/staff_mode.dart';
 import '../../model_classes/staff/add_staff_request.dart';
 import '../../model_classes/staff/staff.dart';
 import '../../pop_ups/scafold_type.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/master_provider/staff_provider.dart';
 
 class AddStaffDialog extends StatefulWidget {
@@ -88,6 +89,19 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<StaffProvider>();
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final hasPermission = widget.mode == StaffMode.add
+        ? permissionProvider.canCreate('STAFF')
+        : permissionProvider.canUpdate('STAFF');
+
+    if (!hasPermission) {
+      return const AlertDialog(
+        content: Text(
+          'You do not have permission to perform this action.',
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(15),

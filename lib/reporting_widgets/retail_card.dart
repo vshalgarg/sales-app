@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+
 import '../constants/colors_used.dart';
 import '../constants/custom_icons.dart';
 
@@ -25,13 +27,14 @@ class RetailCard extends StatelessWidget {
     const primary = AppColors.primaryPurple;
 
     final date = fields.firstWhere(
-      (e) => e.key.toLowerCase() == "date",
+          (e) => e.key.toLowerCase() == "date",
       orElse: () => const MapEntry("", ""),
     );
 
     final otherFields = fields
         .where((e) => e.key.toLowerCase() != "date")
         .toList();
+
     String displayDate = date.value;
 
     if (date.value.isNotEmpty) {
@@ -42,15 +45,21 @@ class RetailCard extends StatelessWidget {
         displayDate = date.value;
       }
     }
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
       child: Card(
+        margin: const EdgeInsets.symmetric(
+          vertical: AppSpacing.cardGap / 2,
+        ),
         color: Colors.white,
         elevation: 1.8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(15),
+          padding: AppSpacing.card,
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,9 +83,7 @@ class RetailCard extends StatelessWidget {
                                 size: 16,
                                 color: Colors.deepOrange,
                               ),
-
-                              const SizedBox(width: 5),
-
+                              const SizedBox(width: AppSpacing.xs),
                               Text(
                                 displayDate,
                                 style: const TextStyle(
@@ -88,9 +95,7 @@ class RetailCard extends StatelessWidget {
                             ],
                           ),
                         ),
-
-                      const SizedBox(height: 10),
-
+                      const SizedBox(height: AppSpacing.md),
                       ...otherFields.map((field) {
                         IconData icon = Iconsax.document;
 
@@ -98,18 +103,18 @@ class RetailCard extends StatelessWidget {
                           case "retailer":
                             icon = Iconsax.shop;
                             break;
-
                           case "referred by":
                             icon = Iconsax.profile_2user;
                             break;
-
                           case "staff":
                             icon = Iconsax.user;
                             break;
                         }
 
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(
+                            bottom: AppSpacing.md,
+                          ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -119,11 +124,13 @@ class RetailCard extends StatelessWidget {
                                   color: Color(0xffF3F2FF),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(icon, size: 18, color: primary),
+                                child: Icon(
+                                  icon,
+                                  size: 18,
+                                  color: primary,
+                                ),
                               ),
-
-                              const SizedBox(width: 5),
-
+                              const SizedBox(width: AppSpacing.xs),
                               SizedBox(
                                 width: 90,
                                 child: Text(
@@ -135,15 +142,12 @@ class RetailCard extends StatelessWidget {
                                   ),
                                 ),
                               ),
-
                               Container(
                                 width: 1,
                                 height: 8,
                                 color: Colors.grey,
                               ),
-
-                              const SizedBox(width: 10),
-
+                              const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Text(
                                   field.value.trim().isEmpty
@@ -161,37 +165,38 @@ class RetailCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                const SizedBox(width: 5),
-
-                Container(width: 1, color: const Color(0xffECECF7)),
-
-                const SizedBox(width: 5),
-
+                const SizedBox(width: AppSpacing.xs),
+                Container(
+                  width: 1,
+                  color: const Color(0xffECECF7),
+                ),
+                const SizedBox(width: AppSpacing.xs),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _actionButton(
-                      icon: Iconsax.add_circle,
-                      color: const Color(0xff3CB44B),
-                      onTap: onAdd ?? () {},
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    _actionButton(
-                      icon: Iconsax.edit,
-                      color: const Color(0xff00B894),
-                      onTap: onEdit ?? () {},
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    _actionButton(
-                      icon: Iconsax.trash,
-                      color: const Color(0xffFF3B30),
-                      onTap: onDelete ?? () {},
-                    ),
+                    if (onAdd != null)
+                      _actionButton(
+                        icon: Iconsax.add_circle,
+                        color: const Color(0xff3CB44B),
+                        onTap: onAdd!,
+                      ),
+                    if (onAdd != null &&
+                        (onEdit != null || onDelete != null))
+                      const SizedBox(height: AppSpacing.xs),
+                    if (onEdit != null)
+                      _actionButton(
+                        icon: Iconsax.edit,
+                        color: const Color(0xff00B894),
+                        onTap: onEdit!,
+                      ),
+                    if (onEdit != null && onDelete != null)
+                      const SizedBox(height: AppSpacing.xs),
+                    if (onDelete != null)
+                      _actionButton(
+                        icon: Iconsax.trash,
+                        color: const Color(0xffFF3B30),
+                        onTap: onDelete!,
+                      ),
                   ],
                 ),
               ],
@@ -215,7 +220,11 @@ class RetailCard extends StatelessWidget {
         child: SizedBox(
           width: 32,
           child: Center(
-            child: customIcon(icon: icon, iconColor: color, bgColor: color),
+            child: customIcon(
+              icon: icon,
+              iconColor: color,
+              bgColor: color,
+            ),
           ),
         ),
       ),

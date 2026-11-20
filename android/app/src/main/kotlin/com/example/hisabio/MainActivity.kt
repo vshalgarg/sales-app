@@ -3,7 +3,7 @@ package com.codemonks.hisabio
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+//import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,7 +13,7 @@ class MainActivity : FlutterActivity() {
     private val CHANNEL = "file_opener"
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        //installSplashScreen()
         super.onCreate(savedInstanceState)
     }
 
@@ -56,24 +56,6 @@ class MainActivity : FlutterActivity() {
         }
     }
 }
-
-
-
-
-//package com.example.hisabio
-//
-//import android.os.Bundle
-//import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-//import io.flutter.embedding.android.FlutterActivity
-//
-//class MainActivity : FlutterActivity() {
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        installSplashScreen()
-//
-//        super.onCreate(savedInstanceState)
-//    }
-//}
 
 
 

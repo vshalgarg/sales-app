@@ -1,4 +1,3 @@
-
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/supplier/add_supplier_request.dart';
@@ -27,15 +26,12 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     required int size,
   }) async {
     final result = _searchKeyword.isEmpty
-        ? await _service.getSuppliers(
-      page: page,
-      size: size,
-    )
+        ? await _service.getSuppliers(page: page, size: size)
         : await _service.searchSuppliers(
-      keyword: _searchKeyword,
-      page: page,
-      size: size,
-    );
+            keyword: _searchKeyword,
+            page: page,
+            size: size,
+          );
 
     if (result.isFailure || result.data == null) {
       throw Exception(result.errorMessage ?? "Failed to load suppliers");
@@ -53,6 +49,7 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     _searchKeyword = "";
     await refreshSuppliers();
   }
+
   Future<SupplierDetails?> fetchSupplierDetails(int id) async {
     _detailsLoading = true;
     notifyListeners();
@@ -78,7 +75,6 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     notifyListeners();
 
     try {
-
       final result = await _service.addSupplier(request);
 
       if (result.isSuccess && result.data != null) {
@@ -90,6 +86,7 @@ class SupplierProvider extends PaginationProvider<Supplier> {
       notifyListeners();
     }
   }
+
   Future<String?> updateSupplier({
     required int id,
     required AddSupplierRequest request,
@@ -97,10 +94,7 @@ class SupplierProvider extends PaginationProvider<Supplier> {
     notifyListeners();
 
     try {
-      final result = await _service.updateSupplier(
-        id: id,
-        request: request,
-      );
+      final result = await _service.updateSupplier(id: id, request: request);
 
       if (result.isSuccess) {
         await refresh();
@@ -113,8 +107,8 @@ class SupplierProvider extends PaginationProvider<Supplier> {
       notifyListeners();
     }
   }
-  Future<bool> deleteSupplier(String code) async {
 
+  Future<bool> deleteSupplier(String code) async {
     notifyListeners();
 
     try {
@@ -129,9 +123,11 @@ class SupplierProvider extends PaginationProvider<Supplier> {
       notifyListeners();
     }
   }
+
   Future<void> refreshSuppliers() async {
     await refresh();
   }
+
   void clearDetails() {
     _supplierDetails = null;
     notifyListeners();

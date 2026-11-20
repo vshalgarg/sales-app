@@ -1,22 +1,19 @@
+
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:page_turn_animation/page_turn_animation.dart';
 
+import '../constants/app_spacing.dart';
 import '../model_classes/common/pagination_state.dart';
 
 class PaginationWidget<T> extends StatefulWidget {
   final PaginationState pagination;
-
   final List<T> items;
-
   final bool loading;
-
   final Future<void> Function(int page) fetchPage;
-
   final Future<void> Function() refresh;
-
   final Widget Function(BuildContext context, T item) itemBuilder;
 
   const PaginationWidget({
@@ -30,30 +27,24 @@ class PaginationWidget<T> extends StatefulWidget {
   });
 
   @override
-  State<PaginationWidget<T>> createState() => _PaginationWidgetState<T>();
+  State<PaginationWidget<T>> createState() =>
+      _PaginationWidgetState<T>();
 }
 
 class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
     with SingleTickerProviderStateMixin {
-  // PAGE CAPTURE
-
   final GlobalKey _pageKey = GlobalKey();
 
   ui.Image? _capturedPage;
   ui.Image? _targetPage;
 
-  // ANIMATION
-
   late final AnimationController _turnController;
-
   late final CurvedAnimation _turnAnimation;
 
   bool _isTurning = false;
-
   bool _isFetching = false;
 
   PageTurnDirection _turnDirection = PageTurnDirection.forward;
-
   PageTurnEdge _turnEdge = PageTurnEdge.right;
 
   @override
@@ -64,6 +55,7 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
       vsync: this,
       duration: const Duration(milliseconds: 650),
     );
+
     _turnAnimation = CurvedAnimation(
       parent: _turnController,
       curve: Curves.decelerate,
@@ -73,26 +65,20 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
   @override
   void dispose() {
     _capturedPage?.dispose();
+    _targetPage?.dispose();
     _turnController.dispose();
     _turnAnimation.dispose();
-    _targetPage?.dispose();
     super.dispose();
   }
-
-  // CAPTURE CURRENT PAGE
 
   Future<ui.Image?> _captureCurrentPage() async {
     final context = _pageKey.currentContext;
 
-    if (context == null) {
-      return null;
-    }
+    if (context == null) return null;
 
     final renderObject = context.findRenderObject();
 
-    if (renderObject is! RenderRepaintBoundary) {
-      return null;
-    }
+    if (renderObject is! RenderRepaintBoundary) return null;
 
     try {
       return await renderObject.toImage(
@@ -103,19 +89,15 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
     }
   }
 
-  // START PAGE TURN
+  Future<void> _changePage({
+    required int page,
+    required bool forward,
+  }) async {
+    if (_isTurning || _isFetching || widget.loading) return;
 
-  Future<void> _changePage({required int page, required bool forward}) async {
-    if (_isTurning || _isFetching || widget.loading) {
-      return;
-    }
-
-    // Capture current page BEFORE API call.
     final currentPageImage = await _captureCurrentPage();
 
-    if (currentPageImage == null || !mounted) {
-      return;
-    }
+    if (currentPageImage == null || !mounted) return;
 
     _capturedPage?.dispose();
     _capturedPage = currentPageImage;
@@ -130,19 +112,15 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
       });
 
       _turnController.reset();
-
-      // Start curl immediately.
       final animationFuture = _turnController.forward();
 
       try {
-        // Fetch NEXT page while curl is happening.
         await widget.fetchPage(page);
 
         if (!mounted) return;
 
         _isFetching = false;
 
-        // Wait for curl to finish.
         await animationFuture;
 
         if (!mounted) return;
@@ -179,9 +157,7 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
 
         final previousPageImage = await _captureCurrentPage();
 
-        if (previousPageImage == null || !mounted) {
-          return;
-        }
+        if (previousPageImage == null || !mounted) return;
 
         _targetPage?.dispose();
         _targetPage = previousPageImage;
@@ -194,7 +170,6 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
         });
 
         _turnController.reset();
-
         await _turnController.forward();
 
         if (!mounted) return;
@@ -223,72 +198,59 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
     }
   }
 
-  // RUN ANIMATION
-
-  Future<void> _runTurnAnimation() async {
-    try {
-      await _turnController.forward();
-    } catch (_) {}
-  }
-
-  // DISPOSE IMAGE
-
   void _disposeCapturedPage() {
     _capturedPage?.dispose();
     _capturedPage = null;
   }
 
-  // NEXT
-
   Future<void> _nextPage() async {
-    if (widget.pagination.currentPage >= widget.pagination.lastValidPage) {
+    if (widget.pagination.currentPage >=
+        widget.pagination.lastValidPage) {
       return;
     }
 
-    await _changePage(page: widget.pagination.currentPage + 1, forward: true);
+    await _changePage(
+      page: widget.pagination.currentPage + 1,
+      forward: true,
+    );
   }
-
-  // PREVIOUS
 
   Future<void> _previousPage() async {
-    if (widget.pagination.currentPage <= 0) {
-      return;
-    }
+    if (widget.pagination.currentPage <= 0) return;
 
-    await _changePage(page: widget.pagination.currentPage - 1, forward: false);
+    await _changePage(
+      page: widget.pagination.currentPage - 1,
+      forward: false,
+    );
   }
 
-  // FIRST
-
   Future<void> _firstPage() async {
-    if (widget.pagination.currentPage == 0) {
-      return;
-    }
+    if (widget.pagination.currentPage == 0) return;
 
     await _changePage(page: 0, forward: false);
   }
 
-  // LAST
-
   Future<void> _lastPage() async {
-    if (widget.pagination.currentPage >= widget.pagination.lastValidPage) {
+    if (widget.pagination.currentPage >=
+        widget.pagination.lastValidPage) {
       return;
     }
 
-    await _changePage(page: widget.pagination.lastValidPage, forward: true);
+    await _changePage(
+      page: widget.pagination.lastValidPage,
+      forward: true,
+    );
   }
-
-  // BUILD
 
   @override
   Widget build(BuildContext context) {
     final currentCount =
-        ((widget.pagination.currentPage + 1) * widget.pagination.pageSize)
-            .clamp(0, widget.pagination.totalElements);
+    ((widget.pagination.currentPage + 1) *
+        widget.pagination.pageSize)
+        .clamp(0, widget.pagination.totalElements);
 
     return Column(
       children: [
-        // HEADER
         Row(
           children: [
             const Text(
@@ -298,55 +260,48 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
                 fontWeight: FontWeight.w600,
               ),
             ),
-
             const Spacer(),
-
-            // FIRST PAGE
             IconButton(
               onPressed:
-                  _isTurning ||
-                      widget.loading ||
-                      widget.pagination.currentPage == 0
+              _isTurning ||
+                  widget.loading ||
+                  widget.pagination.currentPage == 0
                   ? null
                   : _firstPage,
-              icon: const Icon(Icons.keyboard_double_arrow_left),
+              icon: const Icon(
+                Icons.keyboard_double_arrow_left,
+              ),
             ),
-
             Text(
               '$currentCount of '
-              '${widget.pagination.totalElements}',
+                  '${widget.pagination.totalElements}',
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
-
-            // LAST PAGE
             IconButton(
               onPressed:
-                  _isTurning ||
-                      widget.loading ||
-                      widget.pagination.currentPage >=
-                          widget.pagination.lastValidPage
+              _isTurning ||
+                  widget.loading ||
+                  widget.pagination.currentPage >=
+                      widget.pagination.lastValidPage
                   ? null
                   : _lastPage,
-              icon: const Icon(Icons.keyboard_double_arrow_right),
+              icon: const Icon(
+                Icons.keyboard_double_arrow_right,
+              ),
             ),
           ],
         ),
 
-        const SizedBox(height: 5),
+        const SizedBox(height: AppSpacing.sm),
 
-        // PAGE CONTENT
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final availableWidth = constraints.maxWidth;
-              final availableHeight = constraints.maxHeight;
-
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
-
                 onHorizontalDragEnd: (details) async {
                   if (_isTurning || _isFetching || widget.loading) {
                     return;
@@ -360,49 +315,51 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
                     await _previousPage();
                   }
                 },
-
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    RepaintBoundary(key: _pageKey, child: _buildCurrentPage()),
-
+                    RepaintBoundary(
+                      key: _pageKey,
+                      child: _buildCurrentPage(),
+                    ),
                     if (_isTurning)
                       IgnorePointer(
-                        child: _turnDirection == PageTurnDirection.forward
+                        child:
+                        _turnDirection == PageTurnDirection.forward
                             ? PageTurnAnimation(
-                                image: _capturedPage!,
-                                animation: _turnAnimation,
-                                direction: PageTurnDirection.forward,
-                                edge: _turnEdge,
+                          image: _capturedPage!,
+                          animation: _turnAnimation,
+                          direction: PageTurnDirection.forward,
+                          edge: _turnEdge,
+                          style: const PageTurnStyle(
+                            shadowOpacity: 0.35,
+                            shadowBlurRadius: 8,
+                            curlIntensity: 1.0,
+                          ),
+                        )
+                            : Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (_capturedPage != null)
+                              RawImage(
+                                image: _capturedPage,
+                                fit: BoxFit.fill,
+                              ),
+                            if (_targetPage != null)
+                              PageTurnAnimation(
+                                image: _targetPage!,
+                                animation: _turnController,
+                                direction:
+                                PageTurnDirection.backward,
+                                edge: PageTurnEdge.left,
                                 style: const PageTurnStyle(
                                   shadowOpacity: 0.35,
                                   shadowBlurRadius: 8,
                                   curlIntensity: 1.0,
                                 ),
-                              )
-                            : Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  if (_capturedPage != null)
-                                    RawImage(
-                                      image: _capturedPage,
-                                      fit: BoxFit.fill,
-                                    ),
-
-                                  if (_targetPage != null)
-                                    PageTurnAnimation(
-                                      image: _targetPage!,
-                                      animation: _turnController,
-                                      direction: PageTurnDirection.backward,
-                                      edge: PageTurnEdge.left,
-                                      style: const PageTurnStyle(
-                                        shadowOpacity: 0.35,
-                                        shadowBlurRadius: 8,
-                                        curlIntensity: 1.0,
-                                      ),
-                                    ),
-                                ],
                               ),
+                          ],
+                        ),
                       ),
                   ],
                 ),
@@ -413,8 +370,6 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
       ],
     );
   }
-
-  // CURRENT PAGE
 
   Widget _buildCurrentPage() {
     if (widget.items.isEmpty) {
@@ -437,13 +392,20 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
 
     return RefreshIndicator(
       onRefresh: widget.refresh,
-      child: ListView.builder(
+      child: ListView.separated(
         key: ValueKey('page_${widget.pagination.currentPage}'),
-        padding: const EdgeInsets.only(bottom: 100),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: widget.items.length,
+        separatorBuilder: (context, index) {
+          return const SizedBox(
+            height: AppSpacing.cardSeparator,
+          );
+        },
         itemBuilder: (context, index) {
-          return widget.itemBuilder(context, widget.items[index]);
+          return widget.itemBuilder(
+            context,
+            widget.items[index],
+          );
         },
       ),
     );

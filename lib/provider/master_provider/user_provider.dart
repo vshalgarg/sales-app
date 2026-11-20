@@ -108,6 +108,66 @@ class UserProvider extends ChangeNotifier {
     return false;
   }
 
+  // FETCH USER ROLES
+  Future<List<String>?> fetchUserRoles(int userId) async {
+    _errorMessage = null;
+
+    try {
+      final result = await _service.getUserWithRoles(userId);
+
+      if (result.isSuccess && result.data != null) {
+        final roles = result.data!['roles'];
+
+        if (roles is List) {
+          return roles.map((e) => e.toString()).toList();
+        }
+
+        return [];
+      }
+
+      _errorMessage = result.errorMessage ?? 'Unable to fetch user roles';
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+// UPDATE USER ROLES
+  Future<bool> updateUserRoles({
+    required int userId,
+    required List<String> roleNames,
+  }) async {
+    _errorMessage = null;
+    _successMessage = null;
+
+    try {
+      final result = await _service.updateUserRoles(
+        userId: userId,
+        roleNames: roleNames,
+      );
+
+      if (result.isSuccess) {
+        _successMessage =
+            result.data?['message']?.toString() ??
+                'User roles updated successfully';
+
+        await fetchUsers();
+        return true;
+      }
+
+      _errorMessage = result.errorMessage ?? 'Failed to update user roles';
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> refresh() async {
     await fetchUsers();
   }
