@@ -35,6 +35,7 @@ const CustomTextField = forwardRef(
       slotProps,
       InputLabelProps,
       inputProps,
+      inputRef,
       ...rest
     },
     ref
@@ -60,7 +61,7 @@ const CustomTextField = forwardRef(
         autoFocus={autoFocus}
         autoComplete={autoComplete}
         fullWidth
-        inputRef={ref}
+        inputRef={inputRef || ref}
         InputLabelProps={{
           ...(hasValue ? { shrink: true } : {}),
           ...InputLabelProps,

@@ -73,6 +73,7 @@ const BillEntry = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [tempDocuments, setTempDocuments] = useState([]);
   const fileInputRef = useRef(null);
+  const piecesInputRef = useRef(null);
   const [userTouched, setUserTouched] = useState(false);
   const { setIsDirty } = useUnsaved();
   const combinedData = {
@@ -84,6 +85,12 @@ const BillEntry = () => {
     billDocuments,
   };
   const { isDirty: localDirty } = useUnsavedChanges(combinedData);
+
+  useEffect(() => {
+  if (isAddItemModalOpen) {
+    piecesInputRef.current?.focus();
+     }
+     }, [isAddItemModalOpen, billForm.pieces]);
 
   useEffect(() => {
     if (!userTouched) {
@@ -265,7 +272,7 @@ const BillEntry = () => {
     setErrors({});
   };
 
-  const handleSaveItem = () => {
+  const handleSaveItem = (closeModal = true) => {
     if (!billForm.grossAmount || Number(billForm.grossAmount) <= 0) {
       showSnackbar(
         "Gross Amount is required and must be greater than zero",
@@ -326,8 +333,13 @@ const BillEntry = () => {
       billAmount: "",
     }));
     showSnackbar(successMessage, "success");
+    if (closeModal) {
     setIsAddItemModalOpen(false);
+    }
   };
+  const handleAddBillDetail=()=>{
+     handleSaveItem(false);
+  }
 
   const validateBillForm = () => {
     const newErrors = {};
@@ -943,6 +955,7 @@ const BillEntry = () => {
                   <FormSection title="Bill Details" icon={Receipt} variantIndex={0}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <CustomTextField
+                        inputRef={piecesInputRef}
                         name="pieces"
                         value={billForm.pieces}
                         onChange={(e) => {
@@ -1111,6 +1124,11 @@ const BillEntry = () => {
                       Reset
                     </AppButton>
                   ) : null}
+                  {!isEditing && (
+                    <AppButton type="secondary" onClick={handleAddBillDetail}>
+                      Save And Add New
+                   </AppButton>
+                  )}
                   <AppButton
                     type="primary"
                     onClick={() => {
