@@ -14,8 +14,7 @@ class RetailService {
 
   static const String _retail = "/retail";
   static const String _retailSuppliers = "/retail-suppliers";
-  static const String _retailSupplierDeposits =
-      "/retail-supplier-deposits";
+  static const String _retailSupplierDeposits = "/retail-supplier-deposits";
 
   Future<ResponseResult<PaginatedResponse<Retail>>> searchRetails({
     String? fromDate,
@@ -23,29 +22,26 @@ class RetailService {
     int? customerId,
     int? staffId,
     int? supplierId,
+    bool showLoader = true,
     required int page,
     required int size,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_retail/search",
+      showLoader: showLoader,
       queryParameters: {
         "page": page,
         "size": size,
 
-        if (fromDate != null && fromDate.isNotEmpty)
-          "fromDate": fromDate,
+        if (fromDate != null && fromDate.isNotEmpty) "fromDate": fromDate,
 
-        if (toDate != null && toDate.isNotEmpty)
-          "toDate": toDate,
+        if (toDate != null && toDate.isNotEmpty) "toDate": toDate,
 
-        if (customerId != null)
-          "customerId": customerId,
+        if (customerId != null) "customerId": customerId,
 
-        if (staffId != null)
-          "staffId": staffId,
+        if (staffId != null) "staffId": staffId,
 
-        if (supplierId != null)
-          "supplierId": supplierId,
+        if (supplierId != null) "supplierId": supplierId,
       },
     );
 
@@ -65,11 +61,11 @@ class RetailService {
       );
     }
 
-// API can return HTTP 200 with an application-level error.
+    // API can return HTTP 200 with an application-level error.
     if (response["code"] != null && response["code"] != 200) {
       return ResponseResult.error(
         errorMessage:
-        response["message"]?.toString() ?? "Failed to load retails",
+            response["message"]?.toString() ?? "Failed to load retails",
         statusCode: response["code"] as int?,
       );
     }
@@ -82,17 +78,18 @@ class RetailService {
     }
 
     return ResponseResult.success(
-      PaginatedResponse<Retail>.fromJson(
-        response["data"],
-        Retail.fromJson,
-      ),
+      PaginatedResponse<Retail>.fromJson(response["data"], Retail.fromJson),
       result.statusCode,
     );
   }
 
-  Future<ResponseResult<RetailDetails>> getRetailDetails(int retailId) async {
+  Future<ResponseResult<RetailDetails>> getRetailDetails(
+    int retailId, {
+    bool showLoader = true,
+  }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_retail/get/$retailId",
+      showLoader: true,
     );
 
     if (result.isFailure) {
@@ -102,25 +99,56 @@ class RetailService {
       );
     }
 
+    final response = result.data;
+
+    if (response == null) {
+      return ResponseResult.error(
+        errorMessage: "Retail response is empty",
+        statusCode: result.statusCode,
+      );
+    }
+
+    if (response["code"] != null && response["code"] != 200) {
+      return ResponseResult.error(
+        errorMessage:
+            response["message"]?.toString() ?? "Failed to load retail details",
+        statusCode: response["code"] as int?,
+      );
+    }
+
+    final data = response["data"];
+
+    if (data == null || data is! Map<String, dynamic>) {
+      return ResponseResult.error(
+        errorMessage:
+            response["message"]?.toString() ?? "Retail details not found",
+        statusCode: result.statusCode,
+      );
+    }
+
     return ResponseResult.success(
-      RetailDetails.fromJson(result.data!["data"]),
+      RetailDetails.fromJson(data),
       result.statusCode,
     );
   }
 
   Future<ResponseResult<ApiResponse>> createRetail(
-      Map<String, dynamic> body) async {
+    Map<String, dynamic> body,
+  ) async {
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_retail/create",
       data: body,
     );
     if (result.isFailure) {
       return ResponseResult.error(
-          errorMessage: result.errorMessage ?? "Something went wrong",
-          statusCode: result.statusCode);
+        errorMessage: result.errorMessage ?? "Something went wrong",
+        statusCode: result.statusCode,
+      );
     }
     return ResponseResult.success(
-        ApiResponse.fromJson(result.data!), result.statusCode);
+      ApiResponse.fromJson(result.data!),
+      result.statusCode,
+    );
   }
 
   Future<ResponseResult<ApiResponse>> updateRetail({
@@ -133,11 +161,14 @@ class RetailService {
     );
     if (result.isFailure) {
       return ResponseResult.error(
-          errorMessage: result.errorMessage ?? "Something went wrong",
-          statusCode: result.statusCode);
+        errorMessage: result.errorMessage ?? "Something went wrong",
+        statusCode: result.statusCode,
+      );
     }
     return ResponseResult.success(
-        ApiResponse.fromJson(result.data!), result.statusCode);
+      ApiResponse.fromJson(result.data!),
+      result.statusCode,
+    );
   }
 
   Future<ResponseResult<ApiResponse>> deleteRetail(int retailId) async {
@@ -146,26 +177,33 @@ class RetailService {
     );
     if (result.isFailure) {
       return ResponseResult.error(
-          errorMessage: result.errorMessage ?? "Something went wrong",
-          statusCode: result.statusCode);
+        errorMessage: result.errorMessage ?? "Something went wrong",
+        statusCode: result.statusCode,
+      );
     }
     return ResponseResult.success(
-        ApiResponse.fromJson(result.data!), result.statusCode);
+      ApiResponse.fromJson(result.data!),
+      result.statusCode,
+    );
   }
 
   Future<ResponseResult<ApiResponse>> addRetailSupplier(
-      Map<String, dynamic> body) async {
+    Map<String, dynamic> body,
+  ) async {
     final result = await _api.post<Map<String, dynamic>>(
       path: _retailSuppliers,
       data: body,
     );
     if (result.isFailure) {
       return ResponseResult.error(
-          errorMessage: result.errorMessage ?? "Something went wrong",
-          statusCode: result.statusCode);
+        errorMessage: result.errorMessage ?? "Something went wrong",
+        statusCode: result.statusCode,
+      );
     }
     return ResponseResult.success(
-        ApiResponse.fromJson(result.data!), result.statusCode);
+      ApiResponse.fromJson(result.data!),
+      result.statusCode,
+    );
   }
 
   Future<ResponseResult<ApiResponse>> updateRetailSupplier({
@@ -178,30 +216,37 @@ class RetailService {
     );
     if (result.isFailure) {
       return ResponseResult.error(
-          errorMessage: result.errorMessage ?? "Something went wrong",
-          statusCode: result.statusCode);
+        errorMessage: result.errorMessage ?? "Something went wrong",
+        statusCode: result.statusCode,
+      );
     }
     return ResponseResult.success(
-        ApiResponse.fromJson(result.data!), result.statusCode);
+      ApiResponse.fromJson(result.data!),
+      result.statusCode,
+    );
   }
 
   Future<ResponseResult<ApiResponse>> deleteRetailSupplier(
-      int retailSupplierId) async {
+    int retailSupplierId,
+  ) async {
     final result = await _api.delete<Map<String, dynamic>>(
       path: "$_retailSuppliers/$retailSupplierId",
     );
     if (result.isFailure) {
       return ResponseResult.error(
-          errorMessage: result.errorMessage ?? "Something went wrong",
-          statusCode: result.statusCode);
+        errorMessage: result.errorMessage ?? "Something went wrong",
+        statusCode: result.statusCode,
+      );
     }
     return ResponseResult.success(
-        ApiResponse.fromJson(result.data!), result.statusCode);
+      ApiResponse.fromJson(result.data!),
+      result.statusCode,
+    );
   }
 
   Future<ResponseResult<ApiResponse>> addDeposit(
-      AddDepositModel request,
-      ) async {
+    AddDepositModel request,
+  ) async {
     final result = await _api.post<Map<String, dynamic>>(
       path: _retailSupplierDeposits,
       data: request.toJson(),
@@ -227,7 +272,7 @@ class RetailService {
     if (response["code"] != null && response["code"] != 200) {
       return ResponseResult.error(
         errorMessage:
-        response["message"]?.toString() ?? "Failed to add deposit",
+            response["message"]?.toString() ?? "Failed to add deposit",
         statusCode: response["code"] as int?,
       );
     }
@@ -239,10 +284,12 @@ class RetailService {
   }
 
   Future<ResponseResult<List<RetailDepositHistoryModel>>> getDepositHistory(
-      int retailId,
-      ) async {
+    int retailId, {
+    bool showLoader = true,
+  }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_retail/$retailId/deposits",
+      showLoader: showLoader,
     );
 
     if (result.isFailure) {
@@ -252,17 +299,21 @@ class RetailService {
       );
     }
 
-    final history = (result.data!["data"] as List)
+    final data = result.data?["data"];
+
+    if (data is! List) {
+      return ResponseResult.error(
+        errorMessage: "Deposit history is empty",
+        statusCode: result.statusCode,
+      );
+    }
+
+    final history = data
         .map(
-          (e) => RetailDepositHistoryModel.fromJson(
-        e as Map<String, dynamic>,
-      ),
-    )
+          (e) => RetailDepositHistoryModel.fromJson(e as Map<String, dynamic>),
+        )
         .toList();
 
-    return ResponseResult.success(
-      history,
-      result.statusCode,
-    );
+    return ResponseResult.success(history, result.statusCode);
   }
 }

@@ -52,4 +52,29 @@ class BillItem {
       'totalAmount': totalAmount,
     };
   }
+  BillItem copyWith({
+    num? pieces,
+    num? grossAmount,
+    num? discountPercent,
+    num? discountAmount,
+    num? addOnAmount,
+    num? ecrAmount,
+    num? gstPercent,
+    num? gstAmount,
+    num? taxableValue,
+    num? totalAmount,
+  }) {
+    return BillItem(
+      pieces: pieces ?? this.pieces,
+      grossAmount: grossAmount ?? this.grossAmount,
+      discountPercent: discountPercent ?? this.discountPercent,
+      discountAmount: discountAmount ?? this.discountAmount,
+      addOnAmount: addOnAmount ?? this.addOnAmount,
+      ecrAmount: ecrAmount ?? this.ecrAmount,
+      gstPercent: gstPercent ?? this.gstPercent,
+      gstAmount: gstAmount ?? this.gstAmount,
+      taxableValue: taxableValue ?? this.taxableValue,
+      totalAmount: totalAmount ?? this.totalAmount,
+    );
+  }
 }

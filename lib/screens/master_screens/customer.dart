@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/containers/master_containers/master_container.dart';
@@ -13,7 +14,8 @@ import '../../model_classes/customer/customer.dart';
 import '../../pagination/pagination_widget.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/master_provider/customer_provider.dart';
-import '../home_screen.dart';
+import '../../provider/master_provider/permission_provider.dart';
+import '../../customs/card_entrance_examination.dart';
 
 class CustomerScreen extends StatefulWidget {
   const CustomerScreen({super.key});
@@ -29,19 +31,23 @@ class _CustomerScreenState extends State<CustomerScreen> {
     return text.isEmpty ? "-" : text;
   }
 
- // final PageController _pageController = PageController();
+  // final PageController _pageController = PageController();
   final searchController = TextEditingController();
   Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
-    final provider = context.read<CustomerProvider>();
 
-    Future.microtask(() async{
+    final provider = context.read<CustomerProvider>();
+    final permissionProvider = context.read<PermissionProvider>();
+
+    Future.microtask(() async {
       searchController.clear();
-      await provider.clearSearch();
-      await provider.fetchPage(0);
+
+      if (permissionProvider.canView('CUSTOMER')) {
+        await provider.initializeCustomers();
+      }
     });
   }
 
@@ -57,19 +63,32 @@ class _CustomerScreenState extends State<CustomerScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<CustomerProvider>();
     final customers = provider.data.items;
+
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final canView = permissionProvider.canView('CUSTOMER');
+    final canCreate = permissionProvider.canCreate('CUSTOMER');
+    final canUpdate = permissionProvider.canUpdate('CUSTOMER');
+    final canDelete = permissionProvider.canDelete('CUSTOMER');
+
+    final canAccess = canView || canCreate;
+    if (!canAccess) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to access Customers'),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
+            Navigator.pop(context);
           },
         ),
-        title: "Customer",
+        title: "Customers",
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -77,106 +96,82 @@ class _CustomerScreenState extends State<CustomerScreen> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: AppSpacing.screen,
         child: Column(
           children: [
-            SizedBox(
-              width: double.infinity,
-              height: 40,
-              child: SearchBar(
-                shape: WidgetStatePropertyAll(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                controller: searchController,
-                trailing: [
-                  if (searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        searchController.clear();
-                        FocusScope.of(context).unfocus();
-                        context.read<CustomerProvider>().clearSearch();
-                        setState(() {});
-                      },
+            if (canView) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 40,
+                child: SearchBar(
+                  shape: WidgetStatePropertyAll(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                ],
-                elevation: WidgetStatePropertyAll(2),
-                hintText: "Search customers...",
-                onChanged: (value) {
-                  _debounce?.cancel();
+                  ),
+                  controller: searchController,
+                  trailing: [
+                    if (searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          searchController.clear();
+                          FocusScope.of(context).unfocus();
+                          context.read<CustomerProvider>().clearSearch();
+                          setState(() {});
+                        },
+                      ),
+                  ],
+                  elevation: WidgetStatePropertyAll(2),
+                  hintText: "Search customers...",
+                  onChanged: (value) {
+                    _debounce?.cancel();
 
-                  _debounce = Timer(
-                    const Duration(milliseconds: 500),
-                        () {
+                    _debounce = Timer(const Duration(milliseconds: 500), () {
                       if (value.trim().isEmpty) {
                         context.read<CustomerProvider>().clearSearch();
                       } else {
                         context.read<CustomerProvider>().search(value.trim());
                       }
-                    },
-                  );
-                },
-                leading: Icon(Icons.search_outlined, size: 30),
-                backgroundColor: WidgetStatePropertyAll(Colors.white),
+                    });
+                  },
+                  leading: Icon(Icons.search_outlined, size: 30),
+                  backgroundColor: WidgetStatePropertyAll(Colors.white),
+                ),
               ),
-            ),
-            SizedBox(height: 5),
-            Expanded(
-              child: PaginationWidget<Customer>(
-                    pagination: provider.data.pagination,
-                    items: customers,
-                    loading: provider.data.isLoading,
-                    fetchPage: provider.fetchPage,
-                    refresh: provider.refreshCustomers,
-                    itemBuilder: (context, customer) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+              SizedBox(height: AppSpacing.sectionGap),
+              Expanded(
+                child: PaginationWidget<Customer>(
+                  pagination: provider.data.pagination,
+                  items: customers,
+                  loading: provider.data.isLoading,
+                  fetchPage: provider.fetchPage,
+                  refresh: () => provider.refreshCustomers(showLoader: false),
+                  itemBuilder: (context, customer) {
+                    return CardEntranceAnimation(
+                      key: ValueKey('customer-card-${customer.id}'),
+                      delay: Duration(milliseconds: (customers.indexOf(customer).clamp(0, 5)) * 65),
+                      child: GestureDetector(
+                        onTap: () async {
+                          final provider = context.read<CustomerProvider>();
+
+                          final details = await provider.fetchCustomerDetails(
+                            customer.id,
+                          );
+
+                          if (!context.mounted || details == null) return;
+
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  AddNewCustomer(
-                                    mode: FormMode.view,
-                                    id: customer.id,
-                                  ),
+                              builder: (_) => AddNewCustomer(
+                                mode: FormMode.view,
+                                id: customer.id,
+                                customerDetails: details,
+                              ),
                             ),
                           );
                         },
-
-                        // return PageView.builder(
-                        //   controller: _pageController,
-                        //   itemCount: provider.data.pagination.totalPages,
-                        //   onPageChanged: (page) async {
-                        //     if (page != provider.data.pagination.currentPage) {
-                        //       await provider.fetchPage(page);
-                        //     }
-                        //   },
-                        //   itemBuilder: (context, pageIndex) {
-                        //     return RefreshIndicator(
-                        //       onRefresh: provider.refreshCustomers,
-                        //       child: ListView.separated(
-                        //         physics: const AlwaysScrollableScrollPhysics(),
-                        //         padding: const EdgeInsets.only(bottom: 100),
-                        //         separatorBuilder: (_, _) =>
-                        //         const SizedBox(height: 8),
-                        //         itemCount: customers.length,
-                        //         itemBuilder: (context, index) {
-                        //           final customer = customers[index];
-                        //
-                        //           return GestureDetector(
-                        //             onTap: () {
-                        //               Navigator.push(
-                        //                 context,
-                        //                 MaterialPageRoute(
-                        //                   builder: (_) => AddNewCustomer(
-                        //                     mode: FormMode.view,
-                        //                     id: customer.id,
-                        //                   ),
-                        //                 ),
-                        //               );
-                        //             },
                         child: MasterContainer(
                           elevation: 1,
 
@@ -192,62 +187,96 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
                           city: displayValue(customer.city),
 
-                          eyeIconTap: () {
-                            Navigator.push(
+                          eyeIconTap: canView
+                              ? () async {
+                            final provider = context
+                                .read<CustomerProvider>();
+
+                            final details = await provider
+                                .fetchCustomerDetails(customer.id);
+
+                            if (!context.mounted || details == null) return;
+
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    AddNewCustomer(
-                                      mode: FormMode.view,
-                                      id: customer.id,
-                                    ),
+                                builder: (_) => AddNewCustomer(
+                                  mode: FormMode.view,
+                                  id: customer.id,
+                                  customerDetails: details,
+                                ),
                               ),
                             );
-                          },
+                          }
+                              : null,
 
-                          editIconTap: () {
-                            Navigator.push(
+                          editIconTap: canUpdate
+                              ? () async {
+                            final provider = context
+                                .read<CustomerProvider>();
+
+                            final details = await provider
+                                .fetchCustomerDetails(customer.id);
+
+                            if (!context.mounted || details == null) return;
+
+                            final refresh = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    AddNewCustomer(
-                                      mode: FormMode.edit,
-                                      id: customer.id,
-                                    ),
+                                builder: (_) => AddNewCustomer(
+                                  mode: FormMode.edit,
+                                  id: customer.id,
+                                  customerDetails: details,
+                                ),
                               ),
                             );
-                          },
 
-                          copyIconTap: () async {
-                            final provider = context.read<CustomerProvider>();
+                            if (!context.mounted) return;
 
-                            await provider.fetchCustomerDetails(customer.id);
+                            if (refresh == true) {
+                              await provider.refreshCustomers();
+                            }
+                          }
+                              : null,
+
+                          copyIconTap: canView
+                              ? () async {
+                            final provider = context
+                                .read<CustomerProvider>();
+
+                            await provider.fetchCustomerDetails(
+                              customer.id,
+                            );
                             if (!context.mounted) return;
                             final data = provider.customerDetails;
 
                             if (data == null) return;
 
-                            String fullAddress = [
+                            String fullAddress =
+                            [
                               data.addressLine1,
                               data.addressLine2,
                               data.city,
                               data.state,
                               data.pinCode,
                             ]
-                                .where((e) =>
-                            (e ?? "")
-                                .trim()
-                                .isNotEmpty)
+                                .where(
+                                  (e) => (e ?? "").trim().isNotEmpty,
+                            )
                                 .join(", ");
 
                             String contactsText = "";
 
                             if (data.contacts.isNotEmpty) {
-                              contactsText = data.contacts.map((c) {
-                                final name = (c.contactPerson ?? "").trim();
-                                final mobile = (c.mobileNumber ?? "").trim();
+                              contactsText = data.contacts
+                                  .map((c) {
+                                final name = (c.contactPerson ?? "")
+                                    .trim();
+                                final mobile = (c.mobileNumber ?? "")
+                                    .trim();
 
-                                if (name.isNotEmpty && mobile.isNotEmpty) {
+                                if (name.isNotEmpty &&
+                                    mobile.isNotEmpty) {
                                   return "$name - $mobile";
                                 }
 
@@ -260,19 +289,23 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                 }
 
                                 return "";
-                              }).where((e) => e.isNotEmpty).join("\n");
+                              })
+                                  .where((e) => e.isNotEmpty)
+                                  .join("\n");
                             }
 
                             String transportText = "";
 
                             if (data.preferredTransports.isNotEmpty) {
-                              transportText = data.preferredTransports.map((t) {
+                              transportText = data.preferredTransports
+                                  .map((t) {
                                 if (t is Map) {
                                   return ['name'].toString();
                                 }
 
                                 return t.name ?? "";
-                              }).join("\n");
+                              })
+                                  .join("\n");
                             }
                             await showDialog(
                               context: context,
@@ -289,8 +322,11 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                 );
                               },
                             );
-                          },
-                          trashIconTap: () {
+                          }
+                              : null,
+
+                          trashIconTap: canDelete
+                              ? () {
                             ExitConfirmationDialog.show(
                               context,
                               isDelete: true,
@@ -335,12 +371,11 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               discardButtonText: "Cancel",
                               onSave: () async {
                                 Navigator.of(context).pop();
-                                final provider = context.read<
-                                    CustomerProvider>();
+                                final provider = context
+                                    .read<CustomerProvider>();
 
-                                final success = await provider.deleteCustomer(
-                                  customer.code,
-                                );
+                                final success = await provider
+                                    .deleteCustomer(customer.code);
 
                                 if (!context.mounted) return;
                                 ScaffoldSnackBar.show(
@@ -354,17 +389,33 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                 Navigator.pop(context);
                               },
                             );
-                          },
+                          }
+                              : null,
                         ),
-                      );
-                    },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ] else ...[
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    'You can add customers, but cannot view customer records.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
-              )
-        ]
-  )
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+      floatingActionButton: canCreate
+          ? FloatingActionButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50),
+        ),
         onPressed: () {
           Navigator.push(
             context,
@@ -373,7 +424,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
         },
         backgroundColor: AppColors.primaryPurple,
         child: Icon(Iconsax.add, color: Colors.white, size: 40),
-      ),
+      )
+          : null,
     );
   }
 }

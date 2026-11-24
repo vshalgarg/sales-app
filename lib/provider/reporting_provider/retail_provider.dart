@@ -1,3 +1,6 @@
+import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/retailers/add_deposit_model.dart';
@@ -10,7 +13,7 @@ class RetailProvider extends PaginationProvider<Retail> {
   final RetailService _service;
 
   RetailProvider(this._service);
-
+  bool _showLoader = true;
   RetailDetails? _retailDetails;
 
   bool _detailsLoading = false;
@@ -21,10 +24,10 @@ class RetailProvider extends PaginationProvider<Retail> {
   RetailDetails? get retailDetails => _retailDetails;
 
   bool get detailsLoading => _detailsLoading;
+
   bool get depositLoading => _depositLoading;
 
-  List<RetailDepositHistoryModel> get depositHistory =>
-      _depositHistory;
+  List<RetailDepositHistoryModel> get depositHistory => _depositHistory;
 
   String? _fromDate;
   String? _toDate;
@@ -54,6 +57,27 @@ class RetailProvider extends PaginationProvider<Retail> {
     _supplierId = null;
   }
 
+  Future<void> clearAllFiltersAndFetchRetails() async {
+    final now = DateTime.now();
+    final oneMonthAgo = DateTime(
+      now.year,
+      now.month - 1,
+      now.day,
+    );
+
+    final formatter = DateFormat('yyyy-MM-dd');
+
+    _fromDate = formatter.format(oneMonthAgo);
+    _toDate = formatter.format(now);
+
+    _customerId = null;
+    _staffId = null;
+    _supplierId = null;
+
+    clear();
+    await fetchInitial();
+  }
+
   @override
   Future<PaginatedResponse<Retail>> requestPage({
     required int page,
@@ -67,6 +91,7 @@ class RetailProvider extends PaginationProvider<Retail> {
       customerId: _customerId,
       staffId: _staffId,
       supplierId: _supplierId,
+      showLoader: _showLoader && page == 0,
     );
 
     if (result.isFailure || result.data == null) {
@@ -76,28 +101,44 @@ class RetailProvider extends PaginationProvider<Retail> {
     return result.data!;
   }
 
-  Future<void> refreshRetails() async {
-    await refresh();
+  Future<void> refreshRetails({bool showLoader = true}) async {
+    _showLoader = showLoader;
+    try {
+      await refresh();
+    } finally {
+      _showLoader = true;
+    }
   }
-  Future<bool> fetchRetailDetails(int retailId) async {
+
+  Future<bool> fetchRetailDetails(
+    int retailId, {
+    bool showLoader = true,
+  }) async {
     _detailsLoading = true;
     notifyListeners();
 
-    final result = await _service.getRetailDetails(retailId);
+    try {
+      final result = await _service.getRetailDetails(
+        retailId,
+        showLoader: showLoader,
+      );
 
-    _detailsLoading = false;
+      if (result.isSuccess && result.data != null) {
+        _retailDetails = result.data!;
+        return true;
+      }
 
-    if (result.isSuccess && result.data != null) {
-      _retailDetails = result.data!;
+      return false;
+    } catch (e) {
+      debugPrint("Fetch retail details error: $e");
+      return false;
+    } finally {
+      _detailsLoading = false;
+      notifyListeners();
     }
-
-    notifyListeners();
-    return result.isSuccess && result.data != null;
   }
 
   Future<bool> deleteRetail(int retailId) async {
-
-
     try {
       final result = await _service.deleteRetail(retailId);
 
@@ -115,8 +156,6 @@ class RetailProvider extends PaginationProvider<Retail> {
     required int retailId,
     required Map<String, dynamic> body,
   }) async {
-
-
     try {
       final result = await _service.updateRetail(
         retailId: retailId,
@@ -139,9 +178,7 @@ class RetailProvider extends PaginationProvider<Retail> {
     }
   }
 
-  Future<Map<String, dynamic>> addDeposit(
-      AddDepositModel request,
-      ) async {
+  Future<Map<String, dynamic>> addDeposit(AddDepositModel request) async {
     _depositLoading = true;
     notifyListeners();
 
@@ -170,9 +207,15 @@ class RetailProvider extends PaginationProvider<Retail> {
     }
   }
 
-  Future<bool> fetchDepositHistory(int retailId) async {
+  Future<bool> fetchDepositHistory(
+    int retailId, {
+    bool showLoader = true,
+  }) async {
     try {
-      final result = await _service.getDepositHistory(retailId);
+      final result = await _service.getDepositHistory(
+        retailId,
+        showLoader: showLoader,
+      );
 
       if (result.isSuccess && result.data != null) {
         _depositHistory = result.data!;
@@ -181,7 +224,8 @@ class RetailProvider extends PaginationProvider<Retail> {
       }
 
       return false;
-    } catch (_) {
+    } catch (e) {
+      debugPrint("Fetch deposit history error: $e");
       return false;
     }
   }
@@ -192,11 +236,7 @@ class RetailProvider extends PaginationProvider<Retail> {
     notifyListeners();
   }
 
-  Future<bool> createRetail(
-      Map<String, dynamic> body,
-      ) async {
-
-
+  Future<bool> createRetail(Map<String, dynamic> body) async {
     try {
       final result = await _service.createRetail(body);
 
@@ -211,11 +251,7 @@ class RetailProvider extends PaginationProvider<Retail> {
     }
   }
 
-  Future<bool> addRetailSupplier(
-      Map<String, dynamic> body,
-      ) async {
-
-
+  Future<bool> addRetailSupplier(Map<String, dynamic> body) async {
     try {
       final result = await _service.addRetailSupplier(body);
 
@@ -236,8 +272,6 @@ class RetailProvider extends PaginationProvider<Retail> {
     required int retailSupplierId,
     required Map<String, dynamic> body,
   }) async {
-
-
     try {
       final result = await _service.updateRetailSupplier(
         retailSupplierId: retailSupplierId,
@@ -257,14 +291,9 @@ class RetailProvider extends PaginationProvider<Retail> {
     }
   }
 
-  Future<bool> deleteRetailSupplier(
-      int retailSupplierId,
-      ) async {
-
-
+  Future<bool> deleteRetailSupplier(int retailSupplierId) async {
     try {
-      final result =
-      await _service.deleteRetailSupplier(retailSupplierId);
+      final result = await _service.deleteRetailSupplier(retailSupplierId);
 
       if (result.isSuccess) {
         if (_retailDetails != null) {

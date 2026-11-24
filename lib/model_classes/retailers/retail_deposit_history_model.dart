@@ -19,8 +19,7 @@ class RetailDepositHistoryModel {
     required this.deposits,
   });
 
-  factory RetailDepositHistoryModel.fromJson(
-      Map<String, dynamic> json) {
+  factory RetailDepositHistoryModel.fromJson(Map<String, dynamic> json) {
     return RetailDepositHistoryModel(
       retailSupplierId: json["retailSupplierId"] ?? 0,
       supplierId: json["supplierId"] ?? 0,
@@ -40,13 +39,9 @@ class DepositHistory {
   final String date;
   final int amount;
 
-  DepositHistory({
-    required this.date,
-    required this.amount,
-  });
+  DepositHistory({required this.date, required this.amount});
 
-  factory DepositHistory.fromJson(
-      Map<String, dynamic> json) {
+  factory DepositHistory.fromJson(Map<String, dynamic> json) {
     return DepositHistory(
       date: json["date"] ?? "",
       amount: json["amount"] ?? 0,

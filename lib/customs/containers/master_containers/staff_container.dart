@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
@@ -24,16 +25,22 @@ class StaffContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.symmetric(
+        vertical: AppSpacing.cardGap / 2,
+      ),
       elevation: elevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+      ),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
         ),
         child: IntrinsicHeight(
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: AppSpacing.card,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -47,50 +54,58 @@ class StaffContainer extends StatelessWidget {
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           color: AppColors.primaryPurple,
                           fontWeight: FontWeight.w200,
                         ),
                       ),
-                      SizedBox(height: 5),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Text("Phone: ",
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                              maxLines: 3,
-
-                              style: TextStyle(fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black),
+                      const SizedBox(height: AppSpacing.xs),
+                      Row(
+                        children: [
+                          const Text(
+                            "Phone: ",
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                            maxLines: 3,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
                             ),
-                            Text(overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                              maxLines: 3,
+                          ),
+                          Expanded(
+                            child: Text(
                               number ?? "",
-                              style: TextStyle(
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: Colors.black,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
-                          Text(
+                          const Text(
                             "Joining Date: ",
-                            style: TextStyle(fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black),
-                          ),
-                          Text(
-                            joiningDate ?? "",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
                               color: Colors.black,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              joiningDate ?? "",
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ],
@@ -98,28 +113,33 @@ class StaffContainer extends StatelessWidget {
                     ],
                   ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: trashIconTap,
-                      child: customIcon(
-                        icon: Iconsax.trash,
-                        iconColor: AppColors.binRed,
-                        bgColor: AppColors.binRedLight,
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: editIconTap,
-                      child: customIcon(
-                        icon: Iconsax.edit,
-                        iconColor: AppColors.editGreen,
-                        bgColor: AppColors.editGreenLight,
-                      ),
-                    ),
-                  ],
-                ),
+                if (trashIconTap != null || editIconTap != null)
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (trashIconTap != null) ...[
+                        GestureDetector(
+                          onTap: trashIconTap,
+                          child: customIcon(
+                            icon: Iconsax.trash,
+                            iconColor: AppColors.binRed,
+                            bgColor: AppColors.binRedLight,
+                          ),
+                        ),
+                        if (editIconTap != null)
+                          const SizedBox(height: 10),
+                      ],
+                      if (editIconTap != null)
+                        GestureDetector(
+                          onTap: editIconTap,
+                          child: customIcon(
+                            icon: Iconsax.edit,
+                            iconColor: AppColors.editGreen,
+                            bgColor: AppColors.editGreenLight,
+                          ),
+                        ),
+                    ],
+                  ),
               ],
             ),
           ),

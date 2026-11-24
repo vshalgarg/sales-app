@@ -1,3 +1,4 @@
+
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -17,7 +18,7 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? headers,
     ResponseType responseType = ResponseType.json,
-    bool showLoader = false,
+    bool showLoader = true,
   }) async {
     return _request<T>(
       method: 'GET',
@@ -90,25 +91,26 @@ class ApiService {
       path: path,
       data: data,
       headers: headers,
-      showLoader: showLoader,
+      showLoader: showLoader, // FIXED
     );
   }
 
   Future<ResponseResult<Uint8List>> downloadBytes({
     required String path,
     Map<String, dynamic>? queryParameters,
+    bool showLoader = true,
   }) async {
+    if (showLoader) LoadingService.show();
+
     try {
       final response = await _dio.get<List<int>>(
         path,
         queryParameters: queryParameters,
-        options: Options(
-          responseType: ResponseType.bytes,
-        ),
+        options: Options(responseType: ResponseType.bytes),
       );
 
       return ResponseResult.success(
-        Uint8List.fromList(response.data!),
+        Uint8List.fromList(response.data ?? []),
         response.statusCode,
       );
     } on DioException catch (e) {
@@ -118,6 +120,10 @@ class ApiService {
         dioErrorType: e.type,
         statusCode: e.response?.statusCode,
       );
+    } catch (e) {
+      return ResponseResult.error(errorMessage: e.toString());
+    } finally {
+      if (showLoader) LoadingService.hide();
     }
   }
 
@@ -128,11 +134,9 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? headers,
     ResponseType responseType = ResponseType.json,
-    bool showLoader = false,
+    bool showLoader = true,
   }) async {
-    if (showLoader) {
-      LoadingService.show();
-    }
+    if (showLoader) LoadingService.show();
 
     try {
       final response = await _dio.request(
@@ -162,9 +166,7 @@ class ApiService {
         errorMessage: e.toString(),
       );
     } finally {
-      if (showLoader) {
-        LoadingService.hide();
-      }
+      if (showLoader) LoadingService.hide();
     }
   }
 }

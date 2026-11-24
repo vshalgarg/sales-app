@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/containers/master_containers/master_container.dart';
@@ -8,12 +9,66 @@ import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-
 import '../../enums/customer_mode.dart';
 import '../../model_classes/supplier/supplier.dart';
 import '../../pagination/pagination_widget.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/master_provider/supplier_provider.dart';
+
+// Animates supplier cards as they enter the visible list.
+class _SupplierCardEntrance extends StatefulWidget {
+  final Widget child;
+  final Duration delay;
+
+  const _SupplierCardEntrance({
+    required this.child,
+    this.delay = Duration.zero,
+    super.key,
+  });
+
+  @override
+  State<_SupplierCardEntrance> createState() => _SupplierCardEntranceState();
+}
+
+class _SupplierCardEntranceState
+    extends State<_SupplierCardEntrance>
+    with SingleTickerProviderStateMixin {
+
+  late AnimationController _controller;
+  late Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fade,
+      child: widget.child,
+    );
+  }
+}
 
 class SupplierScreen extends StatefulWidget {
   const SupplierScreen({super.key});
@@ -34,14 +89,18 @@ class _SupplierState extends State<SupplierScreen> {
 
     supplierProvider = context.read<SupplierProvider>();
 
-    searchController.clear();
-    supplierProvider.resetSearchKeyword();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
 
-    // Fetch the first page exactly once. clearSearch() also refreshes,
-    // so calling both on startup would make two API requests.
-    Future.microtask(() => supplierProvider.fetchPage(0));
+      final permissionProvider = context.read<PermissionProvider>();
+
+      if (!permissionProvider.canView('SUPPLIER')) return;
+
+      searchController.clear();
+
+      await supplierProvider.initializeSuppliers();
+    });
   }
-
   @override
   void dispose() {
     _debounce?.cancel();
@@ -51,6 +110,23 @@ class _SupplierState extends State<SupplierScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<SupplierProvider>();
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final canView = permissionProvider.canView('SUPPLIER');
+    final canCreate = permissionProvider.canCreate('SUPPLIER');
+    final canUpdate = permissionProvider.canUpdate('SUPPLIER');
+    final canDelete = permissionProvider.canDelete('SUPPLIER');
+
+    final canAccess = canView || canCreate;
+    final suppliers = provider.data.items;
+    if (!canAccess) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to access Suppliers'),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -68,93 +144,108 @@ class _SupplierState extends State<SupplierScreen> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: AppSpacing.screen,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.containerFillColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              height: 40,
-              width: double.infinity,
-              child: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: searchController,
-                builder: (context, value, _) {
-                  return SearchBar(
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
+            if (canView) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.containerFillColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                height: 40,
+                width: double.infinity,
+                child: SearchBar(
+                  shape: WidgetStatePropertyAll(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                    controller: searchController,
-                    elevation: WidgetStatePropertyAll(2),
-                    hintText: "Search suppliers...",
-                    leading: const Icon(Icons.search, size: 30),
-                    backgroundColor: const WidgetStatePropertyAll(Colors.white),
-                    trailing: [
-                      if (value.text.isNotEmpty)
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () async {
-                            searchController.clear();
-                            await context
-                                .read<SupplierProvider>()
-                                .clearSearch();
-                          },
-                        ),
-                    ],
-                    onChanged: (value) {
-                      _debounce?.cancel();
-
-                      _debounce = Timer(const Duration(milliseconds: 350), () {
-                        if (!mounted) return;
-
-                        final keyword = value.trim();
-
-                        if (keyword.isEmpty) {
-                          context.read<SupplierProvider>().clearSearch();
-                          return;
-                        }
-
-                        context.read<SupplierProvider>().search(keyword);
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 5),
-            Expanded(
-              child: Consumer<SupplierProvider>(
-                builder: (context, provider, _) {
-                  return PaginationWidget<Supplier>(
-                    pagination: provider.data.pagination,
-                    items: provider.data.items,
-                    loading: provider.data.isLoading,
-                    fetchPage: provider.fetchPage,
-                    refresh: provider.refreshSuppliers,
-                    itemBuilder: (context, item) {
-                      return GestureDetector(
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AddNewSupplier(
-                                id: item.id,
-                                mode: FormMode.view,
-                              ),
-                            ),
-                          );
+                  ),
+                  controller: searchController,
+                  elevation: WidgetStatePropertyAll(2),
+                  hintText: "Search suppliers...",
+                  leading: Icon(Icons.search, size: 30),
+                  backgroundColor: WidgetStatePropertyAll(Colors.white),
+                  trailing: [
+                    if (searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () async {
+                          searchController.clear();
+                          await context.read<SupplierProvider>().clearSearch();
+                          if (mounted) {
+                            setState(() {});
+                          }
                         },
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (_debounce?.isActive ?? false) {
+                      _debounce!.cancel();
+                    }
+
+                    _debounce = Timer(const Duration(milliseconds: 500), () {
+                      if (value.trim().isEmpty) {
+                        context.read<SupplierProvider>().clearSearch();
+                        if (mounted) setState(() {});
+                        return;
+                      }
+                      context.read<SupplierProvider>().search(value);
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sectionGap),
+              Expanded(
+                child: PaginationWidget<Supplier>(
+                  pagination: provider.data.pagination,
+                  items: suppliers,
+                  loading: provider.data.isLoading,
+                  fetchPage: provider.fetchPage,
+                  refresh: () => provider.refreshSuppliers(showLoader: false),
+                  itemBuilder: (context, item) {
+                    final itemIndex = suppliers.indexWhere(
+                          (supplier) => supplier.id == item.id,
+                    );
+                    final entranceDelay = Duration(
+                      milliseconds:
+                      (itemIndex < 0 ? 0 : itemIndex.clamp(0, 5).toInt()) *
+                          65,
+                    );
+
+                    return GestureDetector(
+                      onTap: () async {
+                        final supplierProvider = context
+                            .read<SupplierProvider>();
+
+                        final details = await supplierProvider
+                            .fetchSupplierDetails(item.id.toInt());
+
+                        if (!context.mounted || details == null) return;
+
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddNewSupplier(
+                              id: item.id,
+                              mode: FormMode.view,
+                              supplierDetails: details,
+                            ),
+                          ),
+                        );
+                      },
+                      child: _SupplierCardEntrance(
+                        key: ValueKey('supplier-card-${item.id}'),
+                        delay: entranceDelay,
                         child: MasterContainer(
                           elevation: 1,
                           name: item.supplierName,
                           mobile: item.mobile ?? "-",
                           code: item.code,
                           city: item.city ?? "-",
-                          trashIconTap: () {
+                          trashIconTap: canDelete
+                              ? () {
                             ExitConfirmationDialog.show(
                               context,
                               isDelete: true,
@@ -171,7 +262,7 @@ class _SupplierState extends State<SupplierScreen> {
                                       children: [
                                         const TextSpan(
                                           text:
-                                              "Are you sure you want to permanently delete ",
+                                          "Are you sure you want to permanently delete ",
                                         ),
                                         TextSpan(
                                           text: item.supplierName,
@@ -202,9 +293,8 @@ class _SupplierState extends State<SupplierScreen> {
                                 final provider = context
                                     .read<SupplierProvider>();
 
-                                final success = await provider.deleteSupplier(
-                                  item.code,
-                                );
+                                final success = await provider
+                                    .deleteSupplier(item.code);
 
                                 if (!context.mounted) return;
                                 ScaffoldSnackBar.show(
@@ -218,8 +308,10 @@ class _SupplierState extends State<SupplierScreen> {
                                 Navigator.pop(context);
                               },
                             );
-                          },
-                          copyIconTap: () async {
+                          }
+                              : null,
+                          copyIconTap: canView
+                              ? () async {
                             if (_isOpeningCopyDialog) return;
 
                             _isOpeningCopyDialog = true;
@@ -231,10 +323,12 @@ class _SupplierState extends State<SupplierScreen> {
                                   child: CircularProgressIndicator(),
                                 ),
                               );
-                              final provider = context.read<SupplierProvider>();
+                              final provider = context
+                                  .read<SupplierProvider>();
 
-                              final loaded = await provider
-                                  .fetchSupplierDetails(item.id);
+                              await provider.fetchSupplierDetails(
+                                item.id.toInt(),
+                              );
 
                               if (context.mounted) {
                                 Navigator.of(context).pop();
@@ -242,7 +336,9 @@ class _SupplierState extends State<SupplierScreen> {
 
                               if (!context.mounted) return;
 
-                              if (!loaded) {
+                              final data = provider.supplierDetails;
+
+                              if (data == null) {
                                 ScaffoldSnackBar.show(
                                   context,
                                   "Failed to load supplier details",
@@ -250,38 +346,31 @@ class _SupplierState extends State<SupplierScreen> {
                                 return;
                               }
 
-                              final data = provider.supplierDetails;
-
-                              if (data == null) {
-                                ScaffoldSnackBar.show(
-                                  context,
-                                  "Supplier details are unavailable",
-                                );
-                                return;
-                              }
-
                               String fullAddress =
-                                  [
-                                        data.addressLine1,
-                                        data.addressLine2,
-                                        data.city,
-                                        data.state,
-                                        data.pinCode,
-                                      ]
-                                      .where((e) => (e ?? "").trim().isNotEmpty)
-                                      .join(", ");
+                              [
+                                data.addressLine1,
+                                data.addressLine2,
+                                data.city,
+                                data.state,
+                                data.pinCode,
+                              ]
+                                  .where(
+                                    (e) =>
+                                (e ?? "").trim().isNotEmpty,
+                              )
+                                  .join(", ");
 
                               String contactsText = "";
 
                               if (data.contacts.isNotEmpty) {
                                 contactsText = data.contacts
                                     .map((c) {
-                                      if (c is Map) {
-                                        return "${c['contactPerson'] ?? ""} - ${c['mobileNumber'] ?? ""}";
-                                      }
+                                  if (c is Map) {
+                                    return "${c['contactPerson'] ?? ""} - ${c['mobileNumber'] ?? ""}";
+                                  }
 
-                                      return "${c.contactPerson ?? ""} - ${c.mobileNumber ?? ""}";
-                                    })
+                                  return "${c.contactPerson ?? ""} - ${c.mobileNumber ?? ""}";
+                                })
                                     .join("\n");
                               }
 
@@ -290,12 +379,13 @@ class _SupplierState extends State<SupplierScreen> {
                               if (data.preferredTransports.isNotEmpty) {
                                 transportText = data.preferredTransports
                                     .map((t) {
-                                      if (t is Map) {
-                                        return t['name']?.toString() ?? "";
-                                      }
+                                  if (t is Map) {
+                                    return t['name']?.toString() ??
+                                        "";
+                                  }
 
-                                      return t.name ?? "";
-                                    })
+                                  return t.name ?? "";
+                                })
                                     .join("\n");
                               }
 
@@ -324,10 +414,19 @@ class _SupplierState extends State<SupplierScreen> {
                             } finally {
                               _isOpeningCopyDialog = false;
                             }
-                          },
-                          editIconTap: () async {
+                          }
+                              : null,
+                          editIconTap: canUpdate
+                              ? () async {
                             final supplierProvider = context
                                 .read<SupplierProvider>();
+
+                            final details = await supplierProvider
+                                .fetchSupplierDetails(item.id.toInt());
+
+                            if (!context.mounted || details == null) {
+                              return;
+                            }
 
                             final refresh = await Navigator.push<bool>(
                               context,
@@ -335,46 +434,70 @@ class _SupplierState extends State<SupplierScreen> {
                                 builder: (_) => AddNewSupplier(
                                   id: item.id,
                                   mode: FormMode.edit,
+                                  supplierDetails: details,
                                 ),
                               ),
                             );
+
                             if (!mounted) return;
 
                             if (refresh == true) {
                               await supplierProvider.refreshSuppliers();
                             }
-                          },
+                          }
+                              : null,
                         ),
-                      );
-                    },
-                  );
-                },
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+            ] else
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    'You can add suppliers, but cannot view supplier records.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddNewSupplier()),
-          );
+      floatingActionButton: canCreate
+          ? TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.75, end: 1),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        builder: (context, scale, child) =>
+            Transform.scale(scale: scale, child: child),
+        child: FloatingActionButton(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          onPressed: () async {
+            final result = await Navigator.push<String>(
+              context,
+              MaterialPageRoute(builder: (_) => const AddNewSupplier()),
+            );
 
-          if (!mounted) return;
+            if (!mounted) return;
 
-          if (result != null) {
+            // Only refresh and show Snackbar after successful save.
+            if (result == null || result.isEmpty) return;
+
             await context.read<SupplierProvider>().refresh();
 
             if (!mounted) return;
 
-            ScaffoldSnackBar.show(context, result.toString());
-          }
-        },
-        backgroundColor: AppColors.primaryPurple,
-        child: Icon(Iconsax.add, color: Colors.white, size: 40),
-      ),
+            ScaffoldSnackBar.show(context, result);
+          },
+          backgroundColor: AppColors.primaryPurple,
+          child: Icon(Iconsax.add, color: Colors.white, size: 40),
+        ),
+      )
+          : null,
     );
   }
 }

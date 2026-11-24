@@ -11,80 +11,75 @@ class TransportProvider extends PaginationProvider<Transport> {
   TransportProvider(this._service);
 
   TransportDetails? _transportDetails;
+
+  bool _showLoader = true;
+
   bool _detailsLoading = false;
 
-  String? _message;
-  String _searchKeyword = '';
-
-  bool _allTransportsLoaded = false;
-  Future<void>? _allTransportsRequest;
-
   TransportDetails? get transportDetails => _transportDetails;
+  String? _message;
+
   String? get message => _message;
+
   bool get detailsLoading => _detailsLoading;
-  bool get allTransportsLoaded => _allTransportsLoaded;
+  String _searchKeyword = "";
 
   void clearMessage() {
     _message = null;
   }
+
+  bool _showLoaderForBulkFetch = false;
 
   @override
   Future<PaginatedResponse<Transport>> requestPage({
     required int page,
     required int size,
   }) async {
+    final showLoader = _showLoader || _showLoaderForBulkFetch;
+
     final result = _searchKeyword.isEmpty
-        ? await _service.getTransports(page: page, size: size)
+        ? await _service.getTransports(
+      page: page,
+      size: size,
+      showLoader: showLoader,
+    )
         : await _service.searchTransports(
       keyword: _searchKeyword,
       page: page,
       size: size,
+      showLoader: showLoader,
     );
 
     if (result.isFailure || result.data == null) {
       throw Exception(
-        result.errorMessage ?? 'Failed to load transports',
+        result.errorMessage ?? "Failed to load transports",
       );
     }
 
     return result.data!;
   }
 
-  /// Loads all transports once for dropdowns/forms.
-  /// Concurrent callers share the same Future instead of starting
-  /// multiple full pagination requests.
-  Future<void> ensureAllTransportsLoaded() async {
-    if (_allTransportsLoaded && data.items.isNotEmpty) return;
-
-    _allTransportsRequest ??= _loadAllTransports();
-
-    try {
-      await _allTransportsRequest;
-    } finally {
-      _allTransportsRequest = null;
-    }
-  }
-
   Future<void> fetchAllTransports() async {
-    await ensureAllTransportsLoaded();
-  }
-
-  Future<void> _loadAllTransports() async {
     data.isLoading = true;
     data.error = null;
+    _showLoaderForBulkFetch = true;
     notifyListeners();
 
     try {
-      const pageSize = 100;
-      var page = 0;
-      var hasMore = true;
-      final allTransports = <Transport>[];
+      const int pageSize = 100;
+
+      int page = 0;
+      bool hasMore = true;
+
+      final List<Transport> allTransports = [];
 
       while (hasMore) {
         final response = await requestPage(
           page: page,
           size: pageSize,
         );
+
+        _showLoaderForBulkFetch = false;
 
         allTransports.addAll(response.content);
         hasMore = !response.last;
@@ -94,52 +89,40 @@ class TransportProvider extends PaginationProvider<Transport> {
       data.items
         ..clear()
         ..addAll(allTransports);
-
-      _allTransportsLoaded = true;
     } catch (e) {
       data.error = e.toString();
-      _allTransportsLoaded = false;
     } finally {
+      _showLoaderForBulkFetch = false;
       data.isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> search(String keyword) async {
-    final value = keyword.trim();
-
-    if (_searchKeyword == value) return;
-
-    _searchKeyword = value;
-    _allTransportsLoaded = false;
-    await refresh();
+  Future search(String keyword) async {
+    _searchKeyword = keyword.trim();
+    await refreshTransports();
   }
 
-  Future<void> clearSearch() async {
-    if (_searchKeyword.isEmpty) return;
-
-    _searchKeyword = '';
-    _allTransportsLoaded = false;
-    await refresh();
+  Future clearSearch() async {
+    _searchKeyword = "";
+    await refreshTransports();
   }
 
-  Future<bool> fetchTransportDetails(int id) async {
+  Future fetchTransportDetails(int id) async {
     _detailsLoading = true;
     notifyListeners();
 
-    try {
-      final result = await _service.getTransportById(id);
+    final result = await _service.getTransportById(id);
 
-      if (result.isSuccess && result.data != null) {
-        _transportDetails = result.data!;
-        return true;
-      }
+    _detailsLoading = false;
 
-      return false;
-    } finally {
-      _detailsLoading = false;
-      notifyListeners();
+    if (result.isSuccess && result.data != null) {
+      _transportDetails = result.data!;
     }
+
+    notifyListeners();
+
+    return result.isSuccess && result.data != null;
   }
 
   Future<bool> addTransport(AddTransportRequest request) async {
@@ -150,8 +133,7 @@ class TransportProvider extends PaginationProvider<Transport> {
 
       if (result.isSuccess) {
         _message = result.data?.message;
-        _allTransportsLoaded = false;
-        await refresh();
+        await refreshTransports();
         return true;
       }
 
@@ -176,13 +158,11 @@ class TransportProvider extends PaginationProvider<Transport> {
 
       if (result.isSuccess) {
         _message = result.data?.message;
-        _allTransportsLoaded = false;
 
         if (_transportDetails?.id == id) {
           await fetchTransportDetails(id);
         }
 
-        await refresh();
         return true;
       }
 
@@ -193,13 +173,13 @@ class TransportProvider extends PaginationProvider<Transport> {
     }
   }
 
-  Future<bool> deleteTransport(int id) async {
+  Future deleteTransport(int id) async {
+
     try {
       final result = await _service.deleteTransport(id);
 
       if (result.isSuccess) {
-        _allTransportsLoaded = false;
-        await refresh();
+        await fetchInitial();
       }
 
       return result.isSuccess;
@@ -208,9 +188,14 @@ class TransportProvider extends PaginationProvider<Transport> {
     }
   }
 
-  Future<void> refreshTransports() async {
-    _allTransportsLoaded = false;
-    await refresh();
+  Future<void> refreshTransports({bool showLoader = true}) async {
+    _showLoader = showLoader;
+
+    try {
+      await refresh();
+    } finally {
+      _showLoader = true;
+    }
   }
 
   void clearDetails() {

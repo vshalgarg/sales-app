@@ -1,6 +1,7 @@
+
+
 import 'dart:core';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/customs/app_bar.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
-import 'package:hisabio/customs/elevated_button.dart';
 import 'package:hisabio/entry_widgets/custom_container_entry.dart';
 import 'package:hisabio/entry_widgets/custom_date_textfield.dart';
 import 'package:hisabio/entry_widgets/custom_textfield.dart';
@@ -16,12 +16,14 @@ import 'package:hisabio/model_classes/entries/entries_customer_model.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'package:public_file_saver/public_file_saver.dart';
 import '../../constants/view_image_method.dart';
 import '../../dialog_boxes/entry_dialogboxes/add_new_bill_item.dart';
 import '../../dialog_boxes/entry_dialogboxes/bill_section_upload_documents_dialog.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/Transport/transport.dart';
+import '../../model_classes/bills/add_bill_request.dart';
 import '../../model_classes/bills/bill_item_model.dart';
 import '../../model_classes/entries/entries_supplier.dart';
 import '../../model_classes/bills/bill_details.dart';
@@ -29,6 +31,7 @@ import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/reporting_provider/bill_provider.dart';
+import '../../widgets/entry_bottom_action_bar.dart';
 
 class EntriesBillEntry extends StatefulWidget {
   final FormMode mode;
@@ -84,24 +87,24 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   List<dynamic> get allAttachments {
     return [...existingUrls, ...newUploadedFiles];
   }
+
   String? _toApiDate(String? value) {
     if (value == null || value.trim().isEmpty) return null;
 
     try {
-      return DateFormat('yyyy-MM-dd')
-          .format(DateFormat('dd-MM-yyyy').parse(value.trim()));
+      return DateFormat(
+        'yyyy-MM-dd',
+      ).format(DateFormat('dd-MM-yyyy').parse(value.trim()));
     } catch (_) {
       return value;
     }
   }
+
   Widget _requiredLabel(String text) {
     return RichText(
       text: TextSpan(
         text: text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 18),
         children: !isViewMode
             ? const [
           TextSpan(
@@ -116,6 +119,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       ),
     );
   }
+
   String _formatAmount(dynamic value) {
     if (value == null) return "-";
 
@@ -157,7 +161,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
       if (safeFileName.isEmpty) {
         safeFileName =
-            'attachment_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        'attachment_${DateTime.now().millisecondsSinceEpoch}.jpg';
       }
 
       final extension = safeFileName.contains('.')
@@ -201,13 +205,10 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         return;
       }
 
-      await _channel.invokeMethod(
-        'openFile',
-        {
-          'uri': result.uri,
-          'mimeType': mimeType,
-        },
-      );
+      await _channel.invokeMethod('openFile', {
+        'uri': result.uri,
+        'mimeType': mimeType,
+      });
     } catch (e) {
       debugPrint('Download error: $e');
 
@@ -261,6 +262,14 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
   void initState() {
     super.initState();
 
+    final permissionProvider = context.read<PermissionProvider>();
+    final allowed = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('BILL'),
+      FormMode.view => permissionProvider.hasPermission('BILL_REPORT_VIEW'),
+      FormMode.edit => permissionProvider.hasPermission('BILL_REPORT_UPDATE'),
+    };
+    if (!allowed) return;
+
     if (widget.mode == FormMode.add) {
       dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
     }
@@ -270,7 +279,10 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     Future.microtask(() async {
       if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-        final success = await billsProvider.fetchBillDetails(widget.id!);
+        final success = await billsProvider.fetchBillDetails(
+          widget.id!,
+          showLoader: false,
+        );
 
         if (!mounted || !success) return;
 
@@ -288,7 +300,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
           }
         });
       } else {
-
         await entriesProvider.loadInitialData();
         if (!mounted) return;
         setState(() {});
@@ -306,7 +317,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(10),
@@ -397,89 +407,89 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
             duration: const Duration(milliseconds: 250),
             child: billItemExpanded[index]
                 ? Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        _billItemField(
-                          icon: Iconsax.box_1,
-                          title: "Pieces",
-                          subtitle: "Enter number of pieces",
-                          value: item.pieces?.toString() ?? "-",
-                        ),
-                        _billItemField(
-                          icon: Iconsax.money_2,
-                          title: "Gross Amount",
-                          subtitle: "Enter gross amount",
-                          value: _formatAmount(item.grossAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.percentage_circle,
-                          title: "Discount %",
-                          subtitle: "Enter discount percentage",
-                          value: _formatAmount(item.discountPercent),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.discount_shape,
-                          title: "Discount Amount",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(item.discountAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.add_square,
-                          title: "Add-On Amount",
-                          subtitle: "Enter add-on amount",
-                          value: _formatAmount(item.addOnAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.card,
-                          title: "ECR Amount",
-                          subtitle: "Enter ECR amount",
-                          value: _formatAmount(item.ecrAmount),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.percentage_circle,
-                          title: "GST %",
-                          subtitle: "Enter GST percentage",
-                          value: _formatAmount(item.gstPercent),
-                        ),
-                        _billItemField(
-                          icon: Iconsax.calculator,
-                          title: "GST Amount",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(item.gstAmount),
-                          isLast: true,
-                        ),
-                        _billItemField(
-                          icon: Iconsax.receipt_item,
-                          title: "Taxable Value",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(
-                            item.taxableValue ??
-                                ((item.grossAmount ?? 0) -
-                                    (item.discountAmount ?? 0) +
-                                    (item.addOnAmount ?? 0) +
-                                    (item.ecrAmount ?? 0)),
-                          ),
-                        ),
-
-                        _billItemField(
-                          icon: Iconsax.wallet_2,
-                          title: "Bill Amount",
-                          subtitle: "Auto calculated",
-                          value: _formatAmount(
-                            item.totalAmount ??
-                                ((item.taxableValue ??
-                                        ((item.grossAmount ?? 0) -
-                                            (item.discountAmount ?? 0) +
-                                            (item.addOnAmount ?? 0) +
-                                            (item.ecrAmount ?? 0))) +
-                                    (item.gstAmount ?? 0)),
-                          ),
-                          isLast: true,
-                        ),
-                      ],
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  _billItemField(
+                    icon: Iconsax.box_1,
+                    title: "Pieces",
+                    subtitle: "Enter number of pieces",
+                    value: item.pieces?.toString() ?? "-",
+                  ),
+                  _billItemField(
+                    icon: Iconsax.money_2,
+                    title: "Gross Amount",
+                    subtitle: "Enter gross amount",
+                    value: _formatAmount(item.grossAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.percentage_circle,
+                    title: "Discount %",
+                    subtitle: "Enter discount percentage",
+                    value: _formatAmount(item.discountPercent),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.discount_shape,
+                    title: "Discount Amount",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(item.discountAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.add_square,
+                    title: "Add-On Amount",
+                    subtitle: "Enter add-on amount",
+                    value: _formatAmount(item.addOnAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.card,
+                    title: "ECR Amount",
+                    subtitle: "Enter ECR amount",
+                    value: _formatAmount(item.ecrAmount),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.percentage_circle,
+                    title: "GST %",
+                    subtitle: "Enter GST percentage",
+                    value: _formatAmount(item.gstPercent),
+                  ),
+                  _billItemField(
+                    icon: Iconsax.calculator,
+                    title: "GST Amount",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(item.gstAmount),
+                    isLast: true,
+                  ),
+                  _billItemField(
+                    icon: Iconsax.receipt_item,
+                    title: "Taxable Value",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(
+                      item.taxableValue ??
+                          ((item.grossAmount ?? 0) -
+                              (item.discountAmount ?? 0) +
+                              (item.addOnAmount ?? 0) +
+                              (item.ecrAmount ?? 0)),
                     ),
-                  )
+                  ),
+
+                  _billItemField(
+                    icon: Iconsax.wallet_2,
+                    title: "Bill Amount",
+                    subtitle: "Auto calculated",
+                    value: _formatAmount(
+                      item.totalAmount ??
+                          ((item.taxableValue ??
+                              ((item.grossAmount ?? 0) -
+                                  (item.discountAmount ?? 0) +
+                                  (item.addOnAmount ?? 0) +
+                                  (item.ecrAmount ?? 0))) +
+                              (item.gstAmount ?? 0)),
+                    ),
+                    isLast: true,
+                  ),
+                ],
+              ),
+            )
                 : const SizedBox.shrink(),
           ),
         ],
@@ -507,8 +517,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
             border: isLast
                 ? null
                 : const Border(
-                    bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
-                  ),
+              bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
+            ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -595,16 +605,17 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
       },
     );
   }
+
   String _formatDisplayDate(String? value) {
     if (value == null || value.trim().isEmpty) return "";
 
     try {
-      return DateFormat('dd-MM-yyyy')
-          .format(DateTime.parse(value.trim()));
+      return DateFormat('dd-MM-yyyy').format(DateTime.parse(value.trim()));
     } catch (_) {
       return value;
     }
   }
+
   void fillBillData(BillDetails bill) {
     dateController.text = _formatDisplayDate(bill.date);
     receivedDateController.text = _formatDisplayDate(bill.receivedDate);
@@ -621,34 +632,86 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     billItems = bill.items ?? [];
 
-    billItemExpanded = List.generate(billItems.length, (_) => false);
+    billItemExpanded = List.generate(
+      billItems.length,
+          (_) => false,
+    );
 
-    billItemKeys = List.generate(billItems.length, (_) => GlobalKey());
+    billItemKeys = List.generate(
+      billItems.length,
+          (_) => GlobalKey(),
+    );
+
     final provider = context.read<EntriesProvider>();
-    final supplier = provider.entries.where((e) => e.id == bill.supplierId);
+
+    //  SUPPLIER
+
+    final supplier = provider.entries.where(
+          (e) => e.id == bill.supplierId,
+    );
 
     if (supplier.isNotEmpty) {
       selectedSupplier = supplier.first;
       selectedSupplierName = supplier.first.supplierName;
+
+      supplierGroupController.text =
+          supplier.first.supplierGroup ?? '';
+
+      supplierGstController.text =
+          supplier.first.supplierGstNo ?? '';
+    } else {
+      selectedSupplier = null;
+      selectedSupplierName = bill.supplierName;
     }
 
-    selectedSupplierName = selectedSupplier?.supplierName;
+    //  CUSTOMER
+
     final customer = provider.customerEntries.where(
-      (e) => e.id == bill.customerId,
+          (e) => e.id == bill.customerId,
     );
 
     if (customer.isNotEmpty) {
       selectedCustomer = customer.first;
       selectedCustomerName = customer.first.customerName;
+
+      customerGroupController.text =
+          customer.first.customerGroup ?? '';
+
+      customerGstController.text =
+          customer.first.customerGstNo ?? '';
+    } else {
+      selectedCustomer = null;
+      selectedCustomerName = bill.customerName;
     }
-    selectedCustomerName = selectedCustomer?.customerName;
+
+    //  TRANSPORT
+
     selectedTransportName = bill.transport;
 
-    existingObjectKeys = List<String>.from(bill.objectKeys ?? []);
-    existingUrls = List<String>.from(bill.publicUrls ?? []);
-    existingFileNames = List<String>.from(bill.originalFileNames ?? []);
+    final transportMatches = provider.transportDetails.where(
+          (e) => e.name == bill.transport,
+    );
+
+    selectedTransport = transportMatches.isNotEmpty
+        ? transportMatches.first
+        : null;
+
+    //  ATTACHMENTS
+
+    existingObjectKeys = List<String>.from(
+      bill.objectKeys ?? [],
+    );
+
+    existingUrls = List<String>.from(
+      bill.publicUrls ?? [],
+    );
+
+    existingFileNames = List<String>.from(
+      bill.originalFileNames ?? [],
+    );
 
     if (!mounted) return;
+
     setState(() {});
   }
 
@@ -667,7 +730,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
     setState(() {
-
       billItems = [];
       billItemExpanded = [];
       billItemKeys = [];
@@ -689,30 +751,298 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
     });
   }
 
+  Future<void> _saveBill() async {
+    setState(() {
+      isExpanded = true;
+      isSupplierExpanded = true;
+      isCustomerExpanded = true;
+    });
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      ScaffoldSnackBar.show(context, "Please fill all the required fields");
+      return;
+    }
+
+    if (billItems.isEmpty) {
+      setState(() {
+        showBillItemError = true;
+      });
+      return;
+    }
+
+    final request = AddBillRequest(
+      date: _toApiDate(dateController.text),
+      receivedDate: receivedDateController.text.isEmpty
+          ? null
+          : _toApiDate(receivedDateController.text),
+      order: invoiceController.text,
+      supplierId: selectedSupplier?.id,
+      customerId: selectedCustomer?.id,
+      transport: selectedTransport?.name,
+      lrNumber: lrNumberController.text.isEmpty
+          ? null
+          : lrNumberController.text,
+      remarks: remarksController.text.isEmpty ? null : remarksController.text,
+      taxableValue: billItems.fold<double>(
+        0.0,
+            (sum, item) => sum + (item.taxableValue ?? 0),
+      ),
+      billAmount: billItems.fold<double>(
+        0.0,
+            (sum, item) => sum + (item.totalAmount ?? 0),
+      ),
+      items: billItems,
+    );
+
+    final images = newUploadedFiles
+        .where((e) => e.path != null)
+        .map((e) => File(e.path!))
+        .toList();
+
+    try {
+      final success = await context.read<BillProvider>().addBill(
+        request: request,
+        images: images,
+      );
+
+      if (!context.mounted) return;
+
+      if (success) {
+        ScaffoldSnackBar.show(context, "Bill Saved Successfully");
+
+        Navigator.pop(context, true);
+      } else {
+        //  ScaffoldSnackBar.show(context, "Failed to save bill");
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldSnackBar.show(
+        context,
+        e.toString().replaceFirst("Exception: ", ""),
+      );
+    }
+  }
+
+  Future<void> _updateBill() async {
+    setState(() {
+      isExpanded = true;
+      isSupplierExpanded = true;
+      isCustomerExpanded = true;
+    });
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      ScaffoldSnackBar.show(context, "Please fill all the required fields");
+      return;
+    }
+
+    if (billItems.isEmpty) {
+      setState(() {
+        showBillItemError = true;
+      });
+      return;
+    }
+
+    final billId = context.read<BillProvider>().billDetails?.id?.toInt();
+
+    if (billId == null) {
+      ScaffoldSnackBar.show(context, "Bill ID not found");
+      return;
+    }
+
+    final request = AddBillRequest(
+      id: billId,
+      date: _toApiDate(dateController.text),
+      receivedDate: receivedDateController.text.isEmpty
+          ? null
+          : _toApiDate(receivedDateController.text),
+      order: invoiceController.text,
+      supplierId: selectedSupplier?.id,
+      customerId: selectedCustomer?.id,
+      transport: selectedTransportName,
+      lrNumber: lrNumberController.text.isEmpty
+          ? null
+          : lrNumberController.text,
+      remarks: remarksController.text.isEmpty ? null : remarksController.text,
+      taxableValue: billItems.fold<double>(
+        0.0,
+            (sum, item) {
+          final taxable = item.taxableValue ??
+              ((item.grossAmount ?? 0) -
+                  (item.discountAmount ?? 0) +
+                  (item.addOnAmount ?? 0) +
+                  (item.ecrAmount ?? 0));
+
+          return sum + taxable;
+        },
+      ),
+
+      billAmount: billItems.fold<double>(
+        0.0,
+            (sum, item) {
+          final taxable = item.taxableValue ??
+              ((item.grossAmount ?? 0) -
+                  (item.discountAmount ?? 0) +
+                  (item.addOnAmount ?? 0) +
+                  (item.ecrAmount ?? 0));
+
+          final total =
+              item.totalAmount ?? (taxable + (item.gstAmount ?? 0));
+
+          return sum + total;
+        },
+      ),
+      items: billItems.map((item) {
+        final taxable = item.taxableValue ??
+            ((item.grossAmount ?? 0) -
+                (item.discountAmount ?? 0) +
+                (item.addOnAmount ?? 0) +
+                (item.ecrAmount ?? 0));
+
+        final total =
+            item.totalAmount ?? (taxable + (item.gstAmount ?? 0));
+
+        return item.copyWith(
+          taxableValue: taxable,
+          totalAmount: total,
+        );
+      }).toList(),
+    );
+
+    final images = newUploadedFiles
+        .where((e) => e.path != null)
+        .map((e) => File(e.path!))
+        .toList();
+
+    try {
+      final success = await context.read<BillProvider>().updateBill(
+        id: billId,
+        request: request,
+        existingImageKeys: existingObjectKeys,
+        images: images,
+      );
+
+      if (!context.mounted) return;
+
+      if (success) {
+        ScaffoldSnackBar.show(context, "Bill Updated Successfully");
+
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldSnackBar.show(context, "Failed to update bill");
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldSnackBar.show(
+        context,
+        e.toString().replaceFirst("Exception: ", ""),
+      );
+    }
+  }
+
+  Widget _buildBottomActionBar() {
+    // VIEW MODE
+    if (widget.mode == FormMode.view) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+          color: AppColors.bodyFillColor,
+          child: SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                side: BorderSide.none,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              child: const Text(
+                "Close",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // EDIT MODE
+    if (widget.mode == FormMode.edit) {
+      return EntryBottomActionBar(
+        secondaryText: "Cancel",
+        secondaryIcon: Icons.close_rounded,
+        onSecondaryPressed: () {
+          Navigator.pop(context);
+        },
+        primaryText: "Update Bill",
+        primaryIcon: Icons.save_outlined,
+        onPrimaryPressed: _updateBill,
+      );
+    }
+
+    // ADD MODE
+    return EntryBottomActionBar(
+      secondaryText: "Reset",
+      secondaryIcon: Icons.refresh_rounded,
+      onSecondaryPressed: clearFields,
+      primaryText: "Save Bill",
+      primaryIcon: Icons.save_outlined,
+      onPrimaryPressed: _saveBill,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+    final allowed = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('BILL'),
+      FormMode.view => permissionProvider.hasPermission('BILL_REPORT_VIEW'),
+      FormMode.edit => permissionProvider.hasPermission('BILL_REPORT_UPDATE'),
+    };
+
+    if (!allowed) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to perform this action.'),
+        ),
+      );
+    }
+
     final provider = context.read<EntriesProvider>();
     final bill = context.read<BillProvider>().billDetails;
     final totalTaxableValue = billItems.fold<double>(
       0,
-      (sum, item) =>
-          sum +
+          (sum, item) =>
+      sum +
           ((item.taxableValue ??
-                  ((item.grossAmount ?? 0) -
-                      (item.discountAmount ?? 0) +
-                      (item.addOnAmount ?? 0) +
-                      (item.ecrAmount ?? 0)))
+              ((item.grossAmount ?? 0) -
+                  (item.discountAmount ?? 0) +
+                  (item.addOnAmount ?? 0) +
+                  (item.ecrAmount ?? 0)))
               .toDouble()),
     );
 
     final totalBillAmount = billItems.fold<double>(0, (sum, item) {
       final taxable =
-          (item.taxableValue ??
-                  ((item.grossAmount ?? 0) -
-                      (item.discountAmount ?? 0) +
-                      (item.addOnAmount ?? 0) +
-                      (item.ecrAmount ?? 0)))
-              .toDouble();
+      (item.taxableValue ??
+          ((item.grossAmount ?? 0) -
+              (item.discountAmount ?? 0) +
+              (item.addOnAmount ?? 0) +
+              (item.ecrAmount ?? 0)))
+          .toDouble();
 
       final total = (item.totalAmount ?? (taxable + (item.gstAmount ?? 0)))
           .toDouble();
@@ -734,11 +1064,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         ),
         leading: widget.mode == FormMode.view
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              )
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        )
             : null,
         actions: [
           if (widget.mode != FormMode.view)
@@ -747,20 +1077,18 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
                   saveButtonText: "Stay",
                   discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },
             ),
         ],
       ),
+      bottomNavigationBar: _buildBottomActionBar(),
       body: Stack(
         children: [
           Form(
@@ -835,7 +1163,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                             controller: invoiceController,
                             hintText: "Invoice",
                             autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
+                            AutovalidateMode.onUserInteraction,
                             onChanged: (value) {
                               if (value.trim().isNotEmpty) {
                                 _formKey.currentState?.validate();
@@ -868,7 +1196,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               children: [
                                 const Expanded(
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                     child: Text(
                                       "Supplier Information",
                                       style: TextStyle(
@@ -896,7 +1226,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           ),
                           if (isSupplierExpanded) ...[
                             SizedBox(height: 10),
-                         _requiredLabel("Supplier"),
+                            _requiredLabel("Supplier"),
 
                             CustomDropdown(
                               isDisabled: isViewMode,
@@ -916,9 +1246,13 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                       (e) => e.supplierName == value,
                                 );
 
-                                debugPrint("========== SUPPLIER CHANGED ==========");
+                                debugPrint(
+                                  "========== SUPPLIER CHANGED ==========",
+                                );
                                 debugPrint("Selected supplier name: $value");
-                                debugPrint("Selected supplier ID: ${supplier.id}");
+                                debugPrint(
+                                  "Selected supplier ID: ${supplier.id}",
+                                );
 
                                 setState(() {
                                   selectedSupplierName = value;
@@ -979,7 +1313,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               children: [
                                 const Expanded(
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                     child: Text(
                                       "Customer Information",
                                       style: TextStyle(
@@ -1028,7 +1364,7 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                   selectedCustomer = provider.customerEntries
                                       .firstWhere(
                                         (e) => e.customerName == value,
-                                      );
+                                  );
                                 });
 
                                 customerGroupController.text =
@@ -1084,7 +1420,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                               children: [
                                 const Expanded(
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                     child: Text(
                                       "Logistic & Notes",
                                       style: TextStyle(
@@ -1308,12 +1646,12 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         GestureDetector(
                           onTap: () async {
                             final BillItem? item =
-                                await Navigator.push<BillItem>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AddNewBillItem(),
-                                  ),
-                                );
+                            await Navigator.push<BillItem>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AddNewBillItem(),
+                              ),
+                            );
 
                             if (item != null) {
                               setState(() {
@@ -1353,7 +1691,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                                 child: Text(
                                   "+ Add Bill Item",
                                   style: TextStyle(color: Colors.white),
-
                                 ),
                               ),
                             ),
@@ -1498,15 +1835,14 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             "Please add at least one bill item",
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                            ),
+                            style: TextStyle(color: Colors.red, fontSize: 12),
                           ),
                         ),
                       ),
                     SizedBox(height: 20),
-                    if (widget.mode != FormMode.add)
+                    if (widget.mode != FormMode.add &&
+                        (widget.mode != FormMode.view ||
+                            existingUrls.any((url) => url.trim().isNotEmpty)))
                       GestureDetector(
                         onTap: () {
                           setState(() {
@@ -1542,7 +1878,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           ),
                         ),
                       ),
-                    if (isAttachmentExpanded) ...[
+                    if (isAttachmentExpanded &&
+                        (widget.mode != FormMode.view ||
+                            existingUrls.any((url) => url.trim().isNotEmpty))) ...[
                       const SizedBox(height: 15),
 
                       Column(
@@ -1577,13 +1915,13 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           else
                             Column(
                               children: List.generate(existingUrls.length, (
-                                index,
-                              ) {
+                                  index,
+                                  ) {
                                 final imageUrl = existingUrls[index];
 
                                 final fileName =
-                                    existingFileNames.length > index &&
-                                        existingFileNames[index].isNotEmpty
+                                existingFileNames.length > index &&
+                                    existingFileNames[index].isNotEmpty
                                     ? existingFileNames[index]
                                     : "Attachment ${index + 1}";
 
@@ -1700,312 +2038,6 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         ],
                       ),
                     ],
-                    if (widget.mode == FormMode.add) ...[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2, bottom: 10),
-                        child: Row(
-                          children: [
-                            // RESET
-                            Expanded(
-                              child: SizedBox(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(5),
-                                    onTap: () {
-                                      clearFields();
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(
-                                          color: const Color(0xFFE5E2EE),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.refresh_rounded,
-                                            color: AppColors.primaryPurple,
-                                            size: 30,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: const Text(
-                                              "Reset",
-                                              style: TextStyle(
-                                                color: AppColors.primaryPurple,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 16),
-                            // SAVE
-                            Expanded(
-                              child: SizedBox(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(5),
-                                    onTap: () async {
-                                      setState(() {
-                                        isExpanded = true;
-                                        isSupplierExpanded = true;
-                                        isCustomerExpanded = true;
-                                      });
-
-                                      final isValid =
-                                          _formKey.currentState?.validate() ??
-                                          false;
-
-                                      if (!isValid) {
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          "Please fill all the required fields",
-                                        );
-                                        return;
-                                      }
-
-                                      if (billItems.isEmpty) {
-                                        setState(() {
-                                          showBillItemError = true;
-                                        });
-                                        return;
-                                      }
-
-                                      final payload = {
-                                        "date": _toApiDate(dateController.text),
-                                        "receivedDate": _toApiDate(
-                                            receivedDateController.text),
-                                        "order": invoiceController.text,
-                                        "supplierId": selectedSupplier?.id,
-                                        "customerId": selectedCustomer?.id,
-                                        "transportId": selectedTransport?.id,
-                                        "transportName":
-                                            selectedTransport?.name,
-                                        "transportCity":
-                                            selectedTransport?.city,
-                                        "lrNumber": lrNumberController.text,
-                                        "remarks": remarksController.text,
-
-                                        "taxableValue": billItems.fold<double>(
-                                          0.0,
-                                          (sum, item) =>
-                                              sum +
-                                              (item.taxableValue ?? 0)
-                                                  .toDouble(),
-                                        ),
-
-                                        "billAmount": billItems.fold<double>(
-                                          0.0,
-                                          (sum, item) =>
-                                              sum +
-                                              (item.totalAmount ?? 0)
-                                                  .toDouble(),
-                                        ),
-
-                                        "billItems": billItems
-                                            .map(
-                                              (item) => {
-                                                "pieces": item.pieces,
-                                                "grossAmount": item.grossAmount,
-                                                "discountPercent":
-                                                    item.discountPercent,
-                                                "discountAmount":
-                                                    item.discountAmount,
-                                                "addOnAmount": item.addOnAmount,
-                                                "ecrAmount": item.ecrAmount,
-                                                "gstPercent": item.gstPercent,
-                                                "gstAmount": item.gstAmount,
-                                              },
-                                            )
-                                            .toList(),
-                                      };
-
-                                      final images = newUploadedFiles
-                                          .where((e) => e.path != null)
-                                          .map((e) => File(e.path!))
-                                          .toList();
-
-                                      try {
-                                        await provider.saveBill(
-                                          payload: payload,
-                                          images: images,
-                                        );
-
-                                        if (!context.mounted) return;
-
-                                        Navigator.pop(context, true);
-                                      } catch (e) {
-                                        if (!context.mounted) return;
-
-                                        ScaffoldSnackBar.show(
-                                          context,
-                                          e.toString(),
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      height: 52,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primaryPurple,
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: const Text(
-                                        "Save",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    if (widget.mode == FormMode.edit) ...[
-                      const SizedBox(height: 10),
-                      CustomElevatedButton(
-                        text: "Update",
-                        color: AppColors.primaryPurple,
-                        textStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
-                        borderRadius: 5,
-                        onPressed: () async {
-                          if (!_formKey.currentState!.validate()) {
-                            ScaffoldSnackBar.show(
-                              context,
-                              "Please fill all the required fields",
-                            );
-                            return;
-                          }
-
-                          if (billItems.isEmpty) {
-                            setState(() {
-                              showBillItemError = true;
-                            });
-                            return;
-                          }
-
-                          final payload = {
-                            "date": _toApiDate(dateController.text),
-                            "receivedDate": _toApiDate(
-                              receivedDateController.text,
-                            ),
-
-                            "order": invoiceController.text,
-                            "supplierId": selectedSupplier?.id,
-                            "customerId": selectedCustomer?.id,
-                            "transport": selectedTransport?.name,
-                            "lrNumber": lrNumberController.text.isEmpty
-                                ? null
-                                : lrNumberController.text,
-                            "remarks": remarksController.text.isEmpty
-                                ? null
-                                : remarksController.text,
-
-                            "taxableValue": billItems.fold<double>(0, (
-                              sum,
-                              item,
-                            ) {
-                              final taxable =
-                                  (item.grossAmount ?? 0) -
-                                  (item.discountAmount ?? 0) +
-                                  (item.addOnAmount ?? 0) +
-                                  (item.ecrAmount ?? 0);
-
-                              return sum + taxable;
-                            }),
-
-                            "billAmount": billItems.fold<double>(0, (
-                              sum,
-                              item,
-                            ) {
-                              final taxable =
-                                  (item.grossAmount ?? 0) -
-                                  (item.discountAmount ?? 0) +
-                                  (item.addOnAmount ?? 0) +
-                                  (item.ecrAmount ?? 0);
-
-                              final total = taxable + (item.gstAmount ?? 0);
-
-                              return sum + total;
-                            }),
-
-                            "existingImageKeys": existingObjectKeys,
-
-                            "billItems": billItems.map((item) {
-                              return {
-                                "pieces": item.pieces,
-                                "grossAmount": item.grossAmount,
-                                "discountPercent": item.discountPercent,
-                                "discountAmount": item.discountAmount,
-                                "addOnAmount": item.addOnAmount,
-                                "ecrAmount": item.ecrAmount,
-                                "gstPercent": item.gstPercent,
-                                "gstAmount": item.gstAmount,
-                              };
-                            }).toList(),
-                          };
-                          final images = newUploadedFiles
-                              .where((e) => e.path != null)
-                              .map((e) => File(e.path!))
-                              .toList();
-
-                          try {
-                            debugPrint("========== UPDATE BILL ==========");
-                            debugPrint("Bill ID: ${bill?.id}");
-                            debugPrint("Selected Supplier: ${selectedSupplier?.supplierName}");
-                            debugPrint("Selected Supplier ID: ${selectedSupplier?.id}");
-                            debugPrint("Payload Supplier ID: ${payload["supplierId"]}");
-                            debugPrint("Payload: $payload");
-                            final success = await provider.updateBillEntry(
-                              id: bill?.id?.toInt() ?? 0,
-                              payload: payload,
-                              images: images,
-                            );
-
-                            if (!context.mounted) return;
-
-                            if (success) {
-                              Navigator.of(context).pop(true);
-                            } else {
-                              ScaffoldSnackBar.show(
-                                context,
-                                provider.error ?? "Failed to update bill",
-                              );
-                            }
-                          } catch (e) {
-                            if (!context.mounted) return;
-
-                            ScaffoldSnackBar.show(context, e.toString());
-                          }
-                        },
-                      ),
-                    ],
-
-                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -2030,8 +2062,8 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
         border: isLast
             ? null
             : const Border(
-                bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
-              ),
+          bottom: BorderSide(color: Color(0xFFE8E6EF), width: 0.5),
+        ),
       ),
       child: Row(
         children: [

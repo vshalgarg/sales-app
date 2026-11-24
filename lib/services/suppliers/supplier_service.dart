@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
@@ -16,15 +15,17 @@ class SupplierService {
   static const String _supplier = "/supplier";
   static const String _suppliers = "/suppliers";
 
+  // GET SUPPLIERS - No global loader during pagination
 
-  // GET SUPPLIERS
 
   Future<ResponseResult<PaginatedResponse<Supplier>>> getSuppliers({
     required int page,
     required int size,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_suppliers/get",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "page": page,
         "size": size,
@@ -50,15 +51,17 @@ class SupplierService {
   }
 
 
-  // SEARCH SUPPLIERS
+  //search suppliers
 
   Future<ResponseResult<PaginatedResponse<Supplier>>> searchSuppliers({
     required String keyword,
     required int page,
     required int size,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_suppliers/search/v2",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "keyword": keyword,
         "page": page,
@@ -67,6 +70,7 @@ class SupplierService {
         "sortDir": "asc",
       },
     );
+
 
     if (result.isFailure) {
       return ResponseResult.error(
@@ -94,10 +98,10 @@ class SupplierService {
   }
 
 
-  // GET SUPPLIER DETAILS
-
+  // GET SUPPLIER DETAILS - Keep loader
   Future<ResponseResult<SupplierDetailsResponse>> getSupplierById(
-      int id) async {
+      int id,
+      ) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_suppliers/get/id/$id",
     );
@@ -115,11 +119,10 @@ class SupplierService {
     );
   }
 
-
-  // ADD SUPPLIER
+  // ADD SUPPLIER - Keep loader
   Future<ResponseResult<ApiResponse>> addSupplier(
-      AddSupplierRequest request) async {
-
+      AddSupplierRequest request,
+      ) async {
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_supplier/add",
       data: request.toJson(),
@@ -147,9 +150,7 @@ class SupplierService {
     );
   }
 
-
-  // UPDATE SUPPLIER
-
+  // UPDATE SUPPLIER - Keep loader
   Future<ResponseResult<ApiResponse>> updateSupplier({
     required int id,
     required AddSupplierRequest request,
@@ -172,12 +173,11 @@ class SupplierService {
     );
   }
 
-
   // DELETE SUPPLIER
-
   Future<ResponseResult<ApiResponse>> deleteSupplier(String code) async {
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_supplier/delete",
+      showLoader: false,
       data: {
         "code": code,
       },
@@ -204,4 +204,4 @@ class SupplierService {
       result.statusCode,
     );
   }
-  }
+}

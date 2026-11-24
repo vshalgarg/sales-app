@@ -36,35 +36,34 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-        backgroundColor: Colors.white,
       automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      backgroundColor: Colors.white,
+
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           SizedBox(
-          width: 48,
-          height: 48,
-          child: Padding(
-        padding: const EdgeInsets.all(2),
-            child: Image.asset('assets/images/img.png',
-              fit: BoxFit.contain,
-            ),
+            width: 48,
+            height: 48,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Image.asset('assets/images/img.png', fit: BoxFit.contain),
             ),
           ),
-      const SizedBox(width: 5),
-      const Text(
-        "hissabio",
-        style: TextStyle(
-          color: AppColors.primaryPurple,
-          fontWeight: FontWeight.bold,
-        ),
+          const SizedBox(width: 5),
+          const Text(
+            "Hisabio",
+            style: TextStyle(
+              color: AppColors.primaryPurple,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
-      ]
-        ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.logout,size:30),
-          onPressed:(){
+          icon: const Icon(Icons.logout, size: 30),
+          onPressed: () {
             ExitConfirmationDialog.show(
               context,
               bodyText: "Are you sure you want to logout?",
@@ -73,18 +72,19 @@ class _NewCustomAppBarState extends State<NewCustomAppBar> {
               discardButtonText: "Cancel",
               isLogout: true,
               onSave: () async {
-                final navigator = Navigator.of(context);
                 await AppStorage.clear();
+
                 if (!mounted) return;
-                navigator.push(
-                    MaterialPageRoute(
-                        builder: (_) => const LoginScreen()));
+
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
               },
 
               onDiscard: () {
                 Navigator.pop(context);
               },
-
             );
           },
         ),

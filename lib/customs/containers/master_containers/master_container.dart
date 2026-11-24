@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisabio/constants/app_spacing.dart';
 import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
@@ -30,20 +31,27 @@ class MasterContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.symmetric(
+        vertical: AppSpacing.cardGap / 2,
+      ),
       elevation: elevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+      ),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(15),
+          padding: AppSpacing.card,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Column(mainAxisSize: MainAxisSize.max,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -52,73 +60,77 @@ class MasterContainer extends StatelessWidget {
                         borderRadius: BorderRadius.circular(5),
                         color: AppColors.orangeColor,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left:5.0,
-                            right:5,
-                            bottom:3,
-                            top:3),
-                        child: Text(
-                          code ?? "",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color:Colors.white,
-                          ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 3,
+                      ),
+                      child: Text(
+                        code ?? "",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       name ?? "",
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       softWrap: true,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 15,
                         color: AppColors.primaryPurple,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-
-                    const SizedBox(height: 5),
+                    const SizedBox(height: AppSpacing.xs),
                     Row(
                       children: [
-                        const Text( "City: ",
+                        const Text(
+                          "City: ",
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
                           maxLines: 3,
-
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight:FontWeight.w600 ,
+                            fontWeight: FontWeight.w600,
                             color: Colors.black,
                           ),
                         ),
-                        Text(
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: true,
-                          maxLines: 3,
-                          city ?? "",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black,
+                        Expanded(
+                          child: Text(
+                            city ?? "",
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                            maxLines: 3,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: AppSpacing.xs),
                     Row(
                       children: [
-                        Text(
+                        const Text(
                           "Mobile: ",
-                          style: TextStyle(fontSize: 13,
-                              fontWeight:FontWeight.w600 ,
-                              color: Colors.black),
-                        ),
-                        Text(
-                          mobile ?? "",
                           style: TextStyle(
                             fontSize: 13,
+                            fontWeight: FontWeight.w600,
                             color: Colors.black,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            mobile ?? "",
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ],
@@ -126,34 +138,40 @@ class MasterContainer extends StatelessWidget {
                   ],
                 ),
               ),
-              Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  GestureDetector(
-                    onTap: trashIconTap,
-                    child: customIcon(
-                      icon: Iconsax.trash,
-                      iconColor: AppColors.binRed,
-                      bgColor: AppColors.binRedLight,
+                  if (trashIconTap != null) ...[
+                    GestureDetector(
+                      onTap: trashIconTap,
+                      child: customIcon(
+                        icon: Iconsax.trash,
+                        iconColor: AppColors.binRed,
+                        bgColor: AppColors.binRedLight,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: copyIconTap,
-                    child: customIcon(
-                      icon: Iconsax.copy,
-                      iconColor: AppColors.blueDarkCopy,
-                      bgColor: AppColors.blueLightCopy,
+                    const SizedBox(height: 10),
+                  ],
+                  if (copyIconTap != null) ...[
+                    GestureDetector(
+                      onTap: copyIconTap,
+                      child: customIcon(
+                        icon: Iconsax.copy,
+                        iconColor: AppColors.blueDarkCopy,
+                        bgColor: AppColors.blueLightCopy,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 5),
-                  GestureDetector(
-                    onTap: editIconTap,
-                    child: customIcon(
+                    const SizedBox(height: 5),
+                  ],
+                  if (editIconTap != null)
+                    GestureDetector(
+                      onTap: editIconTap,
+                      child: customIcon(
                         icon: Iconsax.edit,
                         iconColor: AppColors.editGreen,
-                        bgColor: AppColors.editGreenLight
+                        bgColor: AppColors.editGreenLight,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],

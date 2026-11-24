@@ -20,9 +20,11 @@ class CreditService {
     String? toDate,
     int? supplierId,
     int? customerId,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
-      path: "$_creditEntries/search",
+        path: "$_creditEntries/search",
+        showLoader: showLoader,
       queryParameters: {
         "page": page,
         "size": size,
@@ -69,9 +71,11 @@ Future<ResponseResult<PaginatedResponse<Credit>>> searchCredits({
   String? toDate,
   int? supplierId,
   int? customerId,
+  bool showLoader = true,
 }) async {
   final result = await _api.get<Map<String, dynamic>>(
     path: "$_creditEntries/search",
+    showLoader: showLoader,
     queryParameters: {
       "keyword": keyword,
       "page": page,

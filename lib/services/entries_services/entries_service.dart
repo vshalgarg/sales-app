@@ -28,9 +28,14 @@ class EntriesService {
   static const String _purchase = "/purchase";
   static const String _retail = "/retail";
 
-  Future<ResponseResult<List<EntriesModel>>> fetchSuppliers() async {
-    final sw = Stopwatch()..start();
-    final result = await _api.get<List<dynamic>>(path: "$_suppliers/get/all");
+  Future<ResponseResult<List<EntriesModel>>> fetchSuppliers({
+    bool showLoader = true,
+  }) async {
+    final result = await _api.get<List<dynamic>>(
+      path: "$_suppliers/get/all",
+      showLoader: showLoader,
+    );
+
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch suppliers",
@@ -45,11 +50,14 @@ class EntriesService {
     return ResponseResult.success(suppliers, result.statusCode);
   }
 
-  // FETCH CUSTOMERS
+  Future<ResponseResult<List<EntriesCustomerModel>>> fetchCustomers({
+    bool showLoader = true,
+  }) async {
+    final result = await _api.get<List<dynamic>>(
+      path: "$_customers/get/all",
+      showLoader: showLoader,
+    );
 
-  Future<ResponseResult<List<EntriesCustomerModel>>> fetchCustomers() async {
-    final sw = Stopwatch()..start();
-    final result = await _api.get<List<dynamic>>(path: "$_customers/get/all");
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Failed to fetch customers",

@@ -11,6 +11,7 @@ import '../model_classes/retailers/add_deposit_model.dart';
 import '../model_classes/retailers/retail_deposit_history_model.dart';
 import '../pop_ups/general_closing_popup.dart';
 import '../provider/entries_provider/entries_section_provider.dart';
+import '../provider/master_provider/permission_provider.dart';
 import '../provider/reporting_provider/retail_provider.dart';
 import '../provider/master_provider/staff_provider.dart';
 
@@ -51,6 +52,13 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!context.mounted ||
+          !context.read<PermissionProvider>().hasPermission(
+            'RETAIL_REPORT_UPDATE',
+          )) {
+        if (mounted) setState(() => initialized = true);
+        return;
+      }
       final retailProvider = context.read<RetailProvider>();
 
       final entriesProvider = context.read<EntriesProvider>();
@@ -58,8 +66,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       final staffProvider = context.read<StaffProvider>();
 
       await Future.wait([
-        retailProvider.fetchRetailDetails(widget.retailId),
-        retailProvider.fetchDepositHistory(widget.retailId),
+        retailProvider.fetchRetailDetails(widget.retailId, showLoader: false),
+        retailProvider.fetchDepositHistory(widget.retailId, showLoader: false),
       ]);
 
       if (entriesProvider.customerEntries.isEmpty) {
@@ -333,15 +341,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               ),
             ),
             onPressed: () async {
+              if (!context.read<PermissionProvider>().hasPermission(
+                'RETAIL_REPORT_UPDATE',
+              )) {
+                return;
+              }
               final displayDate = dateController.text.trim();
 
-              final parsedDate = DateFormat(
-                'dd-MM-yyyy',
-              ).parse(displayDate);
+              final parsedDate = DateFormat('dd-MM-yyyy').parse(displayDate);
 
-              final apiDate = DateFormat(
-                'yyyy-MM-dd',
-              ).format(parsedDate);
+              final apiDate = DateFormat('yyyy-MM-dd').format(parsedDate);
               final success = await retailProvider.updateRetail(
                 retailId: retail.id,
                 body: {
@@ -513,50 +522,61 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 onPressed: provider.depositLoading
                     ? null
                     : () async {
-                  final latestRetail = provider.retailDetails;
+                        if (!context.read<PermissionProvider>().hasPermission(
+                          'RETAIL_REPORT_UPDATE',
+                        )) {
+                          return;
+                        }
+                        final latestRetail = provider.retailDetails;
 
-                  if (latestRetail == null) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      "Retail details not available",
-                    );
-                    return;
-                  }
+                        if (latestRetail == null) {
+                          ScaffoldSnackBar.show(
+                            context,
+                            "Retail details not available",
+                          );
+                          return;
+                        }
 
-                  final List<DepositItem> items = [];
+                        final List<DepositItem> items = [];
 
-                  for (int i = 0; i < latestRetail.suppliers.length; i++) {
-                    final amount = depositAmountControllers[i].text.trim();
-                    final displayDate = depositDateControllers[i].text.trim();
+                        for (
+                          int i = 0;
+                          i < latestRetail.suppliers.length;
+                          i++
+                        ) {
+                          final amount = depositAmountControllers[i].text
+                              .trim();
+                          final displayDate = depositDateControllers[i].text
+                              .trim();
 
-                    if (amount.isEmpty || displayDate.isEmpty) {
-                      continue;
-                    }
+                          if (amount.isEmpty || displayDate.isEmpty) {
+                            continue;
+                          }
 
-                    final parsedDate = DateFormat(
-                      'dd-MM-yyyy',
-                    ).parse(displayDate);
+                          final parsedDate = DateFormat(
+                            'dd-MM-yyyy',
+                          ).parse(displayDate);
 
-                    final apiDate = DateFormat(
-                      'yyyy-MM-dd',
-                    ).format(parsedDate);
+                          final apiDate = DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(parsedDate);
 
-                    debugPrint(
-                      "SUPPLIER ${i + 1}: "
-                          "retailSupplierId=${latestRetail.suppliers[i].retailSupplierId}, "
-                          "displayDate=$displayDate, "
-                          "apiDate=$apiDate, "
-                          "amount=$amount",
-                    );
+                          debugPrint(
+                            "SUPPLIER ${i + 1}: "
+                            "retailSupplierId=${latestRetail.suppliers[i].retailSupplierId}, "
+                            "displayDate=$displayDate, "
+                            "apiDate=$apiDate, "
+                            "amount=$amount",
+                          );
 
-                    items.add(
-                      DepositItem(
-                        retailSupplierId:
-                        latestRetail.suppliers[i].retailSupplierId,
-                        depositDate: apiDate,
-                        amount: int.parse(amount),
-                      ),
-                    );
+                          items.add(
+                            DepositItem(
+                              retailSupplierId:
+                                  latestRetail.suppliers[i].retailSupplierId,
+                              depositDate: apiDate,
+                              amount: int.parse(amount),
+                            ),
+                          );
                         }
 
                         if (items.isEmpty) {
@@ -571,24 +591,21 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                           AddDepositModel(deposits: items),
                         );
 
-                  if (result["success"]) {
-                    if (!mounted) return;
+                        if (result["success"]) {
+                          if (!mounted) return;
 
-                    for (final controller in depositAmountControllers) {
-                      controller.clear();
-                    }
+                          for (final controller in depositAmountControllers) {
+                            controller.clear();
+                          }
 
-                    for (final controller in depositDateControllers) {
-                      controller.clear();
-                    }
+                          for (final controller in depositDateControllers) {
+                            controller.clear();
+                          }
 
-                    setState(() {});
+                          setState(() {});
 
-                    ScaffoldSnackBar.show(
-                      context,
-                      result["message"],
-                    );
-                  }
+                          ScaffoldSnackBar.show(context, result["message"]);
+                        }
                       },
                 child: provider.depositLoading
                     ? const CircularProgressIndicator(color: Colors.white)
@@ -608,10 +625,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     );
   }
 
-  Widget buildHistorySection(
-      RetailProvider provider,
-      RetailDetails retail,
-      ) {
+  Widget buildHistorySection(RetailProvider provider, RetailDetails retail) {
     return Column(
       children: [
         sectionHeader(
@@ -623,16 +637,13 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             });
 
             if (showHistory) {
-
               await provider.fetchDepositHistory(widget.retailId);
 
               if (!mounted) return;
 
               setState(() {});
 
-              await Future.delayed(
-                const Duration(milliseconds: 100),
-              );
+              await Future.delayed(const Duration(milliseconds: 100));
 
               if (_scrollController.hasClients) {
                 _scrollController.animateTo(
@@ -678,6 +689,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       ],
     );
   }
+
   Widget buildHistoryCard({
     required RetailSupplier supplier,
     required dynamic history,
@@ -685,7 +697,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     required String? staffName,
     required String customerName,
     required int index,
-
   }) {
     final bool expanded = expandedSupplierIndex == index;
     final num depositedAmount = supplier.depositAmount ?? 0;
@@ -891,8 +902,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                                     deposit.date.isEmpty
                                         ? "-"
                                         : DateFormat("dd-MM-yyyy").format(
-                                      DateTime.parse(deposit.date),
-                                    ),
+                                            DateTime.parse(deposit.date),
+                                          ),
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ),
@@ -980,21 +991,30 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canUpdate = context.watch<PermissionProvider>().hasPermission(
+      'RETAIL_REPORT_UPDATE',
+    );
+    if (!canUpdate) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to edit Retail records.'),
+        ),
+      );
+    }
+
     final retailProvider = context.watch<RetailProvider>();
-
     final entriesProvider = context.read<EntriesProvider>();
-
     final staffProvider = context.read<StaffProvider>();
 
     if (retailProvider.detailsLoading || !initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final retail = retailProvider.retailDetails!;
+    final retail = retailProvider.retailDetails;
 
-    return Scaffold(
-      backgroundColor: AppColors.bodyFillColor,
-      body: Scaffold(
+    // Retail details failed to load / retailer does not exist.
+    if (retail == null) {
+      return Scaffold(
         backgroundColor: AppColors.bodyFillColor,
         appBar: CustomAppBar(
           title: "Edit Retail",
@@ -1003,11 +1023,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             fontSize: 25,
             fontWeight: FontWeight.w600,
           ),
-
           actions: [
             IconButton(
               icon: const Icon(Icons.close),
-
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
@@ -1025,27 +1043,72 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             ),
           ],
         ),
-
-        body: SafeArea(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(15),
-
-            child: Column(
-              children: [
-                buildRetailInformation(
-                  retail,
-                  retailProvider,
-                  entriesProvider,
-                  staffProvider,
-                ),
-
-                const SizedBox(height: 5),
-                buildDepositSection(retail),
-                const SizedBox(height: 5),
-                buildHistorySection(retailProvider, retail),
-              ],
+        body: const SafeArea(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                "Retailer not found",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
             ),
+          ),
+        ),
+      );
+    }
+
+    // Retail details successfully loaded.
+    return Scaffold(
+      backgroundColor: AppColors.bodyFillColor,
+      appBar: CustomAppBar(
+        title: "Edit Retail",
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 25,
+          fontWeight: FontWeight.w600,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              ExitConfirmationDialog.show(
+                context,
+                saveButtonText: "Stay",
+                discardButtonText: "Leave",
+                onSave: () async {
+                  Navigator.pop(context);
+                },
+                onDiscard: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context, false);
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            children: [
+              buildRetailInformation(
+                retail,
+                retailProvider,
+                entriesProvider,
+                staffProvider,
+              ),
+
+              const SizedBox(height: 5),
+
+              buildDepositSection(retail),
+
+              const SizedBox(height: 5),
+
+              buildHistorySection(retailProvider, retail),
+            ],
           ),
         ),
       ),

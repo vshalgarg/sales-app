@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-
+import 'package:flutter/cupertino.dart';
+import 'package:http_parser/http_parser.dart';
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
 import '../../../../network/response_result.dart';
@@ -27,9 +28,11 @@ class BillService {
     String? toDate,
     int? supplierId,
     int? customerId,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_billEntries/search",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "page": page,
         "size": size,
@@ -77,9 +80,11 @@ class BillService {
     String? toDate,
     int? supplierId,
     int? customerId,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_billEntries/search",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "keyword": keyword,
         "page": page,
@@ -121,10 +126,12 @@ class BillService {
   }
 
   Future<ResponseResult<BillDetails>> getBillById(
-      String billNumber,
-      ) async {
+      String billNumber, {
+        bool showLoader = false,
+      }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_bill/$billNumber",
+      showLoader: false,
     );
 
     if (result.isFailure) {
@@ -136,7 +143,8 @@ class BillService {
 
     if (result.data?["code"] != null) {
       return ResponseResult.error(
-        errorMessage: result.data?["message"] ?? "Failed to fetch bill details",
+        errorMessage:
+        result.data?["message"] ?? "Failed to fetch bill details",
         statusCode: result.statusCode,
       );
     }
@@ -151,27 +159,100 @@ class BillService {
     required AddBillRequest request,
     List<File> images = const [],
   }) async {
-    final payload = request.toJson();
+    final payload = {
+      'id': request.id,
+      'billNumber': request.billNumber,
+      'date': request.date,
+      'receivedDate': request.receivedDate,
+      'order': request.order,
+      'supplierId': request.supplierId,
+      'customerId': request.customerId,
+      'transport': request.transport,
+      'lrNumber': request.lrNumber,
+      'remarks': request.remarks,
+      'billAmount': request.billAmount,
+      'taxableValue': request.taxableValue,
+      'billItems': request.items?.map((e) => e.toJson()).toList() ?? [],
+    };
 
-    payload["billItems"] =
-        request.items?.map((e) => e.toJson()).toList() ?? [];
+    MediaType getMediaType(String path) {
+      final extension = path.split('.').last.toLowerCase();
+
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          return MediaType('image', 'jpeg');
+
+        case 'png':
+          return MediaType('image', 'png');
+
+        case 'webp':
+          return MediaType('image', 'webp');
+
+        case 'pdf':
+          return MediaType('application', 'pdf');
+
+        case 'svg':
+          return MediaType('image', 'svg+xml');
+
+        default:
+          return MediaType('application', 'octet-stream');
+      }
+    }
 
     final formData = FormData();
 
-    formData.fields.add(
+    // JSON payload
+    formData.files.add(
       MapEntry(
         "payload",
-        jsonEncode(payload),
+        MultipartFile.fromString(
+          jsonEncode(payload),
+          filename: "payload.json",
+          contentType: MediaType("application", "json"),
+        ),
       ),
     );
 
+    // Attachments
     for (final image in images) {
+      final extension = image.path.split('.').last.toLowerCase();
+
+      MediaType contentType;
+
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = MediaType('image', 'jpeg');
+          break;
+
+        case 'png':
+          contentType = MediaType('image', 'png');
+          break;
+
+        case 'webp':
+          contentType = MediaType('image', 'webp');
+          break;
+
+        case 'pdf':
+          contentType = MediaType('application', 'pdf');
+          break;
+
+        case 'svg':
+          contentType = MediaType('image', 'svg+xml');
+          break;
+
+        default:
+          contentType = MediaType('application', 'octet-stream');
+      }
+
       formData.files.add(
         MapEntry(
           "images",
           await MultipartFile.fromFile(
             image.path,
             filename: image.path.split('/').last,
+            contentType: contentType,
           ),
         ),
       );
@@ -204,32 +285,60 @@ class BillService {
     );
   }
 
- Future<ResponseResult<ApiResponse>> updateBill({
+  Future<ResponseResult<ApiResponse>> updateBill({
     required int id,
     required AddBillRequest request,
     List<String> existingImageKeys = const [],
     List<File> images = const [],
   }) async {
-    final payload = request.toJson();
+    final payload = {
+      'date': request.date,
+      'receivedDate': request.receivedDate,
+      'order': request.order,
+      'supplierId': request.supplierId,
+      'customerId': request.customerId,
+      'transport': request.transport,
+      'lrNumber': request.lrNumber,
+      'remarks': request.remarks,
+      'taxableValue': request.taxableValue,
+      'billAmount': request.billAmount,
 
-    payload["billItems"] =
-        request.items?.map((e) => e.toJson()).toList() ?? [];
+      'billItems': request.items?.map((item) {
+        return {
+          'pieces': item.pieces,
+          'discountPercent': item.discountPercent,
+          'gstPercent': item.gstPercent,
+          'grossAmount': item.grossAmount,
+          'discountAmount': item.discountAmount,
+          'addOnAmount': item.addOnAmount,
+          'ecrAmount': item.ecrAmount,
+          'gstAmount': item.gstAmount,
+        };
+      }).toList() ?? [],
 
-    payload["existingImageKeys"] = existingImageKeys;
+      'existingImageKeys': existingImageKeys,
+    };
 
     final formData = FormData();
 
-    formData.fields.add(
+    formData.files.add(
       MapEntry(
-        "payload",
-        jsonEncode(payload),
+        'data',
+        MultipartFile.fromString(
+          jsonEncode(payload),
+          filename: 'blob',
+          contentType: DioMediaType(
+            'application',
+            'json',
+          ),
+        ),
       ),
     );
 
     for (final image in images) {
       formData.files.add(
         MapEntry(
-          "images",
+          'images',
           await MultipartFile.fromFile(
             image.path,
             filename: image.path.split('/').last,
@@ -239,28 +348,22 @@ class BillService {
     }
 
     final result = await _api.patch<Map<String, dynamic>>(
-      path: "$_billEntry/update/$id",
+      path: '$_billEntry/update/$id',
       data: formData,
     );
 
+    debugPrint('Error : ${result.errorMessage}');
+
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? "Something went wrong",
-        statusCode: result.statusCode,
-      );
-    }
-
-    final response = ApiResponse.fromJson(result.data!);
-
-    if (!response.success) {
-      return ResponseResult.error(
-        errorMessage: response.message,
+        errorMessage:
+        result.errorMessage ?? 'Failed to update bill',
         statusCode: result.statusCode,
       );
     }
 
     return ResponseResult.success(
-      response,
+      ApiResponse.fromJson(result.data!),
       result.statusCode,
     );
   }

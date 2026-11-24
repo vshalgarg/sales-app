@@ -13,7 +13,6 @@ class LedgerService {
   static const String _ledger = "/ledger";
 
   // GET LEDGER
-
   Future<ResponseResult<ApiResponse>> getLedger({
     required num supplierId,
     required num customerId,
@@ -26,6 +25,7 @@ class LedgerService {
         "customerId": customerId,
         "viewType": viewType,
       },
+      showLoader: false,
     );
 
     if (result.isFailure) {
@@ -51,8 +51,7 @@ class LedgerService {
     );
   }
 
-  // DOWNLOAD LEDGER
-
+// DOWNLOAD LEDGER
   Future<ResponseResult<Uint8List>> downloadLedger({
     required num supplierId,
     required num customerId,
@@ -65,6 +64,7 @@ class LedgerService {
         "customerId": customerId,
         "viewType": viewType,
       },
+      showLoader: false, // ADD THIS
     );
   }
 }

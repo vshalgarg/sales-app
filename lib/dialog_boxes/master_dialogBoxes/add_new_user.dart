@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
@@ -7,10 +8,13 @@ import '../../customs/containers/role_dropdown.dart';
 import '../../customs/elevated_button.dart';
 import '../../model_classes/user/add_user_request.dart';
 import '../../pop_ups/scafold_type.dart';
+import '../../provider/master_provider/permission_provider.dart';
+import '../../provider/master_provider/role_provider.dart';
 import '../../provider/master_provider/user_provider.dart';
 
 class AddUserDialog extends StatefulWidget {
   final BuildContext scaffoldContext;
+
   const AddUserDialog({
     super.key,
     required this.scaffoldContext,
@@ -28,11 +32,46 @@ class _AddUserDialogState extends State<AddUserDialog> {
   TextEditingController();
 
   bool isPasswordVisible = false;
+  bool _loadingRoles = true;
 
-  String? selectedRole = "Agent";
+  String? selectedRole;
   String? usernameError;
   String? passwordError;
   String? roleError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoles();
+  }
+
+  Future<void> _loadRoles() async {
+    try {
+      final roleProvider = context.read<RoleProvider>();
+
+      await roleProvider.fetchRoles();
+
+      if (!mounted) return;
+
+      final roleNames = roleProvider.roles
+          .map((role) => role.roleName)
+          .where((name) => name.trim().isNotEmpty)
+          .toList();
+
+      setState(() {
+        // Select the first available role by default.
+       // selectedRole = roleNames.isNotEmpty ? roleNames.first : null;
+        _loadingRoles = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loadingRoles = false;
+        roleError = 'Unable to load roles';
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -45,6 +84,21 @@ class _AddUserDialogState extends State<AddUserDialog> {
   Widget build(BuildContext context) {
     final provider = context.watch<UserProvider>();
 
+    final roles = context.watch<RoleProvider>().roles;
+
+    final List<String> roleNames = roles
+        .map((role) => role.roleName)
+        .where((name) => name.trim().isNotEmpty)
+        .toList();
+
+    final canCreate =
+    context.watch<PermissionProvider>().canCreate('USER');
+
+    if (!canCreate) {
+      return const AlertDialog(
+        content: Text('You do not have permission to create users.'),
+      );
+    }
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Stack(
@@ -97,7 +151,6 @@ class _AddUserDialogState extends State<AddUserDialog> {
                         ),
                         filled: true,
                         fillColor: Colors.white,
-
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
                         ),
@@ -110,7 +163,6 @@ class _AddUserDialogState extends State<AddUserDialog> {
                             width: usernameError != null ? 1 : 0.5,
                           ),
                         ),
-
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
                           borderSide: BorderSide(
@@ -122,8 +174,6 @@ class _AddUserDialogState extends State<AddUserDialog> {
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 12),
 
                     const SizedBox(height: 12),
 
@@ -180,16 +230,17 @@ class _AddUserDialogState extends State<AddUserDialog> {
 
                     const SizedBox(height: 12),
 
-                    RoleDropdown(
-                      value: selectedRole,
-                      errorText: roleError,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedRole = value;
-                          roleError = null;
-                        });
-                      },
-                    ),
+                    // Dynamic role dropdown.
+                    if (!_loadingRoles && roleNames.isNotEmpty)
+                      RoleDropdown(
+                        value: selectedRole,
+                        roles: roleNames,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedRole = value;
+                          });
+                        },
+                      ),
 
                     const SizedBox(height: 25),
 
@@ -211,11 +262,16 @@ class _AddUserDialogState extends State<AddUserDialog> {
                           child: CustomElevatedButton(
                             color: AppColors.primaryPurple,
                             text: "Save",
-                            textStyle: const TextStyle(color: Colors.white),
+                            textStyle: const TextStyle(
+                              color: Colors.white,
+                            ),
                             borderRadius: 5,
                             onPressed: () async {
-                              final username = usernameController.text.trim();
-                              final password = passwordController.text.trim();
+                              final username =
+                              usernameController.text.trim();
+
+                              final password =
+                              passwordController.text.trim();
 
                               setState(() {
                                 usernameError = username.isEmpty
@@ -225,23 +281,27 @@ class _AddUserDialogState extends State<AddUserDialog> {
                                 passwordError = password.isEmpty
                                     ? "Password is required"
                                     : null;
-
-                                roleError = null;
                               });
 
                               if (usernameError != null ||
-                                  passwordError != null) {
+                                  passwordError != null ||
+                                  _loadingRoles) {
                                 return;
                               }
+
                               final request = AddUserRequest(
                                 username: username,
                                 password: password,
-                                roles: [selectedRole!],
+                                roles: selectedRole != null && selectedRole!.isNotEmpty
+                                    ? [selectedRole!]
+                                    : [],
                               );
 
-                              final provider = context.read<UserProvider>();
+                              final provider =
+                              context.read<UserProvider>();
 
-                              final success = await provider.addUser(request);
+                              final success =
+                              await provider.addUser(request);
 
                               if (!context.mounted) return;
 
@@ -289,6 +349,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
             ),
           ),
 
+          // Circular icon overlapping the dialog.
           Positioned(
             top: 0,
             child: Container(
@@ -297,26 +358,12 @@ class _AddUserDialogState extends State<AddUserDialog> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: const Color(0xFFF3F0FF),
-                border: Border.all(color: Colors.white, width: 4),
+                border: Border.all(
+                  color: Colors.white,
+                  width: 4,
+                ),
               ),
               child: const Icon(
-                Icons.person_outline_outlined,
-                color: AppColors.primaryPurple,
-                size: 35,
-              ),
-            ),
-          ),
-          Positioned(
-            top: 0,
-            child: Container(
-              height: 70,
-              width: 70,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFF3F0FF),
-                border: Border.all(color: Colors.white, width: 4),
-              ),
-              child: Icon(
                 Iconsax.add,
                 color: AppColors.primaryPurple,
                 size: 35,

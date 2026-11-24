@@ -1,4 +1,6 @@
+
 import 'package:hisabio/model_classes/staff/add_staff_request.dart';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
 import '../../../../network/response_result.dart';
@@ -15,13 +17,11 @@ class StaffService {
   static const String _staff = "/staff";
   static const String _staffs = "/staffs";
 
-
   // GET STAFFS
-
-
   Future<ResponseResult<PaginatedResponse<Staff>>> getStaffs({
     required int page,
     required int size,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_staffs/get",
@@ -29,6 +29,7 @@ class StaffService {
         "page": page,
         "size": size,
       },
+      showLoader: showLoader && page == 0,
     );
 
     if (result.isFailure) {
@@ -49,14 +50,12 @@ class StaffService {
     );
   }
 
-
   // SEARCH STAFF
-
-
   Future<ResponseResult<PaginatedResponse<Staff>>> searchStaffs({
     required String keyword,
     required int page,
     required int size,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_staffs/search",
@@ -65,6 +64,7 @@ class StaffService {
         "page": page,
         "size": size,
       },
+      showLoader: showLoader && page == 0,
     );
 
     if (result.isFailure) {
@@ -85,14 +85,14 @@ class StaffService {
     );
   }
 
-
   // GET STAFF DETAILS
-
-
   Future<ResponseResult<StaffDetails>> getStaffById(
-      int id) async {
+      int id, {
+        bool showLoader = true,
+      }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_staff/$id",
+      showLoader: showLoader,
     );
 
     if (result.isFailure) {
@@ -108,12 +108,10 @@ class StaffService {
     );
   }
 
-
   // ADD STAFF
-
-
   Future<ResponseResult<ApiResponse>> addStaff(
-      AddStaffRequest request) async {
+      AddStaffRequest request,
+      ) async {
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_staff/add",
       data: request.toJson(),
@@ -141,10 +139,7 @@ class StaffService {
     );
   }
 
-
   // UPDATE STAFF
-
-
   Future<ResponseResult<ApiResponse>> updateStaff({
     required int id,
     required AddStaffRequest request,
@@ -152,6 +147,7 @@ class StaffService {
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_staff/$id",
       data: request.toJson(),
+      showLoader: false,
     );
 
     if (result.isFailure) {
@@ -161,18 +157,23 @@ class StaffService {
       );
     }
 
+    final response = ApiResponse.fromJson(result.data!);
+
+    if (!response.success) {
+      return ResponseResult.error(
+        errorMessage: response.message,
+        statusCode: result.statusCode,
+      );
+    }
+
     return ResponseResult.success(
-      ApiResponse.fromJson(result.data!),
+      response,
       result.statusCode,
     );
   }
 
-
   // DELETE STAFF
-
-
-  Future<ResponseResult<ApiResponse>> deleteStaff(
-      int id) async {
+  Future<ResponseResult<ApiResponse>> deleteStaff(int id) async {
     final result = await _api.put<Map<String, dynamic>>(
       path: "$_staff/delete",
       data: {

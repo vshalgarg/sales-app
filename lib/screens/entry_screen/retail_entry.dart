@@ -14,6 +14,8 @@ import '../../model_classes/entries/entries_customer_model.dart';
 import '../../model_classes/entries/get_staff_entry.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
+import '../../provider/master_provider/permission_provider.dart';
+import '../../widgets/entry_bottom_action_bar.dart';
 
 class RetailEntryScreen extends StatefulWidget {
   const RetailEntryScreen({super.key});
@@ -76,6 +78,9 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
     super.initState();
 
     dateController.text = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    final permissionProvider = context.read<PermissionProvider>();
+    if (!permissionProvider.hasPermission('RETAIL_CREATE')) return;
+
     final provider = context.read<EntriesProvider>();
     Future.microtask(() async {
       await Future.wait([
@@ -105,9 +110,109 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
     super.dispose();
   }
 
+  Future<void> _saveRetailEntry() async {
+    if (!context.read<PermissionProvider>().hasPermission('RETAIL_CREATE')) {
+      return;
+    }
+
+    setState(() {
+      isExpanded = true;
+      isSupplierExpanded = true;
+    });
+
+    await Future<void>.delayed(Duration.zero);
+
+    if (!mounted) return;
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      setState(() {
+        isExpanded = true;
+        isSupplierExpanded = true;
+      });
+
+      ScaffoldSnackBar.show(context, "Please fill all the required fields");
+
+      return;
+    }
+
+    final inputDate = DateFormat('dd-MM-yyyy').parse(dateController.text);
+
+    final apiDate = DateFormat('yyyy-MM-dd').format(inputDate);
+
+    final validSuppliers = List.generate(selectedSupplierIds.length, (index) {
+      final supplierId = selectedSupplierIds[index];
+
+      if (supplierId == null) return null;
+
+      return {
+        "supplierId": supplierId,
+        "totalAmount": double.tryParse(totalAmount[index].text) ?? 0,
+        "depositAmount": double.tryParse(depositAmount[index].text) ?? 0,
+        "balanceAmount": double.tryParse(balancedAmount[index].text) ?? 0,
+      };
+    }).whereType<Map<String, dynamic>>().toList();
+
+    if (validSuppliers.isEmpty) {
+      ScaffoldSnackBar.show(context, "Please select at least one supplier");
+      return;
+    }
+
+    final payload = {
+      "date": apiDate,
+      "name": nameController.text.trim(),
+      "staffId": selectedStaff?.staffId,
+      "referredByCustomerId": selectedReferred?.id,
+      "commission": commissionController.text.trim().isEmpty
+          ? null
+          : commissionController.text.trim(),
+      "suppliers": validSuppliers,
+    };
+
+    try {
+      final provider = context.read<EntriesProvider>();
+
+      await provider.addRetailEntry(payload);
+
+      if (!context.mounted) return;
+
+      ScaffoldSnackBar.show(context, "Retail Entry Saved");
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldSnackBar.show(context, e.toString());
+    }
+  }
+
+  Widget _buildBottomActionBar() {
+    return EntryBottomActionBar(
+      secondaryText: "Reset",
+      secondaryIcon: Icons.refresh_rounded,
+      onSecondaryPressed: clearFields,
+      primaryText: "Save",
+      primaryIcon: Icons.save_rounded,
+      onPrimaryPressed: _saveRetailEntry,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+    if (!permissionProvider.hasPermission('RETAIL_CREATE')) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to create Retail entries.'),
+        ),
+      );
+    }
+
     final provider = context.watch<EntriesProvider>();
+    final canAddSupplier = permissionProvider.hasPermission(
+      'RETAIL_REPORT_ADD_SUPPLIER',
+    );
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -123,20 +228,18 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
             onPressed: () {
               ExitConfirmationDialog.show(
                 context,
-                onSave: () async {
-                  Navigator.pop(context);
-                },
-                discardButtonText: "Leave",
                 saveButtonText: "Stay",
+                discardButtonText: "Leave",
                 onDiscard: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context, true);
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
                 },
               );
             },
           ),
         ],
       ),
+      bottomNavigationBar: _buildBottomActionBar(),
       body: Stack(
         children: [
           Form(
@@ -198,7 +301,8 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                           EntryTextField(
                             controller: nameController,
                             hintText: "Retailer Name * ",
-                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return "Please enter a retailer name";
@@ -292,366 +396,188 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
                         ),
                       ),
                     ),
-                if (isSupplierExpanded) ...[
-          Column(
-          children: [
+                    if (isSupplierExpanded) ...[
+                      Column(
+                        children: [
+                          ...List.generate(suppliers.length, (index) {
+                            return EntryContainer(
+                              children: [
+                                const SizedBox(height: 15),
 
-          ...List.generate(
-            suppliers.length,
-                (index) {
-              return EntryContainer(
-                children: [
-                  const SizedBox(height: 15),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      index == 0
+                                          ? "Supplier${index + 1} * "
+                                          : "Supplier ${index + 1}",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
 
-                  Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
-                    children: [
+                                    if (suppliers.length > 1)
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            suppliers.removeAt(index);
+                                            totalAmount.removeAt(index);
+                                            depositAmount.removeAt(index);
+                                            balancedAmount.removeAt(index);
+                                            selectedSuppliers.removeAt(index);
+                                            selectedSupplierIds.removeAt(index);
+                                          });
+                                        },
+                                        child: const Icon(
+                                          Iconsax.trash,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                SizedBox(height: 10),
+                                CustomDropdown(
+                                  hintText: index == 0
+                                      ? "Supplier * "
+                                      : "Supplier",
+                                  initialValue: selectedSuppliers[index],
 
-                  Text(
-                    index == 0 ? "Supplier${index + 1} * " : "Supplier ${index + 1}",
-                    style: const TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
 
-                  if (suppliers.length > 1)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          suppliers.removeAt(index);
-                          totalAmount.removeAt(index);
-                          depositAmount.removeAt(index);
-                          balancedAmount.removeAt(index);
-                          selectedSuppliers.removeAt(index);
-                          selectedSupplierIds.removeAt(index);
-                        });
-                      },
-                      child: const Icon(
-                        Iconsax.trash,
-                        color: Colors.red,
+                                  validator: (value) {
+                                    if (index == 0 &&
+                                        (value == null ||
+                                            value.trim().isEmpty)) {
+                                      return "Please select at least one supplier";
+                                    }
+                                    return null;
+                                  },
+                                  items: provider.entries
+                                      .map((e) => e.supplierName ?? '')
+                                      .toList(),
+                                  onChanged: (value) {
+                                    final supplier = provider.entries
+                                        .firstWhere(
+                                          (e) => e.supplierName == value,
+                                        );
+
+                                    setState(() {
+                                      selectedSuppliers[index] = value;
+                                      selectedSupplierIds[index] = supplier.id
+                                          ?.toInt();
+                                    });
+                                  },
+                                ),
+
+                                const SizedBox(height: 15),
+
+                                Text(
+                                  "Total Amount",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ),
+
+                                EntryTextField(
+                                  integerOnly: true,
+                                  controller: totalAmount[index],
+                                  hintText: "Total Amount",
+                                  onChanged: (_) {
+                                    calculateBalance(index);
+                                  },
+                                ),
+
+                                const SizedBox(height: 15),
+
+                                Text(
+                                  "Deposit Amount",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ),
+
+                                EntryTextField(
+                                  integerOnly: true,
+                                  controller: depositAmount[index],
+                                  hintText: "Deposit Amount",
+                                  onChanged: (_) {
+                                    calculateBalance(index);
+                                  },
+                                ),
+
+                                const SizedBox(height: 15),
+
+                                Text(
+                                  "Balance Amount",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ),
+
+                                EntryTextField(
+                                  integerOnly: true,
+                                  controller: balancedAmount[index],
+                                  hintText: "Balance Amount",
+                                  enabled: false,
+                                ),
+                              ],
+                            );
+                          }),
+
+                          const SizedBox(height: 15),
+
+                          if (canAddSupplier)
+                            CustomElevatedButton(
+                              color: AppColors.primaryPurple,
+                              text: "+ Add More Supplier",
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                              height: 50,
+                              width: double.infinity,
+                              onPressed: () async {
+                                setState(() {
+                                  suppliers.add(suppliers.length);
+                                  totalAmount.add(TextEditingController());
+                                  depositAmount.add(TextEditingController());
+                                  balancedAmount.add(TextEditingController());
+                                  selectedSuppliers.add(null);
+                                  selectedSupplierIds.add(null);
+                                });
+                              },
+                              borderRadius: 5,
+                            ),
+                        ],
                       ),
+                    ],
+                    SizedBox(height: 15),
+                    Consumer<EntriesProvider>(
+                      builder: (context, provider, child) {
+                        if (!provider.isLoading) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Container(
+                          color: Colors.black45,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
                     ),
-                ],
+                  ],
+                ),
               ),
-               SizedBox(height:10),
-                  CustomDropdown(
-                    hintText:
-                    index == 0 ? "Supplier * " : "Supplier",
-                    initialValue: selectedSuppliers[index],
-
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-
-                    validator: (value) {
-                      if (index == 0 && (value == null || value.trim().isEmpty)) {
-                        return "Please select at least one supplier";
-                      }
-                      return null;
-                    },
-                    items: provider.entries
-                        .map((e) => e.supplierName ?? '')
-                        .toList(),
-                    onChanged: (value) {
-                      final supplier =
-                      provider.entries.firstWhere(
-                            (e) => e.supplierName == value,
-                      );
-
-                      setState(() {
-                        selectedSuppliers[index] = value;
-                        selectedSupplierIds[index] =
-                            supplier.id?.toInt();
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  Text(
-                    "Total Amount",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-
-                  EntryTextField(
-                    integerOnly: true,
-                    controller: totalAmount[index],
-                    hintText: "Total Amount",
-                    onChanged: (_) {
-                      calculateBalance(index);
-                    },
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  Text(
-                    "Deposit Amount",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-
-                  EntryTextField(
-                    integerOnly: true,
-                    controller: depositAmount[index],
-                    hintText: "Deposit Amount",
-                    onChanged: (_) {
-                      calculateBalance(index);
-                    },
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  Text(
-                    "Balance Amount",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-
-                  EntryTextField(
-                    integerOnly: true,
-                    controller: balancedAmount[index],
-                    hintText: "Balance Amount",
-                    enabled: false,
-                  ),
-                ],
-              );
-            },
-          ),
-
-
-          const SizedBox(height: 15),
-
-          CustomElevatedButton(
-            color: AppColors.primaryPurple,
-            text: "+ Add More Supplier",
-            textStyle: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
             ),
-            height: 50,
-            width: double.infinity,
-            onPressed: () async {
-              setState(() {
-                suppliers.add(suppliers.length);
-                totalAmount.add(
-                  TextEditingController(),
-                );
-                depositAmount.add(
-                  TextEditingController(),
-                );
-                balancedAmount.add(
-                  TextEditingController(),
-                );
-                selectedSuppliers.add(null);
-                selectedSupplierIds.add(null);
-              });
-            },
-            borderRadius: 5,
           ),
         ],
       ),
-      ],
-                    SizedBox(height: 15),
-                    SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(5),
-                                  onTap: () {
-                                    clearFields();
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(
-                                        color: const Color(0xFFE5E2EE),
-                                      ),
-                                    ),
-                                    child: const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.refresh_rounded,
-                                          color: AppColors.primaryPurple,
-                                          size: 30,
-                                        ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          "Reset",
-                                          style: TextStyle(
-                                            color: AppColors.primaryPurple,
-                                            fontSize: 20,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(5),
-                                  onTap: () async {
-                                    setState(() {
-                                      isExpanded = true;
-                                      isSupplierExpanded = true;
-                                    });
-
-
-                                    await Future<void>.delayed(Duration.zero);
-
-                                    if (!mounted) return;
-
-                                    final isValid = _formKey.currentState?.validate() ?? false;
-
-                                    if (!isValid) {
-                                      setState(() {
-                                        isExpanded = true;
-                                        isSupplierExpanded = true;
-                                      });
-
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        "Please fill all the required fields",
-                                      );
-
-                                      return;
-                                    }
-
-                                    final inputDate = DateFormat(
-                                      'dd-MM-yyyy',
-                                    ).parse(dateController.text);
-
-                                    final apiDate = DateFormat(
-                                      'yyyy-MM-dd',
-                                    ).format(inputDate);
-                                    final payload = {
-                                      "date": apiDate,
-                                      "name": nameController.text,
-                                      "staffId": selectedStaff?.staffId,
-                                      "referredByCustomerId":
-                                          selectedReferred?.id,
-                                      "commission": commissionController.text.trim().isEmpty
-                                          ? null
-                                          : commissionController.text.trim(),
-                                      "suppliers": List.generate(
-                                        selectedSuppliers.length,
-                                        (index) => {
-                                          "supplierId":
-                                              selectedSupplierIds[index],
-                                          "totalAmount":
-                                              double.tryParse(
-                                                totalAmount[index].text,
-                                              ) ??
-                                              0,
-                                          "depositAmount":
-                                              double.tryParse(
-                                                depositAmount[index].text,
-                                              ) ??
-                                              0,
-                                          "balanceAmount":
-                                              double.tryParse(
-                                                balancedAmount[index].text,
-                                              ) ??
-                                              0,
-                                        },
-                                      ),
-                                    };
-
-                                    try {
-                                      await provider.addRetailEntry(payload);
-
-                                      if (!context.mounted) return;
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        "Retail Entry Saved",
-                                      );
-                                      Navigator.pop(context, true);
-                                    } catch (e) {
-                                      ScaffoldSnackBar.show(
-                                        context,
-                                        e.toString(),
-                                      );
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryPurple,
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    child: const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.save_rounded,
-                                          color: Colors.white,
-                                          size: 30,
-                                        ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          "Save",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 40),
-                            Consumer<EntriesProvider>(
-                              builder: (context, provider, child) {
-                                if (!provider.isLoading) {
-                                  return const SizedBox.shrink();
-                                }
-
-                                return Container(
-                                  color: Colors.black45,
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-      ]
-      ),
-    )
-            )
-      )
-        ]
-      )
     );
   }
 }

@@ -18,14 +18,21 @@ import '../../model_classes/customer/customer_details.dart';
 import '../../model_classes/supplier/bank_details_request.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../provider/master_provider/customer_provider.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/master_provider/transport_provider.dart';
 import 'add_new_supplier.dart';
 
 class AddNewCustomer extends StatefulWidget {
   final num? id;
   final FormMode mode;
+  final CustomerDetails? customerDetails;
 
-  const AddNewCustomer({super.key, this.id, this.mode = FormMode.add});
+  const AddNewCustomer({
+    super.key,
+    this.id,
+    this.mode = FormMode.add,
+    this.customerDetails,
+  });
 
   @override
   State<AddNewCustomer> createState() => _AddNewCustomerState();
@@ -112,49 +119,47 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
       bankDetails: bankDetails
           .map(
             (bank) => BankDetailRequest(
-          bankName: bank.bankName.text.trim().isEmpty
-              ? null
-              : bank.bankName.text.trim(),
-          accountNumber: bank.accountNumber.text.trim().isEmpty
-              ? null
-              : bank.accountNumber.text.trim(),
-          ifscCode: bank.ifscCode.text.trim().isEmpty
-              ? null
-              : bank.ifscCode.text.trim(),
-          branchName: bank.branchName.text.trim().isEmpty
-              ? null
-              : bank.branchName.text.trim(),
-          accountName: bank.accountName.text.trim().isEmpty
-              ? null
-              : bank.accountName.text.trim(),
-        ),
-      )
+              bankName: bank.bankName.text.trim().isEmpty
+                  ? null
+                  : bank.bankName.text.trim(),
+              accountNumber: bank.accountNumber.text.trim().isEmpty
+                  ? null
+                  : bank.accountNumber.text.trim(),
+              ifscCode: bank.ifscCode.text.trim().isEmpty
+                  ? null
+                  : bank.ifscCode.text.trim(),
+              branchName: bank.branchName.text.trim().isEmpty
+                  ? null
+                  : bank.branchName.text.trim(),
+              accountName: bank.accountName.text.trim().isEmpty
+                  ? null
+                  : bank.accountName.text.trim(),
+            ),
+          )
           .where(
             (bank) =>
-        (bank.bankName?.isNotEmpty ?? false) ||
-            (bank.accountNumber?.isNotEmpty ?? false) ||
-            (bank.ifscCode?.isNotEmpty ?? false) ||
-            (bank.branchName?.isNotEmpty ?? false) ||
-            (bank.accountName?.isNotEmpty ?? false),
-      )
+                (bank.bankName?.isNotEmpty ?? false) ||
+                (bank.accountNumber?.isNotEmpty ?? false) ||
+                (bank.ifscCode?.isNotEmpty ?? false) ||
+                (bank.branchName?.isNotEmpty ?? false) ||
+                (bank.accountName?.isNotEmpty ?? false),
+          )
           .toList(),
       preferredTransportIds: selectedTransportIds,
       contacts: contacts
           .map(
             (c) => CustomerContactRequest(
-          contactPerson: c.name.text.trim(),
-          mobileNumber: c.mobile.text.trim(),
-          type: c.type.text.trim().isEmpty
-              ? null
-              : c.type.text.trim(),
-        ),
-      )
+              contactPerson: c.name.text.trim(),
+              mobileNumber: c.mobile.text.trim(),
+              type: c.type.text.trim().isEmpty ? null : c.type.text.trim(),
+            ),
+          )
           .where(
             (contact) =>
-        (contact.contactPerson?.isNotEmpty ?? false) ||
-            (contact.mobileNumber?.isNotEmpty ?? false) ||
-            (contact.type?.isNotEmpty ?? false),
-      )
+                (contact.contactPerson?.isNotEmpty ?? false) ||
+                (contact.mobileNumber?.isNotEmpty ?? false) ||
+                (contact.type?.isNotEmpty ?? false),
+          )
           .toList(),
     );
   }
@@ -257,26 +262,19 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
   Future<void> loadData() async {
     final transportProvider = context.read<TransportProvider>();
-    final customerProvider = context.read<CustomerProvider>();
 
-    await transportProvider.fetchAllTransports();
-
-    if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-      final success = await customerProvider.fetchCustomerDetails(
-        widget.id!.toInt(),
-      );
-
-      if (success && customerProvider.customerDetails != null) {
-        _populateFormFromCustomer(customerProvider.customerDetails!);
-      }
-    } else {
+    if (widget.customerDetails != null) {
+      _populateFormFromCustomer(widget.customerDetails!);
+    } else if (widget.mode == FormMode.add) {
       contacts.add(ContactControllers());
       addInitialBank();
     }
 
-    if (mounted) {
-      setState(() {});
-    }
+    await transportProvider.fetchAllTransports();
+
+    if (!mounted) return;
+
+    setState(() {});
   }
 
   @override
@@ -304,7 +302,27 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final hasPermission = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('CUSTOMER'),
+      FormMode.edit => permissionProvider.canUpdate('CUSTOMER'),
+      FormMode.view => permissionProvider.canView('CUSTOMER'),
+    };
+
+    if (!hasPermission) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to perform this action.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
@@ -323,14 +341,11 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
-                  discardButtonText: "Leave",
                   saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },
@@ -552,20 +567,14 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
                   Navigator.pop(context, true);
                 } else {
-                  ScaffoldSnackBar.show(
-                    context,
-                    "Failed to update customer",
-                  );
+                  ScaffoldSnackBar.show(context, "Failed to update customer");
                 }
               } catch (e) {
                 log("Update customer error: $e");
 
                 if (!context.mounted) return;
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Failed to update customer",
-                );
+                ScaffoldSnackBar.show(context, "Failed to update customer");
               }
             },
 
@@ -573,10 +582,7 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               final isValid = _formKey.currentState!.validate();
 
               if (!isValid) {
-                ScaffoldSnackBar.show(
-                  context,
-                  "Name is required.",
-                );
+                ScaffoldSnackBar.show(context, "Name is required.");
                 return;
               }
 
@@ -591,17 +597,11 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
 
                 if (!context.mounted) return;
 
-                ScaffoldSnackBar.show(
-                  context,
-                  "Customer added successfully",
-                );
+                ScaffoldSnackBar.show(context, "Customer added successfully");
 
                 Navigator.pop(context, true);
               } else {
-                ScaffoldSnackBar.show(
-                  context,
-                  "Unable to add customer",
-                );
+                ScaffoldSnackBar.show(context, "Unable to add customer");
               }
             },
           );

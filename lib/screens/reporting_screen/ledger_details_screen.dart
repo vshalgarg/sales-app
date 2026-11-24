@@ -1,3 +1,4 @@
+import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,13 @@ class LedgerDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!context.watch<PermissionProvider>().hasPermission('LEDGER_REPORT_VIEW')) {
+      return const Scaffold(
+        body: Center(
+          child: Text('You do not have permission to access this screen.'),
+        ),
+      );
+    }
     final ledgerProvider = context.watch<LedgerProvider>();
     final ledger = ledgerProvider.ledger;
 
@@ -98,7 +106,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors
                               .primaryPurple
-                              .withOpacity(0.10),
+                              .withValues(alpha: 0.10),
                           borderRadius:
                           BorderRadius.circular(8),
                         ),
@@ -176,7 +184,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                         ledger.party!.email!,
                       ),
                     ),
-                SizedBox(height:5),
+                  SizedBox(height:5),
 
                   if (ledger.party?.gstNo != null &&
                       ledger.party!.gstNo!
@@ -242,7 +250,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors
                               .primaryPurple
-                              .withOpacity(0.10),
+                              .withValues(alpha: 0.10),
                           borderRadius:
                           BorderRadius.circular(8),
                         ),
@@ -311,8 +319,8 @@ class LedgerDetailsScreen extends StatelessWidget {
 
                         return _TransactionCard(
                           item: item,
-                          debit: debit,
-                          credit: credit,
+                          // debit: debit,
+                          // credit: credit,
                         );
                       },
                     ),
@@ -333,7 +341,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors
                             .primaryPurple
-                            .withOpacity(0.08),
+                            .withValues(alpha: 0.08),
                         borderRadius:
                         BorderRadius.circular(8),
                       ),
@@ -365,7 +373,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                                   ),
                                   style:
                                   TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 12,
                                     color: AppColors
                                         .primaryPurple,
                                     fontWeight:
@@ -407,7 +415,7 @@ class LedgerDetailsScreen extends StatelessWidget {
                                   ),
                                   style:
                                   const TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 12,
                                     color:
                                     Colors.green,
                                     fontWeight:
@@ -483,13 +491,13 @@ class _InfoItem extends StatelessWidget {
 class _TransactionCard
     extends StatelessWidget {
   final dynamic item;
-  final double debit;
-  final double credit;
+  // final double debit;
+  // final double credit;
 
   const _TransactionCard({
     required this.item,
-    required this.debit,
-    required this.credit,
+    // required this.debit,
+    // required this.credit,
   });
 
   @override
@@ -523,7 +531,7 @@ class _TransactionCard
             decoration: BoxDecoration(
               color: AppColors
                   .primaryPurple
-                  .withOpacity(0.08),
+                  .withValues(alpha: 0.08),
               borderRadius:
               BorderRadius.circular(7),
             ),
@@ -552,7 +560,7 @@ class _TransactionCard
                     DateTime.parse(item.date.toString()),
                   ),
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -563,7 +571,7 @@ class _TransactionCard
                   item.invoiceNo?.toString() ??
                       "",
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 15,
                     color: Colors.black87,
                   ),
                 ),
@@ -582,7 +590,7 @@ class _TransactionCard
                 const Text(
                   "Particular",
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: 15,
                     color: Colors.grey,
                   ),
                 ),
@@ -594,7 +602,7 @@ class _TransactionCard
                       ?.toString() ??
                       "",
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 15,
                     fontWeight:
                     FontWeight.w500,
                   ),
@@ -606,77 +614,77 @@ class _TransactionCard
             ),
           ),
 
-          // Debit
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.end,
-              children: [
+          // // Debit
+          // Expanded(
+          //   flex: 2,
+          //   child: Column(
+          //     crossAxisAlignment:
+          //     CrossAxisAlignment.end,
+          //     children: [
+          //
+          //       const Text(
+          //         "Debit (₹)",
+          //         style: TextStyle(
+          //           fontSize: 8,
+          //           color: Colors.grey,
+          //         ),
+          //       ),
+          //
+          //       const SizedBox(height: 2),
+          //
+          //       Text(
+          //         _format(debit),
+          //         style: const TextStyle(
+          //           fontSize: 9,
+          //           color: Colors.blue,
+          //           fontWeight:
+          //           FontWeight.w600,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          //
+          // const SizedBox(width: 5),
+          //
+          // // Credit
+          // Expanded(
+          //   flex: 2,
+          //   child: Column(
+          //     crossAxisAlignment:
+          //     CrossAxisAlignment.end,
+          //     children: [
+          //
+          //       const Text(
+          //         "Credit (₹)",
+          //         style: TextStyle(
+          //           fontSize: 8,
+          //           color: Colors.grey,
+          //         ),
+          //       ),
+          //
+          //       const SizedBox(height: 2),
+          //
+          //       Text(
+          //         _format(credit),
+          //         style: const TextStyle(
+          //           fontSize: 9,
+          //           color: Colors.green,
+          //           fontWeight:
+          //           FontWeight.w600,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
 
-                const Text(
-                  "Debit (₹)",
-                  style: TextStyle(
-                    fontSize: 8,
-                    color: Colors.grey,
-                  ),
-                ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  _format(debit),
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: Colors.blue,
-                    fontWeight:
-                    FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 5),
-
-          // Credit
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.end,
-              children: [
-
-                const Text(
-                  "Credit (₹)",
-                  style: TextStyle(
-                    fontSize: 8,
-                    color: Colors.grey,
-                  ),
-                ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  _format(credit),
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: Colors.green,
-                    fontWeight:
-                    FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 3),
-
-          const Icon(
-            Icons.chevron_right,
-            size: 18,
-            color: Colors.grey,
-          ),
+          // const SizedBox(width: 3),
+          //
+          // const Icon(
+          //   Icons.chevron_right,
+          //   size: 18,
+          //   color: Colors.grey,
+          // ),
         ],
       ),
     );

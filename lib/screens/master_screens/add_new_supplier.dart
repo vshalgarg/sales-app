@@ -16,6 +16,7 @@ import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/supplier/add_supplier_request.dart';
 import '../../model_classes/supplier/bank_details_request.dart';
 import '../../pop_ups/general_closing_popup.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/master_provider/supplier_provider.dart';
 import '../../provider/master_provider/transport_provider.dart';
 
@@ -53,8 +54,14 @@ class BankControllers {
 class AddNewSupplier extends StatefulWidget {
   final num? id;
   final FormMode mode;
+  final SupplierDetails? supplierDetails;
 
-  const AddNewSupplier({super.key, this.id, this.mode = FormMode.add});
+  const AddNewSupplier({
+    super.key,
+    this.id,
+    this.mode = FormMode.add,
+    this.supplierDetails,
+  });
 
   @override
   State<AddNewSupplier> createState() => _AddNewSupplierState();
@@ -95,48 +102,47 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
   List<BankControllers> bankDetails = [];
   List<int> selectedTransportIds = [];
   List<String> selectedTransportNames = [];
-  bool _isSubmitting = false;
 
   String? nullableText(String value) {
     final text = value.trim();
     return text.isEmpty ? null : text;
   }
-  AddSupplierRequest _buildSupplierRequest({required bool isUpdate}) {
-    final contactList = contacts
+
+  AddSupplierRequest submitSupplier() {
+    final List<Map<String, dynamic>> contactList = contacts
         .map(
           (c) => {
-        "contactPerson": c.name.text.trim(),
-        "mobileNumber": c.mobile.text.trim(),
-        "type": c.type.text.trim(),
-      },
-    )
+            "contactPerson": c.name.text.trim(),
+            "mobileNumber": c.mobile.text.trim(),
+            "type": c.type.text.trim(),
+          },
+        )
         .where(
           (contact) =>
-      (contact["contactPerson"] as String).isNotEmpty ||
-          (contact["mobileNumber"] as String).isNotEmpty ||
-          (contact["type"] as String).isNotEmpty,
-    )
+              (contact["contactPerson"] as String).isNotEmpty ||
+              (contact["mobileNumber"] as String).isNotEmpty ||
+              (contact["type"] as String).isNotEmpty,
+        )
         .toList();
-
-    final bankDetailList = bankDetails
+    final List<BankDetailRequest> bankDetailList = bankDetails
         .map(
           (bank) => BankDetailRequest(
-        id: isUpdate ? null : bank.id,
-        bankName: bank.bankName.text.trim(),
-        accountNumber: bank.accountNumber.text.trim(),
-        ifscCode: bank.ifscCode.text.trim(),
-        branchName: bank.branchName.text.trim(),
-        accountName: bank.accountName.text.trim(),
-      ),
-    )
+            id: bank.id,
+            bankName: bank.bankName.text.trim(),
+            accountNumber: bank.accountNumber.text.trim(),
+            ifscCode: bank.ifscCode.text.trim(),
+            branchName: bank.branchName.text.trim(),
+            accountName: bank.accountName.text.trim(),
+          ),
+        )
         .where(
           (bank) =>
-      (bank.bankName?.isNotEmpty ?? false) ||
-          (bank.accountNumber?.isNotEmpty ?? false) ||
-          (bank.ifscCode?.isNotEmpty ?? false) ||
-          (bank.branchName?.isNotEmpty ?? false) ||
-          (bank.accountName?.isNotEmpty ?? false),
-    )
+              (bank.bankName?.isNotEmpty ?? false) ||
+              (bank.accountNumber?.isNotEmpty ?? false) ||
+              (bank.ifscCode?.isNotEmpty ?? false) ||
+              (bank.branchName?.isNotEmpty ?? false) ||
+              (bank.accountName?.isNotEmpty ?? false),
+        )
         .toList();
 
     return AddSupplierRequest(
@@ -144,19 +150,76 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       email: nullableText(emailController.text),
       supplierGroup: nullableText(groupController.text),
       gstNo: nullableText(gstController.text),
+
       msme: nullableText(msmeController.text),
+
       commissionScheme: nullableText(commissionSchemeController.text),
       commissionRate: num.tryParse(commissionRateController.text.trim()),
       referenceBy: nullableText(referenceController.text),
+
       addressLine1: nullableText(addressLine1Controller.text),
       addressLine2: nullableText(addressLine2Controller.text),
       state: nullableText(stateController.text),
       city: nullableText(cityController.text),
       pinCode: nullableText(pinCodeController.text),
+
       bankDetails: bankDetailList,
       contacts: contactList,
-      preferredTransportIds: List<int>.from(selectedTransportIds),
+      preferredTransportIds: selectedTransportIds,
+
       remark: nullableText(remarksController.text),
+    );
+  }
+
+  AddSupplierRequest updateSupplier() {
+    final List<Map<String, dynamic>> contactList = contacts.map((c) {
+      return {
+        "contactPerson": c.name.text.trim(),
+        "mobileNumber": c.mobile.text.trim(),
+        "type": c.type.text.trim(),
+      };
+    }).toList();
+
+    final List<BankDetailRequest> bankDetailList = bankDetails
+        .map(
+          (bank) => BankDetailRequest(
+            bankName: bank.bankName.text.trim(),
+            accountNumber: bank.accountNumber.text.trim(),
+            ifscCode: bank.ifscCode.text.trim(),
+            branchName: bank.branchName.text.trim(),
+            accountName: bank.accountName.text.trim(),
+          ),
+        )
+        .where(
+          (bank) =>
+              (bank.bankName?.isNotEmpty ?? false) ||
+              (bank.accountNumber?.isNotEmpty ?? false) ||
+              (bank.ifscCode?.isNotEmpty ?? false) ||
+              (bank.branchName?.isNotEmpty ?? false) ||
+              (bank.accountName?.isNotEmpty ?? false),
+        )
+        .toList();
+
+    return AddSupplierRequest(
+      supplierName: nameController.text.trim(),
+      email: emailController.text.trim(),
+      supplierGroup: groupController.text.trim(),
+      gstNo: gstController.text.trim(),
+      msme: msmeController.text.trim(),
+      commissionScheme: commissionSchemeController.text.trim(),
+      commissionRate: num.tryParse(commissionRateController.text.trim()),
+      referenceBy: referenceController.text.trim(),
+
+      bankDetails: bankDetailList,
+
+      addressLine1: addressLine1Controller.text.trim(),
+      addressLine2: addressLine2Controller.text.trim(),
+      state: stateController.text.trim(),
+      city: cityController.text.trim(),
+      pinCode: pinCodeController.text.trim(),
+      remark: remarksController.text.trim(),
+      contacts: contactList,
+      preferredTransportIds: selectedTransportIds,
     );
   }
 
@@ -259,37 +322,28 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
       contacts.add(ContactControllers());
     }
   }
+
   @override
   void initState() {
     super.initState();
+
+    if (widget.supplierDetails != null) {
+      _populateFormFromSupplier(widget.supplierDetails!);
+    }
 
     if (widget.mode == FormMode.add) {
       contacts.add(ContactControllers());
       bankDetails.add(BankControllers());
     }
 
-    _initialize();
-  }
+    final transportProvider = Provider.of<TransportProvider>(
+      context,
+      listen: false,
+    );
 
-  Future<void> _initialize() async {
-    if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-      final provider = context.read<SupplierProvider>();
-      final loaded = await provider.fetchSupplierDetails(widget.id!.toInt());
-
-      if (mounted && loaded) {
-        final supplier = provider.supplierDetails;
-
-        if (supplier != null) {
-          _populateFormFromSupplier(supplier);
-          setState(() {});
-        }
-      }
-    }
-
-    if (!mounted) return;
-
-    final transportProvider = context.read<TransportProvider>();
-    await transportProvider.fetchAllTransports();
+    Future.microtask(() {
+      transportProvider.fetchAllTransports();
+    });
   }
 
   void deleteContact(int index) {
@@ -328,28 +382,27 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
     commissionSchemeController.clear();
     commissionRateController.clear();
     referenceController.clear();
+    for (final bank in bankDetails) {
+      bank.dispose();
+    }
+
+    setState(() {
+      bankDetails = [BankControllers()];
+      selectedTransportIds.clear();
+      selectedTransportNames.clear();
+      contacts = [ContactControllers()];
+    });
     addressLine1Controller.clear();
     addressLine2Controller.clear();
     stateController.clear();
     cityController.clear();
     pinCodeController.clear();
     remarksController.clear();
-
-    for (final bank in bankDetails) {
-      bank.dispose();
+    for (var c in contacts) {
+      c.name.clear();
+      c.mobile.clear();
+      c.type.clear();
     }
-
-    for (final contact in contacts) {
-      contact.dispose();
-    }
-
-    setState(() {
-      bankDetails = [BankControllers()];
-      contacts = [ContactControllers()];
-      selectedTransportIds.clear();
-      selectedTransportNames.clear();
-      isExpanded = false;
-    });
   }
 
   @override
@@ -384,32 +437,55 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
   @override
   Widget build(BuildContext context) {
+    final permissionProvider = context.watch<PermissionProvider>();
+
+    final canCreate = permissionProvider.canCreate('SUPPLIER');
+    final canUpdate = permissionProvider.canUpdate('SUPPLIER');
+
+    if (widget.mode == FormMode.add && !canCreate) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to add suppliers',
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    if (widget.mode == FormMode.edit && !canUpdate) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to edit suppliers',
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
       appBar: CustomAppBar(
         leading: widget.mode == FormMode.view
             ? IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        )
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
             : null,
         actions: [
           if (widget.mode != FormMode.view)
             IconButton(
               icon: const Icon(Icons.close),
-              onPressed: () async {
+              onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
-                  discardButtonText: "Leave",
                   saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },
@@ -420,7 +496,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
             ? "Add New Supplier"
             : widget.mode == FormMode.edit
             ? "Edit Supplier"
-            : "View Supplier",
+            : "Supplier Details",
         textStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -522,9 +598,10 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                   ),
                   Consumer<TransportProvider>(
                     builder: (context, transportProvider, child) {
-
                       final List<Transport> transports = transportProvider
-                          .data.items.cast<Transport>();
+                          .data
+                          .items
+                          .cast<Transport>();
 
                       return CustomDropdown(
                         hintText: "Preferred Transports",
@@ -537,7 +614,9 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
                         isMultiSelect: true,
                         expandMultiSelect: true,
 
-                        initialValues: List<String>.from(selectedTransportNames),
+                        initialValues: List<String>.from(
+                          selectedTransportNames,
+                        ),
 
                         isDisabled: widget.mode == FormMode.view,
 
@@ -551,7 +630,7 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
 
                             selectedTransportIds = names.map<int>((name) {
                               final transport = transports.firstWhere(
-                                    (e) => e.name == name,
+                                (e) => e.name == name,
                               );
 
                               return transport.id!.toInt();
@@ -586,93 +665,62 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationButton(
-        mode: widget.mode,
+      bottomNavigationBar: Consumer<SupplierProvider>(
+        builder: (context, provider, child) {
+          return BottomNavigationButton(
+            mode: widget.mode,
 
-        update: () async {
-          if (_isSubmitting) return;
+            update: () async {
+              try {
+                final request = updateSupplier();
 
-          setState(() => _isSubmitting = true);
+                final message = await provider.updateSupplier(
+                  id: widget.id!.toInt(),
+                  request: request,
+                );
 
-          try {
-            final request = _buildSupplierRequest(isUpdate: true);
+                if (!context.mounted) return;
 
-            final message =
-            await context.read<SupplierProvider>().updateSupplier(
-              id: widget.id!.toInt(),
-              request: request,
-            );
+                if (message != null && message.isNotEmpty) {
+                  ScaffoldSnackBar.show(context, message);
+                  Navigator.pop(context, true);
+                } else {
+                  ScaffoldSnackBar.show(context, "Failed to update supplier");
+                }
+              } catch (e) {
+                log("Update supplier error: $e");
 
-            if (!context.mounted) return;
+                if (!context.mounted) return;
 
-            if (message != null && message.isNotEmpty) {
-              ScaffoldSnackBar.show(context, message);
-              Navigator.pop(context, true);
-            } else {
-              ScaffoldSnackBar.show(
-                context,
-                "Failed to update supplier",
-              );
-            }
-          } catch (e) {
-            log("Update supplier error: $e");
+                ScaffoldSnackBar.show(context, "Failed to update supplier: $e");
+              }
+            },
 
-            if (!context.mounted) return;
+            saveSupplier: () async {
+              try {
+                final isValid = _formKey.currentState!.validate();
 
-            ScaffoldSnackBar.show(
-              context,
-              "Failed to update supplier: $e",
-            );
-          } finally {
-            if (mounted) {
-              setState(() => _isSubmitting = false);
-            }
-          }
-        },
+                if (!isValid) {
+                  ScaffoldSnackBar.show(context, " Name is required.");
+                  return;
+                }
 
-        saveSupplier: () async {
-          if (_isSubmitting) return;
+                final request = submitSupplier();
 
-          final isValid = _formKey.currentState!.validate();
+                final message = await provider.addSupplier(request);
 
-          if (!isValid) {
-            ScaffoldSnackBar.show(
-              context,
-              "Name is required.",
-            );
-            return;
-          }
+                if (!context.mounted) return;
 
-          setState(() => _isSubmitting = true);
+                if (message != null && message.isNotEmpty) {
+                  Navigator.pop(context, message);
+                }
+              } catch (e) {
+                if (!context.mounted) return;
 
-          try {
-            final request = _buildSupplierRequest(isUpdate: false);
-
-            final message =
-            await context.read<SupplierProvider>().addSupplier(request);
-
-            if (!context.mounted) return;
-
-            if (message != null && message.isNotEmpty) {
-              Navigator.pop(context, message);
-            } else {
-              ScaffoldSnackBar.show(
-                context,
-                "Failed to add supplier",
-              );
-            }
-          } catch (e) {
-            if (!context.mounted) return;
-
-            ScaffoldSnackBar.show(
-              context,
-              "Something went wrong: $e",
-            );
-          } finally {
-            if (mounted) {
-              setState(() => _isSubmitting = false);
-            }
-          }
+                ScaffoldSnackBar.show(context, "Something went wrong: $e");
+              }
+            },
+          );
         },
       ),
     );

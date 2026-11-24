@@ -28,6 +28,7 @@ class PurchaseService {
     num? staffId,
     int page = 0,
     int size = 20,
+    bool showLoader = true,
   }) async {
     final query = <String, dynamic>{
       if (fromDate != null && fromDate.isNotEmpty) "fromDate": fromDate,
@@ -41,6 +42,7 @@ class PurchaseService {
 
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_purchase/entries/search",
+      showLoader: showLoader,
       queryParameters: query,
     );
 
@@ -61,9 +63,11 @@ class PurchaseService {
   }
 
   // PURCHASE DETAILS
+
   Future<ResponseResult<ApiResponse>> getPurchaseDetails(num id) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_purchase/get/details/$id",
+      showLoader: true
     );
 
     if (result.isFailure) {
@@ -87,9 +91,7 @@ class PurchaseService {
     );
   }
 
-
   // ADD PURCHASE
-
 
   Future<ResponseResult<ApiResponse>> addPurchase({
     required AddPurchaseRequest request,

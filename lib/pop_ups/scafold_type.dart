@@ -31,12 +31,12 @@ class ScaffoldSnackBar {
 
     entry = OverlayEntry(
       builder: (context) {
-        final topPadding = MediaQuery.of(context).padding.top;
-
         return Positioned(
-          top: topPadding,
+          top: 0,
           left: 20,
           right: 20,
+            child: SafeArea(
+              bottom: false,
           child: Material(
             color: Colors.transparent,
             child: Container(
@@ -54,6 +54,7 @@ class ScaffoldSnackBar {
               ),
             ),
           ),
+                )
         );
       },
     );

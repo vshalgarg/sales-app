@@ -11,6 +11,7 @@ import '../../model_classes/Transport/add_transport_request.dart';
 import '../../model_classes/Transport/transport.dart';
 import '../../pop_ups/general_closing_popup.dart';
 import '../../pop_ups/scafold_type.dart';
+import '../../provider/master_provider/permission_provider.dart';
 import '../../provider/master_provider/transport_provider.dart';
 import 'add_new_supplier.dart';
 
@@ -211,7 +212,23 @@ class _AddNewTransportState extends State<AddNewTransport> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransportProvider>();
+    final permissionProvider = context.watch<PermissionProvider>();
 
+    final hasPermission = switch (widget.mode) {
+      FormMode.add => permissionProvider.canCreate('TRANSPORT'),
+      FormMode.edit => permissionProvider.canUpdate('TRANSPORT'),
+      FormMode.view => permissionProvider.canView('TRANSPORT'),
+    };
+
+    if (!hasPermission) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'You do not have permission to perform this action.',
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.bodyFillColor,
 
@@ -232,12 +249,9 @@ class _AddNewTransportState extends State<AddNewTransport> {
                   context,
                   saveButtonText: "Stay",
                   discardButtonText: "Leave",
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },

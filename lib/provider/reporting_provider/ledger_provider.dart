@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../model_classes/get_ledger_details.dart';
 import '../../services/ledger/ledger_service.dart';
+import '../../utils/loading_service.dart';
 
 class LedgerProvider extends ChangeNotifier {
   final LedgerService _service;
@@ -25,6 +26,8 @@ class LedgerProvider extends ChangeNotifier {
     required int customerId,
     required String viewType,
   }) async {
+    //LoadingService.show();
+
     try {
       final result = await _service.getLedger(
         supplierId: supplierId,
@@ -39,9 +42,7 @@ class LedgerProvider extends ChangeNotifier {
         _ledger = null;
         _hasSearched = true;
 
-        debugPrint(
-          "Ledger API error: ${result.errorMessage}",
-        );
+        debugPrint("Ledger API error: ${result.errorMessage}");
       }
     } catch (e, stackTrace) {
       _ledger = null;
@@ -50,6 +51,7 @@ class LedgerProvider extends ChangeNotifier {
       debugPrint("Ledger exception: $e");
       debugPrintStack(stackTrace: stackTrace);
     } finally {
+     // LoadingService.hide();
       notifyListeners();
     }
   }

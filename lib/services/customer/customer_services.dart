@@ -18,9 +18,11 @@ class CustomerService {
   Future<ResponseResult<PaginatedResponse<Customer>>> getCustomers({
     required int page,
     required int size,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_customers/get",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "page": page,
         "size": size,
@@ -49,10 +51,12 @@ class CustomerService {
     required String keyword,
     required int page,
     required int size,
+    bool showLoader = true,
   }) async {
 
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_customers/search",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "keyword": keyword,
         "page": page,

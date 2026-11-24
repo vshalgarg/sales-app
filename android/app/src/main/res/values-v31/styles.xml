@@ -1,57 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
+
 <resources>
 
     <style name="LaunchTheme" parent="Theme.SplashScreen">
-
         <item name="windowSplashScreenBackground">#FFFFFF</item>
-
-        <item name="windowSplashScreenAnimatedIcon">
-            @drawable/hisabio_splash
-        </item>
-
-        <item name="postSplashScreenTheme">
-            @style/NormalTheme
-        </item>
-
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_empty</item>
+        <item name="postSplashScreenTheme">@style/NormalTheme</item>
     </style>
 
-    <style name="NormalTheme"
-        parent="@android:style/Theme.Light.NoTitleBar">
-
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">#FFFFFF</item>
         <item name="android:forceDarkAllowed">false</item>
-
     </style>
 
 </resources>
-
-
-
-
-
-<!--<?xml version="1.0" encoding="utf-8"?>-->
-<!--<resources>-->
-
-<!--    <style name="LaunchTheme" parent="Theme.SplashScreen">-->
-
-<!--        <item name="windowSplashScreenBackground">#FFFFFF</item>-->
-
-<!--        <item name="windowSplashScreenAnimatedIcon">-->
-<!--            @drawable/hisabio_splash-->
-<!--        </item>-->
-
-<!--        <item name="postSplashScreenTheme">-->
-<!--            @style/NormalTheme-->
-<!--        </item>-->
-
-<!--    </style>-->
-
-<!--    <style name="NormalTheme"-->
-<!--        parent="@android:style/Theme.Light.NoTitleBar">-->
-
-<!--        <item name="android:windowBackground">#FFFFFF</item>-->
-<!--        <item name="android:forceDarkAllowed">false</item>-->
-
-<!--    </style>-->
-
-<!--</resources>-->

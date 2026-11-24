@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../constants/colors_used.dart';
 import '../../customs/elevated_button.dart';
+import '../../provider/master_provider/permission_provider.dart';
 
 class UpdateUserPassword extends StatefulWidget {
   final String name;
@@ -26,10 +28,19 @@ class UpdateUserPassword extends StatefulWidget {
 class _UpdateUserPasswordState extends State<UpdateUserPassword> {
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
+  bool _saving = false;
   String? newPasswordError;
   String? confirmPasswordError;
   @override
   Widget build(BuildContext context) {
+    final canUpdate =
+    context.watch<PermissionProvider>().canUpdate('USER');
+
+    if (!canUpdate) {
+      return const AlertDialog(
+        content: Text('You do not have permission to update passwords.'),
+      );
+    }
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Stack(
@@ -244,12 +255,32 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                         Row(
                           children: [
                             Expanded(
-                              child: CustomElevatedButton(
-                                text: "Cancel",
-                                onPressed: widget.onCancel,
-                                borderRadius: 5,
-                              ),
-                            ),
+                              child: SizedBox(
+                                height: 48,
+                                child: OutlinedButton(
+                                  onPressed: _saving
+                                      ? null
+                                      : () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF263F85),
+                                    side: const BorderSide(
+                                      color: Color(0xFF263F85),
+                                      width: 1.5,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Cancel",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                        )
+            ),
 
                             const SizedBox(width: 10),
 
@@ -286,10 +317,10 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
 
                                   await widget.onUpdate();
                                 },
-                                borderRadius: 5,
+                                borderRadius: 12,
                               ),
                             ),
-                          ],
+                              ]
                         ),
                       ],
                     ),
