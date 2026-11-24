@@ -41,6 +41,7 @@ Widget menuItemCard({
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
           fontSize: 12,
+          color: Colors.white,
           height: 1.1,
         ),
       ),

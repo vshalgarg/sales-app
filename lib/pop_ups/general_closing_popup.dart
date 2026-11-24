@@ -19,6 +19,7 @@ class ExitConfirmationDialog {
         bool isDelete = false,
       }) {
     bool isProcessing = false;
+    String? processingButton;
 
     return showGeneralDialog(
       context: context,
@@ -43,10 +44,14 @@ class ExitConfirmationDialog {
       pageBuilder: (dialogContext, _, _) {
         final dialogRoute = ModalRoute.of(dialogContext);
 
+        // Declare modes before using them in handlers.
+        final bool deleteMode = isDelete;
+        final bool logoutMode = isLogout;
+
         return StatefulBuilder(
           builder: (context, setDialogState) {
 
-            // Prevent accidentally popping the screen behind the dialog.
+            // Close only the confirmation dialog.
             void closeDialogIfOpen() {
               if (dialogRoute?.isCurrent == true &&
                   dialogContext.mounted) {
@@ -54,29 +59,36 @@ class ExitConfirmationDialog {
               }
             }
 
+            // STAY / SAVE / DELETE / LOGOUT ACTION
             Future<void> handleSave() async {
               if (isProcessing) return;
 
+              setDialogState(() {
+                isProcessing = true;
+                processingButton = 'save';
+              });
+
+              // Stay: show spinner and close only the dialog.
               if (onSave == null) {
+                await Future.delayed(
+                  const Duration(milliseconds: 400),
+                );
+
                 closeDialogIfOpen();
                 return;
               }
 
-              setDialogState(() {
-                isProcessing = true;
-              });
-
               try {
                 await onSave();
 
-                // If the callback already closed the dialog,
-                // this will not pop the underlying screen.
+                // Close only if the dialog is still open.
                 closeDialogIfOpen();
               } catch (error) {
                 if (dialogContext.mounted &&
                     dialogRoute?.isCurrent == true) {
                   setDialogState(() {
                     isProcessing = false;
+                    processingButton = null;
                   });
                 }
 
@@ -84,24 +96,47 @@ class ExitConfirmationDialog {
               }
             }
 
-            void handleDiscard() {
+            // LEAVE / DISCARD / CANCEL ACTION
+            Future<void> handleDiscard() async {
               if (isProcessing) return;
 
-              if (onDiscard != null) {
-                onDiscard();
+              setDialogState(() {
+                isProcessing = true;
+                processingButton = 'leave';
+              });
+
+              // Show spinner on the tapped button.
+              await Future.delayed(
+                const Duration(milliseconds: 400),
+              );
+
+              if (!dialogContext.mounted) return;
+
+              // Close confirmation dialog first.
+              closeDialogIfOpen();
+
+              // Delete / Logout Cancel:
+              // Close only the confirmation dialog.
+              if (deleteMode || logoutMode) {
+                return;
               }
 
-              // Close only if the callback did not already close it.
-              closeDialogIfOpen();
+              // Normal Leave / Discard:
+              // Execute screen-level callback.
+              onDiscard?.call();
             }
 
+            // BUTTON WIDGET
             Widget buildActionButton({
               required String label,
               required VoidCallback onPressed,
               required Color backgroundColor,
               required Color textColor,
-              bool isPrimary = false,
+              required String buttonType,
             }) {
+              final bool showSpinner =
+                  isProcessing && processingButton == buttonType;
+
               return Expanded(
                 child: SizedBox(
                   height: 46,
@@ -116,15 +151,17 @@ class ExitConfirmationDialog {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                      ),
                     ),
-                    child: isProcessing && isPrimary
-                        ? const SizedBox(
+                    child: showSpinner
+                        ? SizedBox(
                       height: 19,
                       width: 19,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: textColor,
                       ),
                     )
                         : Text(
@@ -140,9 +177,6 @@ class ExitConfirmationDialog {
                 ),
               );
             }
-
-            final bool deleteMode = isDelete;
-            final bool logoutMode = isLogout;
 
             return Material(
               color: Colors.transparent,
@@ -161,14 +195,16 @@ class ExitConfirmationDialog {
                         clipBehavior: Clip.none,
                         alignment: Alignment.topCenter,
                         children: [
-                          // Dialog content and buttons are inside
-                          // the actual layout bounds.
+                          // DIALOG CONTENT
                           Padding(
                             padding: const EdgeInsets.only(top: 35),
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.fromLTRB(
-                                16, 45, 16, 16,
+                                16,
+                                45,
+                                16,
+                                16,
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -194,9 +230,11 @@ class ExitConfirmationDialog {
                                   Row(
                                     children: [
                                       if (deleteMode || logoutMode) ...[
+                                        // CANCEL BUTTON
                                         buildActionButton(
                                           label: discardButtonText ?? "Cancel",
                                           onPressed: handleDiscard,
+                                          buttonType: 'leave',
                                           backgroundColor:
                                           AppColors.lightGrey,
                                           textColor: Colors.black,
@@ -204,20 +242,24 @@ class ExitConfirmationDialog {
 
                                         const SizedBox(width: 12),
 
+                                        // DELETE / LOGOUT BUTTON
                                         buildActionButton(
                                           label: saveButtonText ??
                                               (deleteMode
                                                   ? "Delete"
                                                   : "Logout"),
                                           onPressed: handleSave,
+                                          buttonType: 'save',
                                           backgroundColor: AppColors.blue,
                                           textColor: Colors.white,
-                                          isPrimary: true,
                                         ),
                                       ] else ...[
+                                        // STAY BUTTON
                                         buildActionButton(
-                                          label: saveButtonText ?? "Save & Exit",
+                                          label: saveButtonText ??
+                                              "Save & Exit",
                                           onPressed: handleSave,
+                                          buttonType: 'save',
                                           backgroundColor:
                                           AppColors.lightGrey,
                                           textColor: Colors.black,
@@ -225,9 +267,12 @@ class ExitConfirmationDialog {
 
                                         const SizedBox(width: 12),
 
+                                        // LEAVE BUTTON
                                         buildActionButton(
-                                          label: discardButtonText ?? "Discard",
+                                          label: discardButtonText ??
+                                              "Discard",
                                           onPressed: handleDiscard,
+                                          buttonType: 'leave',
                                           backgroundColor: AppColors.blue,
                                           textColor: Colors.white,
                                         ),
@@ -239,7 +284,7 @@ class ExitConfirmationDialog {
                             ),
                           ),
 
-                          // Icon remains visually above the dialog.
+                          // TOP ICON
                           Positioned(
                             top: 0,
                             child: Container(

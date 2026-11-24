@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
@@ -27,9 +28,11 @@ class BillService {
     String? toDate,
     int? supplierId,
     int? customerId,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_billEntries/search",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "page": page,
         "size": size,
@@ -77,9 +80,11 @@ class BillService {
     String? toDate,
     int? supplierId,
     int? customerId,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_billEntries/search",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "keyword": keyword,
         "page": page,
@@ -121,10 +126,12 @@ class BillService {
   }
 
   Future<ResponseResult<BillDetails>> getBillById(
-      String billNumber,
-      ) async {
+      String billNumber, {
+        bool showLoader = false,
+      }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_bill/$billNumber",
+      showLoader: false,
     );
 
     if (result.isFailure) {
@@ -136,7 +143,8 @@ class BillService {
 
     if (result.data?["code"] != null) {
       return ResponseResult.error(
-        errorMessage: result.data?["message"] ?? "Failed to fetch bill details",
+        errorMessage:
+        result.data?["message"] ?? "Failed to fetch bill details",
         statusCode: result.statusCode,
       );
     }
@@ -339,18 +347,12 @@ class BillService {
       );
     }
 
-    print('========== UPDATE BILL ==========');
-    print(jsonEncode(payload));
-    print('Image count: ${images.length}');
-
     final result = await _api.patch<Map<String, dynamic>>(
       path: '$_billEntry/update/$id',
       data: formData,
     );
 
-    print('Status : ${result.statusCode}');
-    print('Response : ${result.data}');
-    print('Error : ${result.errorMessage}');
+    debugPrint('Error : ${result.errorMessage}');
 
     if (result.isFailure) {
       return ResponseResult.error(

@@ -40,16 +40,8 @@ class _StaffScreenState extends State<StaffScreen> {
       searchController.clear();
 
       if (permissionProvider.canView('STAFF')) {
-        await staffProvider.clearSearch();
-
-        if (!mounted) return;
-
-        await staffProvider.fetchPage(0);
-
-        if (!mounted) return;
-
-        staffProvider.fetchInitial();
-      }
+        await staffProvider.initializeStaff();
+      }/////////
     });
   }
 
@@ -173,7 +165,7 @@ class _StaffScreenState extends State<StaffScreen> {
                   items: staffs,
                   loading: provider.data.isLoading,
                   fetchPage: provider.fetchPage,
-                  refresh: provider.refreshStaffs,
+                  refresh: () => provider.refreshStaffs(showLoader: false),
                   itemBuilder: (context, item) {
                     return CardEntranceAnimation(
                       key: ValueKey('staff-card-${item.id}'),
@@ -186,7 +178,7 @@ class _StaffScreenState extends State<StaffScreen> {
 
                         editIconTap: canUpdate
                             ? () async {
-                          final refresh = await showDialog<bool>(
+                          await showDialog<bool>(
                             context: context,
                             builder: (_) => AddStaffDialog(
                               id: item.id,
@@ -194,12 +186,6 @@ class _StaffScreenState extends State<StaffScreen> {
                               staff: item,
                             ),
                           );
-
-                          if (!mounted) return;
-
-                          if (refresh == true) {
-                            await provider.refreshStaffs();
-                          }
                         }
                             : null,
 

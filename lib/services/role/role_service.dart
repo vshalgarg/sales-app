@@ -13,9 +13,12 @@ class RoleService {
   static const String _basePath = '/role';
 
   // GET ALL ROLES
-  Future<ResponseResult<List<RoleModel>>> getAllRoles() async {
+  Future<ResponseResult<List<RoleModel>>> getAllRoles({
+    bool showLoader = true,
+  }) async {
     final result = await _api.get<List<dynamic>>(
       path: '$_basePath/get/all',
+      showLoader: showLoader,
     );
 
     if (result.isFailure || result.data == null) {
@@ -35,14 +38,19 @@ class RoleService {
   }
 
   // GET ROLE DETAILS
-  Future<ResponseResult<RoleDetails>> getRoleDetails(int roleId) async {
+  Future<ResponseResult<RoleDetails>> getRoleDetails(
+      int roleId, {
+        bool showLoader = true,
+      }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: '$_basePath/detail/get/$roleId',
+      showLoader: showLoader,
     );
 
     if (result.isFailure || result.data == null) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? 'Failed to fetch role details',
+        errorMessage:
+        result.errorMessage ?? 'Failed to fetch role details',
         statusCode: result.statusCode,
       );
     }
@@ -109,22 +117,25 @@ class RoleService {
   }
 
   // GET ALL PERMISSIONS
-  Future<ResponseResult<List<RolePermission>>> getAllPermissions() async {
+  Future<ResponseResult<List<RolePermission>>> getAllPermissions({
+    bool showLoader = true,
+  }) async {
     debugPrint('========== GET ALL PERMISSIONS ==========');
 
     final result = await _api.get<List<dynamic>>(
       path: '/permission/all',
+      showLoader: showLoader,
     );
 
     debugPrint('Permission API success: ${result.isSuccess}');
     debugPrint('Permission API failure: ${result.isFailure}');
     debugPrint('Permission API status: ${result.statusCode}');
     debugPrint('Permission API error: ${result.errorMessage}');
-    debugPrint('Permission API data: ${result.data}');
 
     if (result.isFailure || result.data == null) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? 'Failed to fetch permissions',
+        errorMessage:
+        result.errorMessage ?? 'Failed to fetch permissions',
         statusCode: result.statusCode,
       );
     }
@@ -139,7 +150,10 @@ class RoleService {
 
     debugPrint('Parsed permissions count: ${permissions.length}');
 
-    return ResponseResult.success(permissions, result.statusCode);
+    return ResponseResult.success(
+      permissions,
+      result.statusCode,
+    );
   }
 
   // DELETE ROLE

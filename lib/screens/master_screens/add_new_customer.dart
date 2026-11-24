@@ -341,14 +341,11 @@ class _AddNewCustomerState extends State<AddNewCustomer> {
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
-                  discardButtonText: "Leave",
                   saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },

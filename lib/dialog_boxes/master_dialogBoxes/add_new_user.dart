@@ -231,22 +231,13 @@ class _AddUserDialogState extends State<AddUserDialog> {
                     const SizedBox(height: 12),
 
                     // Dynamic role dropdown.
-                    if (_loadingRoles)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    else
+                    if (!_loadingRoles && roleNames.isNotEmpty)
                       RoleDropdown(
                         value: selectedRole,
                         roles: roleNames,
-                        errorText: roleError,
                         onChanged: (value) {
                           setState(() {
                             selectedRole = value;
-                            roleError = null;
                           });
                         },
                       ),
@@ -290,15 +281,10 @@ class _AddUserDialogState extends State<AddUserDialog> {
                                 passwordError = password.isEmpty
                                     ? "Password is required"
                                     : null;
-
-                                roleError = selectedRole == null
-                                    ? "Please select a role"
-                                    : null;
                               });
 
                               if (usernameError != null ||
                                   passwordError != null ||
-                                  roleError != null ||
                                   _loadingRoles) {
                                 return;
                               }
@@ -306,7 +292,9 @@ class _AddUserDialogState extends State<AddUserDialog> {
                               final request = AddUserRequest(
                                 username: username,
                                 password: password,
-                                roles: [selectedRole!],
+                                roles: selectedRole != null && selectedRole!.isNotEmpty
+                                    ? [selectedRole!]
+                                    : [],
                               );
 
                               final provider =

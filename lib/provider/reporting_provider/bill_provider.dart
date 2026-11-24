@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/bills/add_bill_request.dart';
@@ -11,22 +14,21 @@ class BillProvider extends PaginationProvider<Bill> {
   final BillService _service;
 
   BillProvider(this._service);
-
+  bool _showLoader = true;
   BillDetails? _billDetails;
   bool hasLoadedBills = false;
   bool _detailsLoading = false;
 
-
   BillDetails? get billDetails => _billDetails;
 
   bool get detailsLoading => _detailsLoading;
-
 
   String _searchKeyword = "";
   String? _fromDate;
   String? _toDate;
   int? _supplierId;
   int? _customerId;
+
   void setFromDate(String? value) {
     _fromDate = value;
   }
@@ -42,6 +44,7 @@ class BillProvider extends PaginationProvider<Bill> {
   void setCustomerId(int? value) {
     _customerId = value;
   }
+
   @override
   Future<PaginatedResponse<Bill>> requestPage({
     required int page,
@@ -49,27 +52,27 @@ class BillProvider extends PaginationProvider<Bill> {
   }) async {
     final result = _searchKeyword.isEmpty
         ? await _service.getBills(
-      page: page,
-      size: size,
-      fromDate: _fromDate,
-      toDate: _toDate,
-      supplierId: _supplierId,
-      customerId: _customerId,
-    )
+            page: page,
+            size: size,
+            fromDate: _fromDate,
+            toDate: _toDate,
+            supplierId: _supplierId,
+            customerId: _customerId,
+      showLoader: _showLoader && page == 0,
+          )
         : await _service.searchBills(
-      keyword: _searchKeyword,
-      page: page,
-      size: size,
-      fromDate: _fromDate,
-      toDate: _toDate,
-      supplierId: _supplierId,
-      customerId: _customerId,
-    );
+            keyword: _searchKeyword,
+            page: page,
+            size: size,
+            fromDate: _fromDate,
+            toDate: _toDate,
+            supplierId: _supplierId,
+            customerId: _customerId,
+      showLoader: _showLoader && page == 0,
+          );
 
     if (result.isFailure || result.data == null) {
-      throw Exception(
-        result.errorMessage ?? "Failed to load bills",
-      );
+      throw Exception(result.errorMessage ?? "Failed to load bills");
     }
 
     return result.data!;
@@ -83,16 +86,39 @@ class BillProvider extends PaginationProvider<Bill> {
     hasLoadedBills = true;
     notifyListeners();
   }
-  Future<void> resetToDefaultBills() async {
-    _fromDate = null;
-    _toDate = null;
+
+  Future<void> clearAllFiltersAndFetchBills() async {
+    final now = DateTime.now();
+    final oneMonthAgo = DateTime(
+      now.year,
+      now.month - 1,
+      now.day,
+    );
+
+    final formatter = DateFormat('yyyy-MM-dd');
+
+    _fromDate = formatter.format(oneMonthAgo);
+    _toDate = formatter.format(now);
+
     _supplierId = null;
     _customerId = null;
+    _searchKeyword = "";
 
-    data.clear();
+    clear();
 
     await fetchInitialBills();
   }
+
+  // Future<void> resetToDefaultBills() async {
+  //   _fromDate = null;
+  //   _toDate = null;
+  //   _supplierId = null;
+  //   _customerId = null;
+  //
+  //   data.clear();
+  //
+  //   await fetchInitialBills();
+  // }
 
   Future<void> search(String keyword) async {
     _searchKeyword = keyword.trim();
@@ -103,20 +129,33 @@ class BillProvider extends PaginationProvider<Bill> {
     _searchKeyword = "";
     await refreshBills();
   }
-  Future<bool> fetchBillDetails(String billNumber) async {
+
+  Future<bool> fetchBillDetails(
+    String billNumber, {
+    bool showLoader = true,
+  }) async {
     _detailsLoading = true;
-
-    final result = await _service.getBillById(billNumber);
-
-    _detailsLoading = false;
-
-    if (result.isSuccess && result.data != null) {
-      _billDetails = result.data!;
-    }
-
     notifyListeners();
 
-    return result.isSuccess && result.data != null;
+    try {
+      final result = await _service.getBillById(
+        billNumber,
+        showLoader: showLoader,
+      );
+
+      if (result.isSuccess && result.data != null) {
+        _billDetails = result.data!;
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint("Fetch bill details error: $e");
+      return false;
+    } finally {
+      _detailsLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> addBill({
@@ -124,10 +163,7 @@ class BillProvider extends PaginationProvider<Bill> {
     List<File> images = const [],
   }) async {
     try {
-      final result = await _service.addBill(
-        request: request,
-        images: images,
-      );
+      final result = await _service.addBill(request: request, images: images);
 
       if (result.isSuccess) {
         return true;
@@ -138,6 +174,7 @@ class BillProvider extends PaginationProvider<Bill> {
       return false;
     }
   }
+
   Future<bool> updateBill({
     required int id,
     required AddBillRequest request,
@@ -158,7 +195,7 @@ class BillProvider extends PaginationProvider<Bill> {
 
       return false;
     } catch (e) {
-      print("Update bill error: $e");
+      debugPrint("Update bill error: $e");
       return false;
     }
   }
@@ -176,8 +213,15 @@ class BillProvider extends PaginationProvider<Bill> {
       return false;
     }
   }
-  Future<void> refreshBills() async {
-    await refresh();
+
+  Future<void> refreshBills({bool showLoader = true}) async {
+    _showLoader = showLoader;
+
+    try {
+      await refresh();
+    } finally {
+      _showLoader = true;
+    }
   }
 
   void clearDetails() {

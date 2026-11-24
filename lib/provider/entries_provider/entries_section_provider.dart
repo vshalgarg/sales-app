@@ -33,15 +33,13 @@ class EntriesProvider extends ChangeNotifier {
 
   List<EntriesModel> get entries => _entries;
 
-  List<EntriesCustomerModel> get customerEntries =>
-      _customerEntries;
+  List<EntriesCustomerModel> get customerEntries => _customerEntries;
 
   List<Transport> get transportDetails => _transport;
 
   List<GetStaffEntry> get staffList => _staffEntries;
 
-  ApiResponse? get creditDetails =>
-      _creditDetails;
+  ApiResponse? get creditDetails => _creditDetails;
 
   bool get isLoading => _loading;
 
@@ -59,12 +57,13 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchSuppliers({bool forceRefresh = false}) async {
-    if (!forceRefresh && _entries.isNotEmpty) {
-      return;
-    }
+  Future<void> fetchSuppliers({
+    bool forceRefresh = false,
+    bool showLoader = true,
+  }) async {
+    if (!forceRefresh && _entries.isNotEmpty) return;
 
-    final result = await _service.fetchSuppliers();
+    final result = await _service.fetchSuppliers(showLoader: showLoader);
 
     if (result.isSuccess && result.data != null) {
       _entries = result.data!;
@@ -76,12 +75,13 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
   }
 
-  Future<void> fetchCustomer({bool forceRefresh = false}) async {
-    if (!forceRefresh && _customerEntries.isNotEmpty) {
-      return;
-    }
+  Future<void> fetchCustomer({
+    bool forceRefresh = false,
+    bool showLoader = true,
+  }) async {
+    if (!forceRefresh && _customerEntries.isNotEmpty) return;
 
-    final result = await _service.fetchCustomers();
+    final result = await _service.fetchCustomers(showLoader: showLoader);
 
     if (result.isSuccess && result.data != null) {
       _customerEntries = result.data!;
@@ -94,8 +94,7 @@ class EntriesProvider extends ChangeNotifier {
   }
 
   Future<void> fetchTransport() async {
-    final result =
-    await _service.fetchTransports();
+    final result = await _service.fetchTransports();
 
     if (result.isSuccess && result.data != null) {
       _transport = result.data!;
@@ -108,8 +107,7 @@ class EntriesProvider extends ChangeNotifier {
   }
 
   Future<void> fetchStaff() async {
-    final result =
-    await _service.fetchStaff();
+    final result = await _service.fetchStaff();
 
     if (result.isSuccess && result.data != null) {
       _staffEntries = result.data!;
@@ -121,17 +119,13 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
   }
 
-  Future<bool> addSupplier(
-      Map<String, dynamic> body,
-      ) async {
+  Future<bool> addSupplier(Map<String, dynamic> body) async {
     _loading = true;
     _error = null;
     safeNotify();
 
     try {
-      final result = await _service.addSupplier(
-        body: body,
-      );
+      final result = await _service.addSupplier(body: body);
 
       if (result.isSuccess) {
         await fetchSuppliers();
@@ -146,17 +140,13 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  Future<AddNewSupplier?> addCreditEntry(
-      Map<String, dynamic> body,
-      ) async {
+  Future<AddNewSupplier?> addCreditEntry(Map<String, dynamic> body) async {
     _loading = true;
     _error = null;
     safeNotify();
 
     try {
-      final result = await _service.addCreditEntry(
-        body: body,
-      );
+      final result = await _service.addCreditEntry(body: body);
 
       if (result.isSuccess) {
         return result.data;
@@ -170,17 +160,13 @@ class EntriesProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> addRetailEntry(
-      Map<String, dynamic> body,
-      ) async {
+  Future<bool> addRetailEntry(Map<String, dynamic> body) async {
     _loading = true;
     _error = null;
     safeNotify();
 
     try {
-      final result = await _service.addRetailEntry(
-        body: body,
-      );
+      final result = await _service.addRetailEntry(body: body);
 
       if (result.isSuccess) {
         return true;
@@ -208,10 +194,7 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
 
     try {
-      final result = await _service.addBill(
-        payload: payload,
-        images: images,
-      );
+      final result = await _service.addBill(payload: payload, images: images);
 
       if (result.isSuccess) {
         return true;
@@ -289,8 +272,7 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
 
     try {
-      final result =
-      await _service.getCreditDetailsById(id);
+      final result = await _service.getCreditDetailsById(id);
 
       if (result.isSuccess && result.data != null) {
         _creditDetails = result.data;
@@ -314,11 +296,7 @@ class EntriesProvider extends ChangeNotifier {
     safeNotify();
 
     try {
-      final result =
-      await _service.updateCreditDetails(
-        id: id,
-        body: body,
-      );
+      final result = await _service.updateCreditDetails(id: id, body: body);
 
       if (result.isSuccess) {
         return result.data;

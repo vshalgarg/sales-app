@@ -32,13 +32,15 @@ class RoleProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  Future<void> fetchRoles() async {
+  Future<void> fetchRoles({bool showLoader = true}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await _service.getAllRoles();
+      final result = await _service.getAllRoles(
+        showLoader: showLoader,
+      );
 
       if (result.isSuccess && result.data != null) {
         _roles = result.data!;
@@ -53,13 +55,15 @@ class RoleProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> fetchPermissions() async {
+  Future<bool> fetchPermissions({bool showLoader = true}) async {
     _permissionsLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await _service.getAllPermissions();
+      final result = await _service.getAllPermissions(
+        showLoader: showLoader,
+      );
 
       if (result.isSuccess && result.data != null) {
         _permissions = result.data!;
@@ -68,11 +72,9 @@ class RoleProvider extends ChangeNotifier {
       }
 
       _error = result.errorMessage ?? 'Unable to load permissions';
-      debugPrint('Permission provider error: $_error');
       return false;
     } catch (e) {
       _error = e.toString();
-      debugPrint('Permission provider exception: $e');
       return false;
     } finally {
       _permissionsLoading = false;
@@ -80,19 +82,27 @@ class RoleProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> fetchRoleDetails(int roleId) async {
+  Future<bool> fetchRoleDetails(
+      int roleId, {
+        bool showLoader = true,
+      }) async {
     _detailsLoading = true;
     _roleDetails = null;
+    _error = null;
     notifyListeners();
 
     try {
-      final result = await _service.getRoleDetails(roleId);
+      final result = await _service.getRoleDetails(
+        roleId,
+        showLoader: showLoader,
+      );
 
       if (result.isSuccess && result.data != null) {
         _roleDetails = result.data!;
         return true;
       }
 
+      _error = result.errorMessage ?? 'Unable to load role details';
       return false;
     } catch (e) {
       _error = e.toString();

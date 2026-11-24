@@ -53,7 +53,7 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
 
     _turnController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 650),
+      duration: const Duration(milliseconds: 700),
     );
 
     _turnAnimation = CurvedAnimation(
@@ -93,110 +93,148 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
     required int page,
     required bool forward,
   }) async {
-    if (_isTurning || _isFetching || widget.loading) return;
+    if (_isTurning || _isFetching) return;
 
     final currentPageImage = await _captureCurrentPage();
-
     if (currentPageImage == null || !mounted) return;
 
     _capturedPage?.dispose();
     _capturedPage = currentPageImage;
 
-    if (forward) {
-      _turnDirection = PageTurnDirection.forward;
-      _turnEdge = PageTurnEdge.left;
+    _turnDirection = PageTurnDirection.forward;
+    _turnEdge = forward ? PageTurnEdge.left : PageTurnEdge.right;
 
-      setState(() {
-        _isTurning = true;
-        _isFetching = true;
-      });
+    setState(() {
+      _isTurning = true;
+      _isFetching = true;
+    });
 
-      _turnController.reset();
-      final animationFuture = _turnController.forward();
+    _turnController.reset();
+    final animationFuture = _turnController.forward();
 
-      try {
-        await widget.fetchPage(page);
-
-        if (!mounted) return;
-
-        _isFetching = false;
-
-        await animationFuture;
-
-        if (!mounted) return;
-
-        setState(() {
-          _isTurning = false;
-        });
-
-        _disposeCapturedPage();
-      } catch (_) {
-        _isFetching = false;
-
-        if (mounted) {
-          await _turnController.reverse();
-
-          if (!mounted) return;
-
-          setState(() {
-            _isTurning = false;
-          });
-        }
-
-        _disposeCapturedPage();
-      }
-    } else {
-      try {
-        _isFetching = true;
-
-        await widget.fetchPage(page);
-
-        if (!mounted) return;
-
-        _isFetching = false;
-
-        final previousPageImage = await _captureCurrentPage();
-
-        if (previousPageImage == null || !mounted) return;
-
-        _targetPage?.dispose();
-        _targetPage = previousPageImage;
-
-        _turnDirection = PageTurnDirection.backward;
-        _turnEdge = PageTurnEdge.right;
-
-        setState(() {
-          _isTurning = true;
-        });
-
-        _turnController.reset();
-        await _turnController.forward();
-
-        if (!mounted) return;
-
-        setState(() {
-          _isTurning = false;
-        });
-
-        _disposeCapturedPage();
-
-        _targetPage?.dispose();
-        _targetPage = null;
-      } catch (_) {
-        if (!mounted) return;
-
-        setState(() {
-          _isTurning = false;
-          _isFetching = false;
-        });
-
-        _disposeCapturedPage();
-
-        _targetPage?.dispose();
-        _targetPage = null;
-      }
+    try {
+      await widget.fetchPage(page);
+      _isFetching = false;
+      await animationFuture;
+    } catch (_) {
+      _isFetching = false;
+      if (mounted) await _turnController.reverse();
     }
+
+    if (!mounted) return;
+    setState(() => _isTurning = false);
+    _disposeCapturedPage();
   }
+
+//   Future<void> _changePage({
+//     required int page,
+//     required bool forward,
+//   }) async {
+//     if (_isTurning || _isFetching) return;
+//
+//     final currentPageImage = await _captureCurrentPage();
+//
+//     if (currentPageImage == null || !mounted) return;
+//
+//     _capturedPage?.dispose();
+//     _capturedPage = currentPageImage;
+//
+//     if (forward) {
+//       _turnDirection = PageTurnDirection.forward;
+//       _turnEdge = PageTurnEdge.left;
+//
+//       setState(() {
+//         _isTurning = true;
+//         _isFetching = true;
+//       });
+//
+//       _turnController.reset();
+//       final animationFuture = _turnController.forward();
+//
+//       try {
+//         await widget.fetchPage(page);
+//
+//         if (!mounted) return;
+//
+//         _isFetching = false;
+//
+//         await animationFuture;
+//
+//         if (!mounted) return;
+//
+//         setState(() {
+//           _isTurning = false;
+//         });
+//
+//         _disposeCapturedPage();
+//       } catch (_) {
+//         _isFetching = false;
+//
+//         if (mounted) {
+//           await _turnController.reverse();
+//
+//           if (!mounted) return;
+//
+//           setState(() {
+//             _isTurning = false;
+//           });
+//         }
+//
+//         _disposeCapturedPage();
+//       }
+//     } else {
+//       try {
+//         _isFetching = true;
+//         await widget.fetchPage(page);
+//         if (!mounted) return;
+//         _isFetching = false;
+//
+// // let the cards finish their entrance animation
+//         await Future.delayed(const Duration(milliseconds: 700));
+//         if (!mounted) return;
+//
+//         final previousPageImage = await _captureCurrentPage();
+//
+//         if (previousPageImage == null || !mounted) return;
+//
+//         _targetPage?.dispose();
+//         _targetPage = previousPageImage;
+//
+//         _turnDirection = PageTurnDirection.backward;
+//         _turnEdge = PageTurnEdge.right;
+//
+//         setState(() {
+//           _isTurning = true;
+//         });
+//
+//         _turnController.reset();
+//         await _turnController.forward();
+//
+//         if (!mounted) return;
+//
+//         setState(() {
+//           _isTurning = false;
+//         });
+//
+//         _disposeCapturedPage();
+//
+//         _targetPage?.dispose();
+//         _targetPage = null;
+//       } catch (_) {
+//         if (!mounted) return;
+//
+//         setState(() {
+//           _isTurning = false;
+//           _isFetching = false;
+//         });
+//
+//         _disposeCapturedPage();
+//
+//         _targetPage?.dispose();
+//         _targetPage = null;
+//       }
+//     }
+//   }
 
   void _disposeCapturedPage() {
     _capturedPage?.dispose();
@@ -264,12 +302,12 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
             IconButton(
               onPressed:
               _isTurning ||
-                  widget.loading ||
                   widget.pagination.currentPage == 0
                   ? null
                   : _firstPage,
               icon: const Icon(
                 Icons.keyboard_double_arrow_left,
+                color: Colors.white,
               ),
             ),
             Text(
@@ -283,13 +321,13 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
             IconButton(
               onPressed:
               _isTurning ||
-                  widget.loading ||
                   widget.pagination.currentPage >=
                       widget.pagination.lastValidPage
                   ? null
                   : _lastPage,
               icon: const Icon(
                 Icons.keyboard_double_arrow_right,
+                color: Colors.white,
               ),
             ),
           ],
@@ -303,7 +341,7 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onHorizontalDragEnd: (details) async {
-                  if (_isTurning || _isFetching || widget.loading) {
+                  if (_isTurning || _isFetching ) {
                     return;
                   }
 
@@ -328,7 +366,7 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
                         _turnDirection == PageTurnDirection.forward
                             ? PageTurnAnimation(
                           image: _capturedPage!,
-                          animation: _turnAnimation,
+                          animation: _turnController,
                           direction: PageTurnDirection.forward,
                           edge: _turnEdge,
                           style: const PageTurnStyle(
@@ -349,8 +387,7 @@ class _PaginationWidgetState<T> extends State<PaginationWidget<T>>
                               PageTurnAnimation(
                                 image: _targetPage!,
                                 animation: _turnController,
-                                direction:
-                                PageTurnDirection.backward,
+                                direction: PageTurnDirection.backward,
                                 edge: PageTurnEdge.left,
                                 style: const PageTurnStyle(
                                   shadowOpacity: 0.35,

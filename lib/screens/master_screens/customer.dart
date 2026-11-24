@@ -46,8 +46,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
       searchController.clear();
 
       if (permissionProvider.canView('CUSTOMER')) {
-        await provider.clearSearch();
-        await provider.fetchPage(0);
+        await provider.initializeCustomers();
       }
     });
   }
@@ -147,7 +146,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   items: customers,
                   loading: provider.data.isLoading,
                   fetchPage: provider.fetchPage,
-                  refresh: provider.refreshCustomers,
+                  refresh: () => provider.refreshCustomers(showLoader: false),
                   itemBuilder: (context, customer) {
                     return CardEntranceAnimation(
                       key: ValueKey('customer-card-${customer.id}'),

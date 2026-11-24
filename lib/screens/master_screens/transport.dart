@@ -36,21 +36,16 @@ class _TransportScreenState extends State<TransportScreen> {
     super.initState();
 
     final permissionProvider = context.read<PermissionProvider>();
+    final transportProvider = context.read<TransportProvider>();
 
-    if (permissionProvider.canView('TRANSPORT')) {
-      final transportProvider = context.read<TransportProvider>();
+    Future.microtask(() async {
+      searchController.clear();
 
-      Future.microtask(() async {
-        searchController.clear();
-
+      if (permissionProvider.canView('TRANSPORT')) {
         await transportProvider.clearSearch();
-
-        if (!mounted) return;
-
-        await transportProvider.fetchPage(0);
-        transportProvider.fetchInitial();
-      });
-    }
+        await transportProvider.fetchInitial();
+      }
+    });
   }
 
   @override
@@ -187,7 +182,7 @@ class _TransportScreenState extends State<TransportScreen> {
 
                   fetchPage: provider.fetchPage,
 
-                  refresh: provider.refreshTransports,
+                  refresh: () => provider.refreshTransports(showLoader: false),
 
                   itemBuilder: (context, item) {
                     final phoneNumbers = item.contacts

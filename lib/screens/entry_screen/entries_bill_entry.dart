@@ -1,3 +1,5 @@
+
+
 import 'dart:core';
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -277,7 +279,10 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
 
     Future.microtask(() async {
       if (widget.mode == FormMode.view || widget.mode == FormMode.edit) {
-        final success = await billsProvider.fetchBillDetails(widget.id!);
+        final success = await billsProvider.fetchBillDetails(
+          widget.id!,
+          showLoader: false,
+        );
 
         if (!mounted || !success) return;
 
@@ -1072,14 +1077,11 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
                   saveButtonText: "Stay",
                   discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },
@@ -1838,7 +1840,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                         ),
                       ),
                     SizedBox(height: 20),
-                    if (widget.mode != FormMode.add)
+                    if (widget.mode != FormMode.add &&
+                        (widget.mode != FormMode.view ||
+                            existingUrls.any((url) => url.trim().isNotEmpty)))
                       GestureDetector(
                         onTap: () {
                           setState(() {
@@ -1874,7 +1878,9 @@ class _EntriesBillEntryState extends State<EntriesBillEntry> {
                           ),
                         ),
                       ),
-                    if (isAttachmentExpanded) ...[
+                    if (isAttachmentExpanded &&
+                        (widget.mode != FormMode.view ||
+                            existingUrls.any((url) => url.trim().isNotEmpty))) ...[
                       const SizedBox(height: 15),
 
                       Column(

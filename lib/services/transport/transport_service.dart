@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../network/api_service.dart';
@@ -13,17 +12,18 @@ class TransportService {
 
   TransportService(this._api);
 
- // static const String _transport = "/transport";
+  // static const String _transport = "/transport";
   static const String _transports = "/transports";
 
   // GET TRANSPORTS
-
   Future<ResponseResult<PaginatedResponse<Transport>>> getTransports({
     required int page,
     required int size,
+    bool showLoader = false,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_transports/get/all",
+      showLoader: showLoader && page == 0,
       queryParameters: {
         "page": page,
         "size": size,
@@ -49,14 +49,15 @@ class TransportService {
   }
 
   // SEARCH TRANSPORTS
-
   Future<ResponseResult<PaginatedResponse<Transport>>> searchTransports({
     required String keyword,
     required int page,
     required int size,
+    bool showLoader = false,
   }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_transports/search",
+      showLoader: true,
       queryParameters: {
         "keyword": keyword,
         "page": page,
@@ -90,11 +91,11 @@ class TransportService {
   }
 
   // GET TRANSPORT DETAILS
-
   Future<ResponseResult<TransportDetails>> getTransportById(int id) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_transports/$id",
     );
+
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Something went wrong",
@@ -103,8 +104,7 @@ class TransportService {
     }
 
     final json = result.data!;
-    final transportJson =
-    json["data"] is Map<String, dynamic>
+    final transportJson = json["data"] is Map<String, dynamic>
         ? json["data"] as Map<String, dynamic>
         : json;
 
@@ -115,7 +115,6 @@ class TransportService {
   }
 
   // ADD TRANSPORT
-
   Future<ResponseResult<ApiResponse>> addTransport(
       AddTransportRequest request,
       ) async {
@@ -147,7 +146,6 @@ class TransportService {
   }
 
   // UPDATE TRANSPORT
-
   Future<ResponseResult<ApiResponse>> updateTransport({
     required int id,
     required AddTransportRequest request,
@@ -156,6 +154,7 @@ class TransportService {
       path: "$_transports/update/$id",
       data: request.toJson(),
     );
+
     if (result.isFailure) {
       return ResponseResult.error(
         errorMessage: result.errorMessage ?? "Something went wrong",
@@ -179,7 +178,6 @@ class TransportService {
   }
 
   // DELETE TRANSPORT
-
   Future<ResponseResult<ApiResponse>> deleteTransport(int id) async {
     final result = await _api.delete<Map<String, dynamic>>(
       path: "$_transports/delete/$id",

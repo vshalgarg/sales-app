@@ -53,7 +53,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!context.mounted ||
-          !context.read<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE')) {
+          !context.read<PermissionProvider>().hasPermission(
+            'RETAIL_REPORT_UPDATE',
+          )) {
         if (mounted) setState(() => initialized = true);
         return;
       }
@@ -64,8 +66,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       final staffProvider = context.read<StaffProvider>();
 
       await Future.wait([
-        retailProvider.fetchRetailDetails(widget.retailId),
-        retailProvider.fetchDepositHistory(widget.retailId),
+        retailProvider.fetchRetailDetails(widget.retailId, showLoader: false),
+        retailProvider.fetchDepositHistory(widget.retailId, showLoader: false),
       ]);
 
       if (entriesProvider.customerEntries.isEmpty) {
@@ -194,11 +196,11 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
   }
 
   Widget buildRetailInformation(
-      RetailDetails retail,
-      RetailProvider retailProvider,
-      EntriesProvider entriesProvider,
-      StaffProvider staffProvider,
-      ) {
+    RetailDetails retail,
+    RetailProvider retailProvider,
+    EntriesProvider entriesProvider,
+    StaffProvider staffProvider,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -254,19 +256,19 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               items: entriesProvider.customerEntries
                   .map(
                     (e) => (e.customerName ?? '')
-                    .replaceAll('\n', '')
-                    .replaceAll('\r', '')
-                    .trim(),
-              )
+                        .replaceAll('\n', '')
+                        .replaceAll('\r', '')
+                        .trim(),
+                  )
                   .toList(),
 
               initialValue:
-              entriesProvider.customerEntries
-                  .where((e) => e.id == selectedCustomerId)
-                  .isNotEmpty
+                  entriesProvider.customerEntries
+                      .where((e) => e.id == selectedCustomerId)
+                      .isNotEmpty
                   ? entriesProvider.customerEntries
-                  .firstWhere((e) => e.id == selectedCustomerId)
-                  .customerName
+                        .firstWhere((e) => e.id == selectedCustomerId)
+                        .customerName
                   : null,
 
               onChanged: (value) {
@@ -278,7 +280,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 }
 
                 final customer = entriesProvider.customerEntries.firstWhere(
-                      (e) => e.customerName == value,
+                  (e) => e.customerName == value,
                 );
 
                 setState(() {
@@ -297,16 +299,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                   .map((e) => e.staffName ?? "")
                   .toList(),
               initialValue:
-              staffProvider.data.items
-                  .where((e) => e.id == selectedStaffId)
-                  .isNotEmpty
+                  staffProvider.data.items
+                      .where((e) => e.id == selectedStaffId)
+                      .isNotEmpty
                   ? staffProvider.data.items
-                  .firstWhere((e) => e.id == selectedStaffId)
-                  .staffName
+                        .firstWhere((e) => e.id == selectedStaffId)
+                        .staffName
                   : null,
               onChanged: (value) {
                 final staff = staffProvider.data.items.firstWhere(
-                      (e) => e.staffName == value,
+                  (e) => e.staffName == value,
                 );
 
                 setState(() {
@@ -339,18 +341,16 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               ),
             ),
             onPressed: () async {
-              if (!context.read<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE')) {
+              if (!context.read<PermissionProvider>().hasPermission(
+                'RETAIL_REPORT_UPDATE',
+              )) {
                 return;
               }
               final displayDate = dateController.text.trim();
 
-              final parsedDate = DateFormat(
-                'dd-MM-yyyy',
-              ).parse(displayDate);
+              final parsedDate = DateFormat('dd-MM-yyyy').parse(displayDate);
 
-              final apiDate = DateFormat(
-                'yyyy-MM-dd',
-              ).format(parsedDate);
+              final apiDate = DateFormat('yyyy-MM-dd').format(parsedDate);
               final success = await retailProvider.updateRetail(
                 retailId: retail.id,
                 body: {
@@ -522,95 +522,100 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                 onPressed: provider.depositLoading
                     ? null
                     : () async {
-                  if (!context.read<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE')) {
-                    return;
-                  }
-                  final latestRetail = provider.retailDetails;
+                        if (!context.read<PermissionProvider>().hasPermission(
+                          'RETAIL_REPORT_UPDATE',
+                        )) {
+                          return;
+                        }
+                        final latestRetail = provider.retailDetails;
 
-                  if (latestRetail == null) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      "Retail details not available",
-                    );
-                    return;
-                  }
+                        if (latestRetail == null) {
+                          ScaffoldSnackBar.show(
+                            context,
+                            "Retail details not available",
+                          );
+                          return;
+                        }
 
-                  final List<DepositItem> items = [];
+                        final List<DepositItem> items = [];
 
-                  for (int i = 0; i < latestRetail.suppliers.length; i++) {
-                    final amount = depositAmountControllers[i].text.trim();
-                    final displayDate = depositDateControllers[i].text.trim();
+                        for (
+                          int i = 0;
+                          i < latestRetail.suppliers.length;
+                          i++
+                        ) {
+                          final amount = depositAmountControllers[i].text
+                              .trim();
+                          final displayDate = depositDateControllers[i].text
+                              .trim();
 
-                    if (amount.isEmpty || displayDate.isEmpty) {
-                      continue;
-                    }
+                          if (amount.isEmpty || displayDate.isEmpty) {
+                            continue;
+                          }
 
-                    final parsedDate = DateFormat(
-                      'dd-MM-yyyy',
-                    ).parse(displayDate);
+                          final parsedDate = DateFormat(
+                            'dd-MM-yyyy',
+                          ).parse(displayDate);
 
-                    final apiDate = DateFormat(
-                      'yyyy-MM-dd',
-                    ).format(parsedDate);
+                          final apiDate = DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(parsedDate);
 
-                    debugPrint(
-                      "SUPPLIER ${i + 1}: "
-                          "retailSupplierId=${latestRetail.suppliers[i].retailSupplierId}, "
-                          "displayDate=$displayDate, "
-                          "apiDate=$apiDate, "
-                          "amount=$amount",
-                    );
+                          debugPrint(
+                            "SUPPLIER ${i + 1}: "
+                            "retailSupplierId=${latestRetail.suppliers[i].retailSupplierId}, "
+                            "displayDate=$displayDate, "
+                            "apiDate=$apiDate, "
+                            "amount=$amount",
+                          );
 
-                    items.add(
-                      DepositItem(
-                        retailSupplierId:
-                        latestRetail.suppliers[i].retailSupplierId,
-                        depositDate: apiDate,
-                        amount: int.parse(amount),
-                      ),
-                    );
-                  }
+                          items.add(
+                            DepositItem(
+                              retailSupplierId:
+                                  latestRetail.suppliers[i].retailSupplierId,
+                              depositDate: apiDate,
+                              amount: int.parse(amount),
+                            ),
+                          );
+                        }
 
-                  if (items.isEmpty) {
-                    ScaffoldSnackBar.show(
-                      context,
-                      "Please enter at least one deposit and select date",
-                    );
-                    return;
-                  }
+                        if (items.isEmpty) {
+                          ScaffoldSnackBar.show(
+                            context,
+                            "Please enter at least one deposit and select date",
+                          );
+                          return;
+                        }
 
-                  final result = await provider.addDeposit(
-                    AddDepositModel(deposits: items),
-                  );
+                        final result = await provider.addDeposit(
+                          AddDepositModel(deposits: items),
+                        );
 
-                  if (result["success"]) {
-                    if (!mounted) return;
+                        if (result["success"]) {
+                          if (!mounted) return;
 
-                    for (final controller in depositAmountControllers) {
-                      controller.clear();
-                    }
+                          for (final controller in depositAmountControllers) {
+                            controller.clear();
+                          }
 
-                    for (final controller in depositDateControllers) {
-                      controller.clear();
-                    }
+                          for (final controller in depositDateControllers) {
+                            controller.clear();
+                          }
 
-                    setState(() {});
+                          setState(() {});
 
-                    ScaffoldSnackBar.show(
-                      context,
-                      result["message"],
-                    );
-                  }
-                },
+                          ScaffoldSnackBar.show(context, result["message"]);
+                        }
+                      },
                 child: provider.depositLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
-                  "SAVE DEPOSITS",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                        "SAVE DEPOSITS",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               );
             },
           ),
@@ -620,10 +625,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     );
   }
 
-  Widget buildHistorySection(
-      RetailProvider provider,
-      RetailDetails retail,
-      ) {
+  Widget buildHistorySection(RetailProvider provider, RetailDetails retail) {
     return Column(
       children: [
         sectionHeader(
@@ -635,16 +637,13 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
             });
 
             if (showHistory) {
-
               await provider.fetchDepositHistory(widget.retailId);
 
               if (!mounted) return;
 
               setState(() {});
 
-              await Future.delayed(
-                const Duration(milliseconds: 100),
-              );
+              await Future.delayed(const Duration(milliseconds: 100));
 
               if (_scrollController.hasClients) {
                 _scrollController.animateTo(
@@ -690,6 +689,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
       ],
     );
   }
+
   Widget buildHistoryCard({
     required RetailSupplier supplier,
     required dynamic history,
@@ -697,7 +697,6 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     required String? staffName,
     required String customerName,
     required int index,
-
   }) {
     final bool expanded = expandedSupplierIndex == index;
     final num depositedAmount = supplier.depositAmount ?? 0;
@@ -903,8 +902,8 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
                                     deposit.date.isEmpty
                                         ? "-"
                                         : DateFormat("dd-MM-yyyy").format(
-                                      DateTime.parse(deposit.date),
-                                    ),
+                                            DateTime.parse(deposit.date),
+                                          ),
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ),
@@ -992,7 +991,9 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final canUpdate = context.watch<PermissionProvider>().hasPermission('RETAIL_REPORT_UPDATE');
+    final canUpdate = context.watch<PermissionProvider>().hasPermission(
+      'RETAIL_REPORT_UPDATE',
+    );
     if (!canUpdate) {
       return const Scaffold(
         body: Center(
@@ -1006,11 +1007,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
     final staffProvider = context.read<StaffProvider>();
 
     if (retailProvider.detailsLoading || !initialized) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final retail = retailProvider.retailDetails;
@@ -1053,10 +1050,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
               child: Text(
                 "Retailer not found",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ),
           ),
@@ -1113,10 +1107,7 @@ class _EditRetailScreenState extends State<EditRetailScreen> {
 
               const SizedBox(height: 5),
 
-              buildHistorySection(
-                retailProvider,
-                retail,
-              ),
+              buildHistorySection(retailProvider, retail),
             ],
           ),
         ),

@@ -1,3 +1,4 @@
+
 import 'package:hisabio/model_classes/common/api_response.dart';
 import 'package:hisabio/model_classes/user/add_user_request.dart';
 import 'package:hisabio/model_classes/user/user.dart';
@@ -12,14 +13,19 @@ class UserService {
   static const String _user = "/user";
   static const String _users = "/users";
 
-  Future<ResponseResult<List<User>>> getUsers() async {
+  // GET USERS
+  Future<ResponseResult<List<User>>> getUsers({
+    bool showLoader = true,
+  }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: "$_users/get",
+      showLoader: showLoader,
     );
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? "Something went wrong",
+        errorMessage:
+        result.errorMessage ?? "Something went wrong",
         statusCode: result.statusCode,
       );
     }
@@ -28,8 +34,7 @@ class UserService {
     (result.data!["users"] as List<dynamic>)
         .map((e) => User.fromJson(e))
         .toList();
-    for (final user in users) {
-    }
+
     return ResponseResult.success(
       users,
       result.statusCode,
@@ -38,15 +43,18 @@ class UserService {
 
   // GET USER WITH ROLES
   Future<ResponseResult<Map<String, dynamic>>> getUserWithRoles(
-      int userId,
-      ) async {
+      int userId, {
+        bool showLoader = true,
+      }) async {
     final result = await _api.get<Map<String, dynamic>>(
       path: '/role/user/get/$userId',
+      showLoader: showLoader,
     );
 
     if (result.isFailure || result.data == null) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? 'Failed to fetch user roles',
+        errorMessage:
+        result.errorMessage ?? 'Failed to fetch user roles',
         statusCode: result.statusCode,
       );
     }
@@ -57,7 +65,7 @@ class UserService {
     );
   }
 
-// UPDATE USER ROLES
+  // UPDATE USER ROLES
   Future<ResponseResult<Map<String, dynamic>>> updateUserRoles({
     required int userId,
     required List<String> roleNames,
@@ -67,11 +75,13 @@ class UserService {
       data: {
         'roleNames': roleNames,
       },
+      showLoader: false,
     );
 
     if (result.isFailure || result.data == null) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? 'Failed to update user roles',
+        errorMessage:
+        result.errorMessage ?? 'Failed to update user roles',
         statusCode: result.statusCode,
       );
     }
@@ -82,14 +92,18 @@ class UserService {
     );
   }
 
+  // SEARCH USERS
+  // SEARCH USERS
   Future<ResponseResult<List<User>>> searchUsers({
     required String keyword,
+    bool showLoader = true,
   }) async {
     final result = await _api.get<dynamic>(
       path: "$_users/search",
       queryParameters: {
         "keyword": keyword,
       },
+      showLoader: showLoader,
     );
 
     if (result.isFailure) {
@@ -119,6 +133,7 @@ class UserService {
     );
   }
 
+  // ADD USER
   Future<ResponseResult<ApiResponse>> addUser(
       AddUserRequest request,
       ) async {
@@ -129,7 +144,8 @@ class UserService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? "Something went wrong",
+        errorMessage:
+        result.errorMessage ?? "Something went wrong",
         statusCode: result.statusCode,
       );
     }
@@ -149,6 +165,7 @@ class UserService {
     );
   }
 
+  // UPDATE PASSWORD
   Future<ResponseResult<ApiResponse>> updatePassword({
     required Map<String, dynamic> body,
   }) async {
@@ -159,7 +176,8 @@ class UserService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? "Something went wrong",
+        errorMessage:
+        result.errorMessage ?? "Something went wrong",
         statusCode: result.statusCode,
       );
     }
@@ -179,6 +197,7 @@ class UserService {
     );
   }
 
+  // DELETE USER
   Future<ResponseResult<ApiResponse>> deleteUser(int id) async {
     final result = await _api.post<Map<String, dynamic>>(
       path: "$_user/delete/$id",
@@ -186,7 +205,8 @@ class UserService {
 
     if (result.isFailure) {
       return ResponseResult.error(
-        errorMessage: result.errorMessage ?? "Something went wrong",
+        errorMessage:
+        result.errorMessage ?? "Something went wrong",
         statusCode: result.statusCode,
       );
     }

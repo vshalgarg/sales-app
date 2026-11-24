@@ -38,11 +38,12 @@ class _EditUserDialogState extends State<EditUserDialog> {
       final roleProvider = context.read<RoleProvider>();
       final userProvider = context.read<UserProvider>();
 
-      // Fetch all available roles.
-      await roleProvider.fetchRoles();
+      await roleProvider.fetchRoles(showLoader: false);
 
-      // Fetch the roles currently assigned to this user.
-      final userRoles = await userProvider.fetchUserRoles(widget.userId);
+      final userRoles = await userProvider.fetchUserRoles(
+        widget.userId,
+        showLoader: false,
+      );
 
       if (userRoles == null) {
         throw Exception(
@@ -50,12 +51,36 @@ class _EditUserDialogState extends State<EditUserDialog> {
         );
       }
 
+      final availableRoles = roleProvider.roles
+          .map((role) => role.roleName.trim())
+          .where((name) => name.isNotEmpty)
+          .toList();
+
+      String? selectedRole;
+
+      if (userRoles.isNotEmpty) {
+        final assignedRole = userRoles.first.trim();
+
+        selectedRole = availableRoles.cast<String?>().firstWhere(
+              (role) =>
+          role!.toLowerCase() == assignedRole.toLowerCase(),
+          orElse: () => null,
+        );
+
+        // Preserve the assigned role even if it isn't in the available list.
+        selectedRole ??= assignedRole;
+      }
+
       if (!mounted) return;
 
       setState(() {
-        _selectedRole = userRoles.isNotEmpty ? userRoles.first : null;
+        _selectedRole = selectedRole;
         _loading = false;
       });
+
+      debugPrint('Available roles: $availableRoles');
+      debugPrint('Assigned roles: $userRoles');
+      debugPrint('Selected role: $_selectedRole');
     } catch (e) {
       if (!mounted) return;
 
@@ -142,7 +167,7 @@ class _EditUserDialogState extends State<EditUserDialog> {
               padding: const EdgeInsets.fromLTRB(18, 52, 18, 18),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(27),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: _loading
                   ? const SizedBox(
@@ -227,7 +252,7 @@ class _EditUserDialogState extends State<EditUserDialog> {
                               elevation: 2,
                               padding: const EdgeInsets.symmetric(horizontal: 6),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(9),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             child: _saving
@@ -268,7 +293,7 @@ class _EditUserDialogState extends State<EditUserDialog> {
                                 width: 1.5,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(9),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             child: const Text(
@@ -343,21 +368,21 @@ class _EditUserDialogState extends State<EditUserDialog> {
         vertical: 13,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
           color: Colors.black54,
           width: 1.3,
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
           color: Colors.black54,
           width: 1.3,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
           color: Color(0xFF263F85),
           width: 1.6,

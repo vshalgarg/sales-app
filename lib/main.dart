@@ -77,7 +77,6 @@ void main() async {
   }
 
   // Restore permissions from valid JWT.
-  // Restore permissions from valid JWT.
   List<dynamic> savedPermissions = [];
 
   if (token != null && token.isNotEmpty) {
@@ -96,7 +95,6 @@ void main() async {
 
         debugPrint('JWT permissions count: ${savedPermissions.length}');
         debugPrint('JWT permissions: $savedPermissions');
-        debugPrint('=================================');
       }
     } catch (e) {
       debugPrint('JWT permission restoration failed: $e');
@@ -258,7 +256,7 @@ class MyApp extends StatelessWidget {
 
                 return Positioned.fill(
                   child: Container(
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     child: Center(
                       child: Container(
                         width: 56,
@@ -268,7 +266,7 @@ class MyApp extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.12),
+                              color: Colors.black.withValues(alpha: 0.12),
                               blurRadius: 12,
                               spreadRadius: 1,
                             ),
@@ -545,7 +543,7 @@ class _SplashWavePainter extends CustomPainter {
 
       // Faint circular track.
       final trackPaint = Paint()
-        ..color = color.withOpacity(
+        ..color = color.withValues(alpha:
           0.10 * ringOpacity,
         )
         ..style = PaintingStyle.stroke
@@ -559,7 +557,7 @@ class _SplashWavePainter extends CustomPainter {
 
       // Moving purple arc.
       final ringPaint = Paint()
-        ..color = color.withOpacity(ringOpacity)
+        ..color = color.withValues(alpha: ringOpacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4
         ..strokeCap = StrokeCap.round
@@ -587,7 +585,7 @@ class _SplashWavePainter extends CustomPainter {
       );
 
       final glowPaint = Paint()
-        ..color = color.withOpacity(
+        ..color = color.withValues(alpha:
           0.35 * ringOpacity,
         )
         ..maskFilter = const MaskFilter.blur(
@@ -605,7 +603,7 @@ class _SplashWavePainter extends CustomPainter {
         dot,
         4,
         Paint()
-          ..color = color.withOpacity(ringOpacity),
+          ..color = color.withValues(alpha: ringOpacity),
       );
     }
 
@@ -639,10 +637,10 @@ class _SplashWavePainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          color.withOpacity(0.0),
-          color.withOpacity(0.65),
-          Colors.deepPurpleAccent.withOpacity(0.9),
-          color.withOpacity(0.0),
+          color.withValues(alpha: 0.0),
+          color.withValues(alpha: 0.65),
+          Colors.deepPurpleAccent.withValues(alpha: 0.9),
+          color.withValues(alpha: 0.0),
         ],
       ).createShader(rect)
       ..style = PaintingStyle.stroke

@@ -8,8 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import '../../constants/colors_used.dart';
-
-import '../../customs/elevated_button.dart';
 import '../../entry_widgets/custom_date_textfield.dart';
 import '../../enums/customer_mode.dart';
 import '../../model_classes/credits/add_credit_request.dart';
@@ -145,7 +143,10 @@ class _CreditEntryState extends State<CreditEntry> {
 
     Future.microtask(() async {
 
-      await Future.wait([provider.fetchSuppliers(), provider.fetchCustomer()]);
+      await Future.wait([
+        provider.fetchSuppliers(showLoader: false),
+        provider.fetchCustomer(showLoader: false),
+      ]);
 
       if (!mounted) return;
 
@@ -421,14 +422,11 @@ class _CreditEntryState extends State<CreditEntry> {
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
-                  discardButtonText: "Leave",
                   saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },

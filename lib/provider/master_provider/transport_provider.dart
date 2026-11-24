@@ -5,12 +5,14 @@ import '../../model_classes/Transport/transport.dart';
 import '../../model_classes/transport/transport_details.dart';
 import '../../services/transport/transport_service.dart';
 
-class TransportProvider extends PaginationProvider {
+class TransportProvider extends PaginationProvider<Transport> {
   final TransportService _service;
 
   TransportProvider(this._service);
 
   TransportDetails? _transportDetails;
+
+  bool _showLoader = true;
 
   bool _detailsLoading = false;
 
@@ -25,20 +27,27 @@ class TransportProvider extends PaginationProvider {
   void clearMessage() {
     _message = null;
   }
+
+  bool _showLoaderForBulkFetch = false;
+
   @override
   Future<PaginatedResponse<Transport>> requestPage({
     required int page,
     required int size,
   }) async {
+    final showLoader = _showLoader || _showLoaderForBulkFetch;
+
     final result = _searchKeyword.isEmpty
         ? await _service.getTransports(
       page: page,
       size: size,
+      showLoader: showLoader,
     )
         : await _service.searchTransports(
       keyword: _searchKeyword,
       page: page,
       size: size,
+      showLoader: showLoader,
     );
 
     if (result.isFailure || result.data == null) {
@@ -53,6 +62,7 @@ class TransportProvider extends PaginationProvider {
   Future<void> fetchAllTransports() async {
     data.isLoading = true;
     data.error = null;
+    _showLoaderForBulkFetch = true;
     notifyListeners();
 
     try {
@@ -69,10 +79,10 @@ class TransportProvider extends PaginationProvider {
           size: pageSize,
         );
 
+        _showLoaderForBulkFetch = false;
+
         allTransports.addAll(response.content);
-
         hasMore = !response.last;
-
         page++;
       }
 
@@ -82,6 +92,7 @@ class TransportProvider extends PaginationProvider {
     } catch (e) {
       data.error = e.toString();
     } finally {
+      _showLoaderForBulkFetch = false;
       data.isLoading = false;
       notifyListeners();
     }
@@ -177,8 +188,14 @@ class TransportProvider extends PaginationProvider {
     }
   }
 
-  Future refreshTransports() async {
-    await refresh();
+  Future<void> refreshTransports({bool showLoader = true}) async {
+    _showLoader = showLoader;
+
+    try {
+      await refresh();
+    } finally {
+      _showLoader = true;
+    }
   }
 
   void clearDetails() {

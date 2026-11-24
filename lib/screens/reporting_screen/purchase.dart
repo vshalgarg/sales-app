@@ -1,5 +1,4 @@
 import 'package:hisabio/provider/master_provider/permission_provider.dart';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
@@ -99,7 +98,11 @@ class _PurchasesState extends State<Purchases> {
     super.dispose();
   }
 
-  void _showBottomSheetSnackBar(BuildContext context, String message) {
+  void _showBottomSheetSnackBar(
+      BuildContext context,
+      String message, {
+        bool isError = false,
+      }) {
     final overlay = Overlay.of(context);
 
     late OverlayEntry entry;
@@ -112,18 +115,28 @@ class _PurchasesState extends State<Purchases> {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             decoration: BoxDecoration(
               color: AppColors.containerFillColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
+                Icon(
+                  Icons.error_outline,
+                  color: isError ? Colors.red : Colors.black,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     message,
-                    style: const TextStyle(color: Colors.black, fontSize: 14),
+                    style: TextStyle(
+                      color: isError ? Colors.red : Colors.black,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],
@@ -135,7 +148,9 @@ class _PurchasesState extends State<Purchases> {
 
     overlay.insert(entry);
 
-    Future.delayed(const Duration(seconds: 3), () => entry.remove());
+    Future.delayed(const Duration(seconds: 3), () {
+      entry.remove();
+    });
   }
 
   Future<void> _applyFilters() async {
@@ -190,38 +205,42 @@ class _PurchasesState extends State<Purchases> {
   }
 
   Future<void> _clearFilters() async {
-    if (!context.read<PermissionProvider>().hasPermission('PURCHASE_REPORT_VIEW')) return;
     final now = DateTime.now();
-    final tenDaysAgo = now.subtract(const Duration(days: 10));
-    final formatter = DateFormat("dd-MM-yyyy");
-    setState(() {
-      fromDateController.clear();
-      toDateController.clear();
-      selectedSupplier = null;
-      selectedCustomer = null;
-      selectedSupplierId = null;
-      selectedCustomerId = null;
-      selectedStaffId = null;
-      isFilterApplied = false;
-    });
+    final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
+
+    final apiFormat = DateFormat('yyyy-MM-dd');
 
     final provider = context.read<PurchaseProvider>();
 
-    provider.setFromDate(
-      _toApiDate(formatter.format(tenDaysAgo)),
-    );
+    // Clear the visible date fields and dropdowns.
+    setState(() {
+      fromDateController.clear();
+      toDateController.clear();
 
-    provider.setToDate(
-      _toApiDate(formatter.format(now)),
-    );
+      selectedSupplier = null;
+      selectedCustomer = null;
+
+      isFilterApplied = false;
+    });
+
+    // Keep the default one-month date range for the API.
+    provider.setFromDate(apiFormat.format(oneMonthAgo));
+    provider.setToDate(apiFormat.format(now));
 
     provider.setSupplierId(null);
-
     provider.setCustomerId(null);
 
-    provider.setStaffId(null);
+    // Clear old records and fetch the default one-month records.
+    provider.clear();
+    await provider.fetchInitial();
 
-    await provider.refresh();
+    // Ensure the date fields remain blank.
+    if (mounted) {
+      setState(() {
+        fromDateController.clear();
+        toDateController.clear();
+      });
+    }
   }
 
   bool get _canView => context.read<PermissionProvider>().hasPermission('PURCHASE_REPORT_VIEW');
@@ -237,7 +256,11 @@ class _PurchasesState extends State<Purchases> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setBottomState) {
-            return Container(
+            return SafeArea(
+                top: false,
+                child: FractionallySizedBox(
+                    heightFactor: 0.65,
+                    child:Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
@@ -292,6 +315,7 @@ class _PurchasesState extends State<Purchases> {
                     _showBottomSheetSnackBar(
                       context,
                       "Please select at least one filter.",
+                      isError: true,
                     );
                     return;
                   }
@@ -301,25 +325,18 @@ class _PurchasesState extends State<Purchases> {
                   await _applyFilters();
                 },
                 onClear: () async {
-                  await _clearFilters();
+                  // Close the bottom sheet
+                  Navigator.of(context).pop();
 
-                  setBottomState(() {});
+                  // Clear filters and refresh the list
+                  await _clearFilters();
                 },
               ),
-            );
+            )));
           },
         );
       },
-    ).whenComplete(() {
-      if (!mounted) return;
-
-      setState(() {
-        fromDateController.clear();
-        toDateController.clear();
-        selectedSupplier = null;
-        selectedCustomer = null;
-      });
-    });
+    );
   }
 
   Future<void> _resetPurchaseBeforeExit() async {
@@ -466,9 +483,7 @@ class _PurchasesState extends State<Purchases> {
                         await provider.fetchPage(page);
                       },
 
-                      refresh: () async {
-                        await provider.refresh();
-                      },
+                      refresh: () => provider.refreshPurchases(showLoader: false),
 
                       itemBuilder: (context, purchase) {
                         return CardEntranceAnimation(

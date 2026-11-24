@@ -1,4 +1,7 @@
+
+import 'package:flutter/cupertino.dart';
 import 'package:hisabio/model_classes/staff/add_staff_request.dart';
+
 import '../../../../model_classes/common/paginated_response.dart';
 import '../../../../pagination/pagination_provider.dart';
 import '../../model_classes/staff/staff.dart';
@@ -7,18 +10,25 @@ import '../../services/staff/staff_service.dart';
 
 class StaffProvider extends PaginationProvider<Staff> {
   final StaffService _service;
-
+  bool _showLoader = true;
   StaffProvider(this._service);
 
   StaffDetails? _staffDetails;
-
   bool _detailsLoading = false;
 
   String _searchKeyword = "";
 
-  StaffDetails? get staffDetails => _staffDetails;
+  // Controls the loader for the next pagination request.
 
+  StaffDetails? get staffDetails => _staffDetails;
   bool get detailsLoading => _detailsLoading;
+
+  Future<void> initializeStaff() async {
+    _searchKeyword = "";
+    _showLoader = true;
+    clear();
+    await fetchPage(0);
+  }
 
   @override
   Future<PaginatedResponse<Staff>> requestPage({
@@ -29,58 +39,75 @@ class StaffProvider extends PaginationProvider<Staff> {
         ? await _service.getStaffs(
       page: page,
       size: size,
+      showLoader: _showLoader,
     )
         : await _service.searchStaffs(
       keyword: _searchKeyword,
       page: page,
       size: size,
+      showLoader: _showLoader,
     );
 
     if (result.isFailure || result.data == null) {
-      throw Exception(result.errorMessage ?? "Failed to load staff");
+      throw Exception(
+        result.errorMessage ?? "Failed to load staff",
+      );
     }
 
     return result.data!;
   }
 
+
   Future<void> search(String keyword) async {
     _searchKeyword = keyword.trim();
     await refreshStaffs();
   }
+
   void resetSearch() {
     _searchKeyword = "";
   }
+
   Future<void> clearSearch() async {
     _searchKeyword = "";
     await refreshStaffs();
   }
 
-  Future<bool> fetchStaffDetails(int id) async {
+  // GET STAFF DETAILS
+  Future<bool> fetchStaffDetails(
+      int id, {
+        bool showLoader = true,
+      }) async {
     _detailsLoading = true;
     notifyListeners();
 
-    final result = await _service.getStaffById(id);
+    try {
+      final result = await _service.getStaffById(
+        id,
+        showLoader: showLoader,
+      );
 
-    _detailsLoading = false;
+      if (result.isSuccess && result.data != null) {
+        _staffDetails = result.data!;
+        return true;
+      }
 
-    if (result.isSuccess && result.data != null) {
-      _staffDetails = result.data!;
+      return false;
+    } catch (e) {
+      return false;
+    } finally {
+      _detailsLoading = false;
+      notifyListeners();
     }
-
-    notifyListeners();
-
-    return result.isSuccess && result.data != null;
   }
 
+  // ADD STAFF
   Future<bool> addStaff(AddStaffRequest request) async {
     notifyListeners();
 
     try {
       final result = await _service.addStaff(request);
 
-      print("ADD STAFF REQUEST: ${request.toJson()}");
-      print("ADD STAFF SUCCESS: ${result.isSuccess}");
-      print("ADD STAFF ERROR: ${result.errorMessage}");
+      debugPrint("ADD STAFF ERROR: ${result.errorMessage}");
 
       if (result.isSuccess) {
         await refreshStaffs();
@@ -93,6 +120,7 @@ class StaffProvider extends PaginationProvider<Staff> {
     }
   }
 
+  // UPDATE STAFF
   Future<bool> updateStaff({
     required int id,
     required AddStaffRequest request,
@@ -106,10 +134,16 @@ class StaffProvider extends PaginationProvider<Staff> {
       );
 
       if (result.isSuccess) {
+        // Refresh staff list without global loader.
+        //_showLoaderOnNextRequest = false;
         await refreshStaffs();
 
+        // Refresh details without global loader.
         if (_staffDetails?.staffId == id) {
-          await fetchStaffDetails(id);
+          await fetchStaffDetails(
+            id,
+            showLoader: false,
+          );
         }
 
         return true;
@@ -117,11 +151,11 @@ class StaffProvider extends PaginationProvider<Staff> {
 
       return false;
     } finally {
-
       notifyListeners();
     }
   }
 
+  // DELETE STAFF
   Future<bool> deleteStaff(int id) async {
     notifyListeners();
 
@@ -134,15 +168,19 @@ class StaffProvider extends PaginationProvider<Staff> {
 
       return result.isSuccess;
     } finally {
-
       notifyListeners();
     }
   }
 
-  Future<void> refreshStaffs() async {
-    await refresh();
-  }
+  Future<void> refreshStaffs({bool showLoader = true}) async {
+    _showLoader = showLoader;
 
+    try {
+      await refresh();
+    } finally {
+      _showLoader = true;
+    }
+  }
   void clearDetails() {
     _staffDetails = null;
     notifyListeners();

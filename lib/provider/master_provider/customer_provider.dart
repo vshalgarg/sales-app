@@ -14,6 +14,8 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
   CustomerDetails? _customerDetails;
 
+  bool _showLoader = true;
+
   bool _detailsLoading = false;
 
   String _searchKeyword = "";
@@ -22,21 +24,29 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
   bool get detailsLoading => _detailsLoading;
 
+  Future<void> initializeCustomers() async {
+    _searchKeyword = "";
+    _showLoader = true;
+    clear();
+    await fetchPage(0);
+  }
+
   @override
   Future<PaginatedResponse<Customer>> requestPage({
     required int page,
     required int size,
   }) async {
-
     final result = _searchKeyword.isEmpty
         ? await _service.getCustomers(
       page: page,
       size: size,
+      showLoader: _showLoader,
     )
         : await _service.searchCustomers(
       keyword: _searchKeyword,
       page: page,
       size: size,
+      showLoader: _showLoader,
     );
 
     if (result.isFailure || result.data == null) {
@@ -47,6 +57,7 @@ class CustomerProvider extends PaginationProvider<Customer> {
 
     return result.data!;
   }
+
 
   Future<void> search(String keyword) async {
     _searchKeyword = keyword.trim();
@@ -114,7 +125,6 @@ class CustomerProvider extends PaginationProvider<Customer> {
         try {
           await refreshCustomers();
         } catch (e) {
-
         }
 
         return true;
@@ -144,10 +154,15 @@ class CustomerProvider extends PaginationProvider<Customer> {
     }
   }
 
-  Future<void> refreshCustomers() async {
-    await refresh();
-  }
+  Future<void> refreshCustomers({bool showLoader = true}) async {
+    _showLoader = showLoader;
 
+    try {
+      await refresh();
+    } finally {
+      _showLoader = true;
+    }
+  }
   void setDetailsLoading(bool value) {
     _detailsLoading = value;
     notifyListeners();

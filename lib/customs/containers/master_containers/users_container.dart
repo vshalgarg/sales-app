@@ -111,7 +111,7 @@ class UserContainer extends StatelessWidget {
                       child: customIcon(
                         icon: Iconsax.edit,
                         iconColor: AppColors.primaryPurple,
-                        bgColor: AppColors.primaryPurple.withOpacity(0.10),
+                        bgColor: AppColors.primaryPurple.withValues(alpha:0.10),
                       ),
                     ),
                 ],

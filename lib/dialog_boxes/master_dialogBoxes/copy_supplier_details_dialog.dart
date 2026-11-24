@@ -369,68 +369,46 @@ class CustomCopyDetailsDialog extends StatelessWidget {
 
                             const SizedBox(height: 20),
 
-                            Row(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: SizedBox(
+                                if (hasBankDetails) ...[
+                                  SizedBox(
                                     height: 48,
+                                    width: double.infinity,
                                     child: OutlinedButton(
-                                      onPressed: () {
-                                        if (showCopyBankButton) {
-                                          _copyBankDetails(context);
-                                        } else {
-                                          Navigator.pop(context);
-                                        }
-                                      },
+                                      onPressed: () => _copyBankDetails(context),
                                       style: OutlinedButton.styleFrom(
+                                        foregroundColor: AppColors.primaryPurple,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            5,
-                                          ),
+                                          borderRadius: BorderRadius.circular(5),
                                         ),
                                       ),
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          showCopyBankButton
-                                              ? "Copy Bank Details"
-                                              : "Cancel",
-                                          maxLines: 1,
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
+                                      child: const Text(
+                                        "Copy Bank Details",
+                                        style: TextStyle(fontSize: 14),
                                       ),
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(height: 10),
+                                ],
 
-                                const SizedBox(width: 10),
-
-                                Flexible(
-                                  flex: 2,
-                                  child: SizedBox(
-                                    height: 48,
-                                    child: ElevatedButton(
-                                      onPressed: () => _copyAllDetails(context),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            AppColors.primaryPurple,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            5,
-                                          ),
-                                        ),
+                                SizedBox(
+                                  height: 48,
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () => _copyAllDetails(context),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryPurple,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
                                       ),
-                                      child: const FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          "Copy",
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
+                                    ),
+                                    child: const Text(
+                                      "Copy",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),

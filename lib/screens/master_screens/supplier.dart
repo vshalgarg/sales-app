@@ -9,7 +9,6 @@ import 'package:hisabio/pop_ups/scafold_type.dart';
 import 'package:hisabio/screens/master_screens/add_new_supplier.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-
 import '../../enums/customer_mode.dart';
 import '../../model_classes/supplier/supplier.dart';
 import '../../pagination/pagination_widget.dart';
@@ -32,32 +31,28 @@ class _SupplierCardEntrance extends StatefulWidget {
   State<_SupplierCardEntrance> createState() => _SupplierCardEntranceState();
 }
 
-class _SupplierCardEntranceState extends State<_SupplierCardEntrance>
+class _SupplierCardEntranceState
+    extends State<_SupplierCardEntrance>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
+
+  late AnimationController _controller;
+  late Animation<double> _fade;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 400),
     );
-    final curved = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
-    _fade = curved;
-    _slide = Tween<Offset>(
-      begin: const Offset(0, 0.08),
-      end: Offset.zero,
-    ).animate(curved);
 
-    Future<void>.delayed(widget.delay, () {
-      if (mounted) _controller.forward();
-    });
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+
+    _controller.forward();
   }
 
   @override
@@ -70,7 +65,7 @@ class _SupplierCardEntranceState extends State<_SupplierCardEntrance>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fade,
-      child: SlideTransition(position: _slide, child: widget.child),
+      child: widget.child,
     );
   }
 }
@@ -94,19 +89,18 @@ class _SupplierState extends State<SupplierScreen> {
 
     supplierProvider = context.read<SupplierProvider>();
 
-    Future.microtask(() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
       final permissionProvider = context.read<PermissionProvider>();
 
-      if (!permissionProvider.canView('SUPPLIER')) {
-        return;
-      }
+      if (!permissionProvider.canView('SUPPLIER')) return;
 
       searchController.clear();
-      await supplierProvider.clearSearch();
-      await supplierProvider.fetchPage(0);
+
+      await supplierProvider.initializeSuppliers();
     });
   }
-
   @override
   void dispose() {
     _debounce?.cancel();
@@ -209,7 +203,7 @@ class _SupplierState extends State<SupplierScreen> {
                   items: suppliers,
                   loading: provider.data.isLoading,
                   fetchPage: provider.fetchPage,
-                  refresh: provider.refreshSuppliers,
+                  refresh: () => provider.refreshSuppliers(showLoader: false),
                   itemBuilder: (context, item) {
                     final itemIndex = suppliers.indexWhere(
                           (supplier) => supplier.id == item.id,
@@ -430,8 +424,9 @@ class _SupplierState extends State<SupplierScreen> {
                             final details = await supplierProvider
                                 .fetchSupplierDetails(item.id.toInt());
 
-                            if (!context.mounted || details == null)
+                            if (!context.mounted || details == null) {
                               return;
+                            }
 
                             final refresh = await Navigator.push<bool>(
                               context,

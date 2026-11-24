@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:hisabio/customs/dropdown_test.dart';
 import 'package:hisabio/pop_ups/scafold_type.dart';

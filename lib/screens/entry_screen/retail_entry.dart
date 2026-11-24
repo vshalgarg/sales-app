@@ -141,21 +141,18 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
 
     final apiDate = DateFormat('yyyy-MM-dd').format(inputDate);
 
-    final validSuppliers = List.generate(
-      selectedSupplierIds.length,
-          (index) {
-        final supplierId = selectedSupplierIds[index];
+    final validSuppliers = List.generate(selectedSupplierIds.length, (index) {
+      final supplierId = selectedSupplierIds[index];
 
-        if (supplierId == null) return null;
+      if (supplierId == null) return null;
 
-        return {
-          "supplierId": supplierId,
-          "totalAmount": double.tryParse(totalAmount[index].text) ?? 0,
-          "depositAmount": double.tryParse(depositAmount[index].text) ?? 0,
-          "balanceAmount": double.tryParse(balancedAmount[index].text) ?? 0,
-        };
-      },
-    ).whereType<Map<String, dynamic>>().toList();
+      return {
+        "supplierId": supplierId,
+        "totalAmount": double.tryParse(totalAmount[index].text) ?? 0,
+        "depositAmount": double.tryParse(depositAmount[index].text) ?? 0,
+        "balanceAmount": double.tryParse(balancedAmount[index].text) ?? 0,
+      };
+    }).whereType<Map<String, dynamic>>().toList();
 
     if (validSuppliers.isEmpty) {
       ScaffoldSnackBar.show(context, "Please select at least one supplier");
@@ -231,14 +228,11 @@ class _RetailEntryScreenState extends State<RetailEntryScreen> {
             onPressed: () {
               ExitConfirmationDialog.show(
                 context,
-                onSave: () async {
-                  Navigator.pop(context);
-                },
-                discardButtonText: "Leave",
                 saveButtonText: "Stay",
+                discardButtonText: "Leave",
                 onDiscard: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context, true);
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
                 },
               );
             },

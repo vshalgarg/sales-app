@@ -2,6 +2,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
 import '../../model_classes/common/paginated_response.dart';
 import '../../model_classes/entries/entries_supplier.dart';
 import '../../model_classes/purchases/add_purchase_request.dart';
@@ -20,7 +21,7 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
   bool _detailsLoading = false;
 
   PurchaseDetails? get purchaseDetails => _purchaseDetails;
-
+  bool _showLoader = true;
   bool get detailsLoading => _detailsLoading;
 
   String? _fromDate;
@@ -38,6 +39,28 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
   void setCustomerId(int? value) => _customerId = value;
 
   void setStaffId(int? value) => _staffId = value;
+
+  Future<void> clearAllFiltersAndFetchPurchases() async {
+    final now = DateTime.now();
+    final oneMonthAgo = DateTime(
+      now.year,
+      now.month - 1,
+      now.day,
+    );
+
+    final formatter = DateFormat('yyyy-MM-dd');
+
+    _fromDate = formatter.format(oneMonthAgo);
+    _toDate = formatter.format(now);
+
+    _supplierId = null;
+    _customerId = null;
+    _staffId = null;
+
+    clear();
+    await fetchInitial();
+  }
+
   @override
   Future<PaginatedResponse<Purchase>> requestPage({
     required int page,
@@ -51,6 +74,7 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
       supplierId: _supplierId,
       customerId: _customerId,
       staffId: _staffId,
+      showLoader: _showLoader && page == 0,
     );
 
     if (result.isFailure || result.data == null) {
@@ -151,8 +175,13 @@ class PurchaseProvider extends PaginationProvider<Purchase> {
     }
   }
 
-  Future<void> refreshPurchases() async {
-    await refresh();
+  Future<void> refreshPurchases({bool showLoader = true}) async {
+    _showLoader = showLoader;
+    try {
+      await refresh();
+    } finally {
+      _showLoader = true;
+    }
   }
 
   void clearDetails() {

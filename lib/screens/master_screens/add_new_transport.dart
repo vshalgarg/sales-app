@@ -249,12 +249,9 @@ class _AddNewTransportState extends State<AddNewTransport> {
                   context,
                   saveButtonText: "Stay",
                   discardButtonText: "Leave",
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },

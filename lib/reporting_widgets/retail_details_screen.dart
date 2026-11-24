@@ -99,7 +99,7 @@ class _RetailDetailsScreenState extends State<RetailDetailsScreen> {
               },
             ),
 
-            title: "View Retailers",
+            title: "View Retail",
 
             textStyle: const TextStyle(
               color: Colors.white,

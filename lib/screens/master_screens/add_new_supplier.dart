@@ -478,17 +478,14 @@ class _AddNewSupplierState extends State<AddNewSupplier> {
           if (widget.mode != FormMode.view)
             IconButton(
               icon: const Icon(Icons.close),
-              onPressed: () async {
+              onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
-                  discardButtonText: "Leave",
                   saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },

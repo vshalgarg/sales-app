@@ -1,3 +1,4 @@
+
 import 'package:hisabio/provider/master_provider/permission_provider.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -581,14 +582,11 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
               onPressed: () {
                 ExitConfirmationDialog.show(
                   context,
-                  onSave: () async {
-                    Navigator.pop(context);
-                  },
-                  discardButtonText: "Leave",
                   saveButtonText: "Stay",
+                  discardButtonText: "Leave",
                   onDiscard: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context, true);
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                   },
                 );
               },
@@ -869,7 +867,13 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                     ),
 
                                     const SizedBox(height: 10),
-                                    if (isViewMode)
+                                    if (isViewMode &&
+                                        (purchaseProvider
+                                            .purchaseDetails
+                                            ?.supplier
+                                            .images
+                                            .any((image) => image.url.trim().isNotEmpty) ??
+                                            false))
                                       Column(
                                         crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1037,11 +1041,9 @@ class _PurchaseEntryScreenState extends State<PurchaseEntryScreen> {
                                             ),
                                         ],
                                       )
-                                    else
+                                    else if (!isViewMode)
                                       GestureDetector(
-                                        onTap: isViewMode
-                                            ? null
-                                            : () async {
+                                        onTap: () async {
                                           final dialog =
                                           BillEntryUploadDocuments(
                                             files:

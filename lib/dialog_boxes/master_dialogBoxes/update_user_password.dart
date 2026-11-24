@@ -28,6 +28,7 @@ class UpdateUserPassword extends StatefulWidget {
 class _UpdateUserPasswordState extends State<UpdateUserPassword> {
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
+  bool _saving = false;
   String? newPasswordError;
   String? confirmPasswordError;
   @override
@@ -254,12 +255,32 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
                         Row(
                           children: [
                             Expanded(
-                              child: CustomElevatedButton(
-                                text: "Cancel",
-                                onPressed: widget.onCancel,
-                                borderRadius: 5,
-                              ),
-                            ),
+                              child: SizedBox(
+                                height: 48,
+                                child: OutlinedButton(
+                                  onPressed: _saving
+                                      ? null
+                                      : () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF263F85),
+                                    side: const BorderSide(
+                                      color: Color(0xFF263F85),
+                                      width: 1.5,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Cancel",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                        )
+            ),
 
                             const SizedBox(width: 10),
 
@@ -296,10 +317,10 @@ class _UpdateUserPasswordState extends State<UpdateUserPassword> {
 
                                   await widget.onUpdate();
                                 },
-                                borderRadius: 5,
+                                borderRadius: 12,
                               ),
                             ),
-                          ],
+                              ]
                         ),
                       ],
                     ),

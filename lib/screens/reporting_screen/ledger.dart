@@ -12,7 +12,6 @@ import '../../model_classes/entries/entries_customer_model.dart';
 import '../../model_classes/entries/entries_supplier.dart';
 import '../../provider/entries_provider/entries_section_provider.dart';
 import '../../provider/reporting_provider/ledger_provider.dart';
-import '../home_screen.dart';
 import 'ledger_details_screen.dart';
 
 class LedgerReporting extends StatefulWidget {
@@ -29,7 +28,8 @@ class _LedgerReportingState extends State<LedgerReporting> {
 
   EntriesModel? selectedSupplier;
   String? selectedSupplierName;
-
+  bool _isSubmitting = false;
+  bool _isDownloading = false;
   EntriesCustomerModel? selectedCustomer;
   String? selectedCustomerName;
 
@@ -45,37 +45,41 @@ class _LedgerReportingState extends State<LedgerReporting> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context
-          .read<PermissionProvider>()
-          .hasPermission('LEDGER_REPORT_VIEW')) {
-        return;
-      }
-
-      context.read<LedgerProvider>().clearLedger();
+      if (!mounted) return;
+      _loadData();
     });
-
-    _loadData();
   }
 
   Future<void> _loadData() async {
     if (!context
         .read<PermissionProvider>()
         .hasPermission('LEDGER_REPORT_VIEW')) {
+      if (mounted) {
+        setState(() => loading = false);
+      }
       return;
     }
 
     final provider = context.read<EntriesProvider>();
 
-    await Future.wait([
-      provider.fetchSuppliers(),
-      provider.fetchCustomer(),
-    ]);
-
-    if (!mounted) return;
-
-    setState(() {
-      loading = false;
-    });
+    try {
+      await Future.wait([
+        provider.fetchSuppliers(
+          forceRefresh: true,
+          showLoader: false,
+        ),
+        provider.fetchCustomer(
+          forceRefresh: true,
+          showLoader: false,
+        ),
+      ]);
+    } finally {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
   }
 
   // Validate all mandatory dropdowns
@@ -93,6 +97,8 @@ class _LedgerReportingState extends State<LedgerReporting> {
   }
 
   Future<void> _submitLedger() async {
+    if (_isSubmitting || _isDownloading) return;
+
     if (!context
         .read<PermissionProvider>()
         .hasPermission('LEDGER_REPORT_VIEW')) {
@@ -100,6 +106,8 @@ class _LedgerReportingState extends State<LedgerReporting> {
     }
 
     if (!_validateRequiredFields()) return;
+
+    setState(() => _isSubmitting = true);
 
     try {
       await context.read<LedgerProvider>().fetchLedger(
@@ -113,14 +121,11 @@ class _LedgerReportingState extends State<LedgerReporting> {
       final ledger = context.read<LedgerProvider>().ledger;
 
       if (ledger == null) {
-        ScaffoldSnackBar.show(
-          context,
-          "No ledger data found",
-        );
+        ScaffoldSnackBar.show(context, "No ledger data found");
         return;
       }
 
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => LedgerDetailsScreen(
@@ -130,15 +135,17 @@ class _LedgerReportingState extends State<LedgerReporting> {
       );
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldSnackBar.show(
-        context,
-        e.toString(),
-      );
+      ScaffoldSnackBar.show(context, e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
   Future<void> _downloadLedger() async {
+    if (_isSubmitting || _isDownloading) return;
+
     if (!context
         .read<PermissionProvider>()
         .hasPermission('LEDGER_REPORT_VIEW')) {
@@ -146,6 +153,8 @@ class _LedgerReportingState extends State<LedgerReporting> {
     }
 
     if (!_validateRequiredFields()) return;
+
+    setState(() => _isDownloading = true);
 
     try {
       final bytes = await context
@@ -158,30 +167,21 @@ class _LedgerReportingState extends State<LedgerReporting> {
 
       if (bytes == null) {
         if (!mounted) return;
-
-        ScaffoldSnackBar.show(
-          context,
-          "Failed to download ledger",
-        );
-
+        ScaffoldSnackBar.show(context, "Failed to download ledger");
         return;
       }
 
       await saveExcel(bytes);
 
       if (!mounted) return;
-
-      ScaffoldSnackBar.show(
-        context,
-        "Ledger downloaded successfully",
-      );
+      ScaffoldSnackBar.show(context, "Ledger downloaded successfully");
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldSnackBar.show(
-        context,
-        e.toString(),
-      );
+      ScaffoldSnackBar.show(context, e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isDownloading = false);
+      }
     }
   }
 
@@ -422,8 +422,19 @@ class _LedgerReportingState extends State<LedgerReporting> {
                             BorderRadius.circular(5),
                           ),
                         ),
-                        onPressed: _submitLedger,
-                        child: const Text(
+            onPressed: (_isSubmitting || _isDownloading)
+                ? null
+                : _submitLedger,
+            child: _isSubmitting
+                ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+                : const Text(
                           "SUBMIT",
                           style: TextStyle(
                             color: Colors.white,
@@ -451,8 +462,19 @@ class _LedgerReportingState extends State<LedgerReporting> {
                             BorderRadius.circular(5),
                           ),
                         ),
-                        onPressed: _downloadLedger,
-                        child: const Text(
+                        onPressed: (_isSubmitting || _isDownloading)
+                            ? null
+                            : _downloadLedger,
+                        child: _isDownloading
+                            ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryPurple,
+                          ),
+                        )
+                            : const Text(
                           "DOWNLOAD",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,

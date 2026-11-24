@@ -30,9 +30,11 @@ class _AccessManagementScreenState
 
     Future.microtask(() {
       if (mounted &&
-          context.read<PermissionProvider>().hasPermission(
-              'ACCESS_MANAGEMENT_CURD')) {
-        context.read<RoleProvider>().fetchRoles();
+          context.read<PermissionProvider>()
+              .hasPermission('ACCESS_MANAGEMENT_CURD')) {
+        context.read<RoleProvider>().fetchRoles(
+          showLoader: true,
+        );
       }
     });
   }
@@ -134,11 +136,11 @@ class _AccessManagementScreenState
           }
 
           return RefreshIndicator(
-            onRefresh: provider.fetchRoles,
+            onRefresh: () => provider.fetchRoles(showLoader: false),
             child: ListView.separated(
               padding: AppSpacing.screen,
               itemCount: provider.roles.length,
-              separatorBuilder: (_, __) =>
+              separatorBuilder: (_, _) =>
               const SizedBox(height: AppSpacing.cardSeparator),
               itemBuilder: (context, index) {
                 return _buildDesktopRoleCard(
@@ -194,11 +196,12 @@ class _AccessManagementScreenState
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: _buildSearchBar(),
             ),
-            Expanded(
+            Flexible(
+              fit: FlexFit.loose,
               child: LocalPaginationWidget<RoleModel>(
                 items: roles,
                 pageSize: 10,
-                refresh: provider.fetchRoles,
+                refresh: () => provider.fetchRoles(showLoader: false),
                 itemBuilder: (context, role) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(
@@ -264,7 +267,7 @@ class _AccessManagementScreenState
               children: [
                 const Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(right: 8, bottom: 5),
+                    padding: EdgeInsets.only(right: 8, bottom: 0),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -303,8 +306,8 @@ class _AccessManagementScreenState
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(colors: [
-                AppColors.primaryPurple.withOpacity(0.20),
-                AppColors.primaryPurple.withOpacity(0.02),
+                AppColors.primaryPurple.withValues(alpha: 0.20),
+                AppColors.primaryPurple.withValues(alpha: 0.02),
               ]),
             ),
           ),
@@ -318,7 +321,7 @@ class _AccessManagementScreenState
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryPurple.withOpacity(0.18),
+                      color: AppColors.primaryPurple.withValues(alpha: 0.18),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -330,8 +333,8 @@ class _AccessManagementScreenState
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.primaryPurple.withOpacity(0.55),
-                    AppColors.primaryPurple.withOpacity(0.82),
+                    AppColors.primaryPurple.withValues(alpha: 0.55),
+                    AppColors.primaryPurple.withValues(alpha: 0.82),
                     AppColors.primaryPurple,
                   ],
                 ).createShader(bounds),
@@ -356,7 +359,7 @@ class _AccessManagementScreenState
             child: Container(
               width: 48, height: 42,
               decoration: BoxDecoration(
-                color: AppColors.primaryPurple.withOpacity(0.12),
+                color: AppColors.primaryPurple.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: Colors.white, width: 2),
               ),
@@ -369,7 +372,7 @@ class _AccessManagementScreenState
             child: Container(
               width: 9, height: 9,
               decoration: BoxDecoration(
-                color: AppColors.primaryPurple.withOpacity(0.35), shape: BoxShape.circle,
+                color: AppColors.primaryPurple.withValues(alpha: 0.35), shape: BoxShape.circle,
               ),
             ),
           ),
@@ -384,11 +387,11 @@ class _AccessManagementScreenState
     return Container(
       height: 59,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: Colors.white.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryPurple.withOpacity(0.12),
+            color: AppColors.primaryPurple.withValues(alpha: 0.12),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
@@ -400,7 +403,7 @@ class _AccessManagementScreenState
         decoration: InputDecoration(
           hintText: 'Search role...',
           hintStyle: TextStyle(
-            color: AppColors.primaryPurple.withOpacity(0.55),
+            color: AppColors.primaryPurple.withValues(alpha: 0.55),
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -448,7 +451,7 @@ class _AccessManagementScreenState
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryPurple.withOpacity(0.13),
+                color: AppColors.primaryPurple.withValues(alpha: 0.13),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -465,7 +468,7 @@ class _AccessManagementScreenState
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        AppColors.primaryPurple.withOpacity(0.55),
+                        AppColors.primaryPurple.withValues(alpha: 0.55),
                         AppColors.primaryPurple,
                       ],
                     ),
@@ -479,7 +482,7 @@ class _AccessManagementScreenState
                         _buildRoleIcon(role.roleName),
                         const SizedBox(width: 12),
                         Container(width: 1.4, height: 82,
-                            color: AppColors.primaryPurple.withOpacity(0.18)),
+                            color: AppColors.primaryPurple.withValues(alpha: 0.18)),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -502,7 +505,7 @@ class _AccessManagementScreenState
                                 maxLines: 2, overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 12.5, height: 1.3,
-                                  color: AppColors.primaryPurple.withOpacity(0.82),
+                                  color: AppColors.primaryPurple.withValues(alpha: 0.82),
                                 ),
                               ),
                               const SizedBox(height: 9),
@@ -511,7 +514,7 @@ class _AccessManagementScreenState
                                     horizontal: 11, vertical: 7),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [AppColors.primaryPurple.withOpacity(0.10), AppColors.primaryPurple.withOpacity(0.14)],
+                                    colors: [AppColors.primaryPurple.withValues(alpha: 0.10), AppColors.primaryPurple.withValues(alpha: 0.14)],
                                   ),
                                   borderRadius: BorderRadius.circular(22),
                                 ),
@@ -592,7 +595,7 @@ class _AccessManagementScreenState
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [AppColors.primaryPurple.withOpacity(0.10), AppColors.primaryPurple.withOpacity(0.16)],
+          colors: [AppColors.primaryPurple.withValues(alpha: 0.10), AppColors.primaryPurple.withValues(alpha: 0.16)],
         ),
         borderRadius: BorderRadius.circular(19),
       ),
@@ -689,8 +692,6 @@ class _AccessManagementScreenState
   }
 }
 
-
-
 class RoleFormScreen extends StatefulWidget {
   final RoleModel? role;
 
@@ -727,59 +728,56 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
   }
 
   Future<void> _loadFormData() async {
-    if (!context.read<PermissionProvider>().hasPermission('ACCESS_MANAGEMENT_CURD')) {
-      _loadError = 'You do not have permission to manage roles.';
-      _initialLoading = false;
+    if (!context
+        .read<PermissionProvider>()
+        .hasPermission('ACCESS_MANAGEMENT_CURD')) {
+      if (!mounted) return;
+
+      setState(() {
+        _loadError = 'You do not have permission to manage roles.';
+        _initialLoading = false;
+      });
       return;
     }
 
     final provider = context.read<RoleProvider>();
 
     try {
-      debugPrint('========== ROLE FORM DEBUG ==========');
+      // Edit: load permissions silently first.
+      // Create: show global loader while loading permissions.
+      final permissionsLoaded = await provider.fetchPermissions(
+        showLoader: !_isEditing,
+      );
 
-      debugPrint('Fetching roles...');
-      final rolesResult = await provider.fetchRoles();
-      debugPrint('Roles loaded: ${provider.roles.length}');
-
-      debugPrint('Fetching all permissions...');
-      final permissionsResult = await provider.fetchPermissions();
-
-      debugPrint('Permissions API result: $permissionsResult');
-      debugPrint('Permissions count: ${provider.permissions.length}');
-
-      for (final permission in provider.permissions) {
-        debugPrint(
-          'Permission ID: ${permission.id}, '
-              'Name: ${permission.name}, '
-              'Description: ${permission.description}',
+      if (!permissionsLoaded) {
+        throw Exception(
+          provider.error ?? 'Unable to load permissions',
         );
       }
 
       if (_isEditing) {
-        debugPrint('Fetching role details for ID: ${widget.role!.id}');
+        // Show global loader while fetching the selected role.
+        final success = await provider.fetchRoleDetails(
+          widget.role!.id,
+          showLoader: true,
+        );
 
-        final success =
-        await provider.fetchRoleDetails(widget.role!.id);
-
-        debugPrint('Role details loaded: $success');
-
-        if (!success) {
-          throw Exception('Unable to load role details');
+        if (!success || provider.roleDetails == null) {
+          throw Exception(
+            provider.error ?? 'Unable to load role details',
+          );
         }
 
-        final details = provider.roleDetails;
-
-        if (details == null) {
-          throw Exception('Role details not found');
-        }
+        final details = provider.roleDetails!;
 
         _roleNameController.text = details.roleName;
         _descriptionController.text = details.roleDesc ?? '';
 
-        _assignedIds.addAll(
-          details.permissions.map((permission) => permission.id),
-        );
+        _assignedIds
+          ..clear()
+          ..addAll(
+            details.permissions.map((permission) => permission.id),
+          );
       }
     } catch (e) {
       _loadError = e.toString();
@@ -984,7 +982,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
       body: !canManageAccess
           ? const Center(child: Text('You do not have permission to manage roles.'))
           : _initialLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const SizedBox.shrink()
           : _loadError != null
           ? Center(
         child: Padding(
@@ -1093,29 +1091,132 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
     );
   }
 
+
   Widget _buildPermissionsSection(RoleProvider provider) {
     final availablePermissions = provider.permissions
         .where((permission) => !_assignedIds.contains(permission.id))
         .toList();
+
     final assignedPermissions = provider.permissions
         .where((permission) => _assignedIds.contains(permission.id))
         .toList();
 
-    final showingPermissions = _showAssignedPermissions
-        ? assignedPermissions
-        : availablePermissions;
-    final visiblePermissions = _filteredPermissions(
-      showingPermissions,
-      _showAssignedPermissions
-          ? _assignedSearchController.text
-          : _availableSearchController.text,
+    final availableFiltered = _filteredPermissions(
+      availablePermissions,
+      _availableSearchController.text,
     );
-    final selectedIds = _showAssignedPermissions
-        ? _selectedAssignedIds
-        : _selectedAvailableIds;
-    final searchController = _showAssignedPermissions
-        ? _assignedSearchController
-        : _availableSearchController;
+
+    final assignedFiltered = _filteredPermissions(
+      assignedPermissions,
+      _assignedSearchController.text,
+    );
+
+    void moveSelectedToAssigned() {
+      setState(() {
+        _assignedIds.addAll(_selectedAvailableIds);
+        _selectedAvailableIds.clear();
+        _selectedAssignedIds.clear();
+      });
+    }
+
+    void moveSelectedToAvailable() {
+      setState(() {
+        _assignedIds.removeAll(_selectedAssignedIds);
+        _selectedAssignedIds.clear();
+        _selectedAvailableIds.clear();
+      });
+    }
+
+    void assignAll() {
+      setState(() {
+        _assignedIds.addAll(
+          provider.permissions.map((permission) => permission.id),
+        );
+        _selectedAvailableIds.clear();
+        _selectedAssignedIds.clear();
+      });
+    }
+
+    void removeAll() {
+      setState(() {
+        _assignedIds.clear();
+        _selectedAvailableIds.clear();
+        _selectedAssignedIds.clear();
+      });
+    }
+
+    Widget transferButtons({required bool vertical}) {
+      final buttons = [
+        _buildTransferButton(
+          icon: Icons.chevron_right_rounded,
+          tooltip: 'Assign selected',
+          enabled: _selectedAvailableIds.isNotEmpty,
+          onPressed: moveSelectedToAssigned,
+        ),
+        _buildTransferButton(
+          icon: Icons.chevron_left_rounded,
+          tooltip: 'Remove selected',
+          enabled: _selectedAssignedIds.isNotEmpty,
+          onPressed: moveSelectedToAvailable,
+        ),
+        _buildTransferButton(
+          icon: Icons.keyboard_double_arrow_right_rounded,
+          tooltip: 'Assign all',
+          enabled: availablePermissions.isNotEmpty,
+          onPressed: assignAll,
+          primary: true,
+        ),
+        _buildTransferButton(
+          icon: Icons.keyboard_double_arrow_left_rounded,
+          tooltip: 'Remove all',
+          enabled: assignedPermissions.isNotEmpty,
+          onPressed: removeAll,
+          primary: true,
+        ),
+      ];
+
+      return vertical
+          ? Column(
+        mainAxisSize: MainAxisSize.min,
+        children: buttons
+            .map((button) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: button,
+        ))
+            .toList(),
+      )
+          : Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: buttons
+            .map((button) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: button,
+        ))
+            .toList(),
+      );
+    }
+
+    Widget availablePanel() {
+      return _buildPermissionPanel(
+        title: 'Available Permissions',
+        permissions: availableFiltered,
+        totalCount: availablePermissions.length,
+        selectedIds: _selectedAvailableIds,
+        searchController: _availableSearchController,
+        emptyMessage: 'No available permissions',
+      );
+    }
+
+    Widget assignedPanel() {
+      return _buildPermissionPanel(
+        title: 'Assigned Permissions',
+        permissions: assignedFiltered,
+        totalCount: assignedPermissions.length,
+        selectedIds: _selectedAssignedIds,
+        searchController: _assignedSearchController,
+        emptyMessage: 'No permissions assigned yet',
+      );
+    }
 
     return _buildCard(
       child: Column(
@@ -1125,7 +1226,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  'Permissions',
+                  'Manage Permissions',
                   style: TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.w700,
@@ -1135,7 +1236,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
+                  horizontal: 12,
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
@@ -1153,176 +1254,146 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F1F3),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildPermissionTab(
-                    title: 'Available',
-                    count: availablePermissions.length,
-                    selected: !_showAssignedPermissions,
-                    onTap: () => setState(() {
-                      _showAssignedPermissions = false;
-                    }),
-                  ),
-                ),
-                Expanded(
-                  child: _buildPermissionTab(
-                    title: 'Assigned',
-                    count: assignedPermissions.length,
-                    selected: _showAssignedPermissions,
-                    onTap: () => setState(() {
-                      _showAssignedPermissions = true;
-                    }),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          _buildPermissionPanel(
-            title: _showAssignedPermissions
-                ? 'Assigned Permissions'
-                : 'Available Permissions',
-            permissions: visiblePermissions,
-            totalCount: showingPermissions.length,
-            selectedIds: selectedIds,
-            searchController: searchController,
-            emptyMessage: _showAssignedPermissions
-                ? 'No permissions assigned yet'
-                : 'No available permissions',
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: assignedPermissions.isEmpty
-                      ? null
-                      : () {
-                    setState(() {
-                      _assignedIds.clear();
-                      _selectedAssignedIds.clear();
-                      _selectedAvailableIds.clear();
-                    });
-                  },
-                  icon: const Icon(Icons.keyboard_double_arrow_left),
-                  label: const Text('Remove All'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primaryPurple,
-                    side: const BorderSide(color: AppColors.primaryPurple),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+          const SizedBox(height: 18),
+
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 750;
+
+              if (isWide) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(child: availablePanel()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: transferButtons(vertical: true),
                     ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: availablePermissions.isEmpty
-                      ? null
-                      : () {
-                    setState(() {
-                      _assignedIds.addAll(
-                        provider.permissions.map((permission) => permission.id),
-                      );
-                      _selectedAvailableIds.clear();
-                      _selectedAssignedIds.clear();
-                    });
-                  },
-                  icon: const Icon(Icons.keyboard_double_arrow_right),
-                  label: const Text('Assign All'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primaryPurple,
-                    side: const BorderSide(color: AppColors.primaryPurple),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+                    Expanded(child: assignedPanel()),
+                  ],
+                );
+              }
+
+              return Column(
+                children: [
+                  availablePanel(),
+                  const SizedBox(height: 12),
+                  transferButtons(vertical: false),
+                  const SizedBox(height: 12),
+                  assignedPanel(),
+                ],
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPermissionTab({
-    required String title,
-    required int count,
-    required bool selected,
-    required VoidCallback onTap,
+  Widget _buildTransferButton({
+    required IconData icon,
+    required String tooltip,
+    required bool enabled,
+    required VoidCallback onPressed,
+    bool primary = false,
   }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(11),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
+    return Tooltip(
+      message: tooltip,
+      child: SizedBox(
+        width: 46,
+        height: 46,
+        child: Material(
+          color: !enabled
+              ? AppColors.primaryPurpleLight
+              : primary
+              ? AppColors.primaryBlue
+              : AppColors.primaryPurpleLight,
           borderRadius: BorderRadius.circular(11),
-          border: selected
-              ? Border.all(color: AppColors.primaryPurple.withOpacity(0.35))
-              : null,
-          boxShadow: selected
-              ? [
-            BoxShadow(
-              color: AppColors.primaryPurple.withOpacity(0.08),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(11),
+            onTap: enabled ? onPressed : null,
+            child: Icon(
+              icon,
+              color: !enabled
+                  ? AppColors.primaryPurple.withValues(alpha: 0.4)
+                  : primary
+                  ? Colors.white
+                  : AppColors.primaryPurple,
+              size: 29,
             ),
-          ]
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: selected ? AppColors.primaryPurple : Colors.grey.shade700,
-                  fontSize: 14,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ),
-            const SizedBox(width: 7),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: selected
-                    ? AppColors.primaryPurpleLight
-                    : Colors.black.withOpacity(0.04),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Text(
-                '$count',
-                style: TextStyle(
-                  color: selected ? AppColors.primaryPurple : Colors.grey.shade700,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+
+  // Widget _buildPermissionTab({
+  //   required String title,
+  //   required int count,
+  //   required bool selected,
+  //   required VoidCallback onTap,
+  // }) {
+  //   return InkWell(
+  //     borderRadius: BorderRadius.circular(11),
+  //     onTap: onTap,
+  //     child: AnimatedContainer(
+  //       duration: const Duration(milliseconds: 180),
+  //       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+  //       decoration: BoxDecoration(
+  //         color: selected ? Colors.white : Colors.transparent,
+  //         borderRadius: BorderRadius.circular(11),
+  //         border: selected
+  //             ? Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.35))
+  //             : null,
+  //         boxShadow: selected
+  //             ? [
+  //           BoxShadow(
+  //             color: AppColors.primaryPurple.withValues(alpha: 0.08),
+  //             blurRadius: 5,
+  //             offset: const Offset(0, 2),
+  //           ),
+  //         ]
+  //             : null,
+  //       ),
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Flexible(
+  //             child: Text(
+  //               title,
+  //               maxLines: 1,
+  //               overflow: TextOverflow.ellipsis,
+  //               style: TextStyle(
+  //                 color: selected ? AppColors.primaryPurple : Colors.grey.shade700,
+  //                 fontSize: 14,
+  //                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+  //               ),
+  //             ),
+  //           ),
+  //           const SizedBox(width: 7),
+  //           Container(
+  //             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+  //             decoration: BoxDecoration(
+  //               color: selected
+  //                   ? AppColors.primaryPurpleLight
+  //                   : Colors.black.withValues(alpha: 0.04),
+  //               borderRadius: BorderRadius.circular(15),
+  //             ),
+  //             child: Text(
+  //               '$count',
+  //               style: TextStyle(
+  //                 color: selected ? AppColors.primaryPurple : Colors.grey.shade700,
+  //                 fontSize: 12,
+  //                 fontWeight: FontWeight.w700,
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildPermissionPanel({
     required String title,
@@ -1336,7 +1407,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF9F8FF),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primaryPurple.withOpacity(0.15)),
+        border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1412,7 +1483,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
                         ? Icons.verified_user_outlined
                         : Icons.lock_outline_rounded,
                     size: 42,
-                    color: AppColors.primaryPurple.withOpacity(0.55),
+                    color: AppColors.primaryPurple.withValues(alpha: 0.55),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -1431,9 +1502,9 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: permissions.length,
-              separatorBuilder: (_, __) => Divider(
+              separatorBuilder: (_, _) => Divider(
                 height: 1,
-                color: AppColors.primaryPurple.withOpacity(0.10),
+                color: AppColors.primaryPurple.withValues(alpha: 0.10),
                 indent: 42,
               ),
               itemBuilder: (context, index) {
@@ -1550,7 +1621,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -1618,7 +1689,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.035),
+            color: Colors.black.withValues(alpha: 0.035),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1690,7 +1761,10 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
 
     Future.microtask(() {
       if (mounted && context.read<PermissionProvider>().hasPermission('ACCESS_MANAGEMENT_CURD')) {
-        context.read<RoleProvider>().fetchRoleDetails(widget.roleId);
+        context.read<RoleProvider>().fetchRoleDetails(
+          widget.roleId,
+          showLoader: true,
+        );
       }
     });
   }
@@ -1725,9 +1799,7 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
           }
 
           if (provider.detailsLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const SizedBox.shrink();
           }
 
           final details = provider.roleDetails;
@@ -1806,7 +1878,7 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryPurple.withOpacity(0.06),
+                              color: AppColors.primaryPurple.withValues(alpha: 0.06),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(

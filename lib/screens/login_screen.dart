@@ -226,9 +226,7 @@ class _LoginScreenState extends State<LoginScreen>
       // );
 
 
-
-      Navigator.pushReplacement(
-        context,
+      Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder<void>(
           opaque: false,
           transitionDuration: const Duration(milliseconds: 1200),
@@ -238,12 +236,10 @@ class _LoginScreenState extends State<LoginScreen>
             return const HomeScreen();
           },
 
-          transitionsBuilder: (
-              context,
+          transitionsBuilder: (context,
               animation,
               secondaryAnimation,
-              child,
-              ) {
+              child,) {
             return AnimatedBuilder(
               animation: animation,
               builder: (context, _) {
@@ -254,15 +250,12 @@ class _LoginScreenState extends State<LoginScreen>
                 return Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Reveal the home screen behind a moving wave.
                     ClipPath(
                       clipper: _PurpleWaveClipper(
                         progress: progress,
                       ),
                       child: child,
                     ),
-
-                    // Glowing purple wave edge.
                     IgnorePointer(
                       child: CustomPaint(
                         painter: _PurpleWaveEdgePainter(
@@ -277,6 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
             );
           },
         ),
+            (route) => false,
       );
     } else {
       // Do not save unsuccessful login credentials.
@@ -689,7 +683,7 @@ class _LogoRingPainter extends CustomPainter {
 
     // Faint circular track.
     final trackPaint = Paint()
-      ..color = color.withOpacity(0.10 * opacity)
+      ..color = color.withValues(alpha: 0.10 * opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
@@ -706,7 +700,7 @@ class _LogoRingPainter extends CustomPainter {
     const sweepAngle = 1.15;
 
     final arcPaint = Paint()
-      ..color = color.withOpacity(opacity)
+      ..color = color.withValues(alpha: opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.5
       ..strokeCap = StrokeCap.round
@@ -732,7 +726,7 @@ class _LogoRingPainter extends CustomPainter {
     );
 
     final glowPaint = Paint()
-      ..color = Colors.deepPurpleAccent.withOpacity(
+      ..color = Colors.deepPurpleAccent.withValues(alpha:
         0.35 * opacity,
       )
       ..maskFilter = const MaskFilter.blur(
@@ -741,7 +735,7 @@ class _LogoRingPainter extends CustomPainter {
       );
 
     final dotPaint = Paint()
-      ..color = Colors.deepPurpleAccent.withOpacity(opacity);
+      ..color = Colors.deepPurpleAccent.withValues(alpha: opacity);
 
     canvas.drawCircle(dotPosition, 9, glowPaint);
     canvas.drawCircle(dotPosition, 3.5, dotPaint);
