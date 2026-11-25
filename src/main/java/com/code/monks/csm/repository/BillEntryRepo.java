@@ -3,6 +3,7 @@ package com.code.monks.csm.repository;
 import com.code.monks.csm.dto.analytics.projection.MonthlyAnalyticsView;
 import com.code.monks.csm.dto.analytics.projection.CustomerAmountView;
 import com.code.monks.csm.dto.analytics.projection.SupplierAmountView;
+import com.code.monks.csm.dto.ledger.PendingBillAmountView;
 import com.code.monks.csm.entity.BillEntryEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -109,4 +110,20 @@ public interface BillEntryRepo extends JpaRepository<BillEntryEntity,Integer>,
     BigInteger sumBillAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
 
+    @Query("""
+    SELECT
+        b.customer.id AS customerId,
+        b.customer.customerName AS customerName,
+        b.supplier.id AS supplierId,
+        b.supplier.supplierName AS supplierName,
+        COALESCE(SUM(b.billAmount), 0) AS amount
+    FROM BillEntryEntity b
+    WHERE b.date <= :asOfDate
+    GROUP BY
+        b.customer.id,
+        b.customer.customerName,
+        b.supplier.id,
+        b.supplier.supplierName
+""")
+    List<PendingBillAmountView> getPendingBillAmounts(@Param("asOfDate") LocalDate asOfDate);
 }

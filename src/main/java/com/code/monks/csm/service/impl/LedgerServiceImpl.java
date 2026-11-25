@@ -190,7 +190,7 @@ public class LedgerServiceImpl implements LedgerService {
         entries.addAll(getCreditEntries(supplierId, customerId, ledgerType)
         );
 
-        entries.sort(Comparator.comparing(LedgerEntryDto::date));
+        entries.sort(Comparator.comparing(LedgerEntryDto::date, Comparator.nullsLast(Comparator.naturalOrder())));
         log.debug("Total merged ledger entries={}", entries.size());
 
         return entries;
