@@ -38,11 +38,10 @@ public class MonthlyPendingPaymentScheduler {
     private List<String> recipients;
 
     @Scheduled(
-            cron = "${monthly-pending-report.cron}",
-            zone = "${monthly-pending-report.timezone:Asia/Kolkata}"
+            cron = "${monthly-pending-report.cron}"
     )
     public void sendMonthlyPendingPaymentReport() {
-        YearMonth reportMonth = YearMonth.now(REPORT_ZONE).minusMonths(1);
+        YearMonth reportMonth = YearMonth.now(ZoneId.systemDefault()).minusMonths(1);
         LocalDate asOfDate = reportMonth.atEndOfMonth();
         try {
             log.info("Generating monthly pending payment report for {} as of {}", reportMonth, asOfDate);
@@ -57,7 +56,7 @@ public class MonthlyPendingPaymentScheduler {
             String fileName = "Monthly-Pending-Payment-" + reportMonth + ".pdf";
             String base64Pdf = Base64.getEncoder().encodeToString(pdfBytes);
             EmailAttachmentDTO attachment = new EmailAttachmentDTO(fileName, "application/pdf", base64Pdf);
-
+            log.info("System Default Time Zone: {}", ZoneId.systemDefault());
             String emailBody = """
                     <html>
                     <body style="font-family: Arial, sans-serif;">
