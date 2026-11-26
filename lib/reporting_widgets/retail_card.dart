@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../constants/colors_used.dart';
 import '../constants/custom_icons.dart';
+import '../customs/card_action_panel.dart';
 
 class RetailCard extends StatelessWidget {
   final List<MapEntry<String, String>> fields;
@@ -171,33 +172,34 @@ class RetailCard extends StatelessWidget {
                   color: const Color(0xffECECF7),
                 ),
                 const SizedBox(width: AppSpacing.xs),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    if (onAdd != null)
-                      _actionButton(
-                        icon: Iconsax.add_circle,
-                        color: const Color(0xff3CB44B),
-                        onTap: onAdd!,
-                      ),
-                    if (onAdd != null &&
-                        (onEdit != null || onDelete != null))
-                      const SizedBox(height: AppSpacing.xs),
-                    if (onEdit != null)
-                      _actionButton(
-                        icon: Iconsax.edit,
-                        color: const Color(0xff00B894),
-                        onTap: onEdit!,
-                      ),
-                    if (onEdit != null && onDelete != null)
-                      const SizedBox(height: AppSpacing.xs),
-                    if (onDelete != null)
-                      _actionButton(
-                        icon: Iconsax.trash,
-                        color: const Color(0xffFF3B30),
-                        onTap: onDelete!,
-                      ),
-                  ],
+                Center(
+                  child: CardActionPanel(
+                    actions: [
+                      if (onAdd != null)
+                        CardActionItem(
+                          icon: Iconsax.add_circle,
+                          iconColor: AppColors.editGreen,
+                          bgColor: AppColors.editGreenLight,
+                          onTap: onAdd!,
+                        ),
+
+                      if (onEdit != null)
+                        CardActionItem(
+                          icon: Iconsax.edit,
+                          iconColor: AppColors.editGreen,
+                          bgColor: AppColors.editGreenLight,
+                          onTap: onEdit!,
+                        ),
+
+                      if (onDelete != null)
+                        CardActionItem(
+                          icon: Iconsax.trash,
+                          iconColor: AppColors.binRed,
+                          bgColor: AppColors.binRedLight,
+                          onTap: onDelete!,
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),

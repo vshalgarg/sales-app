@@ -4,6 +4,8 @@ import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../card_action_panel.dart';
+
 class MasterContainer extends StatelessWidget {
   final double? elevation;
   final String? name;
@@ -46,9 +48,11 @@ class MasterContainer extends StatelessWidget {
         ),
         child: Padding(
           padding: AppSpacing.card,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+          child:IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
@@ -138,46 +142,38 @@ class MasterContainer extends StatelessWidget {
                   ],
                 ),
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  if (trashIconTap != null) ...[
-                    GestureDetector(
-                      onTap: trashIconTap,
-                      child: customIcon(
-                        icon: Iconsax.trash,
-                        iconColor: AppColors.binRed,
-                        bgColor: AppColors.binRedLight,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                  if (copyIconTap != null) ...[
-                    GestureDetector(
-                      onTap: copyIconTap,
-                      child: customIcon(
-                        icon: Iconsax.copy,
-                        iconColor: AppColors.blueDarkCopy,
-                        bgColor: AppColors.blueLightCopy,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                  ],
-                  if (editIconTap != null)
-                    GestureDetector(
-                      onTap: editIconTap,
-                      child: customIcon(
-                        icon: Iconsax.edit,
-                        iconColor: AppColors.editGreen,
-                        bgColor: AppColors.editGreenLight,
-                      ),
-                    ),
-                ],
+        CardActionPanel(
+          actions: [
+            if (copyIconTap != null)
+              CardActionItem(
+                icon: Iconsax.copy,
+                iconColor: AppColors.blueDarkCopy,
+                bgColor: AppColors.blueLightCopy,
+                onTap: copyIconTap!,
               ),
+
+            if (editIconTap != null)
+              CardActionItem(
+                icon: Iconsax.edit,
+                iconColor: AppColors.editGreen,
+                bgColor: AppColors.editGreenLight,
+                onTap: editIconTap!,
+              ),
+
+            if (trashIconTap != null)
+              CardActionItem(
+                icon: Iconsax.trash,
+                iconColor: AppColors.binRed,
+                bgColor: AppColors.binRedLight,
+                onTap: trashIconTap!,
+              ),
+          ],
+        ),
             ],
           ),
         ),
       ),
+    )
     );
   }
 }

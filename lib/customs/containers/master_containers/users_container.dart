@@ -4,6 +4,8 @@ import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../card_action_panel.dart';
+
 class UserContainer extends StatelessWidget {
   final double? elevation;
   final String? name;
@@ -84,35 +86,30 @@ class UserContainer extends StatelessWidget {
             if (trashIconTap != null ||
                 changePasswordTap != null ||
                 editIconTap != null)
-              Wrap(
-                spacing: AppSpacing.md,
-                children: [
-                  if (trashIconTap != null)
-                    GestureDetector(
-                      onTap: trashIconTap,
-                      child: customIcon(
-                        icon: Iconsax.trash,
-                        iconColor: AppColors.binRed,
-                        bgColor: AppColors.binRedLight,
-                      ),
-                    ),
-                  if (changePasswordTap != null)
-                    GestureDetector(
-                      onTap: changePasswordTap,
-                      child: customIcon(
-                        icon: Iconsax.lock,
-                        iconColor: AppColors.editGreen,
-                        bgColor: AppColors.editGreenLight,
-                      ),
-                    ),
+              CardActionPanel(
+                actions: [
                   if (editIconTap != null)
-                    GestureDetector(
-                      onTap: editIconTap,
-                      child: customIcon(
-                        icon: Iconsax.edit,
-                        iconColor: AppColors.primaryPurple,
-                        bgColor: AppColors.primaryPurple.withValues(alpha:0.10),
-                      ),
+                    CardActionItem(
+                      icon: Iconsax.edit,
+                      iconColor: AppColors.editGreen,
+                      bgColor: AppColors.editGreenLight,
+                      onTap: editIconTap!,
+                    ),
+
+                  if (changePasswordTap != null)
+                    CardActionItem(
+                      icon: Iconsax.lock,
+                      iconColor: AppColors.blueDarkCopy,
+                      bgColor: AppColors.blueLightCopy,
+                      onTap: changePasswordTap!,
+                    ),
+
+                  if (trashIconTap != null)
+                    CardActionItem(
+                      icon: Iconsax.trash,
+                      iconColor: AppColors.binRed,
+                      bgColor: AppColors.binRedLight,
+                      onTap: trashIconTap!,
                     ),
                 ],
               ),

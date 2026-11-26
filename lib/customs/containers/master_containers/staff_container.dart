@@ -4,6 +4,8 @@ import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../card_action_panel.dart';
+
 class StaffContainer extends StatelessWidget {
   final double? elevation;
   final String? name;
@@ -114,29 +116,22 @@ class StaffContainer extends StatelessWidget {
                   ),
                 ),
                 if (trashIconTap != null || editIconTap != null)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (trashIconTap != null) ...[
-                        GestureDetector(
-                          onTap: trashIconTap,
-                          child: customIcon(
-                            icon: Iconsax.trash,
-                            iconColor: AppColors.binRed,
-                            bgColor: AppColors.binRedLight,
-                          ),
-                        ),
-                        if (editIconTap != null)
-                          const SizedBox(height: 10),
-                      ],
+                  CardActionPanel(
+                    actions: [
                       if (editIconTap != null)
-                        GestureDetector(
-                          onTap: editIconTap,
-                          child: customIcon(
-                            icon: Iconsax.edit,
-                            iconColor: AppColors.editGreen,
-                            bgColor: AppColors.editGreenLight,
-                          ),
+                        CardActionItem(
+                          icon: Iconsax.edit,
+                          iconColor: AppColors.editGreen,
+                          bgColor: AppColors.editGreenLight,
+                          onTap: editIconTap!,
+                        ),
+
+                      if (trashIconTap != null)
+                        CardActionItem(
+                          icon: Iconsax.trash,
+                          iconColor: AppColors.binRed,
+                          bgColor: AppColors.binRedLight,
+                          onTap: trashIconTap!,
                         ),
                     ],
                   ),
