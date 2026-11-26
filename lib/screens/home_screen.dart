@@ -209,32 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             },
                           ),
-                        if (canShowAccessManagement)
-                          menuItemCard(
-                            imagePath: "assets/images/access_management.png",
-                            title: "Access Management",
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AccessManagementScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        if (role.trim().toUpperCase() == "ADMIN")
-                          menuItemCard(
-                            imagePath: "assets/images/config.png",
-                            title: "Configurations",
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ConfigurationScreen(),
-                                ),
-                              );
-                            },
-                          ),
+
                         if (canShowBills)
                           menuItemCard(
                             imagePath: "assets/images/bill.png",
@@ -296,6 +271,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => LedgerReporting(),
+                                ),
+                              );
+                            },
+                          ),
+                        if (role.trim().toUpperCase() == "ADMIN")
+                          menuItemCard(
+                            imagePath: "assets/images/config.png",
+                            title: "Configurations",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ConfigurationScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        if (canShowAccessManagement)
+                          menuItemCard(
+                            imagePath: "assets/images/access_management.png",
+                            title: "Access Management",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AccessManagementScreen(),
                                 ),
                               );
                             },
