@@ -5,6 +5,8 @@ import 'package:hisabio/constants/colors_used.dart';
 import 'package:hisabio/constants/custom_icons.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../card_action_panel.dart';
+
 class TransportContainer extends StatelessWidget {
   final double? elevation;
   final String? name;
@@ -173,37 +175,30 @@ class TransportContainer extends StatelessWidget {
                 if (trashIconTap != null ||
                     copyIconTap != null ||
                     editIconTap != null)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (trashIconTap != null)
-                        GestureDetector(
-                          onTap: trashIconTap,
-                          child: customIcon(
-                            icon: Iconsax.trash,
-                            iconColor: AppColors.binRed,
-                            bgColor: AppColors.binRedLight,
-                          ),
-                        ),
-
+                  CardActionPanel(
+                    actions: [
                       if (copyIconTap != null)
-                        GestureDetector(
-                          onTap: copyIconTap,
-                          child: customIcon(
-                            icon: Iconsax.copy,
-                            iconColor: AppColors.blueDarkCopy,
-                            bgColor: AppColors.blueLightCopy,
-                          ),
+                        CardActionItem(
+                          icon: Iconsax.copy,
+                          iconColor: AppColors.blueDarkCopy,
+                          bgColor: AppColors.blueLightCopy,
+                          onTap: copyIconTap!,
                         ),
 
                       if (editIconTap != null)
-                        GestureDetector(
-                          onTap: editIconTap,
-                          child: customIcon(
-                            icon: Iconsax.edit,
-                            iconColor: AppColors.editGreen,
-                            bgColor: AppColors.editGreenLight,
-                          ),
+                        CardActionItem(
+                          icon: Iconsax.edit,
+                          iconColor: AppColors.editGreen,
+                          bgColor: AppColors.editGreenLight,
+                          onTap: editIconTap!,
+                        ),
+
+                      if (trashIconTap != null)
+                        CardActionItem(
+                          icon: Iconsax.trash,
+                          iconColor: AppColors.binRed,
+                          bgColor: AppColors.binRedLight,
+                          onTap: trashIconTap!,
                         ),
                     ],
                   ),
